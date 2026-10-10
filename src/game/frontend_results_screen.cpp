@@ -237,7 +237,8 @@ void FrontEnd::mission_briefing_screen(const Mission& mission) {
   const MissionBriefing facts = mission_briefing_facts(mission);
   ui::Dialog d(gui_, 0x14, 0x1e, 0x125, 0x1a4, kMenuFlags);
   d.emplace<ui::TitleBar>(mission_briefing_title(facts, exe_));
-  d.emplace<ui::Button>(0x55, 0x172, 0x79, exe_string(0xfc098), ui::return_accept);
+  // Back closes it like OK, its only way out.
+  d.set_back(d.emplace<ui::Button>(0x55, 0x172, 0x79, exe_string(0xfc098), ui::return_accept));
   auto& text = d.emplace<ui::TextBox>(0x12, 0x84, 200, 0xd6, 10, 1000,
                                       mission_briefing_text(facts, exe_, menu_res_.small));
   text.read_only = true;
@@ -264,7 +265,7 @@ void FrontEnd::mission_results_screen() {
   palette_fade_out(0, 0x100);
   ui::Dialog d(gui_, 10, 12, 0x267, 0x14a, kMenuFlags);
   d.emplace<ui::TitleBar>(exe_string(0xfc081));
-  d.emplace<ui::Button>(0xf5, 0x118, 0x79, exe_string(0xfc091), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0xf5, 0x118, 0x79, exe_string(0xfc091), ui::return_accept));
   auto& text = d.emplace<ui::TextBox>(0x12, 0x7a, 0x209, 0x86, 10, 5000,
                                       mission_results_summary(results_, exe_, menu_res_.small));
   text.read_only = true;
@@ -318,7 +319,7 @@ void FrontEnd::best_missions_screen() {
 
   ui::Dialog d(gui_, 10, 12, 0x267, 0x1c2, kMenuFlags);
   d.emplace<ui::TitleBar>(exe_string(0xfbff2));
-  d.emplace<ui::Button>(0xf5, 400, 0x79, exe_string(0xfc000), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0xf5, 400, 0x79, exe_string(0xfc000), ui::return_accept));
   auto& text = d.emplace<ui::TextBox>(0x12, 0x110, 0x209, 0x68, 10, 5000, used.empty() ? std::string() : entry_text(0));
   text.read_only = true;
   auto& up = d.emplace<ui::Button>(0x235, 0x10c, 0x21, exe_string(0xfc003), nullptr, 0, 0x14);
@@ -371,7 +372,7 @@ std::string FrontEnd::high_score_enter_name() {
   auto& entry = d.emplace<ui::TextEntry>(0x14, 0xc2, 0x12e, 0x15, std::string(),
                                          [](std::string&, int) { return ui::kResultAccept; });
   d.emplace<ui::Label>(0x17, 0x7f, exe_string(0xfc036), ui::FontSlot::kFont1);
-  d.emplace<ui::Button>(0x72, 0xf5, 0x79, exe_string(0xfc06d), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0x72, 0xf5, 0x79, exe_string(0xfc06d), ui::return_accept));
   d.emplace<ui::Label>(0x17, 0xa7, exe_string(0xfc070), ui::FontSlot::kFont1);
   d.emplace<ui::GroupBox>(9, 0x9b, 0x14c, 0xeb);
   add_exit_area(d);

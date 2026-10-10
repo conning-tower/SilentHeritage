@@ -189,7 +189,7 @@ bool FrontEnd::subsel_screen(std::string& class_name, const SubClassFilter& filt
     info_changed = true;
     return 0;
   };
-  d.emplace<ui::Button>(0x23, 0x15c, 0x79, exe_string(addr::kCancel), ui::return_cancel);
+  d.set_back(d.emplace<ui::Button>(0x23, 0x15c, 0x79, exe_string(addr::kCancel), ui::return_cancel));
   // 0x73c97: the Alt-Q area also leaves the list shorter.
   d.emplace<ui::Area>(
       -1, -1, -1, -1,

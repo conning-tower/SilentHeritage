@@ -110,6 +110,10 @@ struct Event {
   std::uint32_t tick = 0;
   int hotspot = -1;                // activation event: absolute hotspot index
   const Dialog* dialog = nullptr;  // activation event: the owner dialog
+  // An Esc key event that is Android's Back (no such key in the original):
+  // a dialog with a back control activates it (`Dialog::set_back`), any
+  // other code takes it as Esc.
+  bool back = false;
 
   bool is_key() const { return (flags & kEventKey) != 0; }
 };

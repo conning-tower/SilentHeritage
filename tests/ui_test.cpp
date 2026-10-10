@@ -265,6 +265,88 @@ TEST_CASE("Dialog: clicks, Esc, Tab order, Enter, hotkeys", "[ui]") {
   }
 }
 
+TEST_CASE("Back activates the dialog's back control, else acts as Esc", "[ui][back]") {
+  SH_REQUIRE_GAME_EXE();
+  Harness h;
+  const auto back = [&h] { h.gui.mouse().post_back(0); };
+
+  SECTION("a dialog without Esc: Back activates its back control, Esc does nothing") {
+    Dialog d(h.gui, 100, 100, 300, 200, kDialogFramed);
+    d.emplace<Button>(10, 10, 80, "Go", [](int) { return 7; });
+    Button& main_menu = d.emplace<Button>(10, 50, 80, "Main menu", [](int) { return 11; });
+    d.set_back(main_menu);
+    REQUIRE(d.run_begin() == kResultContinue);
+    h.key(kKeyEsc);
+    CHECK(h.steps(d) == 0);
+    back();
+    CHECK(h.steps(d) == 11);
+  }
+  SECTION("the back control comes before the dialog's cancel") {
+    Dialog d(h.gui, 100, 100, 300, 200, kDialogFramed | kDialogCancel);
+    d.set_back(d.emplace<Button>(10, 10, 80, "Done", [](int) { return 12; }));
+    REQUIRE(d.run_begin() == kResultContinue);
+    back();
+    CHECK(h.steps(d) == 12);
+  }
+  SECTION("desktop Esc still cancels a dialog with a back control") {
+    Dialog d(h.gui, 100, 100, 300, 200, kDialogFramed | kDialogCancel);
+    d.set_back(d.emplace<Button>(10, 10, 80, "Done", [](int) { return 12; }));
+    REQUIRE(d.run_begin() == kResultContinue);
+    h.key(kKeyEsc);
+    CHECK(h.steps(d) == kResultCancel);
+  }
+  SECTION("without a back control Back is Esc") {
+    Dialog cancels(h.gui, 100, 100, 300, 200, kDialogFramed | kDialogCancel);
+    cancels.emplace<Button>(10, 10, 80, "OK", return_accept);
+    REQUIRE(cancels.run_begin() == kResultContinue);
+    back();
+    CHECK(h.steps(cancels) == kResultCancel);
+    Dialog stays(h.gui, 100, 100, 300, 200, kDialogFramed);
+    stays.emplace<Button>(10, 10, 80, "OK", return_accept);
+    REQUIRE(stays.run_begin() == kResultContinue);
+    back();
+    CHECK(h.steps(stays) == 0);
+    stays.close();
+  }
+  SECTION("a disabled back control leaves Back to Esc") {
+    Dialog d(h.gui, 100, 100, 300, 200, kDialogFramed | kDialogCancel);
+    d.emplace<Button>(10, 10, 80, "OK", return_accept);
+    Button& cancel = d.emplace<Button>(10, 50, 80, "Cancel", [](int) { return 13; });
+    cancel.disabled = true;
+    d.set_back(cancel);
+    REQUIRE(d.run_begin() == kResultContinue);
+    CHECK(d.back_hotspot() == -1);
+    back();
+    CHECK(h.steps(d) == kResultCancel);
+  }
+}
+
+TEST_CASE("Back ends a text edit and goes to the back control", "[ui][back]") {
+  SH_REQUIRE_GAME_EXE();
+  Harness h;
+  int pumps = 0;
+  h.gui.set_pump([&] {
+    ++h.tick;
+    if (++pumps > 1000) {
+      FAIL("the edit loop does not end");
+    }
+    if (pumps == 5) {
+      h.key(0x1e61);  // 'a'
+    } else if (pumps == 10) {
+      h.key(kKeyEsc);  // ignored: the dialog does not cancel
+    } else if (pumps == 15) {
+      h.gui.mouse().post_back(0);
+    }
+  });
+  // The entry has the focus and edits at once.
+  Dialog d(h.gui, 0, 0, 300, 100, kDialogFramed);
+  TextEntry& entry = d.emplace<TextEntry>(10, 10, 150, 8, "", [](std::string&, int) { return kResultAccept; });
+  d.set_back(d.emplace<Button>(10, 50, 80, "Cancel", return_cancel));
+  CHECK(d.run() == kResultCancel);
+  CHECK(entry.text == "a");
+  CHECK(pumps >= 15);
+}
+
 TEST_CASE("Dialog without hotspots returns -3", "[ui]") {
   SH_REQUIRE_GAME_EXE();
   Harness h;

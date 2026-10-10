@@ -235,7 +235,7 @@ int FrontEnd::encounter_menu(int menu) {
     draw_sprite_clipped(gfx, pictures.frame(static_cast<std::size_t>(picture_frame())), 0x21, 0x7a);
   });
   d.emplace<ui::TitleBar>(exe_string(layout.title));
-  d.emplace<ui::Button>(35, 395, 121, exe_string(layout.buttons[0]), ui::return_cancel);
+  d.set_back(d.emplace<ui::Button>(35, 395, 121, exe_string(layout.buttons[0]), ui::return_cancel));
   d.emplace<ui::Button>(185, 395, 121, exe_string(layout.buttons[1]), [](int) { return 0x50; });
   d.emplace<ui::Button>(335, 395, 121, exe_string(layout.buttons[2]), ui::return_accept);
   std::vector<ui::CycleButton*> greyed_by_enemy_sub;

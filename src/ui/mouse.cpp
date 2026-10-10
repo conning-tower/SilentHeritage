@@ -39,7 +39,7 @@ void Mouse::update(int x, int y, std::uint8_t buttons, std::uint8_t shift) {
   }
 }
 
-void Mouse::post_key(std::uint16_t bios_word, std::uint8_t shift) {
+Event Mouse::key_event(std::uint16_t bios_word, std::uint8_t shift) const {
   Event e;
   e.flags = kEventKey;
   e.key = (bios_word & 0xff) == 0xe0 ? static_cast<std::uint16_t>(bios_word & 0xff00) : bios_word;
@@ -49,6 +49,14 @@ void Mouse::post_key(std::uint16_t bios_word, std::uint8_t shift) {
                                         ((buttons_ & kButtonMiddle) != 0 ? kKeyButtonMiddle : 0));
   e.x = x_;
   e.y = y_;
+  return e;
+}
+
+void Mouse::post_key(std::uint16_t bios_word, std::uint8_t shift) { events_->post(key_event(bios_word, shift)); }
+
+void Mouse::post_back(std::uint8_t shift) {
+  Event e = key_event(kKeyEsc, shift);
+  e.back = true;
   events_->post(e);
 }
 

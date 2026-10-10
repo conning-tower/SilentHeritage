@@ -183,7 +183,7 @@ class SubTour {
                               [](int) { return kToggleView; });
     panel.emplace<ui::Button>(0x19, 0x4d, 0xc6, fe.exe_string(kTextOn + text * kToggleSize),
                               [](int) { return kToggleText; });
-    panel.emplace<ui::Button>(0x19, 0x75, 0xc6, fe.exe_string(kMainMenu), [](int) { return kExit; });
+    panel.set_back(panel.emplace<ui::Button>(0x19, 0x75, 0xc6, fe.exe_string(kMainMenu), [](int) { return kExit; }));
     fe.add_exit_area(panel);
 
     ui::Dialog parts(gui, 0, 0, 0x27f, 0x1df, 0, &fe.screen_);

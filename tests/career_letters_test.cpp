@@ -84,9 +84,11 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     std::uint16_t key = 0;  // a key, or a click at (x, y)
     int x = 0;
     int y = 0;
+    bool back = false;  // Android's Back instead
   };
   static Step click(int x, int y) { return {0, x, y}; }
   static Step key(std::uint16_t k) { return {k, 0, 0}; }
+  static Step back() { return {0, 0, 0, true}; }
 
   std::deque<Step> script;
   Image8 last;
@@ -113,7 +115,9 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     idle_ = 0;
     const Step s = script.front();
     script.pop_front();
-    if (s.key != 0) {
+    if (s.back) {
+      gui.mouse().post_back(0);
+    } else if (s.key != 0) {
       gui.mouse().post_key(s.key, 0);
     } else {
       gui.mouse().update(s.x, s.y, ui::kButtonLeft, 0);
@@ -409,6 +413,38 @@ TEST_CASE("Career patrol screens return the original codes", "[career]") {
     CHECK(r.equipment == 1);
     // Nothing more is due that month.
     CHECK(s.letters.new_equipment(r, 1) == 0);
+  }
+
+  SECTION("Back takes each screen's way out") {
+    const ScriptedHost::Step back = ScriptedHost::back();
+    s.host.script = {back};
+    CHECK(s.letters.patrol_orders(r, orders, darwin) == PatrolOrdersResult::kCancel);
+    s.host.script = {back};
+    s.letters.patrol_results(r, MissionResults{}, {.transit_hours = 48, .repair_days = 3, .fuel_capacity = 117000});
+    s.host.script = {back};
+    CHECK(s.letters.homeport(r, *darwin, true) == -1);
+    s.host.script = {back};
+    s.letters.transit_calendar(r, 4, 12);
+    r.month = 2;
+    r.year = 12;
+    r.equipment = 0;
+    s.host.script = {back};
+    CHECK(s.letters.new_equipment(r, 1) == -1);
+    Career career;
+    career.record = r;
+    const auto assign = [&tables](Career& c) {
+      c.record.boat = "(SS-212) Gato";
+      c.record.class_index = static_cast<std::uint8_t>(tables.find_sub("GATO")->class_index);
+      c.record.class_name = "GATO";
+      c.record.class_title = tables.find_sub("GATO")->display_name;
+      return true;
+    };
+    // An offer is declined (CANCEL), an assignment accepted (OK).
+    s.host.script = {back};
+    CHECK(s.letters.new_submarine(career, tables, SubCommand::kComSubPac, true, assign) == -2);
+    s.host.script = {back};
+    CHECK(s.letters.new_submarine(career, tables, SubCommand::kComSubPac, false, assign) == -1);
+    CHECK(s.host.script.empty());
   }
 
   SECTION("new submarine") {

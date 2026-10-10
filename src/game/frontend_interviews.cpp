@@ -129,6 +129,7 @@ int FrontEnd::interviews_run_dialog(bool first) {
                                       [](int) { return kPrevResult; });
   buttons[6] = &d.emplace<ui::Button>(0xdd, 0x1ae, 0xc6, exe_string(kMainMenu),
                                       [](int) { return kMainMenuResult; });
+  d.set_back(*buttons[6]);
   buttons[4]->disabled = interview_page_ == kInterviewPages - 1;
   buttons[5]->disabled = interview_page_ == 0;
   for (int i = 0; i < kInterviewsPerPage; ++i) {
@@ -192,7 +193,7 @@ bool FrontEnd::play_interview_video(int video) {
   gui_.set_skin(skin);
   int frame_number = 0;  // 0x18a674
   ui::Dialog d(gui_, 0, 0, 0x27e, 0x1de, 0, &screen_);
-  d.emplace<ui::Button>(0x140, 0x178, 0x21, exe_string(kStop), [](int) { return kStopResult; });
+  d.set_back(d.emplace<ui::Button>(0x140, 0x178, 0x21, exe_string(kStop), [](int) { return kStopResult; }));
   d.emplace<ui::Button>(0x168, 0x178, 0x21, exe_string(kRestart), [](int) { return kRestartResult; });
   d.emplace<ui::GroupBox>(0x128, 0x173, 0x271, 0x19f);
   // The slider is disabled (+0x2c), so its seek callback (0xa8a67, the

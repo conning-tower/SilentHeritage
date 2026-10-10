@@ -301,6 +301,22 @@ class Dialog {
   // Calls the idle callback with the run argument, then clears it.
   void call_idle();
 
+  // Makes part `sub` of `control` (one of this dialog's) the control that
+  // Android's Back activates, as its hotkey would (an Esc event marked
+  // `Event::back`): the screen's own way back, such as its CANCEL or MAIN
+  // MENU button. Without one, Back is Esc.
+  void set_back(const Control& control, int sub = 0) {
+    back_ = &control;
+    back_sub_ = sub;
+  }
+  // Returns the hotspot (relative) of the back control while it can be
+  // activated (registered, enabled and not disabled), else -1.
+  int back_hotspot();
+  // Returns true when the Esc event `event` ends a text edit of this
+  // dialog: the dialog cancels on Esc, or `event` is Back and the dialog's
+  // back control can be activated.
+  bool esc_ends_edit(const Event& event);
+
   void set_idle(IdleFn idle) { idle_ = std::move(idle); }
   void set_blit(BlitFn blit) { blit_ = std::move(blit); }
   void set_extra_dirty(ExtraDirtyFn fn) { extra_dirty_ = std::move(fn); }
@@ -327,6 +343,8 @@ class Dialog {
   BlitFn blit_;
   ExtraDirtyFn extra_dirty_;
   std::vector<std::unique_ptr<Control>> controls_;
+  const Control* back_ = nullptr;
+  int back_sub_ = 0;
   std::size_t dirty_capacity_;
   std::vector<Rect> dirty_;
   bool frame_dirty_ = false;    // +0x24

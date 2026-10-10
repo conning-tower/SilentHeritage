@@ -109,7 +109,7 @@ int FrontEnd::list_saved_missions(bool first_call, bool show_background) {
   auto& list = d.emplace<ui::List>(
       0x1f, 0x78, 400, [&saves] { return static_cast<int>(saves.size()); },
       [&saves](int row) { return saves[static_cast<std::size_t>(row)].name; });
-  d.emplace<ui::Button>(0x23, 0x18b, 0x79, exe_string(addr::kCancel), ui::return_cancel);
+  d.set_back(d.emplace<ui::Button>(0x23, 0x18b, 0x79, exe_string(addr::kCancel), ui::return_cancel));
   // delete_saved_mission (0xa4512): DELETE MISSION? with the default skin.
   d.emplace<ui::Button>(0xb9, 0x18b, 0x79, exe_string(addr::kDelete), [&](int) {
     const MissionSaveHeader& h = saves[static_cast<std::size_t>(list.selection)];

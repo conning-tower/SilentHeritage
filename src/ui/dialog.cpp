@@ -299,7 +299,8 @@ void Dialog::handle_event(const Event& event) {
     pending_msg_ = Msg::kRelease;
     target_index_ = focus_;
   };
-  if (key == kKeyEsc) {
+  const int back = key == kKeyEsc && event.back ? back_hotspot() : -1;
+  if (key == kKeyEsc && back == -1) {
     if ((flags_ & kDialogCancel) != 0) {
       result_ = kResultCancel;
       pending_msg_ = Msg::kNone;
@@ -325,7 +326,10 @@ void Dialog::handle_event(const Event& event) {
     target_index_ = event.hotspot - first_hotspot_;
     return;
   }
-  if (!((key == kKeyEnter || key == kKeySpace) && navigation)) {
+  if (back != -1) {
+    // Android's Back: the back control is pressed as by its hotkey.
+    focus_ = back;
+  } else if (!((key == kKeyEnter || key == kKeySpace) && navigation)) {
     // Hotkeys (and Enter / Space without navigation).
     const int i = hotspots().find_hotkey(this, key, 1);
     if (i == -1 || i < first_hotspot_ || first_hotspot_ + hotspot_count_ <= i) {
@@ -355,6 +359,22 @@ void Dialog::handle_event(const Event& event) {
   if (focus_ == kFocusNone) {
     focus_ = prev_focus_;
   }
+}
+
+int Dialog::back_hotspot() {
+  if (back_ == nullptr) {
+    return -1;
+  }
+  const int i = hotspots().find(back_, back_sub_, true);
+  if (i == -1 || i < first_hotspot_ || i >= first_hotspot_ + hotspot_count_) {
+    return -1;
+  }
+  const Hotspot& h = hotspots()[i];
+  return h.control->is_disabled(h.sub) ? -1 : i - first_hotspot_;
+}
+
+bool Dialog::esc_ends_edit(const Event& event) {
+  return (flags_ & kDialogCancel) != 0 || (event.back && back_hotspot() != -1);
 }
 
 bool Dialog::redraw_controls() {

@@ -274,7 +274,13 @@ class GameApp final : public FrontendHost, public EditorRunner {
         break;
       case EventType::kKeyDown:
       case EventType::kText:
-        if (const std::optional<std::uint16_t> word = bios_key_word(e)) {
+        if (is_back_key(e)) {
+          // Back activates the back control of the front end's dialogs
+          // (their way back one menu, EXIT TO DOS in the main menu) and
+          // is Esc everywhere else: a mission's dialogs and the scenario
+          // editor's have none.
+          gui.mouse().post_back(bios_shift_state(e.mods));
+        } else if (const std::optional<std::uint16_t> word = bios_key_word(e)) {
           gui.mouse().post_key(*word, bios_shift_state(e.type == EventType::kText ? mods_ : e.mods));
         }
         if (e.type == EventType::kKeyDown) {

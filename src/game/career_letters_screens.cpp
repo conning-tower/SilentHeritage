@@ -285,8 +285,8 @@ PatrolOrdersResult CareerLetters::patrol_orders(const CareerRecord& record, cons
                         [](int) { return static_cast<int>(PatrolOrdersResult::kRealism); });
   d.emplace<ui::Button>(0x1b2, 0x168, 0xc6, ui.exe_string(0xf7bc0),
                         [](int) { return static_cast<int>(PatrolOrdersResult::kBegin); });
-  d.emplace<ui::Button>(0x1b2, 0x194, 0xc6, ui.exe_string(0xf7bcd),
-                        [](int) { return static_cast<int>(PatrolOrdersResult::kCancel); });
+  d.set_back(d.emplace<ui::Button>(0x1b2, 0x194, 0xc6, ui.exe_string(0xf7bcd),
+                                   [](int) { return static_cast<int>(PatrolOrdersResult::kCancel); }));
   d.emplace<ui::TextBox>(0x1bc, 0x78, 0x9d, 0xa0, 10, 1000, letter).read_only = true;
   d.emplace<ui::Label>(0x1f1, 0x5e, ui.exe_string(0xf7bd4), ui::FontSlot::kFont1);
   ui.add_exit_area(d);
@@ -317,7 +317,7 @@ void CareerLetters::patrol_results(const CareerRecord& record, const MissionResu
   ui.palette_fade_out(0, 0x100);
   ui::Dialog d(ui.gui(), 10, 0xc, 0x267, 0x14a, kMenuFlags);
   d.emplace<ui::TitleBar>(ui.exe_string(0xf7be1));
-  d.emplace<ui::Button>(0xf5, 0x118, 0x79, ui.exe_string(0xf7bf0), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0xf5, 0x118, 0x79, ui.exe_string(0xf7bf0), ui::return_accept));
   auto& text = d.emplace<ui::TextBox>(
       0x12, 0x7a, 0x209, 0x86, 10, 5000,
       patrol_results_summary(record, results, info, ui.exe(), ui.menu_resources().small));
@@ -360,7 +360,7 @@ int CareerLetters::homeport(const CareerRecord& record, const HomePort& port, bo
     draw_port_marker(map, port, flags);
     d.add_dirty({0, 0, 0x27f, 0x1df});
   });
-  d.emplace<ui::Button>(0x1b2, 0x194, 0xc6, ui.exe_string(0xf5358), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0x1b2, 0x194, 0xc6, ui.exe_string(0xf5358), ui::return_accept));
   d.emplace<ui::TextBox>(0x1bc, 0x8c, 0x9d, 0xcf, 10, 1000, orders).read_only = true;
   auto& title = d.emplace<ui::TextField>(0x1b8, 0x66, 0x26f, 0x7c, [&ui] { return ui.exe_string(0xf53c1); },
                                          ui::FontSlot::kFont1, TextAlign::kCentre);
@@ -400,7 +400,7 @@ int CareerLetters::new_equipment(CareerRecord& record, std::int32_t current_comm
   }
   ui::Dialog d(ui.gui(), 0x140, 0x31, 300, 0x178, kMenuFlags);
   d.emplace<ui::TitleBar>(ui.exe_string(0xf750c));
-  d.emplace<ui::Button>(0x58, 0x140, 0x79, ui.exe_string(0xf751a), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0x58, 0x140, 0x79, ui.exe_string(0xf751a), ui::return_accept));
   d.emplace<ui::TextBox>(0x14, 0x82, 0xf0, 0xa0, 10, 1000, letter).read_only = true;
   ui.add_exit_area(d);
   // 0x5b5a0
@@ -584,7 +584,9 @@ int CareerLetters::new_submarine(Career& career, const GameTables& tables, SubCo
       gfx.bitmap->blit(panel, gfx.x0 + 0x24 - 10, gfx.y0 + 0x101 - 0x27);
     });
     d.emplace<ui::TitleBar>(ui.exe_string(0xf9064));
-    d.emplace<ui::Button>(0x1b2, 0x15c, 0x79, ui.exe_string(0xf9072), ui::return_accept);
+    // Back declines an offer (CANCEL) and accepts an assignment (OK, its
+    // only way out).
+    d.set_back(d.emplace<ui::Button>(0x1b2, 0x15c, 0x79, ui.exe_string(0xf9072), ui::return_accept));
     auto& toggle = d.emplace<ui::Button>(0x40, 0x15c, 0x79, toggle_label(), nullptr);
     // subscrn_toggle_stats (0x71870)
     toggle.on_click = [&](int) {
@@ -595,7 +597,7 @@ int CareerLetters::new_submarine(Career& career, const GameTables& tables, SubCo
       return 0;
     };
     if (offer) {
-      d.emplace<ui::Button>(0xf9, 0x15c, 0x79, ui.exe_string(0xf9080), ui::return_cancel);
+      d.set_back(d.emplace<ui::Button>(0xf9, 0x15c, 0x79, ui.exe_string(0xf9080), ui::return_cancel));
     }
     d.emplace<ui::TextBox>(0x17e, 0x7e, 0xc2, 0xc0, 10, 500, orders).read_only = true;
     ui.add_exit_area(d);

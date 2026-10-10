@@ -62,10 +62,12 @@ an installed package only accepts updates signed with the same key).
 
 On first start, the app asks for the folder holding your Silent Hunter
 install, then either reads it in place or copies it into the app's storage.
-A finger acts as the left mouse button and Back as Esc. During a mission, a
-floating ORDERS button opens a panel with the orders that are keyboard-only
-in the original (depth orders, firing tubes), and its + and − buttons change
-the time compression.
+A finger acts as the left mouse button. Back goes back one screen in the
+menus (the screen's CANCEL, MAIN MENU or OK button) and quits from the main
+menu; during a mission and in the scenario editor it acts as Esc. During a
+mission, a floating ORDERS button opens a panel with the orders that are
+keyboard-only in the original (depth orders, firing tubes), and its + and −
+buttons change the time compression.
 
 ## Tests
 

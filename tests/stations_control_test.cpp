@@ -232,6 +232,21 @@ TEST_CASE("Esc and END MISSION: Abort, then YES, ends the mission", "[stations]"
   CHECK(rig.screen->finish() == 1);
 }
 
+TEST_CASE("Android's Back is Esc in a mission: it opens and closes END MISSION", "[stations][back]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ControlRig rig(install);
+  rig.frames(1);
+  rig.settle();
+  rig.gui.mouse().post_back(0);
+  rig.frames(2);
+  CHECK(rig.mission().paused());
+  rig.gui.mouse().post_back(0);
+  rig.frames(2);
+  CHECK(!rig.mission().paused());
+  CHECK(rig.mission().end_code() == 0);
+  CHECK(rig.frames(2));
+}
+
 TEST_CASE("Alt-Q, NO keeps the mission going", "[stations]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);

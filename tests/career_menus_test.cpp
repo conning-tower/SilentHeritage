@@ -57,9 +57,11 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     std::uint16_t key = 0;  // a key, or a click at (x, y)
     int x = 0;
     int y = 0;
+    bool back = false;  // Android's Back instead
   };
   static Step click(int x, int y) { return {0, x, y}; }
   static Step key(std::uint16_t k) { return {k, 0, 0}; }
+  static Step back() { return {0, 0, 0, true}; }
 
   std::deque<Step> script;
 
@@ -77,7 +79,9 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     idle_ = 0;
     const Step s = script.front();
     script.pop_front();
-    if (s.key != 0) {
+    if (s.back) {
+      gui.mouse().post_back(0);
+    } else if (s.key != 0) {
       gui.mouse().post_key(s.key, 0);
     } else {
       gui.mouse().update(s.x, s.y, ui::kButtonLeft, 0);
@@ -343,6 +347,46 @@ TEST_CASE("A career patrol updates the career from its results", "[career]") {
   REQUIRE(saved.has_value());
   CHECK(saved->career.record.tonnage == r.tonnage);
   CHECK(saved->career.log.size() == 6);
+}
+
+TEST_CASE("Back takes each career menu's way back", "[career][back]") {
+  SH_REQUIRE_GAME_DATA(install);
+  Fixture f(install);
+  const GameTables tables = GameTables::load(install);
+  const ScriptedHost::Step back = ScriptedHost::back();
+  f.host.script = {back};
+  CHECK(career_menu_screen(f.ui) == career_code::kMainMenu);
+  // The name entry edits at once: Back ends the edit and is CANCEL.
+  f.host.script = {back};
+  CHECK_FALSE(new_career_screen(f.ui, true).has_value());
+  CHECK(f.host.script.empty());
+
+  const std::optional<RosterFile> roster = load_roster(f.saves, 0);
+  REQUIRE(roster.has_value());
+  const CareerRecord& r = roster->career.record;
+  const std::vector<CareerRecord> careers = {r};
+  int selection = 0;
+  f.host.script = {back};
+  CHECK(roster_select_screen(f.ui, careers, selection, true) == ui::kResultCancel);
+  Career career;
+  career.record = r;
+  REQUIRE(career.record.on_patrol == 0);
+  f.host.script = {back};
+  CHECK(base_menu_screen(f.ui, career, true, [] {}) == career_code::kLeaveCareer);
+
+  // VIEW CAREER's LOG BOOK, left by its DONE sprite, then VIEW CAREER's
+  // DONE.
+  REQUIRE(r.log_count != 0);
+  f.host.script = {button(0xb, 0xe, 0x179, 0x15a, 0xc6), back, back};
+  view_career(f.ui, r, {});
+  CHECK(f.host.script.empty());
+  f.host.script = {back};
+  top_commanders_screen(f.ui, r, top_commanders(tables.commanders, r), tables.commanders);
+  f.host.script = {back};
+  best_careers_screen(f.ui, BestCareersTable{});
+  f.host.script = {back};
+  top_career_screen(f.ui, r);
+  CHECK(f.host.script.empty());
 }
 
 }  // namespace

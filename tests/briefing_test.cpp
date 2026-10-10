@@ -237,6 +237,7 @@ class BriefingHost final : public FrontendHost, public MissionRunner {
     std::uint16_t key = 0;  // a key, or a click at (x, y)
     int x = 0;
     int y = 0;
+    bool back = false;  // Android's Back instead
   };
 
   BriefingHost(const Install& install, const GameTables& tables) : install_(install), tables_(tables) {}
@@ -268,7 +269,9 @@ class BriefingHost final : public FrontendHost, public MissionRunner {
     }
     const Step s = script.front();
     script.pop_front();
-    if (s.key != 0) {
+    if (s.back) {
+      gui.mouse().post_back(0);
+    } else if (s.key != 0) {
       gui.mouse().post_key(s.key, 0);
     } else {
       gui.mouse().update(s.x, s.y, ui::kButtonLeft, 0);
@@ -338,6 +341,15 @@ TEST_CASE("BEGIN on a historical mission shows its briefing; OK starts the missi
     const Image8& f = host.briefing_frame;
     CHECK(f.at(0x14 + 0x12 + 10, 0x1e + 0x84 + 3) != f.at(5, 5));
     CHECK(f.at(0x14 + 0x12 + 190, 0x1e + 0x84 + 0xd0) == f.at(0x14 + 0x12 + 10, 0x1e + 0x84 + 3));
+  }
+
+  SECTION("Back closes it like OK") {
+    const BriefingHost::Step back{0, 0, 0, true};
+    host.script = {kSingleMission, kHistoric, kBegin, back, back, back};
+    front_end.run();
+    CHECK(host.script.empty());
+    REQUIRE(host.started_with.size() == 1);
+    CHECK(host.started_with.front() == 2);
   }
 
   SECTION("Alt-Q asks EXIT TO DOS? over the briefing") {

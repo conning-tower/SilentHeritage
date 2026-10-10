@@ -131,7 +131,10 @@ int career_menu_screen(CareerUi& ui) {
   }};
   int y = 0x82;
   for (const auto& [label, result] : kButtons) {
-    d.emplace<ui::Button>(0x23, y, 0xc6, ui.exe_string(label), returns(result));
+    auto& button = d.emplace<ui::Button>(0x23, y, 0xc6, ui.exe_string(label), returns(result));
+    if (result == career_code::kMainMenu) {
+      d.set_back(button);
+    }
     y += 0x28;
   }
   ui.add_exit_area(d);
@@ -175,7 +178,7 @@ std::optional<NewCareerChoice> new_career_screen(CareerUi& ui, bool all_maps) {
   d.emplace<ui::Label>(0x17, 0x89, ui.exe_string(addr::kNameLabel), ui::FontSlot::kFont1);
   begin = &d.emplace<ui::Button>(0xc4, 300, 0x79, ui.exe_string(addr::kNewCareerOk), ui::return_accept);
   begin->disabled = true;
-  d.emplace<ui::Button>(0x14, 300, 0x79, ui.exe_string(addr::kNewCareerCancel), ui::return_cancel);
+  d.set_back(d.emplace<ui::Button>(0x14, 300, 0x79, ui.exe_string(addr::kNewCareerCancel), ui::return_cancel));
   d.emplace<ui::GroupBox>(9, 0x7d, 0x14c, 0xcd);
   d.emplace<ui::GroupBox>(9, 0xd0, 0x14c, all_maps ? 0x11d : 0xfa);
   ui.add_exit_area(d);
@@ -247,7 +250,7 @@ int roster_select_screen(CareerUi& ui, std::span<const CareerRecord> careers, in
   selection = std::clamp(selection, 0, std::max(static_cast<int>(careers.size()) - 1, 0));
   ui::Dialog d(ui.gui(), 0xb, 0xe, 0x26b, 0x1c7, kMenuFlags);
   d.emplace<ui::TitleBar>(ui.exe_string(addr::kRosterTitle));
-  d.emplace<ui::Button>(0x2b, 400, 0x79, ui.exe_string(addr::kRosterCancel), ui::return_cancel);
+  d.set_back(d.emplace<ui::Button>(0x2b, 400, 0x79, ui.exe_string(addr::kRosterCancel), ui::return_cancel));
   d.emplace<ui::Button>(0xb1, 400, 0x79, ui.exe_string(addr::kRosterView), returns(career_code::kRosterView))
       .disabled = none;
   // croster_delete_career (0x35352)
@@ -388,8 +391,8 @@ int base_menu_screen(CareerUi& ui, const Career& career, bool redraw, const std:
       return 0;
     });
   });
-  d.emplace<ui::Button>(0x1e, y + 0x28, 0xc6, ui.exe_string(addr::kBaseMainMenu),
-                        returns(career_code::kLeaveCareer));
+  d.set_back(d.emplace<ui::Button>(0x1e, y + 0x28, 0xc6, ui.exe_string(addr::kBaseMainMenu),
+                                   returns(career_code::kLeaveCareer)));
   return ui.run_menu_dialog(d);
 }
 

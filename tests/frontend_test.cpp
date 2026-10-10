@@ -5,10 +5,12 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <deque>
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -17,6 +19,7 @@
 #include "core/error.h"
 #include "core/install.h"
 #include "game/frontend.h"
+#include "game/frontend_best.h"
 #include "game/options_realism.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
@@ -236,11 +239,16 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     std::uint16_t key = 0;  // a key, or a click at (x, y)
     int x = 0;
     int y = 0;
+    bool back = false;  // Android's Back instead
   };
   static Step click(int x, int y) { return {0, x, y}; }
   static Step key(std::uint16_t k) { return {k, 0, 0}; }
+  static Step back() { return {0, 0, 0, true}; }
 
   std::deque<Step> script;
+  // The hotspots when each step was replayed: which screen was shown.
+  using Screen = std::vector<std::array<int, 4>>;
+  std::vector<Screen> screens;
   std::vector<MissionRequest> requests;
   std::vector<std::string> reports;
   int frames = 0;
@@ -260,7 +268,15 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     idle_ = 0;
     const Step s = script.front();
     script.pop_front();
-    if (s.key != 0) {
+    Screen shown;
+    for (std::size_t i = 0; i < gui.hotspots().size(); ++i) {
+      const ui::Hotspot& h = gui.hotspots()[static_cast<int>(i)];
+      shown.push_back({h.x0, h.y0, h.x1, h.y1});
+    }
+    screens.push_back(std::move(shown));
+    if (s.back) {
+      gui.mouse().post_back(0);
+    } else if (s.key != 0) {
       gui.mouse().post_key(s.key, 0);
     } else {
       gui.mouse().update(s.x, s.y, ui::kButtonLeft, 0);
@@ -276,11 +292,17 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     if (on_run) {
       on_run(request);
     }
-    return 1;  // aborted
+    return mission.end_code;
   }
   // Called when a mission starts.
   std::function<void(const MissionRequest&)> on_run;
-  MissionOutcome outcome() const override { return {}; }
+  MissionOutcome outcome() const override { return mission; }
+  // How the missions end: aborted by default (no results).
+  MissionOutcome mission = [] {
+    MissionOutcome aborted;
+    aborted.end_code = 1;
+    return aborted;
+  }();
 
   GameOptions sound_options;
 
@@ -584,6 +606,144 @@ TEST_CASE("Popup menus select items by keys and the mouse", "[frontend]") {
   CHECK(h.screen.pixels().size() == before.pixels().size());
   CHECK(std::equal(h.screen.pixels().begin(), h.screen.pixels().end(), before.pixels().begin()));
   CHECK(h.gui.hotspots().size() == 0);
+}
+
+// --- Android's Back ---------------------------------------------------------
+
+// More buttons of the main menu and the single-mission menu.
+constexpr ScriptedHost::Step kCareer = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 170 + 17};
+constexpr ScriptedHost::Step kInterviews = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 210 + 17};
+constexpr ScriptedHost::Step kSubTour = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 250 + 17};
+constexpr ScriptedHost::Step kCredits = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 290 + 17};
+constexpr ScriptedHost::Step kWarship = ScriptedHost::Step{0, 69 + 38 + 90, 59 + 165 + 17};
+constexpr ScriptedHost::Step kContinue = ScriptedHost::Step{0, 69 + 261 + 90, 59 + 205 + 17};
+constexpr ScriptedHost::Step kLoadCustom = ScriptedHost::Step{0, 69 + 261 + 90, 59 + 245 + 17};
+constexpr ScriptedHost::Step kBestMissions = ScriptedHost::Step{0, 69 + 261 + 90, 59 + 299 + 17};
+// The REALISM button of the scenario lists and NOVICE in the REALISM menu.
+constexpr ScriptedHost::Step kListRealism = ScriptedHost::Step{0, 69 + 185 + 60, 19 + 395 + 17};
+constexpr ScriptedHost::Step kNovice = ScriptedHost::Step{0, 52 + 27 + 60, 10 + 125 + 17};
+
+// Each script below ends on the main menu's Back: `run` returns (EXIT TO
+// DOS, without its box). The screen shown at each step (its hotspots)
+// shows that each Back went back to the screen before.
+TEST_CASE("Back walks the single-mission screens back one at a time and quits on the main menu", "[frontend][back]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+  ScriptedHost host;
+  FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves}, host, host, 1234);
+  front_end.set_play_intro(false);
+  const ScriptedHost::Step back = ScriptedHost::back();
+  // The historical list; the convoy encounter and its SUB CLASS screen;
+  // a historical mission, after which the menu comes back.
+  host.script = {kSingleMission, kHistoric, back, kConvoy, kBegin, back, back, kHistoric, kBegin, back, back};
+  front_end.run();
+  CHECK(host.script.empty());
+  const std::vector<ScriptedHost::Screen>& on = host.screens;
+  REQUIRE(on.size() == 11);
+  const ScriptedHost::Screen& main_menu = on[0];
+  const ScriptedHost::Screen& single = on[1];
+  CHECK(main_menu != single);
+  CHECK(on[2] != single);  // the historical list
+  CHECK(on[3] == single);
+  CHECK(on[5] != on[4]);  // SUB CLASS over the encounter
+  CHECK(on[6] == on[4]);
+  CHECK(on[7] == single);
+  CHECK(on[8] == on[2]);
+  CHECK(on[9] == single);
+  CHECK(on[10] == main_menu);
+  REQUIRE(host.requests.size() == 1);
+  CHECK(host.requests[0].scenario_path == "SCEN\\HIST01.SCN");
+}
+
+TEST_CASE("Back cancels REALISM and closes CONTINUE MISSION, BEST MISSIONS and the encounters", "[frontend][back]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+  ScriptedHost host;
+  FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves}, host, host, 1234);
+  front_end.set_play_intro(false);
+  const ScriptedHost::Step back = ScriptedHost::back();
+  // REALISM from the list, NOVICE, Back (its CANCEL: nothing saved), Back
+  // to the menu; CONTINUE MISSION's "no saved mission" box; BEST
+  // MISSIONS; the custom list; the warship encounter.
+  host.script = {kSingleMission, kHistoric, kListRealism, kNovice, back, back, kContinue, back,
+                 kBestMissions,  back,      kLoadCustom,  back,    kWarship, back, back, back};
+  front_end.run();
+  CHECK(host.script.empty());
+  const std::vector<ScriptedHost::Screen>& on = host.screens;
+  REQUIRE(on.size() == 16);
+  const ScriptedHost::Screen& single = on[1];
+  CHECK(on[3] != on[2]);  // REALISM over the list
+  CHECK(on[4] == on[3]);
+  CHECK(on[5] == on[2]);
+  for (const std::size_t i : {6, 8, 10, 12, 14}) {
+    CHECK(on[i] == single);
+  }
+  for (const std::size_t i : {7, 9, 11, 13}) {
+    CHECK(on[i] != single);
+  }
+  CHECK(on[15] == on[0]);
+  CHECK(host.requests.empty());
+  CHECK_FALSE(std::filesystem::exists(dir.path() / "REALISM.SAV"));
+}
+
+TEST_CASE("Back leaves INTERVIEWS, SUB TOUR, the credits and the career menu", "[frontend][back]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+  ScriptedHost host;
+  FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves}, host, host, 1234);
+  front_end.set_play_intro(false);
+  const ScriptedHost::Step back = ScriptedHost::back();
+  host.script = {kInterviews, back, kSubTour, back, kCredits, back, kCareer, back, back};
+  front_end.run();
+  CHECK(host.script.empty());
+  const std::vector<ScriptedHost::Screen>& on = host.screens;
+  REQUIRE(on.size() == 9);
+  for (const std::size_t i : {2, 4, 6, 8}) {
+    CHECK(on[i] == on[0]);
+  }
+  for (const std::size_t i : {1, 3, 5, 7}) {
+    CHECK(on[i] != on[0]);
+  }
+}
+
+TEST_CASE("Back closes the mission results, the commander's name entry and BEST MISSIONS", "[frontend][back]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  // No best missions yet: the mission ranks first.
+  const SaveDir saves(dir.path());
+  ScriptedHost host;
+  host.mission.end_code = 0;
+  host.mission.boat_name = "(SS-305) Skate";
+  host.mission.class_name = "BALAO";
+  host.mission.difficulty = 500;
+  PatrolLogEntry sunk;
+  sunk.type = 0;
+  sunk.name = "SHOKAKU";
+  sunk.tonnage = 29800;
+  host.mission.patrol_log = {sunk};
+  FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves}, host, host, 1234);
+  front_end.set_play_intro(false);
+  const ScriptedHost::Step back = ScriptedHost::back();
+  // The name entry edits at once: Back ends the edit and is its OK.
+  host.script = {kSingleMission, kHistoric, kBegin, back, back, kBestMissions, back, back, back};
+  front_end.run();
+  CHECK(host.script.empty());
+  const std::optional<BestMissionsTable> table = BestMissionsTable::load(saves);
+  REQUIRE(table);
+  REQUIRE(table->entries[0]);
+  CHECK(table->entries[0]->name == "Anonymous");
+  CHECK(table->entries[0]->results.sub == "(SS-305) Skate");
 }
 
 TEST_CASE("The default menu hooks place the popup items", "[frontend]") {

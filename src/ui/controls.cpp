@@ -518,7 +518,7 @@ void TextEntry::edit(Dialog& dialog) {
         redraw = false;
         switch (e->key) {
           case kKeyEsc:
-            if ((dialog.flags() & kDialogCancel) != 0) {
+            if (dialog.esc_ends_edit(*e)) {
               done = true;
               gui.events().post(*e);
             }
@@ -690,6 +690,10 @@ void SpinEntry::edit(Dialog& dialog) {
           case kKeyEsc:
             if ((dialog.flags() & kDialogCancel) != 0) {
               done = true;
+            } else if (dialog.esc_ends_edit(*e)) {
+              // Back goes on to the dialog's back control.
+              done = true;
+              gui.events().post(*e);
             }
             break;
           case kKeyEnter:
@@ -1078,7 +1082,7 @@ void TextBox::edit(Dialog& dialog) {
             }
             break;
           case kKeyEsc:
-            if ((dialog.flags() & kDialogCancel) != 0) {
+            if (dialog.esc_ends_edit(*e)) {
               done = true;
               gui.events().post(*e);
             }

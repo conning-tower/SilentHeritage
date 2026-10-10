@@ -14,7 +14,8 @@
     <uses-feature android:name="android.hardware.type.pc" android:required="false" />
 
     <!-- enableOnBackInvokedCallback="false": the Back button and gesture reach
-         SDL as a key (the game's Esc) instead of closing the activity. -->
+         SDL as a key (the game's way back, see platform/bios_keys.h) instead
+         of closing the activity. -->
     <application android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"

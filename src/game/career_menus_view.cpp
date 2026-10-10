@@ -81,14 +81,15 @@ std::string log_position(const PatrolLogEntry& e) {
 // The DONE sprite button of the board, awards and log book screens
 // (`cycle_button_proc` 0x49472 with definitions 0x10f4a4, 0x10fc78,
 // 0x10fce8): frame 8, 9 while held; a press clicks and ends the dialog
-// (0x79031, 0x8e810, 0x90388 set its result to 1).
+// (0x79031, 0x8e810, 0x90388 set its result to 1). It is the dialog's
+// back control.
 void add_done_button(CareerUi& ui, ui::Dialog& d, const Shp& sprites, int x0, int y0, int x1, int y1) {
   const auto draw = [&sprites, x0, y0](ui::Dialog& dialog, std::size_t frame) {
     const SpriteFrame& f = sprites.frame(frame);
     draw_sprite_clipped(dialog.gfx(), f, x0, y0);
     dialog.add_dirty({x0, y0, x0 + f.width() - 1, y0 + f.height() - 1});
   };
-  d.emplace<ui::Area>(
+  auto& done = d.emplace<ui::Area>(
       x0, y0, x1, y1,
       [&ui, draw](ui::Dialog& dialog, ui::Area& self, ui::Msg msg, int, const ui::Event&) {
         switch (msg) {
@@ -109,6 +110,7 @@ void add_done_button(CareerUi& ui, ui::Dialog& d, const Shp& sprites, int x0, in
         }
       },
       ui::Area::ActivateFn{});
+  d.set_back(done);
 }
 
 Font load_art_font(CareerUi& ui, std::uint32_t name) {
@@ -147,7 +149,7 @@ void best_careers_screen(CareerUi& ui, const BestCareersTable& table) {
 
   ui::Dialog d(ui.gui(), 10, 12, 0x267, 0x1c2, kMenuFlags);
   d.emplace<ui::TitleBar>(ui.exe_string(0xf0bc6));
-  d.emplace<ui::Button>(0xf5, 400, 0x79, ui.exe_string(0xf0bd3), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0xf5, 400, 0x79, ui.exe_string(0xf0bd3), ui::return_accept));
   auto& text = d.emplace<ui::TextBox>(0x12, 0x110, 0x209, 0x68, 10, 100, rows.empty() ? std::string() : summary(0));
   text.read_only = true;
   bool refresh = true;  // 0x116cf0
@@ -226,7 +228,7 @@ void top_career_screen(CareerUi& ui, const CareerRecord& record) {
   const std::string title = ui.exe_string(0xf1878) + record.name;
   d.emplace<ui::TextField>(9, 0x86, 0x14f, 0x96, [title] { return title; }, ui::FontSlot::kFont1, TextAlign::kCentre);
   d.emplace<ui::Label>(0x1b, 0x9a, ui.exe_string(0xf0c09), ui::FontSlot::kFont1);
-  d.emplace<ui::Button>(0x72, 0xbf, 0x79, ui.exe_string(0xf0c3f), ui::return_accept);
+  d.set_back(d.emplace<ui::Button>(0x72, 0xbf, 0x79, ui.exe_string(0xf0c3f), ui::return_accept));
   ui.add_exit_area(d);
   // top_career_fade_in (0x1dc7a)
   d.set_idle([&ui](const Viewport&, int first) {
@@ -518,7 +520,7 @@ void view_career(CareerUi& ui, const CareerRecord& r, std::span<const SunkListEn
     awards.disabled = std::ranges::none_of(r.awards, [](std::int32_t n) { return n != 0; });
     auto& logbook = d.emplace<ui::Button>(0x179, 0x15a, 0xc6, ui.exe_string(0xfb659), [](int) { return 3; });
     logbook.disabled = r.log_count == 0 && (r.on_patrol == 0 || r.patrol_log_count == 0);
-    d.emplace<ui::Button>(0xfa, 0x196, 0x79, ui.exe_string(0xfb667), [](int) { return 1; });
+    d.set_back(d.emplace<ui::Button>(0xfa, 0x196, 0x79, ui.exe_string(0xfb667), [](int) { return 1; }));
     // The read-only fields (x, y, w, size).
     constexpr std::array<std::tuple<int, int, int, int>, 10> kFields{{
         {0x53, 0x9a, 0x96, 0x13},

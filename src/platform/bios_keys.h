@@ -18,7 +18,8 @@
 // AltGr character when it is ASCII, and otherwise acts as Alt. Characters
 // outside ASCII give no word (the game takes ASCII only). The non-character
 // keys (F-keys, cursor block, keypad, Esc, Enter, Tab, Backspace, Space)
-// keep their scan codes; Android's Back key (SDLK_AC_BACK) gives the Esc words.
+// keep their scan codes; Android's Back key (SDLK_AC_BACK) gives the Esc
+// words, and `is_back_key` tells it apart (the GUI's Back, `Mouse::post_back`).
 //
 // Text typed through the system's text input (a soft keyboard, an IME)
 // arrives as `EventType::kText` characters, which give the word a US
@@ -49,6 +50,10 @@ std::optional<std::uint16_t> bios_key_word(std::uint32_t key, std::uint16_t mods
 // the layout (see the file comment), synthesized ones without are read by
 // `bios_key_word(key, mods)`.
 std::optional<std::uint16_t> bios_key_word(const InputEvent& event);
+
+// Returns true for a `EventType::kKeyDown` event of Android's Back button
+// or gesture.
+bool is_back_key(const InputEvent& event);
 
 // Returns the word a US keyboard gives for typing the character `c`
 // (Shift included for the shifted characters), nothing outside printable

@@ -21,7 +21,7 @@ struct KeyWords {
 // Keys whose words do not depend on Caps Lock or Num Lock (US layout).
 constexpr std::array<KeyWords, 55> kKeys{{
     {SDLK_ESCAPE, 0x011b, 0x011b, 0x011b, 0x0100},
-    // Android's Back button and gesture act as Esc.
+    // Android's Back button and gesture (see `is_back_key`).
     {SDLK_AC_BACK, 0x011b, 0x011b, 0x011b, 0x0100},
     {SDLK_1, 0x0231, 0x0221, 0, 0x7800},
     {SDLK_2, 0x0332, 0x0340, 0x0300, 0x7900},
@@ -277,6 +277,8 @@ std::optional<std::uint16_t> bios_key_word(const InputEvent& event) {
   }
   return bios_key_word(event.key, event.mods);
 }
+
+bool is_back_key(const InputEvent& event) { return event.type == EventType::kKeyDown && event.key == SDLK_AC_BACK; }
 
 std::optional<std::uint16_t> bios_character_word(char32_t c) {
   if (!printable_ascii(c)) {

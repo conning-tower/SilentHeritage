@@ -91,7 +91,9 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
     }
     return sailing_model(options_);
   });
-  d.emplace<ui::Button>(40, 415, 121, exe_string(0xfbeab), ui::return_cancel).disabled = cancel_disabled;
+  auto& cancel = d.emplace<ui::Button>(40, 415, 121, exe_string(0xfbeab), ui::return_cancel);
+  cancel.disabled = cancel_disabled;
+  d.set_back(cancel);
   d.emplace<ui::Button>(367, 415, 121, exe_string(0xfbeb2), ui::return_accept);
   d.emplace<ui::GroupBox>(21, 117, 512, 390);
   add_exit_area(d);

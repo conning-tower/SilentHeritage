@@ -171,10 +171,13 @@ TEST_CASE("Synthesized key events are read as US keys", "[keys]") {
   CHECK(synthetic(SDLK_KP_PLUS, 0) == 0x4e2b);
 }
 
-TEST_CASE("Android's Back key is Esc", "[keys]") {
+TEST_CASE("Android's Back key is Esc, told apart", "[keys][back]") {
   InputEvent back{.type = EventType::kKeyDown, .key = SDLK_AC_BACK};
   back.scancode = SDL_SCANCODE_AC_BACK;
   CHECK(bios_key_word(back) == 0x011b);
+  CHECK(is_back_key(back));
+  CHECK_FALSE(is_back_key(InputEvent{.type = EventType::kKeyDown, .key = SDLK_ESCAPE}));
+  CHECK_FALSE(is_back_key(InputEvent{.type = EventType::kKeyUp, .key = SDLK_AC_BACK}));
 }
 
 }  // namespace sh

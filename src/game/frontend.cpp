@@ -359,7 +359,12 @@ int FrontEnd::main_menu_screen() {
   }};
   int y = 130;
   for (const auto& [label, result] : kButtons) {
-    d.emplace<ui::Button>(35, y, 198, exe_string(label), returns(result));
+    auto& button = d.emplace<ui::Button>(35, y, 198, exe_string(label), returns(result));
+    if (result == code::kExitToDos) {
+      // Back leaves the game at once, like this button (the EXIT TO DOS?
+      // box is Alt-Q's).
+      d.set_back(button);
+    }
     y += 40;
   }
   add_exit_area(d);
@@ -430,7 +435,7 @@ int FrontEnd::single_mission_menu(bool show_background) {
   d.emplace<ui::Button>(38, 165, 198, exe_string(0xfbd56), returns(code::kWarship));
   d.emplace<ui::Button>(261, 165, 198, exe_string(0xfbd68), returns(code::kPatrol));
   d.emplace<ui::Button>(261, 299, 198, exe_string(0xfbd79), returns(code::kBestMissions));
-  d.emplace<ui::Button>(38, 299, 198, exe_string(0xfbd87), returns(code::kMainMenu));
+  d.set_back(d.emplace<ui::Button>(38, 299, 198, exe_string(0xfbd87), returns(code::kMainMenu)));
   // The upper box grows by one row of buttons for SPECIAL / CONTINUE and
   // one more when the scenario editor is installed (0x11a7d0).
   const bool editor = install_.exists("SE.EXE");
@@ -534,7 +539,7 @@ int FrontEnd::list_scenarios(bool custom, bool first_call) {
   auto& list = d.emplace<ui::List>(
       41, 134, custom ? 186 : 375, [&entries] { return static_cast<int>(entries.size()); },
       [&entries](int row) { return entries[static_cast<std::size_t>(row)].title; });
-  d.emplace<ui::Button>(35, 395, 121, exe_string(custom ? 0xfbef3 : 0xfbec6), ui::return_cancel);
+  d.set_back(d.emplace<ui::Button>(35, 395, 121, exe_string(custom ? 0xfbef3 : 0xfbec6), ui::return_cancel));
   d.emplace<ui::Button>(185, 395, 121, exe_string(custom ? 0xfbefa : 0xfbecd), returns(code::kRealism));
   d.emplace<ui::Button>(335, 395, 121, exe_string(custom ? 0xfbf02 : 0xfbed5), ui::return_accept);
   auto& text = d.emplace<ui::TextBox>(40, 266, 357, 100, 10, 1000, entries.front().description);

@@ -75,6 +75,8 @@ class Mouse {
   // `bios_word`: an extended key's 0xe0 ASCII byte is dropped (input mode
   // bit 0x1000 is never set by the game), and the mouse state is attached.
   void post_key(std::uint16_t bios_word, std::uint8_t shift);
+  // Posts Android's Back: the Esc key event marked `Event::back`.
+  void post_back(std::uint8_t shift);
 
   int x() const { return x_; }
   int y() const { return y_; }
@@ -115,6 +117,9 @@ class Mouse {
   void erase(Image8& frame);
 
  private:
+  // Returns the key event of `bios_word` with the mouse state.
+  Event key_event(std::uint16_t bios_word, std::uint8_t shift) const;
+
   EventQueue* events_;
   int width_;
   int height_;
