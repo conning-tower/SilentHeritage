@@ -28,10 +28,10 @@ ChartView::ChartView(const World& world, int x0, int y0, int x1, int y1)
   if (map_w_ <= 0 || map_h_ <= 0 || world.grid.width < 2 || world.grid.height < 2) {
     throw DataError("the map has no chart");
   }
-  if (!world.icons_shp.empty()) {
-    const Shp icons = Shp::parse(world.icons_shp, "WLD icons");
-    if (icons.frame_count() >= 16) {
-      tiles_.assign(icons.frames().begin(), icons.frames().begin() + 16);
+  if (!world.coast_tiles_shp.empty()) {
+    const Shp tiles = Shp::parse(world.coast_tiles_shp, "WLD coast tiles");
+    if (tiles.frame_count() >= 16) {
+      tiles_.assign(tiles.frames().begin(), tiles.frames().begin() + 16);
     }
   }
   set_zoom(0x10000);

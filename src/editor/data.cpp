@@ -123,7 +123,7 @@ void WorldData::update_owners(std::int32_t day, std::int32_t month, std::int32_t
 
 std::int32_t WorldData::memory_size() const {
   // 0x2d8ba: chart block 0xf3420, icons 0xf342c, grid 0xf340c x 0xf3410.
-  return static_cast<std::int32_t>(world_.chart_block_size) + static_cast<std::int32_t>(world_.icons_shp.size()) +
+  return static_cast<std::int32_t>(world_.chart_block_size) + static_cast<std::int32_t>(world_.coast_tiles_shp.size()) +
          world_.grid.width * world_.grid.height;
 }
 

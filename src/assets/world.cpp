@@ -140,9 +140,9 @@ World parse_world(std::span<const std::uint8_t> data, std::string_view context) 
   std::ranges::copy(r.bytes(w.chart_dac.size()), w.chart_dac.begin());
 
   if (w.version >= 5) {
-    const std::uint32_t icons_size = r.u32();
-    const auto icons = r.bytes(icons_size);
-    w.icons_shp.assign(icons.begin(), icons.end());
+    const std::uint32_t tiles_size = r.u32();
+    const auto tiles = r.bytes(tiles_size);
+    w.coast_tiles_shp.assign(tiles.begin(), tiles.end());
   }
   if (w.version >= 7) {
     MapBounds b;

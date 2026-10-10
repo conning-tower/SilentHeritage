@@ -1,5 +1,5 @@
 // Viewer category "Sprites": every sprite set (ART/*.SHP, the members of the
-// ART/*.CAT archives, the chart icons of each DATA/*.WLD and the map objects
+// ART/*.CAT archives, the chart coast tiles of each DATA/*.WLD and the map objects
 // of DATA/*.OBS), frame by frame, in the palette of the screen that draws it
 // (app/palettes.h).
 
@@ -26,7 +26,7 @@ namespace sh {
 
 namespace {
 
-enum class SourceKind : std::uint8_t { kShp, kCatMember, kWorldIcons, kObject };
+enum class SourceKind : std::uint8_t { kShp, kCatMember, kCoastTiles, kObject };
 
 struct SpriteSource {
   SourceKind kind = SourceKind::kShp;
@@ -58,8 +58,8 @@ class SpritesCategory final : public Category {
         return s.file;
       case SourceKind::kCatMember:
         return s.file + ":" + s.member;
-      case SourceKind::kWorldIcons:
-        return s.file + ":ICONS";
+      case SourceKind::kCoastTiles:
+        return s.file + ":COAST TILES";
       case SourceKind::kObject:
         return std::format("{}:{}", s.file, s.object);
     }
@@ -79,10 +79,10 @@ class SpritesCategory final : public Category {
         shp_ = Shp::parse(archives_.at(s.file).member(s.member), s.file + ":" + s.member);
         recipe_ = sprite_palette_recipe(stem(s.file));
         break;
-      case SourceKind::kWorldIcons: {
+      case SourceKind::kCoastTiles: {
         const std::string path = paths.path(GameDir::kData, s.file);
         const World w = parse_world(services_.install.read(path), path);
-        shp_ = Shp::parse(w.icons_shp, path + ":icons");
+        shp_ = Shp::parse(w.coast_tiles_shp, path + ":coast tiles");
         recipe_ = sprite_palette_recipe("MAPICON");
         world_file_ = s.file;
         break;
@@ -226,7 +226,7 @@ class SpritesCategory final : public Category {
     }
     std::ranges::sort(worlds, numbered_name_less);
     for (std::string& file : worlds) {
-      sources_.push_back({SourceKind::kWorldIcons, std::move(file), {}, 0});
+      sources_.push_back({SourceKind::kCoastTiles, std::move(file), {}, 0});
     }
     for (const std::string& path : install.list(data, ".OBS")) {
       const std::string file = file_of(path);

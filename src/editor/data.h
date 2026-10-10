@@ -110,7 +110,7 @@ class WorldData {
   std::int32_t airstrike_targets() const { return airstrike_targets_; }
   std::int32_t photo_recon_targets() const { return photo_recon_targets_; }
 
-  // Returns the bytes the world holds in memory (chart block, chart icons,
+  // Returns the bytes the world holds in memory (chart block, coast tiles,
   // terrain grid), part of the memory budget (`0x2d8ba`).
   std::int32_t memory_size() const;
 

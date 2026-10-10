@@ -130,7 +130,7 @@ TEST_CASE("Every .WLD map parses with its region, grid, chart and bounds", "[wld
     CHECK(w.chart.width == w.grid.width * 2 - 1);
     CHECK(w.chart.height == (w.grid.height - 1) * 2);
     CHECK(w.bounds.has_value());
-    CHECK_FALSE(w.icons_shp.empty());
+    CHECK_FALSE(w.coast_tiles_shp.empty());
   }
 
   const World w = parse_world(install.read("DATA/WORLD-1.WLD"), "WORLD-1.WLD");
@@ -157,7 +157,7 @@ TEST_CASE("Every .WLD map parses with its region, grid, chart and bounds", "[wld
   CHECK(sum(w.chart.pixels) == 156422617);
   CHECK(w.grid.at(300, 200) == 38);
   CHECK(w.chart.at(600, 400) == 188);
-  CHECK(w.icons_shp.size() == 85960);
+  CHECK(w.coast_tiles_shp.size() == 85960);
   REQUIRE(w.bounds.has_value());
   CHECK(w.bounds->lat_north.raw() == 2348373);  // 35.83
   CHECK(w.bounds->lat_south.raw() == 1987925);  // 30.33

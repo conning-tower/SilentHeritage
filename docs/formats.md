@@ -139,7 +139,7 @@ byte. Version 7 shipped (the game accepts >= 4).
     block          chart           chart_h rows: u32 row_size (incl. itself) +
                                    RLE90 row of chart_w+1 pixels
     u8[0x150]      chart_dac       112-colour VGA palette (indices 128-239)
-    u32 + bytes    icons           embedded 16-frame `.SHP` (version >= 5;
+    u32 + bytes    coast tiles     embedded 16-frame `.SHP` (version >= 5;
                                    identical in all but one map)
     i32[4]         bounds          lat north, lat south, lon west, lon east in
                                    16.16 fixed-point degrees (version >= 7)

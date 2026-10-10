@@ -112,8 +112,10 @@ struct World {
   std::uint32_t chart_block_size = 0;
   // 112 colours of 6-bit VGA RGB for palette indices 128-239 (the chart).
   std::array<std::uint8_t, 0x150> chart_dac{};
-  // The chart icons: an embedded `.SHP` file kept as raw bytes (version >= 5).
-  std::vector<std::uint8_t> icons_shp;
+  // The chart's 16 coast tiles, drawn per grid cell above 6x zoom (frame =
+  // the land mask of the cell's four corners): an embedded `.SHP` file kept
+  // as raw bytes (version >= 5).
+  std::vector<std::uint8_t> coast_tiles_shp;
   std::optional<MapBounds> bounds;  // version >= 7
 
   // Returns the width of a grid cell in world units.
