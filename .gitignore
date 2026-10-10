@@ -1,0 +1,17 @@
+# Build directories (CMake, android/build_apk.sh)
+build/
+# Local configuration
+CMakeUserPresets.json
+compile_commands.json
+.cache/
+.vscode/
+.idea/
+# Android packages, signing keys, rendered icons
+*.apk
+*.aab
+*.keystore
+*.jks
+*.pam
+android/res/mipmap-*dpi/
+# Screenshots written by the tests and --screenshot
+*.bmp

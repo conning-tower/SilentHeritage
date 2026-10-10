@@ -1,0 +1,143 @@
+// What the vehicles see of the mission while they update: the clock, the
+// random generator, the sea floor, the scenario conditions and options, and
+// the outputs they raise for the crew and the mission flow.
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "core/random.h"
+#include "sim/clock.h"
+#include "sim/motion.h"
+
+namespace sh {
+
+struct ShipClass;
+
+// Bits of the realism/options word `0x11a85c` used by the simulation.
+namespace option {
+inline constexpr std::uint32_t kSailingModelMask = 0x30;  // Bits 4-5: 0 novice .. 2 expert.
+inline constexpr std::uint32_t kRunAground = 0x100;       // Grounding damages the boat.
+inline constexpr std::uint32_t kUnlimitedFuel = 0x200;
+inline constexpr std::uint32_t kUnlimitedBattery = 0x400;
+}  // namespace option
+
+// The world area the boat may sail in, in world units from the origin (the
+// map size in cells times the cell size).
+struct MapExtent {
+  std::int32_t max_x = 0;
+  std::int32_t max_z = 0;
+};
+
+// Scenario conditions and player options.
+struct MissionConditions {
+  std::int32_t sea_state = 0;            // 0x125f64, 0..2.
+  std::uint32_t options = 0;             // 0x11a85c
+  bool speech = true;                    // 0x11a8dc: crew speech (gates some crew reports).
+  std::optional<MapExtent> map;          // Unset: no map-edge turn back.
+  std::int32_t weather = 0;              // 0x125f60, 0 clear .. 3 overcast.
+  std::int32_t fog = 0;                  // 0x125f68, the scenario's fog setting.
+  std::int32_t thermal_layer_ft = 10000; // 0x11b7c8, 10000: no layer.
+  std::int32_t scenario_roll = 0;        // 0x126094, rand(100) rolled per scenario.
+  // 0x125ff8, the scenario's `end_on_lost_contact`: outside a career, a
+  // minute without contact ends the mission.
+  bool end_on_lost_contact = false;
+  // `0x126d74` as the frame starts: a screen shake is running
+  // (game/screen_shake.h). The mission screen keeps it current; the boat
+  // grinds on the bottom while it runs.
+  bool screen_shaking = false;
+
+  // Returns the sailing model of realism bits 4-5 (0..2).
+  std::int32_t sailing_model() const { return static_cast<std::int32_t>((options & option::kSailingModelMask) >> 4); }
+};
+
+// A crew report (`crew_message(id, arg)`; ids index the crew message table).
+struct CrewReport {
+  CrewReport(std::int32_t id_ = 0, std::int32_t arg_ = -1, std::string text_ = {}, std::int32_t arg2_ = -1)
+      : id(id_), arg(arg_), text(std::move(text_)), arg2(arg2_) {}
+
+  std::int32_t id = 0;
+  std::int32_t arg = -1;
+  std::string text;  // The `%s` argument (a damaged system's name), if any.
+  std::int32_t arg2 = -1;  // A second number (minutes left of a reload).
+  bool operator==(const CrewReport&) const = default;
+};
+
+// A radio message for the boat (`radio_queue_push`, 0x5e715), formatted by
+// the radio log from its kind's template.
+struct RadioReport {
+  enum class Kind : std::int32_t {
+    kAirStrike = 0,    // args: hour, minute, day, month (ETA), base index
+    kDownedPilot = 1,  // no args
+    kPhotoRecon = 2,   // args: location type (-1 harbor), base index, hour, minute, day, month
+  };
+  Kind kind = Kind::kAirStrike;
+  std::array<std::int32_t, 6> args{};
+  // The world position the message gives as latitude and longitude.
+  std::int32_t x = 0;
+  std::int32_t z = 0;
+  bool operator==(const RadioReport&) const = default;
+};
+
+// Outputs of a simulation frame for the mission and UI layers.
+struct MissionEvents {
+  std::vector<CrewReport> crew_messages;
+  // The game-over trigger `0x11a894` (2: the crew ran out of air).
+  std::optional<std::int32_t> game_over;
+  // The boat touched bottom this frame without the Run Aground option (the
+  // screen shake; with the option the grounding damage raises
+  // `screen_shake`).
+  bool ran_aground = false;
+  // Sound effects started (`sound_play_sfx(id, volume, pan)`; volume -1:
+  // full, 0..127 by distance).
+  struct Sfx {
+    std::int32_t id = 0;
+    std::int32_t volume = -1;
+    constexpr bool operator==(const Sfx&) const = default;
+  };
+  std::vector<Sfx> sfx;
+  // Speech files started (`play_speech_raw`, e.g. "HELM0372.RAW"), raised
+  // only with the speech option on.
+  std::vector<std::string> speech;
+  // A hit or close blast shook the boat (`0x126d74`, the screen shake).
+  bool screen_shake = false;
+  // Ships the player sank this frame, for the patrol log and the tonnage
+  // credit (`player_log_event(class, -1)`).
+  std::vector<const ShipClass*> ships_sunk;
+  // Radio messages queued this frame (air strikes, downed pilots, photo
+  // recons).
+  std::vector<RadioReport> radio_reports;
+  // Downed pilots taken aboard (`player_pilot_rescued`), for the patrol
+  // log (`player_log_event(0, 0)`) and the mission tally.
+  std::int32_t pilots_rescued = 0;
+  // Photo-recon targets photographed (`player_take_recon_photo`), by their
+  // location type (-1 the base's harbor), for the patrol log
+  // (`player_log_event(report, 1)`).
+  std::vector<std::int32_t> photo_recons;
+};
+
+class Simulation;
+
+struct SimContext {
+  GameClock& clock;
+  WatcomRandom& random;
+  const SeaFloor& floor;
+  const MissionConditions& env;
+  MissionEvents& events;
+  // The simulation running the vehicles (spawning, the vehicle list, the
+  // player's weapons); null when a vehicle is stepped on its own.
+  Simulation* sim = nullptr;
+
+  // Posts a crew report.
+  void crew_message(std::int32_t id, std::int32_t arg = -1) { events.crew_messages.push_back({id, arg, {}, -1}); }
+  // Posts a crew report naming `text` (`crew_message(id, -1, -1, text)`).
+  void crew_message(std::int32_t id, std::string text) { events.crew_messages.push_back({id, -1, std::move(text), -1}); }
+  // Starts a sound effect.
+  void sfx(std::int32_t id, std::int32_t volume = -1) { events.sfx.push_back({id, volume}); }
+};
+
+}  // namespace sh

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The launcher icon: "SH" on a round riveted plate, in the look of the floating
+     ORDERS button (src/app/command_icons.cpp): the dark green plate inside
+     a brass ring lit from the top left, two-tone brass rivet heads, and
+     brass letters shaded like the main menu's font (a bright band at a
+     quarter of their height, dark lower and right edges). The letters are
+     Liberation Sans Narrow Bold (GPL-2 with the font exception) stretched
+     to the font's tall proportions. Adaptive icon foreground: 108 x 108 dp,
+     full bleed; the plate fills the visible 72 dp circle. -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="432" height="432" viewBox="0 0 108 108">
+  <defs>
+    <!-- The ring's three tones by the direction from the centre (light
+         within 70 degrees of the top left, dark within 70 of the bottom
+         right), as `ring_button` draws them. -->
+    <linearGradient id="ring" gradientUnits="userSpaceOnUse" x1="28.5" y1="28.5" x2="79.5" y2="79.5">
+      <stop offset="0" stop-color="#cabe89"/>
+      <stop offset="0.325" stop-color="#cabe89"/>
+      <stop offset="0.325" stop-color="#9d914c"/>
+      <stop offset="0.675" stop-color="#9d914c"/>
+      <stop offset="0.675" stop-color="#615518"/>
+      <stop offset="1" stop-color="#615518"/>
+    </linearGradient>
+    <!-- A rivet head: its top left half light, the rest dark. -->
+    <linearGradient id="rivet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0.5" stop-color="#cabe89"/>
+      <stop offset="0.5" stop-color="#615518"/>
+    </linearGradient>
+    <!-- The letters' face and their shaded right side, top (cap height,
+         -18.6 before the stretch) to baseline. -->
+    <linearGradient id="face" gradientUnits="userSpaceOnUse" x1="0" y1="-18.6" x2="0" y2="0">
+      <stop offset="0" stop-color="#cec291"/>
+      <stop offset="0.26" stop-color="#eee6ce"/>
+      <stop offset="0.28" stop-color="#d6ca9d"/>
+      <stop offset="1" stop-color="#7d712c"/>
+    </linearGradient>
+    <linearGradient id="side" gradientUnits="userSpaceOnUse" x1="0" y1="-18.6" x2="0" y2="0">
+      <stop offset="0" stop-color="#7b6f2b"/>
+      <stop offset="0.27" stop-color="#a79b57"/>
+      <stop offset="1" stop-color="#473b0b"/>
+    </linearGradient>
+    <text id="sh" x="0" y="0" text-anchor="middle" font-family="Liberation Sans Narrow" font-weight="bold"
+          font-size="27" letter-spacing="1.8">SH</text>
+  </defs>
+  <rect width="108" height="108" fill="#282c2a"/>
+  <circle cx="54" cy="54" r="36.2" fill="url(#ring)"/>
+  <circle cx="54" cy="54" r="31.3" fill="#18302c"/>
+  <g transform="translate(54.5 69.1) scale(1 1.62)">
+    <!-- Bottom edge, right side, top and left edges, then the face. -->
+    <use xlink:href="#sh" x="0.9" y="0.5" fill="#302804"/>
+    <use xlink:href="#sh" x="0.9" y="0" fill="url(#side)"/>
+    <use xlink:href="#sh" x="-0.6" y="-0.4" fill="#eee6ce"/>
+    <use xlink:href="#sh" fill="url(#face)"/>
+  </g>
+  <g fill="url(#rivet)">
+    <circle cx="36" cy="36" r="2.3"/><circle cx="72" cy="36" r="2.3"/>
+    <circle cx="36" cy="72" r="2.3"/><circle cx="72" cy="72" r="2.3"/>
+  </g>
+</svg>

@@ -1,0 +1,105 @@
+// The player boat's weapons and damage for a mission: the TDC, the
+// torpedo tubes, the deck gun and the damage model, with the mission
+// settings they read (crew quality, command, torpedo choices). The mission
+// owns it and hands it to the simulation (`Simulation::set_player_combat`);
+// the player boat calls its per-step hooks and the main loop its per-frame
+// update.
+//
+// Usage: build it with the tables and the boat's SUBS.DAT class, fill the
+// tubes, racks and `torpedo_types` from the loadout, `tdc.reset()`,
+// `deck_gun.reset(boat, ammo, systems)`, then each frame call `update_frame` after
+// `Simulation::step`, and `fire_tube` on the fire keys.
+#pragma once
+
+#include <array>
+#include <cstdint>
+
+#include "assets/dat_tables.h"
+#include "core/fixed.h"
+#include "sim/context.h"
+#include "sim/deck_gun.h"
+#include "sim/effects.h"
+#include "sim/player_damage.h"
+#include "sim/tdc.h"
+#include "sim/torpedo_tubes.h"
+#include "sim/vehicle.h"
+
+namespace sh {
+
+class PlayerSub;
+
+// The boat's AA guns: manned from the 1MC menu, they fire at the nearest
+// aircraft seen.
+struct AaGuns {
+  bool manned = false;          // 0x124e94
+  std::int32_t fire_timer = 0;  // 0x124ed0, 16.16 s to the next round.
+};
+
+class PlayerCombat {
+ public:
+  // Crew messages of fire_tube.
+  static constexpr std::int32_t kMsgFire = 0x11;          // #17
+  static constexpr std::int32_t kMsgGyroLimit = 0x15;     // #21: gyro angle over 130 deg.
+  static constexpr std::int32_t kMsgNotLoaded = 0x16;     // #22
+  static constexpr std::int32_t kMsgStillLoading = 0x19;  // #25 (arg minutes left).
+  static constexpr std::int32_t kMsgTubeDamaged = 0x1b;   // #27
+  static constexpr std::int32_t kSfxFire = 0x14;
+  // The largest gyro angle off the tube axis (130 deg).
+  static constexpr std::int32_t kGyroLimit = 1300;
+
+  // `tables` and `boat` (the player's SUBS.DAT class) must outlive it.
+  PlayerCombat(const GameTables& tables, const SubClass& boat);
+
+  // Fires tube `tube` (0-based) at the TDC solution (`fire_tube`,
+  // 0x7cd70): refuses an empty, loading or damaged tube or a gyro angle
+  // over 130 deg; the torpedo leaves turned at most 10 deg and then turns
+  // to the gyro course plus the spread, and the tube starts reloading.
+  // Returns the torpedo, or null when not fired.
+  TorpedoVehicle* fire_tube(SimContext& ctx, PlayerSub& sub, std::size_t tube);
+
+  // Hooks of the player update (`player_update`): damage and repairs after
+  // the oxygen check, reloads after the helm and dive.
+  void update_damage(SimContext& ctx, PlayerSub& sub, Fixed16 dt);
+  void update_reloads(SimContext& ctx, PlayerSub& sub, Fixed16 dt);
+  // `player_update_aa_guns` (0x5ea5d), after the reloads: the guns are
+  // secured (crew message #63) when the bridge goes under; manned, they fire
+  // an AA round at the nearest aircraft seen within 800 yd every 1.5 / 1 /
+  // 0.5 s by crew plus a random part, with an aim error by the combat
+  // realism.
+  void update_aa_guns(SimContext& ctx, PlayerSub& sub, Fixed16 dt);
+  // The player's slot +0x50.
+  bool take_damage(SimContext& ctx, PlayerSub& sub, DamageKind kind, std::int32_t distance, std::int32_t amount);
+  // The per-frame work of the mission loop: `tdc_sim_update` (which may
+  // slave the view bearing) and `deckgun_sim_update`.
+  void update_frame(SimContext& ctx, PlayerSub& sub);
+
+  // Returns the fire-control view of the boat.
+  OwnBoat own_boat(const PlayerSub& sub, const SimContext& ctx) const;
+  // Drops the pointers to a removed vehicle.
+  void forget(const Vehicle& removed);
+
+  const GameTables& tables() const { return *tables_; }
+  const SubClass& boat() const { return *boat_; }
+
+  // Mission settings.
+  std::int32_t crew = 0;     // `0x11ac2b`, 0..2 (2 best).
+  std::int32_t command = 0;  // `0x11b872`, 0 ComSubsAsiatic .. 3 Task Force 42.
+  std::array<TorpedoChoice, 3> torpedo_types{};  // `0x10f550`
+  EffectFrames effects;
+  // The sighting code's view of the targets (default: all in sight).
+  TargetSensingFn sensing;
+  // The bearing the periscope and TBT look along (`0x11ac37`, relative).
+  Angle10 view_bearing;
+
+  Tdc tdc;
+  TorpedoTubes tubes;
+  PlayerDamage damage;
+  DeckGun deck_gun;
+  AaGuns aa_guns;
+
+ private:
+  const GameTables* tables_;
+  const SubClass* boat_;
+};
+
+}  // namespace sh
