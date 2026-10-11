@@ -52,7 +52,7 @@ TEST_CASE("WatcomRandom follows the Watcom C library sequence") {
 }
 
 TEST_CASE("Install finds files case-insensitively") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   CHECK(install.exists("data/subs.dat"));
   CHECK(install.exists("DATA\\SUBS.DAT"));
   CHECK(install.exists("data"));
