@@ -95,7 +95,7 @@ struct BoatRig {
 
 }  // namespace
 
-TEST_CASE("A TYPE C escort throws its twelve throwers' pattern", "[simreview]") {
+TEST_CASE("A TYPE C escort throws its twelve throwers' pattern", "[simreview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
@@ -118,7 +118,7 @@ TEST_CASE("A TYPE C escort throws its twelve throwers' pattern", "[simreview]") 
 }
 
 TEST_CASE("A bomber group radios its strike once, its report gone or not", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   std::vector<BaseRecord> bases(1);
@@ -157,7 +157,7 @@ TEST_CASE("A bomber group radios its strike once, its report gone or not", "[sim
 }
 
 TEST_CASE("The AI's thinking frame follows the vehicle's current list index", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   Ship& first = p.add_ship("LFREIGHT", 0, 20000, Angle10(0), 0, ShipOrder::kNone);
@@ -172,7 +172,7 @@ TEST_CASE("The AI's thinking frame follows the vehicle's current list index", "[
 }
 
 TEST_CASE("The vehicle after a removed one misses its hydrophone turn", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   Ship& a = p.add_ship("LFREIGHT", 0, 20000, Angle10(0), 0, ShipOrder::kNone);
@@ -190,7 +190,7 @@ TEST_CASE("The vehicle after a removed one misses its hydrophone turn", "[simrev
 }
 
 TEST_CASE("Manned AA guns fire at a near aircraft and are secured under water", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   p.sim.sensors().environment().light_pct = 100;
@@ -232,7 +232,7 @@ TEST_CASE("Manned AA guns fire at a near aircraft and are secured under water", 
 }
 
 TEST_CASE("Ramming draws its damage before the radar sweeps", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   // The same ram with the SJ radar off and on (a new blip draws rand(3600)).
   auto ram = [&](bool radar) {
@@ -265,7 +265,7 @@ TEST_CASE("Ramming draws its damage before the radar sweeps", "[simreview]") {
 }
 
 TEST_CASE("The player's damage pass runs on the first step", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables, "GATO", 100);
   WatcomRandom replay = p.sim.random();
@@ -276,7 +276,7 @@ TEST_CASE("The player's damage pass runs on the first step", "[simreview]") {
   CHECK(p.combat.damage.crush_depth() == test + test * 60 / 100 + 10 - replay.random_int(40));
 }
 
-TEST_CASE("An enemy submarine's power cap wraps as the original's", "[simreview]") {
+TEST_CASE("An enemy submarine's power cap wraps as the original's", "[simreview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   ShipClass cls = *tables.find_ship("KAIDAI TYPE");
@@ -300,7 +300,7 @@ TEST_CASE("An enemy submarine's power cap wraps as the original's", "[simreview]
   CHECK(sub.motion().ordered_power == wrapped / 100);
 }
 
-TEST_CASE("The deck-gun crew fires a mount on its own solution quality", "[simreview]") {
+TEST_CASE("The deck-gun crew fires a mount on its own solution quality", "[simreview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const SubClass* two_guns = nullptr;
@@ -331,7 +331,7 @@ TEST_CASE("The deck-gun crew fires a mount on its own solution quality", "[simre
 }
 
 TEST_CASE("The deck guns start trained fore and aft", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   DeckGun& gun = p.combat.deck_gun;
@@ -346,7 +346,7 @@ TEST_CASE("The deck guns start trained fore and aft", "[simreview]") {
 }
 
 TEST_CASE("A ship's lookout check reads its position after the move", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   Ship& ship = p.add_ship("FUBUKI", 0, 3000, Angle10(1800), 30, ShipOrder::kFollowPath);
@@ -366,7 +366,7 @@ TEST_CASE("A ship's lookout check reads its position after the move", "[simrevie
 }
 
 TEST_CASE("A strafing run normalises a heading wound past two turns", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   p.sim.sensors().environment().light_pct = 100;
@@ -401,7 +401,7 @@ TEST_CASE("A strafing run normalises a heading wound past two turns", "[simrevie
 }
 
 TEST_CASE("The TDC forgets a removed tracked torpedo", "[simreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   BoatRig p(tables);
   p.combat.torpedo_types = {{{"MARK10", true, 1}, {"MARK14", true, 2}, {"MARK18-1", false, 3}}};
