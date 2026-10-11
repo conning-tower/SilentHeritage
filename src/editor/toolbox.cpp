@@ -130,6 +130,18 @@ OrdersMenu read_menu(const SeExe& se, std::uint32_t labels, std::size_t count, s
   return m;
 }
 
+// Appends `orders` to `m` with its label of the orders table, the current
+// entry when it is `current` (not in the original).
+void append_orders(const SeExe& se, OrdersMenu& m, ShipOrders orders, std::int32_t current) {
+  const auto value = static_cast<std::int32_t>(orders);
+  if (value == current) {
+    m.initial = static_cast<int>(m.labels.size());
+  }
+  m.labels.emplace_back(se.table_str(tbl::kOrders, static_cast<std::size_t>(value)));
+  m.values.push_back(value);
+  m.disabled.push_back(false);
+}
+
 // strcpy into a record's char field (cut to fit).
 template <std::size_t N>
 void copy_text(ScnChars<N>& field, std::string_view text) {
@@ -237,8 +249,13 @@ OrdersMenu vessel_orders_menu(const Scenario& scenario, const Vessel& vessel) {
   if (vessel.kind == Vessel::Kind::kSubmarine) {
     // toolbox_esub_orders_button (0x3ffd8). Editor limit (enemy sub
     // orders): only None and "Patrol" (Follow Path); Intercept and its
-    // target are never set.
-    return read_menu(se, tbl::kSubMenu, 2, static_cast<std::int32_t>(vessel.sub.orders));
+    // target are never set, but with the corrections.
+    const auto current = static_cast<std::int32_t>(vessel.sub.orders);
+    OrdersMenu m = read_menu(se, tbl::kSubMenu, 2, current);
+    if (scenario.corrected()) {
+      append_orders(se, m, ShipOrders::kIntercept, current);
+    }
+    return m;
   }
   // toolbox_ship_orders_button (0x3f5ae), by the SHIPS.DAT role.
   const std::optional<std::size_t> cls = scenario.data().find_ship(vessel.class_name());
@@ -267,7 +284,12 @@ OrdersMenu vessel_orders_menu(const Scenario& scenario, const Vessel& vessel) {
     default:
       // The submarine role (a ship of it has turned into an enemy sub):
       // the original's menu pointer is uninitialised.
-      break;
+      return m;
+  }
+  if (scenario.corrected()) {
+    // Editor limit (ship orders): SE offers no Follow Path, which the game
+    // reads from the shipped scenarios.
+    append_orders(se, m, ShipOrders::kFollowPath, current);
   }
   return m;
 }
@@ -867,10 +889,13 @@ void Toolbox::add_mission(ui::Dialog& d, SpecialMission& mission) {
     bases.push_back(b.name);
   }
   cycle(d, 36, 150, 227, std::move(bases), [this, m, strike](bool advance) {
-    // toolbox_strike_location_button (0x40835): SELECT A CITY again.
+    // toolbox_strike_location_button (0x40835): SELECT A CITY again; with
+    // the corrections, only a new city marks the scenario modified.
     if (advance) {
       chart_.start_pick_city(!strike, nullptr);
-      scenario_.modified = true;
+      if (!env_.features.editor_fixes) {
+        scenario_.modified = true;
+      }
     }
     return m->base();
   });
@@ -921,8 +946,16 @@ void Toolbox::add_mission(ui::Dialog& d, SpecialMission& mission) {
   label(d, 194, 227, s.mins1);
   label(d, 57, 310, s.location);
   // Editor oddity (airstrike hold label): the airstrike's hold time
-  // (`hold_min`) is labelled "Flight Delay", here and in its info popup.
-  label(d, strike ? 99 : 104, 257, s.hold, true);
+  // (`hold_min`) is labelled "Flight Delay", here and in its info popup;
+  // "Hold Time" with the corrections (not in the original).
+  if (strike && env_.features.editor_fixes) {
+    // Centred where SE's label is.
+    const Font& small = d.skin().font(ui::FontSlot::kSmall);
+    const int x = 99 + (small.text_width(scenario_.data().se.str(s.hold)) - small.text_width(own_text::kHoldTime)) / 2;
+    d.emplace<ui::Label>(x, 257, std::string(own_text::kHoldTime), ui::FontSlot::kSmall);
+  } else {
+    label(d, strike ? 99 : 104, 257, s.hold, true);
+  }
   add_time(d, 276, true);
   label(d, 145, 281, s.colon2, true);
   d.emplace<ui::GroupBox>(11, 251, 286, 300);
@@ -1096,6 +1129,13 @@ void Toolbox::sub_orders(Vessel& v) {
   v.sub.orders = static_cast<ShipOrders>(menu.values[static_cast<std::size_t>(choice)]);
   if (v.sub.orders == ShipOrders::kFollowPath) {
     chart_.start_course(ClickMode::kSubCourse);
+  } else if (v.sub.orders == ShipOrders::kIntercept) {
+    // The intercept point, the player's position without one (only with
+    // the corrections' menu; not in the original).
+    v.sub.waypoints.count = 0;
+    v.sub.target_x = -1;
+    v.sub.target_y = -1;
+    chart_.start_intercept_point();
   } else {
     v.sub.waypoints.count = 0;
     chart_.reopen_panel();

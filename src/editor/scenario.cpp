@@ -81,6 +81,28 @@ WorldPoint nearest_water(const WorldData& w, WorldPoint p) {
 
 // ------------------------------------------------------------ helpers
 
+bool orders_fit_class(const ShipClass& c, ShipOrders orders) {
+  if (orders == ShipOrders::kNone) {
+    return true;
+  }
+  if (is_submarine_class(c)) {
+    return orders == ShipOrders::kFollowPath || orders == ShipOrders::kIntercept;
+  }
+  switch (c.role) {
+    case ShipRole::kMerchant:
+    case ShipRole::kWarship:
+      return orders == ShipOrders::kConvoyLeader || orders == ShipOrders::kConvoyMember ||
+             orders == ShipOrders::kFollowPath;
+    case ShipRole::kEscort:
+      return orders == ShipOrders::kEscort || orders == ShipOrders::kPatrol || orders == ShipOrders::kFollowPath;
+    case ShipRole::kSmallCraft:
+      return orders == ShipOrders::kFishing || orders == ShipOrders::kFollowPath;
+    case ShipRole::kSubmarine:
+      break;
+  }
+  return false;
+}
+
 WarPeriod war_period(const ScenarioDate& d) {
   const auto key = [](const ScenarioDate& x) { return std::array{x.year, x.month, x.day}; };
   if (key(d) > key(kWarEnd)) {
@@ -441,6 +463,21 @@ bool Scenario::load(const ScnFile& file, const std::function<bool(const ScnHeade
   refresh_environment(*this);
   update_all_visibility();
   const std::size_t listed = std::min(data_.torpedo_choices.count - 1, header.reloads.size());
+  if (corrected_) {
+    // Each entry goes to the TORPEDOES list entry of its torpedo type,
+    // whatever its position (not in the original).
+    const TorpedoChoices& choices = data_.torpedo_choices;
+    for (const TorpedoReload& r : header.reloads) {
+      for (std::size_t i = 0; r.type != -1 && i < listed && i < choices.torpedoes.size(); ++i) {
+        if (static_cast<std::int32_t>(data_.tables.weapons.torpedoes[choices.torpedoes[i]].id) == r.type) {
+          reload_aft[i] = r.aft;
+          reload_forward[i] = r.forward;
+          break;
+        }
+      }
+    }
+    return true;
+  }
   for (std::size_t i = 0; i < listed; ++i) {
     // Original bug (docs/editor-design.md "Reload table"): copied back by position,
     // not by torpedo type.
@@ -634,7 +671,9 @@ void Scenario::change_vessel_class(Vessel& vessel, std::size_t new_class) {
   const ShipClass& to = data_.tables.ships[new_class];
   if (old_class) {
     const ShipClass& from = data_.tables.ships[*old_class];
-    if (*old_class != new_class && role_group(from) != role_group(to)) {
+    // Corrected, the orders the new class allows stay (not in the original).
+    const ShipOrders kept = corrected_ && orders_fit_class(to, vessel.orders()) ? vessel.orders() : ShipOrders::kNone;
+    if (*old_class != new_class && role_group(from) != role_group(to) && kept == ShipOrders::kNone) {
       if (vessel.ship.orders == ShipOrders::kConvoyLeader) {
         release_escorts(vessel.ship.convoy_group);
         release_members(vessel.ship.convoy_group);
@@ -643,7 +682,14 @@ void Scenario::change_vessel_class(Vessel& vessel, std::size_t new_class) {
       vessel.sub.orders = ShipOrders::kNone;
     }
     if (is_submarine_class(from) != is_submarine_class(to)) {
+      const Waypoints course = vessel.waypoints();
       vessel.kind = is_submarine_class(to) ? Vessel::Kind::kSubmarine : Vessel::Kind::kShip;
+      if (corrected_) {
+        // The course and the orders kept go to the new live part (not in
+        // the original, which shows the other part's).
+        vessel.waypoints() = course;
+        (vessel.kind == Vessel::Kind::kShip ? vessel.ship.orders : vessel.sub.orders) = kept;
+      }
     }
     header.required_memory -= cache_.release(from.sprite1);
     header.required_memory -= cache_.release(from.sprite2);

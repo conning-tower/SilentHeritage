@@ -158,9 +158,11 @@ ui::Rect frame_box(const SpriteFrame& frame, int x, int y) {
 
 }  // namespace
 
-VgaPalette se_chart_palette(const Install& install, const World& world, bool started_by_game) {
+VgaPalette se_chart_palette(const Install& install, const World& world, bool started_by_game, bool complete) {
   VgaPalette pal{};
-  if (started_by_game) {
+  // SE alone leaves black the colours only M8.PCX gives (86-127 and 255);
+  // `complete` loads it anyway (not in the original).
+  if (started_by_game || complete) {
     pal = load_pcx(install, "ART/M8.PCX").palette;
   }
   const Shp sbchart = Shp::load(install, "ART/SBCHART.SHP");
@@ -258,7 +260,8 @@ void ChartScreen::open() {
   // sbchart_open (0x3b668) and chart_view_init (0x113b4)
   Image8& screen = env_.gui.screen();
   ui::gui_fill_rect(Viewport::full(screen), 0, 0, screen.width(), screen.height(), 0);
-  env_.palette = se_chart_palette(env_.install, scenario_.world().world(), started_by_game_);
+  env_.palette = se_chart_palette(env_.install, scenario_.world().world(), started_by_game_,
+                                  env_.features.editor_fixes);
   center_on_player();
   dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, 0, kViewX1 + 1, kViewY1 + 1, 0, &screen);
   dialog_->emplace<ui::Area>(
@@ -327,7 +330,8 @@ void ChartScreen::close() {
 
 void ChartScreen::world_changed() {
   build_view();
-  env_.palette = se_chart_palette(env_.install, scenario_.world().world(), started_by_game_);
+  env_.palette = se_chart_palette(env_.install, scenario_.world().world(), started_by_game_,
+                                  env_.features.editor_fixes);
   cities_.clear();
   dirty_ = true;
 }
@@ -720,6 +724,12 @@ std::optional<ui::Rect> ChartScreen::draw_vessel(const Vessel& v, bool pass_cour
       const Waypoints& w = v.waypoints();
       draw_route(w.count, w.x.data(), w.y.data(), selected ? kSelectedCourse : kCourseColour,
                  selected ? 0 : kCourseColour);
+    }
+    if (!ship && orders == ShipOrders::kIntercept && v.sub.target_x != -1 && env_.features.editor_fixes) {
+      // The leg to the intercept point (not in the original).
+      const std::array<std::int32_t, 3> xs{pos.x, v.sub.target_x, 0};
+      const std::array<std::int32_t, 3> ys{pos.y, v.sub.target_y, 0};
+      draw_route(2, xs.data(), ys.data(), selected ? kSelectedCourse : kCourseColour, selected ? 0 : kCourseColour);
     }
     return std::nullopt;
   }
@@ -1153,6 +1163,15 @@ void ChartScreen::click(std::int32_t x, std::int32_t y) {
         finish_mode();
       }
       break;
+    case ClickMode::kInterceptPoint:
+      if (auto* v = dynamic_cast<Vessel*>(scenario_.selected())) {
+        const WorldPoint p = screen_to_world(x, y);
+        v->sub.target_x = p.x;
+        v->sub.target_y = p.y;
+        scenario_.modified = true;
+      }
+      finish_mode();
+      break;
   }
 }
 
@@ -1370,13 +1389,21 @@ bool ChartScreen::finish_mode() {
       break;
     case ClickMode::kPickCity:
       city_zoom_ = 0x800;
+      city_kept_base_.reset();
       if (!cities_.empty()) {
         if (auto* m = dynamic_cast<SpecialMission*>(sel)) {
           const auto base = static_cast<std::int32_t>(cities_[static_cast<std::size_t>(city_selection_)].base);
+          if (env_.features.editor_fixes && m->base() != base) {
+            // The Location button no longer marks it (not in the original).
+            scenario_.modified = true;
+          }
           std::visit([base](auto& r) { r.base = base; }, m->rec);
         }
         overlay_redraw_ = true;
       }
+      break;
+    case ClickMode::kInterceptPoint:
+      overlay_redraw_ = true;
       break;
     case ClickMode::kSelect:
       break;
@@ -1512,6 +1539,14 @@ void ChartScreen::start_pick_convoy() {
   pick_exit_ = true;
 }
 
+void ChartScreen::start_intercept_point() {
+  set_click_mode(ClickMode::kInterceptPoint);
+  panels_.request(static_cast<int>(EditorPanel::kPick));
+  prompt_ = Prompt::kLocation;
+  pick_title_ = scenario_.data().se.str(str::kSelectPoint);
+  pick_exit_ = true;
+}
+
 void ChartScreen::start_pick_city(bool photo_recon, EditorObject* restore) {
   // sbchart_tool_add_airstrike / _photo_recon (0x3e78a / 0x3e895) and the
   // missions' Location buttons: SELECT A CITY, zoomed out below 8x.
@@ -1519,6 +1554,11 @@ void ChartScreen::start_pick_city(bool photo_recon, EditorObject* restore) {
   // SE keeps the last remembered object when `restore` is null (see
   // `cancel_city`).
   restore_selection_ = restore;
+  city_kept_base_.reset();
+  if (const auto* m = dynamic_cast<const SpecialMission*>(scenario_.selected());
+      m != nullptr && restore == nullptr && env_.features.editor_fixes) {
+    city_kept_base_ = m->base();
+  }
   city_zoom_ = kBaseZoom;
   set_click_mode(ClickMode::kPickCity);
   panels_.request(static_cast<int>(EditorPanel::kSelectCity));
@@ -1527,7 +1567,20 @@ void ChartScreen::start_pick_city(bool photo_recon, EditorObject* restore) {
 
 void ChartScreen::cancel_city() {
   // sbchart_city_button_cancel (0x40cf0)
+  const std::optional<std::int32_t> kept = city_kept_base_;
+  city_kept_base_.reset();
+  const bool was_modified = scenario_.modified;
   if (!finish_mode()) {
+    return;
+  }
+  if (kept) {
+    // Corrected: a mission picked again keeps its city (not in the
+    // original).
+    if (auto* m = dynamic_cast<SpecialMission*>(scenario_.selected())) {
+      std::visit([&kept](auto& r) { r.base = *kept; }, m->rec);
+    }
+    scenario_.modified = was_modified;
+    overlay_redraw_ = true;
     return;
   }
   // SELECT A CITY cancel (docs/editor-design.md): the selected mission
@@ -1632,6 +1685,12 @@ void ChartScreen::mouse_moved(std::int32_t x, std::int32_t y) {
       break;
     case ClickMode::kPickCity:
       over_city = pick_city_at(x, y);
+      break;
+    case ClickMode::kInterceptPoint:
+      if (const EditorObject* sel = scenario_.selected()) {
+        from = sel->position(scenario_.object_env());
+        band = true;
+      }
       break;
     default:
       break;
@@ -1829,6 +1888,7 @@ std::optional<std::pair<const void*, DescribeText>> ChartScreen::info_text_at(st
   // mode 0 (or with an object hovered), else in modes 0 and 11 a city.
   ObjectEnv env = scenario_.object_env();
   env.select_mode = click_mode_ == ClickMode::kSelect;
+  env.hold_time_label = env_.features.editor_fixes;
   for (const auto& o : scenario_.objects()) {
     if (click_mode_ != ClickMode::kSelect && hovered_ == nullptr) {
       break;

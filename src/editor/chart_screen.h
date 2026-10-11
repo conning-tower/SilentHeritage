@@ -52,6 +52,9 @@ enum class ClickMode : std::int32_t {
   kPatrolCenter = 9,   // an aircraft's patrol centre
   kPatrolRadius = 10,  // and radius
   kPickCity = 11,      // an airstrike's or photo recon's target
+  // An enemy sub's intercept point (`Features::editor_fixes`; not in the
+  // original).
+  kInterceptPoint = 12,
 };
 
 // The panels, in `chart_view_add_panel` order (0xa4748).
@@ -140,8 +143,10 @@ struct CityChoice {
 // title box, docs/editor-assets.md "Palettes"): M8.PCX when SE
 // was started by SH (else black), SBCHART frame 0, the map's chart colours
 // 128-239, SBINTRO frame 0, SBCHART frame 0 again and SHIPICON frame 0's
-// colours 16-63.
-VgaPalette se_chart_palette(const Install& install, const World& world, bool started_by_game);
+// colours 16-63. `complete` (not in the original) loads M8.PCX also when
+// SE runs alone, whose colours 86-127 and 255 are otherwise black.
+VgaPalette se_chart_palette(const Install& install, const World& world, bool started_by_game,
+                            bool complete = false);
 
 // Returns the 60 points of a circle of `radius` world units around
 // `centre` (`chart_build_circle_points`, 0x13015): 15 per quadrant, from
@@ -319,6 +324,10 @@ class ChartScreen {
   void start_aircraft(Aircraft& aircraft);
   // PICK CONVOY for the selection (mode 8).
   void start_pick_convoy();
+  // SELECT POINT for the selected enemy sub's intercept point (mode 12, not
+  // in the original): a click on the map sets the point, EXIT keeps none
+  // (the game then aims at the player's position).
+  void start_intercept_point();
   // SELECT RADIUS for the selected aircraft's new patrol mission (mode 10,
   // `toolbox_air_mission_button`).
   void start_patrol_radius();
@@ -330,7 +339,9 @@ class ChartScreen {
   // nullptr, from an existing mission's Location button, keeps the last
   // one).
   void start_pick_city(bool photo_recon, EditorObject* restore);
-  // `sbchart_city_button_cancel` (0x40cf0): CANCEL / Esc of SELECT A CITY.
+  // `sbchart_city_button_cancel` (0x40cf0): CANCEL / Esc of SELECT A CITY,
+  // which removes the mission; with `Features::editor_fixes`, a mission
+  // from its Location button keeps its city instead (not in the original).
   void cancel_city();
   // `sbchart_remove_button_current` (0x40d5f): REMOVE OBJECT's CURRENT.
   void remove_current();
@@ -437,6 +448,9 @@ class ChartScreen {
   bool pick_exit_ = true;                         // 0x9e770
   std::size_t add_class_ = 0;                     // 0xaacd0
   bool city_photo_recon_ = false;                 // 0xaace4
+  // With the corrections, the city of a mission picked again from its
+  // Location button, which its cancel keeps (not in the original).
+  std::optional<std::int32_t> city_kept_base_;
   EditorObject* hovered_ = nullptr;               // 0xaace0
   EditorObject* restore_selection_ = nullptr;     // 0xaad24
   EditorObject* select_on_open_ = nullptr;        // 0xaad28

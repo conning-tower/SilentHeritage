@@ -195,6 +195,7 @@ EditorExit Editor::run() {
   data_.emplace(EditorData::load(install));
   scenario_ = std::make_unique<Scenario>(install, *data_, options_, clock_);
   scenario_->set_size_limited(!services_.features.editor_no_size_limit);
+  scenario_->set_corrected(services_.features.editor_fixes);
   files_ = std::make_unique<FileCommands>(FileEnv{
       .ui = ui_, .scenario = *scenario_, .install = install, .paths = services_.paths, .custom = services_.custom});
   menu_ = std::make_unique<EditorMenu>(se_, started_by_game_, selection_);

@@ -87,3 +87,15 @@ kept with it.
   load in the original game.
 - **Ship type:** cancelling SELECT SHIP TYPE no longer marks the scenario
   as changed.
+- **City target:** cancelling SELECT A CITY from a mission's Location
+  button keeps the mission and its target instead of deleting it.
+- **Ship or submarine:** changing a vessel between ship and submarine classes
+  keeps its course, and its orders when the new class can take them.
+- **Hunter submarines:** enemy submarines can be ordered to Intercept a point
+  clicked on the chart, or the player's position.
+- **Routed ships:** every ship can be given Follow Path orders with a plotted
+  course.
+- **Hold time:** the airstrike's time over the target is labelled "Hold
+  Time" instead of "Flight Delay".
+- **Reloads:** torpedo reloads from scenarios written by other tools go to
+  the right torpedo type.

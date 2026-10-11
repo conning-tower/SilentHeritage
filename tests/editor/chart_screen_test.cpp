@@ -428,4 +428,24 @@ TEST_CASE("Chart screen of a historical scenario", "[editor]") {
   rig.save("editor_chart_hist01_ship");
 }
 
+TEST_CASE("Extended: the chart palette alone has M8.PCX's colours", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ChartRig rig(install);
+  const World& world = rig.scenario.world().world();
+  const VgaPalette by_game = se_chart_palette(install, world, true);
+  const VgaPalette alone = se_chart_palette(install, world, false);
+  const VgaPalette completed = se_chart_palette(install, world, false, true);
+  CHECK(completed == by_game);
+  CHECK(se_chart_palette(install, world, true, true) == by_game);
+  // SE alone leaves exactly 86-127 and 255 black.
+  for (std::size_t i = 0; i < 256; ++i) {
+    const bool same = std::equal(alone.begin() + 3 * i, alone.begin() + 3 * i + 3, by_game.begin() + 3 * i);
+    if ((i >= 86 && i <= 127) || i == 255) {
+      CHECK(alone[3 * i] + alone[3 * i + 1] + alone[3 * i + 2] == 0);
+    } else {
+      CHECK(same);
+    }
+  }
+}
+
 }  // namespace sh::editor

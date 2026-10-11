@@ -38,6 +38,14 @@ struct ScenarioDate {
   bool operator==(const ScenarioDate&) const = default;
 };
 
+// Returns whether `orders` is in the toolbox's orders menu of a vessel of
+// SHIPS.DAT class `c` with the editor's corrections (not in the original):
+// a submarine class None, Follow Path ("Patrol") or Intercept; a surface
+// class its role's orders (Merchant and Warship: None, Convoy Leader,
+// Convoy Member; Escort: None, Escort, Patrol; Small craft: None, Fishing)
+// and Follow Path; another role only None.
+bool orders_fit_class(const ShipClass& c, ShipOrders orders);
+
 // The war the editor allows (0x9e9d0 / 0x9e9dc): 7 December 1941 and
 // 15 August 1945; also a new scenario's date.
 inline constexpr ScenarioDate kWarStart{7, 11, 11};
@@ -132,6 +140,11 @@ class Scenario {
   // not in the original).
   bool size_limited() const { return size_limited_; }
   void set_size_limited(bool limited) { size_limited_ = limited; }
+  // Whether SE's errors are corrected (`Features::editor_fixes`; not in the
+  // original): the reloads `load` restores by torpedo type, the course and
+  // orders `change_vessel_class` keeps.
+  bool corrected() const { return corrected_; }
+  void set_corrected(bool corrected) { corrected_ = corrected; }
 
   // ------------------------------------------------------------ File
 
@@ -168,7 +181,7 @@ class Scenario {
   // subs, aircraft, airstrikes, photo recons; the cost of each added to the
   // estimate below version 7), the file's world, the light of its date
   // (`environment_refresh`), the visibility and the reload counts copied
-  // back by position. Returns false when `accept`
+  // back by position (by torpedo type when `corrected`). Returns false when `accept`
   // refuses. A refused file or a world that cannot be read leaves a new
   // scenario on the previous world (a `DataError` is then rethrown); after
   // a file that cannot be read the caller makes a new scenario likewise.
@@ -232,7 +245,9 @@ class Scenario {
   // `sbchart_change_ship_class` (0x44114) after the dialogs: another role
   // group drops the orders (a leader releases its convoy); a submarine
   // class switches the kind; the live part gets the class and both parts
-  // the new models.
+  // the new models. When `corrected`, orders that `orders_fit_class`
+  // allows for the new class are kept, and a kind switch copies the course
+  // and the orders kept into the new live part.
   void change_vessel_class(Vessel& vessel, std::size_t new_class);
   // `toolbox_air_type_button` (0x40356): the type, its bombs, strafes and
   // model.
@@ -318,6 +333,7 @@ class Scenario {
   ModelCache cache_;
   std::int32_t memory_budget_ = 0;
   bool size_limited_ = true;
+  bool corrected_ = false;
   // The player record global 0xaf95c: the last file's, which a file without
   // a player record also spawns (the default player's before any load).
   ScnPlayerSub player_record_;

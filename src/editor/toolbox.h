@@ -51,7 +51,9 @@ struct OrdersMenu {
 // The menu for `vessel` (by its SHIPS.DAT role for a ship: None / Convoy
 // Leader / Convoy Member, None / Escort / Patrol, None / Fishing; None /
 // Patrol for an enemy sub) in `scenario`. A ship of an unknown class or of
-// the submarine role gets an empty menu.
+// the submarine role gets an empty menu. When the scenario is `corrected`
+// (not in the original), the ship menus end with Follow Path and the enemy
+// sub's with Intercept.
 OrdersMenu vessel_orders_menu(const Scenario& scenario, const Vessel& vessel);
 // The aircraft mission menu (Patrol / Escort / Follow Path).
 OrdersMenu aircraft_mission_menu(const Scenario& scenario, AircraftMission current);

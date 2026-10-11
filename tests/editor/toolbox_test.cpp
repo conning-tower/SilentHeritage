@@ -592,6 +592,187 @@ TEST_CASE("Extended: cancelling SELECT SHIP TYPE leaves the scenario unmodified"
   }
 }
 
+// Features with the editor's corrections on or off.
+Features editor_fixes(bool on) {
+  Features f;
+  f.editor_fixes = on;
+  return f;
+}
+
+TEST_CASE("Extended: cancelling SELECT A CITY keeps an existing mission and its city", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool fixes : {false, true}) {
+    ChartRig rig(install, {}, editor_fixes(fixes));
+    ChartScreen& chart = *rig.chart;
+    if (rig.scenario.world().airstrike_targets() == 0) {
+      SKIP("no airstrike target in this world");
+    }
+    // ADD AIRSTRIKE, the first city.
+    rig.click_panel(172 + 20, 71 + 10);
+    REQUIRE(rig.scenario.objects().size() == 2);
+    auto* strike = dynamic_cast<SpecialMission*>(rig.scenario.objects()[1].get());
+    REQUIRE(strike != nullptr);
+    rig.frames(2);
+    rig.click_panel(110 + 30, 45 + 10);
+    rig.frames(2);
+    const std::int32_t city = strike->base();
+    REQUIRE(city != -1);
+    // Its Location button, another row, then CANCEL.
+    rig.scenario.modified = false;
+    rig.click_panel(36 + 50, 150 + kCycleDy);
+    REQUIRE(chart.click_mode() == ClickMode::kPickCity);
+    rig.frames(2);
+    if (chart.cities().size() > 1) {
+      rig.click_panel(10 + 40, 135 + 16 + 8);
+    }
+    rig.click_panel(200 + 30, 45 + 10);
+    rig.frames(2);
+    CHECK(chart.click_mode() == ClickMode::kSelect);
+    CHECK(chart.shown_panel() == EditorPanel::kToolbox);
+    if (fixes) {
+      REQUIRE(rig.scenario.objects().size() == 2);
+      CHECK(rig.scenario.selected() == strike);
+      CHECK(strike->base() == city);
+      CHECK_FALSE(rig.scenario.modified);
+      // Picking another city again marks the change.
+      if (chart.cities().size() > 1) {
+        rig.click_panel(36 + 50, 150 + kCycleDy);
+        rig.frames(2);
+        rig.click_panel(10 + 40, 135 + 16 + 8);
+        rig.click_panel(110 + 30, 45 + 10);
+        CHECK(strike->base() != city);
+        CHECK(rig.scenario.modified);
+      }
+    } else {
+      // SE removes it.
+      CHECK(rig.scenario.objects().size() == 1);
+      CHECK(rig.scenario.selected() == &rig.scenario.player());
+      CHECK(rig.scenario.modified);
+    }
+  }
+}
+
+TEST_CASE("Extended: a new airstrike cancelled is still removed", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ChartRig rig(install, {}, editor_fixes(true));
+  if (rig.scenario.world().airstrike_targets() == 0) {
+    SKIP("no airstrike target in this world");
+  }
+  rig.click_panel(172 + 20, 71 + 10);
+  REQUIRE(rig.scenario.objects().size() == 2);
+  rig.frames(2);
+  rig.key(ui::kKeyEsc);
+  CHECK(rig.scenario.objects().size() == 1);
+  CHECK(rig.scenario.selected() == &rig.scenario.player());
+}
+
+TEST_CASE("Extended: enemy subs get Intercept and its point", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool fixes : {false, true}) {
+    ChartRig rig(install, {}, editor_fixes(fixes));
+    ChartScreen& chart = *rig.chart;
+    const auto at = open_water(rig);
+    Vessel& s = add_selected(rig, ship_class(rig.data, ShipType::kSubmarine), at, Vessel::Kind::kSubmarine);
+    rig.fake.menu_choice = -3;
+    rig.click_panel(108 + 50, 173 + kCycleDy);
+    if (!fixes) {
+      CHECK(labels(rig) == std::vector<std::string>{"None", "Patrol"});
+      continue;
+    }
+    CHECK(labels(rig) == std::vector<std::string>{"None", "Patrol", "Intercept"});
+    // Intercept: SELECT POINT, a click sets the point.
+    rig.fake.menu_choice = 2;
+    rig.click_panel(108 + 50, 173 + kCycleDy);
+    CHECK(s.sub.orders == ShipOrders::kIntercept);
+    CHECK(chart.click_mode() == ClickMode::kInterceptPoint);
+    rig.frames(2);
+    CHECK(chart.shown_panel() == EditorPanel::kPick);
+    CHECK(chart.pick_exit_enabled());
+    chart.click(at[0] + 40, at[1] + 10);
+    const WorldPoint point = chart.screen_to_world(at[0] + 40, at[1] + 10);
+    CHECK(chart.click_mode() == ClickMode::kSelect);
+    const auto rec = std::get<ScnEnemySub>(s.record());
+    CHECK(rec.orders == ShipOrders::kIntercept);
+    CHECK(rec.target_x == point.x);
+    CHECK(rec.target_y == point.y);
+    CHECK(rec.waypoints.count == 0);
+    rig.frames(2);
+    // The menu shows it current; Esc in SELECT POINT leaves the player as
+    // the target.
+    rig.click_panel(108 + 50, 173 + kCycleDy);
+    CHECK(rig.fake.menus.back().initial == 2);
+    rig.frames(2);
+    rig.key(ui::kKeyEsc);
+    CHECK(chart.click_mode() == ClickMode::kSelect);
+    CHECK(s.sub.target_x == -1);
+    CHECK(s.sub.target_y == -1);
+  }
+}
+
+TEST_CASE("Extended: ships get Follow Path with a plotted course", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool fixes : {false, true}) {
+    ChartRig rig(install, {}, editor_fixes(fixes));
+    ChartScreen& chart = *rig.chart;
+    const auto at = open_water(rig);
+    for (const ShipRole role : {ShipRole::kMerchant, ShipRole::kEscort, ShipRole::kSmallCraft}) {
+      Vessel& v = add_selected(rig, role_class(rig.data, role), at);
+      const OrdersMenu menu = vessel_orders_menu(rig.scenario, v);
+      REQUIRE_FALSE(menu.labels.empty());
+      CHECK((menu.labels.back() == "Follow Path") == fixes);
+      CHECK((menu.values.back() == static_cast<std::int32_t>(ShipOrders::kFollowPath)) == fixes);
+      rig.scenario.remove(v);
+    }
+    if (!fixes) {
+      continue;
+    }
+    Vessel& v = add_selected(rig, role_class(rig.data, ShipRole::kMerchant), at);
+    rig.fake.menu_choice = 3;
+    rig.click_panel(108 + 50, 173 + kCycleDy);
+    CHECK(v.ship.orders == ShipOrders::kFollowPath);
+    CHECK(chart.click_mode() == ClickMode::kCourse);
+    rig.frames(2);
+    chart.click(at[0] + 20, at[1]);
+    chart.click(at[0] + 20, at[1] + 20);
+    REQUIRE(chart.finish_mode());
+    const auto rec = std::get<ScnShip>(v.record());
+    CHECK(rec.orders == ShipOrders::kFollowPath);
+    CHECK(rec.waypoints.count == 3);
+  }
+}
+
+TEST_CASE("Extended: the airstrike's hold time is labelled Hold Time", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  std::array<Image8, 2> panels{Image8(kScreenWidth, kScreenHeight, 0), Image8(kScreenWidth, kScreenHeight, 0)};
+  std::array<ui::Rect, 2> boxes{};
+  for (const bool fixes : {false, true}) {
+    ChartRig rig(install, {}, editor_fixes(fixes));
+    SpecialMission& m = rig.scenario.add_airstrike();
+    rig.chart->select(m);
+    rig.gui.mouse().update(600, 440, 0, 0);
+    rig.frames(3);
+    const ui::Dialog* d = rig.chart->panel_dialog();
+    REQUIRE(d != nullptr);
+    panels[fixes ? 1 : 0] = rig.screen;
+    boxes[fixes ? 1 : 0] = {d->x(), d->y(), d->x() + 296, d->y() + 337};
+    rig.save(fixes ? "editor_airstrike_hold_time" : "editor_airstrike_flight_delay");
+  }
+  REQUIRE(boxes[0] == boxes[1]);
+  // The panels differ only in the label's rows.
+  const ui::Rect b = boxes[0];
+  int inside = 0;
+  int outside = 0;
+  for (int y = b.y0; y <= b.y1; ++y) {
+    for (int x = b.x0; x <= b.x1; ++x) {
+      if (panels[0].at(x, y) != panels[1].at(x, y)) {
+        (y >= b.y0 + 255 && y <= b.y0 + 270 ? inside : outside) += 1;
+      }
+    }
+  }
+  CHECK(inside > 0);
+  CHECK(outside == 0);
+}
+
 TEST_CASE("Extended: no memory budget, no gauge, never too large", "[editor][extended]") {
   SH_REQUIRE_GAME_DATA(install);
   for (const bool unlimited : {false, true}) {

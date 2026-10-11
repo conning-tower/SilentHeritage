@@ -39,8 +39,16 @@ struct Features {
   // machine: no gauge, no SCENARIO IS TOO LARGE (the files keep their
   // estimate).
   bool editor_no_size_limit = false;
-  // The scenario editor's corrections of SE's plain errors (cancelling
-  // SELECT SHIP TYPE leaves the scenario unmodified).
+  // The scenario editor's corrections of SE's plain errors and limits:
+  // cancelling SELECT SHIP TYPE leaves the scenario unmodified, cancelling
+  // SELECT A CITY keeps an existing mission, a ship <-> submarine class
+  // change keeps the course and the orders still valid, enemy subs get
+  // Intercept and ships Follow Path, SELECT SUB NAME follows "Limit by
+  // date: Subs", EQUIPMENT sets the radar detector, the airstrike's hold
+  // time is named so, the palette is complete without SH, a failed
+  // SBOPTION.SAV write is reported, the reloads load by torpedo type and
+  // the torpedoes' service months are read right.
+  // The .SCN files keep the records the original game reads.
   bool editor_fixes = false;
 
   // Returns the original game's set: no improvement.

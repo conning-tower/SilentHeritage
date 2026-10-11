@@ -709,4 +709,125 @@ TEST_CASE("A refused or unreadable load leaves a new scenario", "[editor][scenar
   CHECK(s.player().rec == std::get<ScnPlayerSub>(hist.records[0]));
 }
 
+TEST_CASE("Extended: a ship <-> sub class change keeps the course and the orders still valid",
+          "[editor][scenario][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool corrected : {false, true}) {
+    Session session(install);
+    Scenario& s = session.scenario;
+    s.set_corrected(corrected);
+    const EditorData& data = session.data;
+    const WorldPoint at = {s.player().rec.x + 0x10000, s.player().rec.y};
+    // An editor-placed ship: its sub part has no course.
+    Vessel& v = s.add_vessel(ship_class(data, "MUTSUKI"), at, Vessel::Kind::kShip);
+    v.ship.orders = ShipOrders::kFollowPath;
+    Scenario::start_course(v.ship.waypoints, at);
+    Scenario::add_course_point(v.ship.waypoints, {at.x + 0x1000, at.y}, false, false);
+    const Waypoints course = v.ship.waypoints;
+    REQUIRE(course.count == 2);
+
+    s.change_vessel_class(v, ship_class(data, "KAIDAI TYPE"));
+    REQUIRE(v.kind == Vessel::Kind::kSubmarine);
+    if (corrected) {
+      CHECK(v.sub.waypoints == course);
+      CHECK(v.sub.orders == ShipOrders::kFollowPath);
+    } else {
+      CHECK(v.sub.waypoints.count == 0);
+      CHECK(v.sub.orders == ShipOrders::kNone);
+    }
+    // A course drawn as a sub comes back to the ship.
+    v.sub.orders = ShipOrders::kFollowPath;
+    Scenario::add_course_point(v.sub.waypoints, {at.x + 0x2000, at.y}, false, false);
+    const Waypoints sub_course = v.sub.waypoints;
+    s.change_vessel_class(v, ship_class(data, "FUSO"));
+    REQUIRE(v.kind == Vessel::Kind::kShip);
+    if (corrected) {
+      CHECK(v.ship.waypoints == sub_course);
+      CHECK(v.ship.orders == ShipOrders::kFollowPath);
+    } else {
+      CHECK(v.ship.waypoints == course);
+      CHECK(v.ship.orders == ShipOrders::kNone);
+    }
+    // Intercept is no ship order: dropped either way, the course kept.
+    s.change_vessel_class(v, ship_class(data, "KAIDAI TYPE"));
+    v.sub.orders = ShipOrders::kIntercept;
+    s.change_vessel_class(v, ship_class(data, "FUSO"));
+    CHECK(v.ship.orders == ShipOrders::kNone);
+    // The saved record is the live part's.
+    CHECK(std::get<ScnShip>(v.record()).waypoints == v.ship.waypoints);
+  }
+}
+
+TEST_CASE("Extended: the orders each class may take", "[editor][scenario][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const EditorData& data = editor_data(install);
+  for (const ShipClass& c : data.tables.ships) {
+    CHECK(orders_fit_class(c, ShipOrders::kNone));
+    const bool sub = c.ship_type == ShipType::kSubmarine;
+    CHECK(orders_fit_class(c, ShipOrders::kIntercept) == sub);
+    CHECK(orders_fit_class(c, ShipOrders::kFollowPath) == (sub || c.role != ShipRole::kSubmarine));
+    CHECK(orders_fit_class(c, ShipOrders::kConvoyLeader) ==
+          (!sub && (c.role == ShipRole::kMerchant || c.role == ShipRole::kWarship)));
+    CHECK(orders_fit_class(c, ShipOrders::kEscort) == (!sub && c.role == ShipRole::kEscort));
+    CHECK(orders_fit_class(c, ShipOrders::kFishing) == (!sub && c.role == ShipRole::kSmallCraft));
+  }
+}
+
+TEST_CASE("Extended: reload counts load by torpedo type", "[editor][scenario][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  Session session(install);
+  Scenario& s = session.scenario;
+  const std::size_t listed = s.data().torpedo_choices.count - 1;
+  REQUIRE(listed >= 2);
+  for (std::size_t i = 0; i < listed; ++i) {
+    s.reload_aft[i] = static_cast<std::int32_t>(i + 1);
+    s.reload_forward[i] = static_cast<std::int32_t>(10 + i);
+  }
+  const ScnFile own = s.save();
+  const std::vector<std::int32_t> aft = s.reload_aft;
+  const std::vector<std::int32_t> forward = s.reload_forward;
+  // Another tool's order: the first two entries swapped.
+  ScnFile other = own;
+  std::swap(other.reloads[0], other.reloads[1]);
+  for (const bool corrected : {false, true}) {
+    s.set_corrected(corrected);
+    // SE's own files are the same either way, and save byte-identical.
+    REQUIRE(s.load(own));
+    CHECK(s.reload_aft == aft);
+    CHECK(s.reload_forward == forward);
+    CHECK(write_scn_file(s.save()) == write_scn_file(own));
+    REQUIRE(s.load(other));
+    if (corrected) {
+      CHECK(s.reload_aft == aft);
+      CHECK(s.reload_forward == forward);
+    } else {
+      CHECK(s.reload_aft[0] == aft[1]);
+      CHECK(s.reload_aft[1] == aft[0]);
+      CHECK(s.reload_forward[0] == forward[1]);
+    }
+  }
+}
+
+TEST_CASE("Extended: the airstrike's info names its hold time", "[editor][scenario][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  Session session(install);
+  Scenario& s = session.scenario;
+  SpecialMission& strike = s.add_airstrike();
+  std::get<BomberGroupRecord>(strike.rec).hold_min = 75;
+  ObjectEnv env = s.object_env();
+  const DescribeText se = strike.describe(env);
+  env.hold_time_label = true;
+  const DescribeText fixed = strike.describe(env);
+  CHECK(se[5] == "Flight delay: 01:15");
+  CHECK(fixed[5] == "Hold time: 01:15");
+  for (std::size_t i = 0; i < kDescribeLines; ++i) {
+    if (i != 5) {
+      CHECK(fixed[i] == se[i]);
+    }
+  }
+  // A photo recon's time limit is named right already.
+  const SpecialMission& recon = s.add_photo_recon();
+  CHECK(recon.describe(env) == recon.describe(s.object_env()));
+}
+
 }  // namespace sh::editor

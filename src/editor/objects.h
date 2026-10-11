@@ -53,6 +53,9 @@ struct ObjectEnv {
   // Whether the chart is in click mode 0 (select / move): the player's
   // text is empty in the other modes.
   bool select_mode = true;
+  // Whether the airstrike's hold time reads "Hold time: " rather than SE's
+  // "Flight delay: " (`Features::editor_fixes`; not in the original).
+  bool hold_time_label = false;
 };
 
 // What the visibility slot (+0x28) reads: the observer and the scenario's

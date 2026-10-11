@@ -388,7 +388,7 @@ DescribeText SpecialMission::describe(const ObjectEnv& env) const {
     size = static_cast<std::int32_t>(strike->size);
     delay = strike->launch_delay_min;
     second = strike->hold_min;
-    second_label = se.str(se_addr::kFlightDelayLabel);
+    second_label = env.hold_time_label ? own_text::kHoldTimeLabel : se.str(se_addr::kFlightDelayLabel);
   } else {
     const auto& recon = std::get<PhotoReconRecord>(rec);
     delay = recon.delay_min;

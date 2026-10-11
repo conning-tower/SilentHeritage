@@ -68,6 +68,7 @@ struct ChartRig {
         menu(Font::load(game, "ART/MENU_S.FNT")),
         sbchart(Shp::load(game, "ART/SBCHART.SHP")),
         cursors(Shp::load(game, "ART/SBCURSOR.SHP")) {
+    scenario.set_corrected(features.editor_fixes);
     if (!file.empty()) {
       const std::vector<std::uint8_t> bytes = game.read(file);
       REQUIRE(scenario.load(read_scn_file(bytes, file)));

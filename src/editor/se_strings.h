@@ -74,6 +74,17 @@ inline constexpr std::uint32_t kMark14 = 0x93080;  // "MARK14"
 
 }  // namespace se_addr
 
+// The editor's own texts of `Features::editor_fixes`, which SE.EXE lacks
+// (not in the original).
+namespace own_text {
+// The airstrike's hold time, labelled "Flight Delay" by SE: the toolbox
+// label and the info popup's.
+inline constexpr std::string_view kHoldTime = "Hold Time";
+inline constexpr std::string_view kHoldTimeLabel = "Hold time: ";
+// EQUIPMENT's row of equipment bit 4.
+inline constexpr std::string_view kRadarDetector = "Radar Detector:";
+}  // namespace own_text
+
 // The relocated image of SE.EXE.
 class SeExe {
  public:
