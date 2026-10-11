@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include <algorithm>
 #include <deque>
 #include <format>
 #include <fstream>
@@ -46,14 +47,36 @@ bool is_fullscreen_toggle(const SDL_KeyboardEvent& key) {
 
 }  // namespace
 
-ScreenRect letterbox_rect(int window_w, int window_h) {
-  // Integer products: the 4:3 test is exact.
-  if (window_w * kScreenHeight > window_h * kScreenWidth) {
-    const int w = window_h * kScreenWidth / kScreenHeight;
+ScreenRect letterbox_rect(int window_w, int window_h, int screen_w) {
+  // Integer products: the aspect test is exact.
+  if (window_w * kScreenHeight > window_h * screen_w) {
+    const int w = window_h * screen_w / kScreenHeight;
     return {(window_w - w) / 2, 0, w, window_h};
   }
-  const int h = window_w * kScreenHeight / kScreenWidth;
+  const int h = window_w * kScreenHeight / screen_w;
   return {0, (window_h - h) / 2, window_w, h};
+}
+
+std::array<std::uint8_t, 3> side_fill_tint(const Palette& palette, std::array<std::uint8_t, 3>& brightest) {
+  std::array<std::uint8_t, 3> top{};
+  for (const Rgb& c : palette.colors) {
+    top[0] = std::max(top[0], c.r);
+    top[1] = std::max(top[1], c.g);
+    top[2] = std::max(top[2], c.b);
+  }
+  std::array<std::uint8_t, 3> tint{};
+  for (std::size_t i = 0; i < 3; ++i) {
+    brightest[i] = std::max(brightest[i], top[i]);
+    tint[i] = brightest[i] == 0 ? 0 : static_cast<std::uint8_t>(top[i] * 255 / brightest[i]);
+  }
+  return tint;
+}
+
+int wide_screen_width(int window_w, int window_h) {
+  if (window_w <= 0 || window_h <= 0) {
+    return kScreenWidth;
+  }
+  return std::clamp(window_w * kScreenHeight / window_h, kScreenWidth, kMaxScreenWidth);
 }
 
 struct Display::Impl {
@@ -61,6 +84,22 @@ struct Display::Impl {
   SDL_Renderer* renderer = nullptr;
   SDL_Texture* texture = nullptr;
   std::vector<std::uint32_t> argb = std::vector<std::uint32_t>(static_cast<std::size_t>(kScreenWidth) * kScreenHeight);
+  // Whether the screen follows the window's aspect; the width of the frame
+  // texture (the last frame shown) and of the logical screen.
+  bool wide = false;
+  int frame_w = kScreenWidth;
+  int screen_w = kScreenWidth;
+  SDL_ScaleMode scale_mode = SDL_SCALEMODE_LINEAR;
+  // Beside a narrower frame: the fill set, the brass and wood textures
+  // (by `SideFill::Kind`), the textures of the screen's own side pictures,
+  // and the brightest palette channels seen (the tint's reference).
+  SideFill side_fill;
+  std::array<SDL_Texture*, 2> side_textures{};
+  std::array<SDL_Texture*, 2> side_pictures{};
+  std::array<std::uint8_t, 3> brightest{};
+  std::array<std::uint8_t, 3> tint{255, 255, 255};
+  // Where the next picture shown is saved (empty: not saved).
+  std::filesystem::path capture;
   // The characters of a text input event not returned yet.
   std::deque<InputEvent> pending;
   bool text_input = false;
@@ -85,8 +124,10 @@ struct Display::Impl {
     int w = 0;
     int h = 0;
     SDL_GetWindowSize(window, &w, &h);
-    const ScreenRect r = letterbox_rect(w, h);
-    const SDL_Rect rect{r.x, r.y, r.w, r.h};
+    // The frame's part of the screen.
+    const ScreenRect r = letterbox_rect(w, h, screen_w);
+    const int x0 = r.x + r.w * frame_x() / screen_w;
+    const SDL_Rect rect{x0, r.y, r.w * frame_w / screen_w, r.h};
     if (!SDL_SetWindowMouseRect(window, &rect)) {
       SDL_Log("%s: cannot confine the mouse: %s", edition::kExecutable, SDL_GetError());
     }
@@ -126,14 +167,112 @@ struct Display::Impl {
     }
   }
 
+  // Returns the left column of the frame on the screen.
+  int frame_x() const { return (screen_w - frame_w) / 2; }
+
+  // Sets the logical screen: the window's aspect when wide (and never
+  // narrower than the frame), 640 wide otherwise.
+  void fit_screen() {
+    int w = kScreenWidth;
+    if (wide) {
+      int ww = 0;
+      int wh = 0;
+      SDL_GetWindowSize(window, &ww, &wh);
+      w = std::max(wide_screen_width(ww, wh), frame_w);
+    }
+    if (w != screen_w) {
+      screen_w = w;
+      if (!SDL_SetRenderLogicalPresentation(renderer, screen_w, kScreenHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX)) {
+        sdl_fail("SDL_SetRenderLogicalPresentation");
+      }
+      confine_mouse();
+    }
+  }
+
+  // Draws the side fill beside the frame at column `x`.
+  void render_sides(int x) {
+    const auto side = [&](SDL_Texture* t, bool left) {
+      if (t == nullptr) {
+        return;
+      }
+      float fw = 0;
+      float fh = 0;
+      SDL_GetTextureSize(t, &fw, &fh);
+      const SDL_FRect dst{left ? static_cast<float>(x) - fw : static_cast<float>(x + frame_w), 0, fw,
+                          static_cast<float>(kScreenHeight)};
+      SDL_RenderTexture(renderer, t, nullptr, &dst);
+    };
+    if (side_fill.kind == SideFill::Kind::kPicture) {
+      side(side_pictures[0], true);
+      side(side_pictures[1], false);
+      return;
+    }
+    // The picture repeated across the screen, one copy under the frame:
+    // each side continues from the opposite edge of the picture.
+    SDL_Texture* fill = side_textures[static_cast<std::size_t>(side_fill.kind)];
+    if (fill != nullptr) {
+      SDL_SetTextureColorMod(fill, tint[0], tint[1], tint[2]);
+    }
+    side(fill, true);
+    side(fill, false);
+  }
+
+  // Converts `picture` through `lut` into `target`, (re)made at its size;
+  // none for an empty picture.
+  void upload_picture(SDL_Texture*& target, const Image8& picture, const std::array<std::uint32_t, 256>& lut) {
+    float tw = 0;
+    float th = 0;
+    if (target != nullptr) {
+      SDL_GetTextureSize(target, &tw, &th);
+    }
+    if (target != nullptr && (picture.width() != static_cast<int>(tw) || picture.height() != static_cast<int>(th))) {
+      SDL_DestroyTexture(target);
+      target = nullptr;
+    }
+    if (picture.width() == 0 || picture.height() == 0) {
+      return;
+    }
+    if (target == nullptr) {
+      target = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING, picture.width(),
+                                  picture.height());
+      if (target == nullptr) {
+        sdl_fail("SDL_CreateTexture");
+      }
+      SDL_SetTextureScaleMode(target, scale_mode);
+    }
+    std::vector<std::uint32_t> pixels(picture.pixels().size());
+    for (std::size_t i = 0; i < pixels.size(); ++i) {
+      pixels[i] = lut[picture.pixels()[i]];
+    }
+    SDL_UpdateTexture(target, nullptr, pixels.data(), picture.width() * 4);
+  }
+
+  // Saves the picture rendered to `capture`.
+  void save_capture() {
+    SDL_Surface* surface = SDL_RenderReadPixels(renderer, nullptr);
+    if (surface == nullptr || !SDL_SaveBMP(surface, capture.string().c_str())) {
+      SDL_Log("%s: cannot save %s: %s", edition::kExecutable, capture.string().c_str(), SDL_GetError());
+    }
+    SDL_DestroySurface(surface);
+    capture.clear();
+  }
+
   // Shows the picture's texture and the command button.
   void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
-    SDL_RenderTexture(renderer, texture, nullptr, nullptr);
+    const int x = frame_x();
+    if (x > 0) {
+      render_sides(x);
+    }
+    const SDL_FRect dst{static_cast<float>(x), 0, static_cast<float>(frame_w), static_cast<float>(kScreenHeight)};
+    SDL_RenderTexture(renderer, texture, nullptr, &dst);
     if (panel_view && panel_shown) {
       sync_panel_window();
       panel_view->draw(*panel);
+    }
+    if (!capture.empty()) {
+      save_capture();
     }
     SDL_RenderPresent(renderer);
   }
@@ -167,7 +306,9 @@ struct Display::Impl {
   }
 };
 
-Display::Display(std::string_view title, int scale, Scaling scaling) : impl_(std::make_unique<Impl>()) {
+Display::Display(std::string_view title, int scale, Scaling scaling, bool wide, int window_w, int window_h)
+    : impl_(std::make_unique<Impl>()) {
+  impl_->wide = wide;
   SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
 #ifdef SDL_PLATFORM_ANDROID
   // Landscape only (either way up); the resizable window follows the
@@ -182,7 +323,11 @@ Display::Display(std::string_view title, int scale, Scaling scaling) : impl_(std
     sdl_fail("SDL_InitSubSystem(VIDEO)");
   }
   const std::string t(title);
-  if (!SDL_CreateWindowAndRenderer(t.c_str(), kScreenWidth * scale, kScreenHeight * scale, flags, &impl_->window,
+  if (window_w <= 0 || window_h <= 0) {
+    window_w = kScreenWidth * scale;
+    window_h = kScreenHeight * scale;
+  }
+  if (!SDL_CreateWindowAndRenderer(t.c_str(), window_w, window_h, flags, &impl_->window,
                                    &impl_->renderer)) {
     sdl_fail("SDL_CreateWindowAndRenderer");
   }
@@ -196,8 +341,9 @@ Display::Display(std::string_view title, int scale, Scaling scaling) : impl_(std
   if (impl_->texture == nullptr) {
     sdl_fail("SDL_CreateTexture");
   }
-  SDL_SetTextureScaleMode(impl_->texture,
-                          scaling == Scaling::kSharp ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR);
+  impl_->scale_mode = scaling == Scaling::kSharp ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR;
+  SDL_SetTextureScaleMode(impl_->texture, impl_->scale_mode);
+  impl_->fit_screen();
   // The game draws its own mouse. SDL only hides the cursor over its own
   // windows, so the OS cursor stays visible outside.
   SDL_HideCursor();
@@ -205,6 +351,16 @@ Display::Display(std::string_view title, int scale, Scaling scaling) : impl_(std
 
 Display::~Display() {
   impl_->panel_view.reset();
+  for (SDL_Texture* t : impl_->side_textures) {
+    if (t != nullptr) {
+      SDL_DestroyTexture(t);
+    }
+  }
+  for (SDL_Texture* t : impl_->side_pictures) {
+    if (t != nullptr) {
+      SDL_DestroyTexture(t);
+    }
+  }
   SDL_DestroyTexture(impl_->texture);
   SDL_DestroyRenderer(impl_->renderer);
   SDL_DestroyWindow(impl_->window);
@@ -212,9 +368,23 @@ Display::~Display() {
 }
 
 void Display::present(const Image8& frame, const Palette& palette) {
-  if (frame.width() != kScreenWidth || frame.height() != kScreenHeight) {
-    throw std::invalid_argument("Display::present: frame must be 640x480");
+  if (frame.width() < kScreenWidth || frame.width() > kMaxScreenWidth || frame.height() != kScreenHeight) {
+    throw std::invalid_argument("Display::present: frame must be 640 to 1120 x 480");
   }
+  if (frame.width() != impl_->frame_w) {
+    SDL_Texture* texture = SDL_CreateTexture(impl_->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
+                                             frame.width(), kScreenHeight);
+    if (texture == nullptr) {
+      sdl_fail("SDL_CreateTexture");
+    }
+    SDL_SetTextureScaleMode(texture, impl_->scale_mode);
+    SDL_DestroyTexture(impl_->texture);
+    impl_->texture = texture;
+    impl_->frame_w = frame.width();
+    impl_->argb.resize(frame.pixels().size());
+    impl_->confine_mouse();
+  }
+  impl_->fit_screen();
   std::array<std::uint32_t, 256> lut{};
   for (std::size_t i = 0; i < 256; ++i) {
     const Rgb c = palette.colors[i];
@@ -224,7 +394,14 @@ void Display::present(const Image8& frame, const Palette& palette) {
   for (std::size_t i = 0; i < px.size(); ++i) {
     impl_->argb[i] = lut[px[i]];
   }
-  SDL_UpdateTexture(impl_->texture, nullptr, impl_->argb.data(), kScreenWidth * 4);
+  SDL_UpdateTexture(impl_->texture, nullptr, impl_->argb.data(), impl_->frame_w * 4);
+  if (impl_->wide) {
+    impl_->tint = side_fill_tint(palette, impl_->brightest);
+    if (impl_->side_fill.kind == SideFill::Kind::kPicture) {
+      impl_->upload_picture(impl_->side_pictures[0], impl_->side_fill.left, lut);
+      impl_->upload_picture(impl_->side_pictures[1], impl_->side_fill.right, lut);
+    }
+  }
   impl_->render();
 }
 
@@ -287,6 +464,7 @@ std::optional<InputEvent> Display::poll() {
       case SDL_EVENT_WINDOW_RESIZED:
       case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+        impl_->fit_screen();
         impl_->confine_mouse();
         impl_->sync_panel_window();
         break;
@@ -333,13 +511,13 @@ std::optional<InputEvent> Display::poll() {
         return out;
       case SDL_EVENT_MOUSE_MOTION:
         out.type = EventType::kMouseMove;
-        out.x = static_cast<int>(e.motion.x);
+        out.x = static_cast<int>(e.motion.x) - impl_->frame_x();
         out.y = static_cast<int>(e.motion.y);
         return out;
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
       case SDL_EVENT_MOUSE_BUTTON_UP:
         out.type = e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ? EventType::kMouseDown : EventType::kMouseUp;
-        out.x = static_cast<int>(e.button.x);
+        out.x = static_cast<int>(e.button.x) - impl_->frame_x();
         out.y = static_cast<int>(e.button.y);
         out.button = to_button(e.button.button);
         return out;
@@ -374,8 +552,10 @@ void Display::begin_text_input(const ScreenRect& area, TextInputKind kind) {
   float y0 = 0;
   float x1 = 0;
   float y1 = 0;
-  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(area.x), static_cast<float>(area.y), &x0, &y0);
-  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(area.x + area.w),
+  const int fx = impl_->frame_x();
+  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(fx + area.x), static_cast<float>(area.y), &x0,
+                                &y0);
+  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(fx + area.x + area.w),
                                 static_cast<float>(area.y + area.h), &x1, &y1);
   const SDL_Rect rect{static_cast<int>(x0), static_cast<int>(y0), static_cast<int>(x1 - x0), static_cast<int>(y1 - y0)};
   SDL_SetTextInputArea(impl_->window, &rect, 0);
@@ -426,6 +606,42 @@ void Display::show_command_panel(bool shown) {
   }
   impl_->panel_shown = shown;
 }
+
+void Display::capture_next(std::filesystem::path file) { impl_->capture = std::move(file); }
+
+int Display::screen_width() const {
+  if (!impl_->wide) {
+    return kScreenWidth;
+  }
+  int w = 0;
+  int h = 0;
+  SDL_GetWindowSize(impl_->window, &w, &h);
+  return wide_screen_width(w, h);
+}
+
+void Display::set_side_texture(SideFill::Kind kind, const RgbaImage& picture) {
+  if (kind == SideFill::Kind::kPicture) {
+    throw std::invalid_argument("Display::set_side_texture: not a texture kind");
+  }
+  SDL_Surface* surface = SDL_CreateSurfaceFrom(picture.width, picture.height, SDL_PIXELFORMAT_ARGB8888,
+                                               const_cast<std::uint32_t*>(picture.pixels.data()), picture.width * 4);
+  if (surface == nullptr) {
+    sdl_fail("SDL_CreateSurfaceFrom");
+  }
+  SDL_Texture* texture = SDL_CreateTextureFromSurface(impl_->renderer, surface);
+  SDL_DestroySurface(surface);
+  if (texture == nullptr) {
+    sdl_fail("SDL_CreateTextureFromSurface");
+  }
+  SDL_SetTextureScaleMode(texture, impl_->scale_mode);
+  SDL_Texture*& slot = impl_->side_textures[static_cast<std::size_t>(kind)];
+  if (slot != nullptr) {
+    SDL_DestroyTexture(slot);
+  }
+  slot = texture;
+}
+
+void Display::set_side_fill(const SideFill& fill) { impl_->side_fill = fill; }
 
 bool Display::fullscreen() const { return impl_->fullscreen; }
 

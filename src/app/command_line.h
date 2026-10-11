@@ -22,6 +22,8 @@
 // (always on under Android; platform/command_panel.h).
 // `--no-orders-button` hides that floating button (Android included, where
 // it is shown by default).
+// `--window WxH` opens the window at that size (the wide-screen layouts
+// follow its aspect).
 // `--faithful` runs the extended variant without its improvements, as the
 // faithful variant (core/features.h).
 // `--keys` presses the given keys, one per frame: names up, down, left,
@@ -33,7 +35,8 @@
 // the right one.
 // `--screenshot` runs N frames (default 2) on SDL's dummy video and
 // audio drivers with a 60 Hz virtual clock, saves the last frame as an 8-bit
-// BMP and exits.
+// BMP and exits; with the wide screen, also the window as shown (the side
+// fill around a 640-wide frame) as `<file>.window.bmp`.
 #pragma once
 
 #include <optional>
@@ -49,7 +52,7 @@ namespace sh {
 // The usage line's options, after the program's name.
 inline constexpr std::string_view kUsageOptions =
     "[--data <install dir> | --setup] "
-    "[--viewer [--open <category/item#frame>] | --nointro | --editor] [--save <dir>] [--sharp] [--touch-panel] [--no-orders-button] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]";
+    "[--viewer [--open <category/item#frame>] | --nointro | --editor] [--save <dir>] [--sharp] [--touch-panel] [--no-orders-button] [--window WxH] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]";
 
 struct CommandLine {
   std::optional<std::string> data_dir;
@@ -61,6 +64,9 @@ struct CommandLine {
   bool touch_panel = false;
   bool no_orders_button = false;
   bool faithful = false;
+  // The window's size, 0 for the default.
+  int window_width = 0;
+  int window_height = 0;
   std::string save_dir;
   std::optional<std::string> open;
   std::vector<InputEvent> keys;

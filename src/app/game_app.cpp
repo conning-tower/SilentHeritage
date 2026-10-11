@@ -21,6 +21,7 @@
 #include "app/sound_system.h"
 #include "assets/exe_image.h"
 #include "assets/game_exe.h"
+#include "assets/pcx.h"
 #include "assets/smacker.h"
 #include "assets/speech.h"
 #include "core/edition.h"
@@ -121,6 +122,37 @@ class SdlVideoSound final : public VideoSound {
   std::optional<SmackerAudioFormat> released_;
 };
 
+// Returns the RGB picture of `pcx`'s columns `x0`..`x1` (not in the original).
+RgbaImage pcx_columns(const PcxImage& pcx, int x0, int x1) {
+  const Palette palette = to_palette(pcx.palette);
+  RgbaImage out(x1 - x0 + 1, pcx.image.height());
+  for (int y = 0; y < out.height; ++y) {
+    for (int x = 0; x < out.width; ++x) {
+      const Rgb c = palette.colors[pcx.image.at(x0 + x, y)];
+      out.at(x, y) = 0xff000000u | (std::uint32_t{c.r} << 16) | (std::uint32_t{c.g} << 8) | c.b;
+    }
+  }
+  return out;
+}
+
+// Returns the side fill of the wood: the plain desk right of WOOD.PCX's
+// medal frames, followed by its mirror image. The columns are where the
+// grain runs level, so that the mirror axes hardly show (not in the
+// original).
+RgbaImage side_fill_wood(const Install& install) {
+  constexpr int kX0 = 486;
+  constexpr int kX1 = 620;
+  const RgbaImage half = pcx_columns(load_pcx(install, "ART/WOOD.PCX"), kX0, kX1);
+  RgbaImage out(2 * half.width, half.height);
+  for (int y = 0; y < out.height; ++y) {
+    for (int x = 0; x < half.width; ++x) {
+      out.at(x, y) = half.at(x, y);
+      out.at(out.width - 1 - x, y) = half.at(x, y);
+    }
+  }
+  return out;
+}
+
 // The SDL host of the front end and of the scenario editor; its missions
 // run on a `GameRunner`. It turns the system's text input on for the text
 // fields being edited, keeps the resume snapshot through the lifecycle
@@ -136,7 +168,8 @@ class GameApp final : public FrontendHost, public EditorRunner {
         saves_(saves),
         custom_(custom),
         headless_(options.screenshot.has_value()),
-        display_(edition::kName, 2, options.scaling),
+        display_(edition::kName, 2, options.scaling, options.features.wide_screen, options.window_width,
+                 options.window_height),
         sound_(install, paths),
         runner_({.install = install,
                  .paths = paths,
@@ -156,6 +189,11 @@ class GameApp final : public FrontendHost, public EditorRunner {
     }
     if (!headless_) {
       display_.remember_fullscreen(saves.dir() / "DISPLAY.CFG");
+    }
+    if (options.features.wide_screen) {
+      display_.set_side_texture(SideFill::Kind::kBrass,
+                                pcx_columns(load_pcx(install, "ART/MENUBGND.PCX"), 0, kScreenWidth - 1));
+      display_.set_side_texture(SideFill::Kind::kWood, side_fill_wood(install));
     }
     if (options.touch_panel) {
       command_panel_ = std::make_unique<CommandPanel>(saves.dir() / "CMDPANEL.CFG");
@@ -228,6 +266,12 @@ class GameApp final : public FrontendHost, public EditorRunner {
 
   void present(const Image8& screen, const VgaPalette& dac) override {
     const Palette palette = to_palette(dac);
+    if (headless_ && options_.features.wide_screen && frames_ + 1 >= options_.frames) {
+      // The window as shown as well: the side fill is not in the frame.
+      std::filesystem::path window = *options_.screenshot;
+      window.replace_extension(".window.bmp");
+      display_.capture_next(window);
+    }
     display_.present(screen, palette);
     ++frames_;
     if (headless_ && frames_ >= options_.frames) {
@@ -297,6 +341,10 @@ class GameApp final : public FrontendHost, public EditorRunner {
       keep_sound_output();
     }
   }
+
+  int screen_width() override { return display_.screen_width(); }
+
+  void set_side_fill(const SideFill& fill) override { display_.set_side_fill(fill); }
 
   VideoSound* video_sound() override { return sound_.has_device() ? &video_sound_ : nullptr; }
 

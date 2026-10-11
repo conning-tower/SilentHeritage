@@ -39,6 +39,14 @@ void grab(const Image8& screen, int x, int y, Image8& dst) {
 Gui::Gui(Image8& screen, TickSource ticks, Skin& skin)
     : screen_(&screen), ticks_(ticks), clock_(ticks), events_(ticks), mouse_(events_), skin_(&skin) {}
 
+void Gui::set_screen_width(int width) {
+  if (screen_->width() == width) {
+    return;
+  }
+  *screen_ = Image8(width, screen_->height());
+  mouse_.set_bounds(width, screen_->height());
+}
+
 void Gui::begin_text_input(const Rect& area, TextFieldKind kind) {
   text_fields_.emplace_back(area, kind);
   if (text_input_.begin) {

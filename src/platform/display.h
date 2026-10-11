@@ -2,6 +2,7 @@
 // (including the system's text input and the application's lifecycle).
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -9,6 +10,8 @@
 #include <string_view>
 
 #include "core/image.h"
+#include "core/side_fill.h"
+#include "platform/command_panel.h"
 
 namespace sh {
 
@@ -83,10 +86,22 @@ struct ScreenRect {
   bool operator==(const ScreenRect&) const = default;
 };
 
-// Returns the part of a `window_w` x `window_h` window (any unit) the 4:3
-// picture is drawn in, as SDL_LOGICAL_PRESENTATION_LETTERBOX places it:
-// the window's full height or width, centred between black bars.
-ScreenRect letterbox_rect(int window_w, int window_h);
+// Returns the part of a `window_w` x `window_h` window (any unit) a
+// `screen_w` x 480 picture (4:3 by default) is drawn in, as
+// SDL_LOGICAL_PRESENTATION_LETTERBOX places it: the window's full height or
+// width, centred between black bars.
+ScreenRect letterbox_rect(int window_w, int window_h, int screen_w = kScreenWidth);
+
+// Returns the colour modulation of the side fill textures for a frame shown
+// with `palette`: per channel, the palette's brightest value against the
+// brightest ever seen (`brightest`, updated), so that the fill fades with
+// the frame and takes the colour of rig for red. Not in the original.
+std::array<std::uint8_t, 3> side_fill_tint(const Palette& palette, std::array<std::uint8_t, 3>& brightest);
+
+// Returns the width of the wide screen (480 rows) that fills a `window_w` x
+// `window_h` window: the window's aspect, between 640 (4:3) and
+// `kMaxScreenWidth` (21:9). Not in the original.
+int wide_screen_width(int window_w, int window_h);
 
 // The kinds of text a field takes, which pick the soft keyboard.
 enum class TextInputKind : std::uint8_t { kText, kDigits };
@@ -96,15 +111,39 @@ enum class TextInputKind : std::uint8_t { kText, kDigits };
 // display may exist; it initializes and shuts down SDL video.
 class Display {
  public:
-  // Opens a window `scale` times the original size. Throws std::runtime_error
-  // if SDL fails.
-  Display(std::string_view title, int scale = 2, Scaling scaling = Scaling::kSmooth);
+  // Opens a window `scale` times the original size (or `window_w` x
+  // `window_h` when given). `wide`: the screen follows the window's aspect
+  // (`screen_width`) and narrower frames are shown centred between the side
+  // fill; else it is 640x480 letterboxed. Throws std::runtime_error if SDL
+  // fails.
+  Display(std::string_view title, int scale = 2, Scaling scaling = Scaling::kSmooth, bool wide = false,
+          int window_w = 0, int window_h = 0);
   ~Display();
   Display(const Display&) = delete;
   Display& operator=(const Display&) = delete;
 
-  // Shows `frame` (must be 640x480) with `palette`.
+  // Shows `frame` with `palette`. The frame is 480 rows of 640 up to
+  // `kMaxScreenWidth` pixels, shown centred on the screen; input
+  // coordinates are those of the last frame shown.
   void present(const Image8& frame, const Palette& palette);
+
+  // Saves the next picture shown, as the window shows it (with the side
+  // fill, at the window's size), to the BMP file `file`. Failures are
+  // logged.
+  void capture_next(std::filesystem::path file);
+
+  // Returns the width of the screen the window shows (640 unless wide):
+  // the width a wide layout draws at.
+  int screen_width() const;
+  // Sets the picture of a texture kind of side fill (`kBrass`, `kWood`),
+  // repeated across the screen with one copy under the frame. Throws
+  // std::runtime_error if SDL cannot make its texture.
+  void set_side_texture(SideFill::Kind kind, const RgbaImage& picture);
+  // Sets what fills the screen beside a narrower frame from the next
+  // `present` on: a texture tinted after the frame's palette
+  // (`side_fill_tint`), or the screen's own pictures through it. The
+  // brass at first.
+  void set_side_fill(const SideFill& fill);
 
   // Returns the next pending input event, if any. The window's close
   // button and the system ending the program (SDL_EVENT_QUIT) give

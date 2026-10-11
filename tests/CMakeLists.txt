@@ -155,6 +155,7 @@ add_executable(sh_tests
   # Modern conveniences: the chart's wider edge scroll, Alt+Enter fullscreen.
   chart_edge_scroll_test.cpp
   display_fullscreen_test.cpp
+  wide_screen_test.cpp
   # The Android launcher icon tool (tools/).
   launcher_icon_test.cpp
   # Golden traces of the faithful game (tests/golden/).

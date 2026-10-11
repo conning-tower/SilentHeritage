@@ -61,5 +61,7 @@ class Image8 {
 // The original screen size.
 inline constexpr int kScreenWidth = 640;
 inline constexpr int kScreenHeight = 480;
+// The widest screen of the wide-screen layouts (21:9; not in the original).
+inline constexpr int kMaxScreenWidth = 1120;
 
 }  // namespace sh

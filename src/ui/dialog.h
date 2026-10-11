@@ -82,6 +82,10 @@ class Gui {
   Gui(Image8& screen, TickSource ticks, Skin& skin);
 
   Image8& screen() { return *screen_; }
+  // Makes the screen `width` x 480 (the wide-screen layouts; not in the
+  // original): a new blank picture, the mouse limited to it. Nothing when
+  // it already has that width.
+  void set_screen_width(int width);
   EventQueue& events() { return events_; }
   HotspotTable& hotspots() { return hotspots_; }
   Mouse& mouse() { return mouse_; }
@@ -260,6 +264,13 @@ class Dialog {
   int run_step();
   // Runs the dialog modally, calling `Gui::pump` between iterations.
   int run();
+
+  // Moves the dialog by (`dx`, `dy`) before it opens (the dialogs placed
+  // for the 640-wide screen centred on a wider one; not in the original).
+  void move_by(int dx, int dy) {
+    x_ += dx;
+    y_ += dy;
+  }
 
   // Accessors.
   Gui& gui() { return *gui_; }

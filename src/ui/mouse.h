@@ -94,6 +94,10 @@ class Mouse {
   // flags (not in the original, whose dialogs ignore it).
   void post_wheel(int notches, std::uint8_t shift);
 
+  // Changes the screen the position is limited to (not in the original:
+  // the wide-screen layouts), clamping the position.
+  void set_bounds(int width, int height);
+
   int x() const { return x_; }
   int y() const { return y_; }
   std::uint8_t buttons() const { return buttons_; }

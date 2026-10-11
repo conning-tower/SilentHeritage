@@ -8,6 +8,13 @@ namespace sh::ui {
 
 Mouse::Mouse(EventQueue& events, int width, int height) : events_(&events), width_(width), height_(height) {}
 
+void Mouse::set_bounds(int width, int height) {
+  width_ = width;
+  height_ = height;
+  x_ = std::clamp(x_, 0, width_ - 1);
+  y_ = std::clamp(y_, 0, height_ - 1);
+}
+
 void Mouse::update(int x, int y, std::uint8_t buttons, std::uint8_t shift) {
   const std::uint8_t old_buttons = buttons_;
   buttons_ = buttons & (kButtonLeft | kButtonRight | kButtonMiddle);

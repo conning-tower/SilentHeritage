@@ -33,6 +33,9 @@ struct GameAppOptions {
   // Shows that panel's floating ORDERS button (`--no-orders-button` hides
   // it; the extended command bar styles may hide it too).
   bool orders_button = true;
+  // The window's size, 0 for twice the original screen.
+  int window_width = 0;
+  int window_height = 0;
   // The improvements beyond the original the game runs with.
   Features features = Features::for_build();
   // EXTENDED.CFG is read and written (`FrontendServices::extended_config`).

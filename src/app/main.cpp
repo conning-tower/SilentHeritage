@@ -115,6 +115,8 @@ int run(const Options& options, const sh::Install& install) {
                           .scaling = options.scaling,
                           .touch_panel = options.touch_panel,
                           .orders_button = !options.no_orders_button,
+                          .window_width = options.window_width,
+                          .window_height = options.window_height,
                           .features = options.faithful ? sh::Features::faithful() : sh::Features::for_build(),
                           .extended_config = sh::edition::kExtended && !options.faithful,
                           .keys = options.keys,

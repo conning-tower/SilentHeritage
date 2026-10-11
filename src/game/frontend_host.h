@@ -11,6 +11,7 @@
 #include "assets/pal.h"
 #include "core/error.h"
 #include "core/image.h"
+#include "core/side_fill.h"
 
 namespace sh {
 
@@ -78,6 +79,12 @@ class FrontendHost {
   // button (`Features::command_bar`). None by default.
   virtual bool has_orders_panel() const { return false; }
   virtual void open_orders_panel(const ui::Rect& /*button*/) {}
+  // Returns the width the wide-screen layouts draw at (480 rows; not in
+  // the original): the window's, 640 by default.
+  virtual int screen_width() { return kScreenWidth; }
+  // Sets what fills a wide screen beside the 640-wide frames presented
+  // from now on (not in the original); nothing by default.
+  virtual void set_side_fill(const SideFill& /*fill*/) {}
 };
 
 // The mission layer, called where the original calls `mission_main_loop`

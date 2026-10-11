@@ -132,6 +132,14 @@ CommandLine parse_command_line(std::span<const std::string_view> args) {
       o.save_dir = value;
     } else if (a == "--screenshot") {
       o.screenshot = value;
+    } else if (a == "--window") {
+      const std::size_t x = value.find('x');
+      if (x == std::string_view::npos ||
+          std::from_chars(value.data(), value.data() + x, o.window_width).ec != std::errc{} ||
+          std::from_chars(value.data() + x + 1, value.data() + value.size(), o.window_height).ec != std::errc{} ||
+          o.window_width < 1 || o.window_height < 1) {
+        throw std::runtime_error("--window needs a size WxH");
+      }
     } else if (a == "--frames") {
       if (std::from_chars(value.data(), value.data() + value.size(), o.frames).ec != std::errc{} || o.frames < 1) {
         throw std::runtime_error("--frames needs a positive number");
