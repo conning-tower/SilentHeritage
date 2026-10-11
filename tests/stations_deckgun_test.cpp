@@ -103,7 +103,7 @@ void save_screenshot(const std::string& name, const Image8& image, const VgaPale
 }  // namespace
 
 TEST_CASE("The deck gun station opens with its menu and trains out of the tower's dead zone", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   REQUIRE(f.mission->player_class().deck_gun_count == 1);
   f.station->open();
@@ -137,7 +137,7 @@ TEST_CASE("The deck gun station opens with its menu and trains out of the tower'
 }
 
 TEST_CASE("The deck gun's fire button fires a shell and counts the round", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   f.station->open();
   f.gun().set_manual(true);
@@ -161,7 +161,7 @@ TEST_CASE("The deck gun's fire button fires a shell and counts the round", "[sta
   f.station->close();
 }
 
-TEST_CASE("The deck gun's sight shows a HIST01 ship on its train", "[stations2]") {
+TEST_CASE("The deck gun's sight shows a HIST01 ship on its train", "[stations2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   const std::int32_t m = f.gun().selected();
