@@ -160,7 +160,7 @@ struct Rig {
 
 }  // namespace
 
-TEST_CASE("The station eyes follow the boat's heights, bearing and zoom", "[stations2]") {
+TEST_CASE("The station eyes follow the boat's heights, bearing and zoom", "[stations2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
@@ -202,7 +202,7 @@ TEST_CASE("The station eyes follow the boat's heights, bearing and zoom", "[stat
 }
 
 TEST_CASE("A HIST01 ship on the bridge's bearing appears at the view's centre", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
   HeadlessRunner runner(*mission);
@@ -270,7 +270,7 @@ TEST_CASE("The bridge deck overlay follows the look bearing", "[stations2]") {
 }
 
 TEST_CASE("The bridge station shows HIST01's ships and trains with the keys", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Rig rig(install);
   rig.stations.install(StationId::kBridge, std::make_unique<BridgeStation>(rig.services));
   rig.stations.select(StationId::kBridge);
@@ -315,7 +315,7 @@ TEST_CASE("The bridge station shows HIST01's ships and trains with the keys", "[
   CHECK(rig.stations.current() == StationId::kConn);
 }
 
-TEST_CASE("The periscope trains, magnifies, marks and goes down with the scope", "[stations2]") {
+TEST_CASE("The periscope trains, magnifies, marks and goes down with the scope", "[stations2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Rig rig(install);
   rig.stations.install(StationId::kScope, std::make_unique<ScopeStation>(rig.services));
@@ -385,7 +385,7 @@ TEST_CASE("The periscope trains, magnifies, marks and goes down with the scope",
   CHECK(rig.stations.current() == StationId::kConn);
 }
 
-TEST_CASE("The TBT shows the target through the binoculars", "[stations2]") {
+TEST_CASE("The TBT shows the target through the binoculars", "[stations2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Rig rig(install);
   rig.stations.install(StationId::kTbt, std::make_unique<TbtStation>(rig.services));
