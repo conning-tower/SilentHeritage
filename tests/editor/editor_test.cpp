@@ -37,7 +37,7 @@ std::vector<std::string> labels(const ui::PopupMenu& menu) {
 
 }  // namespace
 
-TEST_CASE("The menu bar comes from SE.EXE, with Run only when started by the game", "[editor][menu]") {
+TEST_CASE("The menu bar comes from SE.EXE, with Run only when started by the game", "[editor][menu][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const SeExe se = SeExe::load(install);
   MenuCommand selection = MenuCommand::kNone;
@@ -67,7 +67,7 @@ TEST_CASE("The menu bar comes from SE.EXE, with Run only when started by the gam
 }
 
 TEST_CASE("File / Exit leaves the editor, asking to save a modified scenario", "[editor][menu]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorRig rig(install, true);
   rig.then([&] { rig.editor.scenario().modified = true; });
   rig.press(320, 200, ui::kButtonRight);
@@ -85,7 +85,7 @@ TEST_CASE("File / Exit leaves the editor, asking to save a modified scenario", "
 }
 
 TEST_CASE("File / Run writes AEONSCEN.TMP and ends with Run", "[editor][menu]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorRig rig(install, true);
   rig.screenshot("se_start");
   rig.menu(kFilesX, 0);
@@ -97,7 +97,7 @@ TEST_CASE("File / Run writes AEONSCEN.TMP and ends with Run", "[editor][menu]") 
 }
 
 TEST_CASE("Started from DOS, Files starts at New", "[editor][menu]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorRig rig(install, false);
   // Item 0 is New: the scenario is replaced, then Exit is item 5.
   rig.then([&] { rig.editor.scenario().header.hour = 3; });
@@ -109,7 +109,7 @@ TEST_CASE("Started from DOS, Files starts at New", "[editor][menu]") {
 }
 
 TEST_CASE("Alt-Q asks QUIT TO DOS? and YES ends the game too", "[editor][menu]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorRig rig(install, true);
   rig.key(0x1000);
   rig.key(0x314e);  // NO
@@ -120,7 +120,7 @@ TEST_CASE("Alt-Q asks QUIT TO DOS? and YES ends the game too", "[editor][menu]")
 }
 
 TEST_CASE("Edit menu items run their dialogs", "[editor][menu]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorRig rig(install, true);
   // Edit / Briefing Text, cancelled by Esc; '?' / About, closed by Enter.
   rig.menu(kEditX, 1);
@@ -138,7 +138,7 @@ TEST_CASE("New and the loads rebuild the chart view on the scenario's world", "[
   // Regression: the view kept the world a load had freed (the debug
   // build's sanitizers catch its next draw) and its zoom (sb_setup_world
   // resets it to 1 before centring on the player).
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorRig rig(install, true);
   const auto zoom_in = [&] {
     rig.then([&] {
