@@ -40,7 +40,7 @@ ChartStation& open_chart(ControlRig& rig) {
 
 }  // namespace
 
-TEST_CASE("Chart scale legend and value", "[stations]") {
+TEST_CASE("Chart scale legend and value", "[stations][content]") {
   SH_REQUIRE_GAME_EXE();
   CHECK(chart_scale_value(1) == "100");  // 176000 yd = 100 statute miles
   CHECK(chart_scale_legend(1) == "STATUTE MILES");
@@ -50,7 +50,7 @@ TEST_CASE("Chart scale legend and value", "[stations]") {
 }
 
 TEST_CASE("Chart view transforms follow the original formulas", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   const World& world = rig.mission().world();
   ChartView view(world, 0, 0, 0x27f, 0x1ca);
@@ -93,7 +93,7 @@ TEST_CASE("Chart view transforms follow the original formulas", "[stations]") {
 }
 
 TEST_CASE("The chart opens on F5 centred on the boat", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   REQUIRE(rig.screen->loop().open_station() == &chart);
@@ -103,7 +103,7 @@ TEST_CASE("The chart opens on F5 centred on the boat", "[stations]") {
 }
 
 TEST_CASE("The zoom box opens on Z and zooms where clicked", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   rig.key(0x2c5a);  // Z
@@ -133,7 +133,7 @@ TEST_CASE("The zoom box opens on Z and zooms where clicked", "[stations]") {
 }
 
 TEST_CASE("Follow mode keeps the boat in the middle", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   chart.view().set_zoom(64 << 16);
@@ -150,7 +150,7 @@ TEST_CASE("Follow mode keeps the boat in the middle", "[stations]") {
 }
 
 TEST_CASE("Waypoints go in deep water with no land on the way", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   chart.view().set_zoom(8 << 16);
@@ -200,7 +200,7 @@ TEST_CASE("Waypoints go in deep water with no land on the way", "[stations]") {
 }
 
 TEST_CASE("The chart shows the ships from 8x", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   REQUIRE(!rig.mission().ships().empty());
@@ -223,7 +223,7 @@ TEST_CASE("The chart shows the ships from 8x", "[stations]") {
 }
 
 TEST_CASE("The chart draws the coast tiles above 6x", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   const SeaFloor& floor = rig.mission().floor();
@@ -251,7 +251,7 @@ TEST_CASE("The chart draws the coast tiles above 6x", "[stations]") {
 }
 
 TEST_CASE("The NAVIGATION button shows the nav panel", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   const auto at = chart.panel_position();
@@ -265,7 +265,7 @@ TEST_CASE("The NAVIGATION button shows the nav panel", "[stations]") {
   CHECK(chart.panel() == ChartPanel::kMap);
 }
 
-TEST_CASE("Pointing at the boat shows its position", "[stations]") {
+TEST_CASE("Pointing at the boat shows its position", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
@@ -310,7 +310,7 @@ TEST_CASE("The info box goes around the pointer, off the panel", "[stations]") {
 }
 
 TEST_CASE("The chart panel drags by its title strip and stays in the view", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   const auto at = chart.panel_position();
