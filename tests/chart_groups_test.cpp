@@ -96,7 +96,7 @@ std::pair<int, int> frame_pixels(const Image8& screen, const SpriteFrame& frame,
 }  // namespace
 
 TEST_CASE("The zoom box holds the chart against edge scrolling", "[chartgroups]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   chart.view().set_zoom(8 << 16);
@@ -120,7 +120,7 @@ TEST_CASE("The zoom box holds the chart against edge scrolling", "[chartgroups]"
 }
 
 TEST_CASE("Group symbols: frames, colours and the 8-hour fade", "[chartgroups]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ExeImage exe = ExeImage::load(install);
   ContactGroup g;
   g.kind = ContactGroupKind::kRoute;
@@ -175,7 +175,7 @@ TEST_CASE("Group symbols: frames, colours and the 8-hour fade", "[chartgroups]")
   CHECK(s->colour == 0x7b);
 }
 
-TEST_CASE("Group reports use SH.EXE's strings", "[chartgroups]") {
+TEST_CASE("Group reports use SH.EXE's strings", "[chartgroups][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   const World world = parse_world(install.read("DATA/WORLD-10.WLD"), "WORLD-10.WLD");
@@ -234,7 +234,7 @@ TEST_CASE("Group reports use SH.EXE's strings", "[chartgroups]") {
 }
 
 TEST_CASE("A materialized group's contact follows its nearest member", "[chartgroups]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   std::vector<GroupMember> members;
   for (Ship* ship : rig.mission().ships()) {
@@ -283,7 +283,7 @@ TEST_CASE("A materialized group's contact follows its nearest member", "[chartgr
   CHECK(convoy.report.size == 1);
 }
 
-TEST_CASE("A career patrol's groups on the strategic chart and their reports", "[chartgroups]") {
+TEST_CASE("A career patrol's groups on the strategic chart and their reports", "[chartgroups][content]") {
   SH_REQUIRE_GAME_DATA(install);
   PatrolRig p(install);
   ControlRig& rig = p.rig;
@@ -345,7 +345,7 @@ TEST_CASE("A career patrol's groups on the strategic chart and their reports", "
   }
 }
 
-TEST_CASE("Ports show their info zoomed out only", "[chartgroups]") {
+TEST_CASE("Ports show their info zoomed out only", "[chartgroups][content]") {
   SH_REQUIRE_GAME_DATA(install);
   PatrolRig p(install);
   ControlRig& rig = p.rig;
@@ -383,7 +383,7 @@ TEST_CASE("Ports show their info zoomed out only", "[chartgroups]") {
   CHECK(chart.popup_text().empty());
 }
 
-TEST_CASE("Ships show their contact info zoomed in", "[chartgroups]") {
+TEST_CASE("Ships show their contact info zoomed in", "[chartgroups][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
