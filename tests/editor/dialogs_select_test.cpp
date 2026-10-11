@@ -44,7 +44,7 @@ constexpr int kAirButtonsY = 47 + 340 + 12;
 TEST_CASE("SELECT SUB TYPE maps the date-limited row to its class", "[editor][select]") {
   // Regression test for the original bug "Sub class by list position"
   // (SE stored the row as the SUBS.DAT class).
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   // May 1945: the BARRACUDA and NARWHAL (classes 1 and 2) left service.
@@ -88,7 +88,7 @@ TEST_CASE("SELECT SUB TYPE maps the date-limited row to its class", "[editor][se
 }
 
 TEST_CASE("SELECT SUB NAME copies the boat on SELECT only", "[editor][select]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   const auto gato = static_cast<std::int32_t>(*fx.data.find_sub("GATO"));
   const ClassList boats = sub_name_list(fx.data, static_cast<std::size_t>(gato), "");
@@ -106,7 +106,7 @@ TEST_CASE("SELECT SUB NAME copies the boat on SELECT only", "[editor][select]") 
 }
 
 TEST_CASE("SELECT SHIP TYPE maps the row to SHIPS.DAT, -1 on CANCEL", "[editor][select]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   s.header.year = year_of(1943);
@@ -125,7 +125,7 @@ TEST_CASE("SELECT SHIP TYPE maps the row to SHIPS.DAT, -1 on CANCEL", "[editor][
 }
 
 TEST_CASE("SELECT AIRCRAFT TYPE maps the row to AIRCRAFT.DAT, also on CANCEL", "[editor][select]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   s.header.year = year_of(1943);
