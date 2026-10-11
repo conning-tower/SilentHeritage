@@ -33,7 +33,7 @@ void zoom_at(ChartRig& rig, std::int32_t zoom, int x, int y) {
 }  // namespace
 
 TEST_CASE("Chart screen and world points convert both ways", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   for (const std::int32_t zoom : {1, 4, 16, 64}) {
     INFO(zoom);
@@ -51,7 +51,7 @@ TEST_CASE("Chart screen and world points convert both ways", "[editor]") {
 }
 
 TEST_CASE("Chart hit testing follows the list order and the zoom", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
   const auto water = rig.find_pixel([&](int x, int y) { return rig.depth_at(x, y) > 200; });
@@ -95,7 +95,7 @@ TEST_CASE("Chart hit testing follows the list order and the zoom", "[editor]") {
   }
 }
 
-TEST_CASE("Chart click modes: placing, removing, patrol orbits", "[editor]") {
+TEST_CASE("Chart click modes: placing, removing, patrol orbits", "[editor][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
@@ -194,7 +194,7 @@ TEST_CASE("Chart click modes: placing, removing, patrol orbits", "[editor]") {
   }
 }
 
-TEST_CASE("Chart SELECT A CITY cancel removes the mission", "[editor]") {
+TEST_CASE("Chart SELECT A CITY cancel removes the mission", "[editor][content]") {
   // Regression test for the original bugs of SELECT A CITY's cancel (SE
   // cleared the modified flag and could select a removed object).
   SH_REQUIRE_GAME_DATA(install);
@@ -218,7 +218,7 @@ TEST_CASE("Chart SELECT A CITY cancel removes the mission", "[editor]") {
   CHECK(chart.click_mode() == ClickMode::kSelect);
 }
 
-TEST_CASE("Chart courses: water, land, loop closing at 10 pixels, 24 points", "[editor]") {
+TEST_CASE("Chart courses: water, land, loop closing at 10 pixels, 24 points", "[editor][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
@@ -295,7 +295,7 @@ TEST_CASE("Chart courses: water, land, loop closing at 10 pixels, 24 points", "[
 TEST_CASE("Chart PLOT COURSE's DONE and CLEAR follow the course on the open panel", "[editor]") {
   // Regression: the buttons were enabled only when the panel was made,
   // so DONE stayed greyed after the second point.
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
   // Open water right of the panel, with room around it.
@@ -336,7 +336,7 @@ TEST_CASE("Chart PLOT COURSE's DONE and CLEAR follow the course on the open pane
 }
 
 TEST_CASE("Chart range circles: the selection's sighting range, the radar", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
   // The player selected: its own sighting range is 0, no circles.
@@ -358,7 +358,7 @@ TEST_CASE("Chart range circles: the selection's sighting range, the radar", "[ed
   CHECK(pts[45] == WorldPoint{1000, 2000 - 48000});
 }
 
-TEST_CASE("Chart selection moves, status bar and hover popup", "[editor]") {
+TEST_CASE("Chart selection moves, status bar and hover popup", "[editor][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
@@ -394,7 +394,7 @@ TEST_CASE("Chart selection moves, status bar and hover popup", "[editor]") {
 }
 
 TEST_CASE("Chart screen of a historical scenario", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install, "SCEN/HIST01.SCN");
   rig.frames(3);
   // The toolbox is up, the view centred on the player, objects drawn.
