@@ -17,6 +17,7 @@
 #include "sim/contacts.h"
 #include "sim/context.h"
 #include "sim/radar.h"
+#include "sim/radar_emissions.h"
 #include "sim/sensor_environment.h"
 #include "sim/sighting.h"
 
@@ -33,11 +34,19 @@ class Sensors {
   const RadarSets& radar() const { return radar_; }
   ContactReports& reports() { return reports_; }
   const ContactReports& reports() const { return reports_; }
+  // Not in the original: the extended APR-1's operator.
+  Apr1Receiver& apr1() { return apr1_; }
+  const Apr1Receiver& apr1() const { return apr1_; }
+  // Not in the original: the extended escorts' radar detectors.
+  EscortDetectors& escort_detectors() { return escort_detectors_; }
+  const EscortDetectors& escort_detectors() const { return escort_detectors_; }
 
   // The first sensor part of `player_update` (0x5bf89) for `dt` (16.16 s):
   // the quiet time grows, the crew reports contacts.
   void update_player_reports(SimContext& ctx, PlayerSub& player, Fixed16 dt);
-  // Its second part, after the ramming check: the radars sweep.
+  // Its second part, after the ramming check: the radars sweep; then (not
+  // in the original, by the extended rules) the APR-1 listens and the
+  // escorts' detectors hear the boat's radars.
   void update_player_radar(SimContext& ctx, PlayerSub& player, Fixed16 dt);
   // Drops the pointers to `removed`, about to be deleted.
   void forget(const Vehicle& removed);
@@ -58,6 +67,8 @@ class Sensors {
   SensorEnvironment env_;
   RadarSets radar_;
   ContactReports reports_;
+  Apr1Receiver apr1_;
+  EscortDetectors escort_detectors_;
   std::int32_t frame_counter_ = 0;
   std::int32_t quiet_time_ = 0;
   bool collision_warning_ = false;

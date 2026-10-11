@@ -131,6 +131,10 @@ class Ship : public Vehicle {
   bool has_attacked_player() const override { return ai_.attacked_player; }
   // `ai_ship_receive_contact` (0x12ac9).
   void receive_contact(SimContext& ctx, const fx::Vec3& position, Vehicle* target) override;
+  // Not in the original (the extended escort radar detectors): takes
+  // `position` (an estimate on a coarse bearing) as its contact on `target`,
+  // alerted, at any range, unless it has a contact under 30 s old.
+  void receive_radar_intercept(const fx::Vec3& position, Vehicle* target);
 
   const ShipMotionParams& params() const { return params_; }
   ShipOrder orders() const { return orders_; }

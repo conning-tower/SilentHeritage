@@ -32,6 +32,19 @@ std::uint32_t equipment_options(std::uint32_t equipment) {
   return (sj | sd << 2 | rest << 3) << option::kEquipmentShift;
 }
 
+// Not in the original: whether the boat has the extended ST periscope
+// radar. A career boat has it once delivered (equipment bit 8); in a single
+// mission every boat with an SJ has it from November 1944.
+bool st_radar_fitted(const ScenarioHeader& h, const MissionRules& rules, bool career) {
+  if (!rules.st_radar || (!h.has(Equipment::kSjaRadar) && !h.has(Equipment::kSj1Radar))) {
+    return false;
+  }
+  if (career) {
+    return h.has(Equipment::kStRadar);
+  }
+  return h.has(Equipment::kStRadar) || h.year * 12 + h.month >= kStRadarYear * 12 + kStRadarMonth;
+}
+
 // Returns the `.ENV` file for `weather` (`init_select_env_file`, 0x4f9e2):
 // tropical below 20 deg south latitude (of the map loaded before), else a
 // summer file from April to September, else one of two winter files.
@@ -177,6 +190,9 @@ void Mission::build(const Install& install, MissionSetup& setup, const MissionSt
   conditions_.options = (setup.options & ~option::kEquipmentMask) | equipment_options(h.equipment);
   conditions_.speech = setup.speech;
   conditions_.rules = setup.rules;
+  if (st_radar_fitted(h, setup.rules, setup.patrol != nullptr)) {
+    conditions_.options |= sensor_option::kStPeriscopeRadar;
+  }
   conditions_.sea_state = static_cast<std::int32_t>(h.sea_state);
   conditions_.weather = static_cast<std::int32_t>(h.weather);
   conditions_.fog = h.fog;

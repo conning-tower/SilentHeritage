@@ -152,7 +152,7 @@ std::uint32_t equipment_on_date(std::int32_t month, std::int32_t year) {
                                                            {Equipment::kSjaRadar, 1},
                                                            {Equipment::kSj1Radar, 2},
                                                            {Equipment::kPpiDisplay, 3},
-                                                           {Equipment::kUnread, 4},
+                                                           {Equipment::kApr1Detector, 4},
                                                            {Equipment::kBathythermograph, 5}}};
   std::uint32_t bits = 0;
   for (const EquipmentDate& e : kDates) {

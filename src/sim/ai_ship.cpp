@@ -1261,4 +1261,17 @@ void Ship::receive_contact(SimContext& /*ctx*/, const fx::Vec3& position, Vehicl
   ai_.contact.vehicle = target;
 }
 
+void Ship::receive_radar_intercept(const fx::Vec3& position, Vehicle* target) {
+  if (ai_.contact.age >= 0 && ai_.contact.age < 0x1e0000) {
+    return;
+  }
+  alert_.level = 1;
+  ai_.contact.heading = Angle10(0);
+  ai_.contact.speed = Fixed16();
+  ai_.contact.age = 0;
+  ai_.contact.position = position;
+  alert_.timer = Fixed16::from_int((setup_.crew + 1) * 600);
+  ai_.contact.vehicle = target;
+}
+
 }  // namespace sh

@@ -12,6 +12,7 @@
 #include "core/install.h"
 #include "game/career_letters.h"
 #include "game/career_ui.h"
+#include "game/equipment_art.h"
 #include "game/frontend_subsel.h"
 #include "game/shpath.h"
 #include "gfx/sprite.h"
@@ -381,14 +382,21 @@ int CareerLetters::homeport(const CareerRecord& record, const HomePort& port, bo
   return ui.run_menu_dialog(d);
 }
 
-int CareerLetters::new_equipment(CareerRecord& record, std::int32_t current_command) {
+int CareerLetters::new_equipment(CareerRecord& record, std::int32_t current_command, const MissionRules& rules) {
   // new_equipment_run (0x5b501)
   CareerUi& ui = ui_;
   const std::optional<int> due = new_equipment_due(ui.exe(), record, current_command);
-  if (!due) {
+  std::optional<EquipmentEntry> found;
+  if (due) {
+    found = equipment_entry(ui.exe(), *due);
+  } else {
+    // Not in the original: the extended variant's deliveries.
+    found = extended_equipment_due(record, current_command, rules);
+  }
+  if (!found) {
     return 0;
   }
-  const EquipmentEntry entry = equipment_entry(ui.exe(), *due);
+  const EquipmentEntry& entry = *found;
   record.equipment |= entry.bit;
   const std::string letter = new_equipment_text(record, entry, ui.exe(), ui.menu_resources().small);
   ui.load_screen_pcx(ui.exe_string(addr::kEquipPcx));
@@ -398,10 +406,17 @@ int CareerLetters::new_equipment(CareerRecord& record, std::int32_t current_comm
   // pixels larger, copied to the screen.
   {
     const Shp equip = Shp::load(ui.install(), ui.paths().path(GameDir::kArt, ui.exe_string(addr::kEquipShp)));
-    const SpriteFrame& frame = equip.frame(static_cast<std::size_t>(entry.sprite));
-    Image8 box(frame.x1 - frame.x0 + 1 + 3, frame.y1 - frame.y0 + 1 + 3, 0);
-    draw_sprite_clipped(Viewport::full(box), frame, 0, 0);
-    ui.screen().blit(box, entry.x, entry.y);
+    if (entry.sprite == kStRadarPicture) {
+      const Image8 picture = st_radar_picture(equip);
+      Image8 box(picture.width() + 3, picture.height() + 3, 0);
+      box.blit(picture, 0, 0);
+      ui.screen().blit(box, entry.x, entry.y);
+    } else {
+      const SpriteFrame& frame = equip.frame(static_cast<std::size_t>(entry.sprite));
+      Image8 box(frame.x1 - frame.x0 + 1 + 3, frame.y1 - frame.y0 + 1 + 3, 0);
+      draw_sprite_clipped(Viewport::full(box), frame, 0, 0);
+      ui.screen().blit(box, entry.x, entry.y);
+    }
     apply_sprite_colours(equip.frame(0), ui.palette(), 0xfe);
   }
   ui::Dialog d(ui.gui(), 0x140, 0x31, 300, 0x178, kMenuFlags);

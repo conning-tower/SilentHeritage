@@ -188,7 +188,7 @@ void CareerFlow::request_transfer() {
 void CareerFlow::finish_port_time() {
   // new_equipment_run, career_save, career_show_transit_calendar.
   CareerRecord& r = career_.record;
-  letters_.new_equipment(r, career_.summary.current_command);
+  letters_.new_equipment(r, career_.summary.current_command, rules());
   save();
   letters_.transit_calendar(r, assignment_.travel_days, assignment_.repair_days + assignment_.refit_days);
 }

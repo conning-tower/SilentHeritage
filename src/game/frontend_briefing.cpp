@@ -2,10 +2,12 @@
 
 #include <format>
 #include <span>
+#include <utility>
 
 #include "assets/exe_image.h"
 #include "assets/fnt.h"
 #include "game/mission.h"
+#include "sim/sensor_environment.h"
 #include "ui/menu_skin.h"
 
 namespace sh {
@@ -56,6 +58,8 @@ MissionBriefing mission_briefing_facts(const Mission& mission) {
   MissionBriefing b;
   const MissionConditions& c = mission.sim().conditions();
   b.options = c.options;
+  b.apr1 = c.rules.apr1 && (c.options & sensor_option::kApr1Detector) != 0;
+  b.st_radar = (c.options & sensor_option::kStPeriscopeRadar) != 0;
   b.difficulty = mission.difficulty_rating();
   const GameClock& clock = mission.sim().clock();
   b.day = clock.day();
@@ -180,6 +184,13 @@ std::string mission_briefing_text(const MissionBriefing& b, const ExeImage& exe,
                                   table(addr::kPpi, (o >> 19) & 1), table(addr::kBathythermograph, (o >> 21) & 1)}) {
     ui::menu_pad_text_to_width(t, kEquipmentIndent, font);
     t += item;
+  }
+  for (const auto& [fitted, item] : {std::pair{b.apr1, "APR-1 Radar Detector\n"},
+                                     std::pair{b.st_radar, "ST Periscope Radar\n"}}) {
+    if (fitted) {
+      ui::menu_pad_text_to_width(t, kEquipmentIndent, font);
+      t += item;
+    }
   }
   t += s(0xfd4f9);
   return t;

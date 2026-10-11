@@ -121,7 +121,9 @@ class CrewMessageLog {
 // Returns the bar text of `entry` (`crew_message_format_current`,
 // 0x4ca19): "<speaker>: " then the message text with its placeholders
 // (0x01/0x02 the arguments, 0x03 the text, 0x09/0x0a the arguments as 3
-// digits, 0x11/0x12 an "s" when the argument is 2 or more) filled in.
+// digits, 0x11/0x12 an "s" when the argument is 2 or more) filled in; a
+// text the message has no 0x03 for is appended (not in the original: the
+// extended reports' suffixes).
 std::string format_crew_message(const CrewMessages& messages, const CrewMessageLog::Entry& entry);
 
 class ControlBar : public CommandBar {

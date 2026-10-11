@@ -15,6 +15,7 @@ sh_add_module(sh_sim
     intercept.cpp
     line_of_sight.cpp
     radar.cpp
+    radar_emissions.cpp
     sensors.cpp
     sighting.cpp
     sonar.cpp

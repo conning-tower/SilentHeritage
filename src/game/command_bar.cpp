@@ -239,6 +239,7 @@ std::string format_crew_message(const CrewMessages& messages, const CrewMessageL
   }
   std::string out = m->speaker_name + ": ";
   const std::int32_t args[2] = {entry.arg1, entry.arg2};
+  bool text_placed = false;
   for (const char ch : m->text) {
     const auto c = static_cast<std::uint8_t>(ch);
     if (c == 1 || c == 2) {
@@ -247,6 +248,7 @@ std::string format_crew_message(const CrewMessages& messages, const CrewMessageL
       }
     } else if (c == 3) {
       out += entry.text;
+      text_placed = true;
     } else if (c == 9 || c == 10) {
       if (args[c - 9] != -1) {
         out += padded(args[c - 9], 3);
@@ -258,6 +260,12 @@ std::string format_crew_message(const CrewMessages& messages, const CrewMessageL
     } else {
       out += ch;
     }
+  }
+  // Not in the original: a text given to a message without a place for it
+  // is the extended variant's suffix (the APR-1's bands and strength); the
+  // original never gives one.
+  if (!text_placed) {
+    out += entry.text;
   }
   return out;
 }

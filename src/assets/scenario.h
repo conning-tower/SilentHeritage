@@ -61,9 +61,22 @@ enum class Equipment : std::uint32_t {
   kSjaRadar = 1u << 1,          // 8/42
   kSj1Radar = 1u << 2,          // 8/43, replaces the SJa
   kPpiDisplay = 1u << 3,        // 7/43, the SJ radar's default display
-  kUnread = 1u << 4,            // 5/44, read by no code (cut ST radar or APR-1?)
+  // 5/44, the APR-1 radar detector (the manual's date, SE.EXE's "radar
+  // detector"); the original reads it nowhere, the extended variant's APR-1
+  // rule does (sim/radar_emissions.h).
+  kApr1Detector = 1u << 4,
   kBathythermograph = 1u << 5,  // 3/43, switches the gauge panel
+  // Not in the original: the ST periscope radar (11/44, kept with the SJ),
+  // fitted by the extended variant's ST rule.
+  kStRadar = 1u << 8,
 };
+
+// Not in the original: the dates the extended variant fits the APR-1 (the
+// original's 5/44) and the ST (11/44): month 0-based, year since 1930.
+inline constexpr std::int32_t kApr1Month = 4;
+inline constexpr std::int32_t kApr1Year = 14;
+inline constexpr std::int32_t kStRadarMonth = 10;
+inline constexpr std::int32_t kStRadarYear = 14;
 
 // Bomber-group sizes: 10, 30 or 50 planes (table 0x1030fc).
 enum class BomberGroupSize : std::int32_t { k10Planes = 0, k30Planes = 1, k50Planes = 2 };

@@ -13,6 +13,7 @@
 
 #include "assets/exe_image.h"
 #include "assets/fnt.h"
+#include "assets/scenario.h"
 #include "game/career_rules.h"
 #include "ui/menu_skin.h"
 
@@ -298,6 +299,64 @@ std::optional<int> new_equipment_due(const ExeImage& exe, const CareerRecord& r,
     }
   }
   return std::nullopt;
+}
+
+std::vector<EquipmentEntry> extended_equipment_entries(const MissionRules& rules) {
+  std::vector<EquipmentEntry> entries;
+  if (rules.apr1) {
+    entries.push_back({.bit = static_cast<std::uint32_t>(Equipment::kApr1Detector),
+                       .month = kApr1Month,
+                       .year = kApr1Year,
+                       .name = "APR-1 Radar Detector",
+                       .text = "The APR-1 is a radar intercept receiver. It warns of enemy radar transmissions, "
+                               "giving their strength but not their bearing. The Japanese are fitting "
+                               "radar to their warships, escorts and patrol bombers.",
+                       .sprite = 5,
+                       .x = 83,
+                       .y = 148});
+  }
+  if (rules.st_radar) {
+    entries.push_back({.bit = static_cast<std::uint32_t>(Equipment::kStRadar),
+                       .month = kStRadarMonth,
+                       .year = kStRadarYear,
+                       .name = "ST Radar",
+                       .text = "The ST is a small radar built into the head of the new Type 4 periscope. With the "
+                               "periscope raised, the SJ radar's ranges and bearings can be taken at periscope "
+                               "depth. Its 3cm pulses are thought to be beyond the enemy's detectors.",
+                       .sprite = kStRadarPicture,
+                       .x = 85,
+                       .y = 148});
+  }
+  return entries;
+}
+
+std::optional<EquipmentEntry> extended_equipment_due(const CareerRecord& r, std::int32_t current_command,
+                                                     const MissionRules& rules) {
+  const std::int32_t now = campaign_month_index_abs(r.month, r.year + kScenarioYearBase);
+  for (const EquipmentEntry& e : extended_equipment_entries(rules)) {
+    if ((e.bit & r.equipment) != 0) {
+      continue;
+    }
+    std::int32_t due = campaign_month_index_abs(e.month, e.year + kScenarioYearBase);
+    if (current_command != 1) {
+      due += 3;
+    }
+    if (now >= due) {
+      return e;
+    }
+  }
+  return std::nullopt;
+}
+
+std::uint32_t extended_equipment_on_date(const CareerRecord& r, const MissionRules& rules) {
+  const std::int32_t now = campaign_month_index_abs(r.month, r.year + kScenarioYearBase);
+  std::uint32_t bits = 0;
+  for (const EquipmentEntry& e : extended_equipment_entries(rules)) {
+    if (now >= campaign_month_index_abs(e.month, e.year + kScenarioYearBase)) {
+      bits |= e.bit;
+    }
+  }
+  return bits;
 }
 
 std::string new_equipment_text(const CareerRecord& r, const EquipmentEntry& e, const ExeImage& exe, const Font& font) {

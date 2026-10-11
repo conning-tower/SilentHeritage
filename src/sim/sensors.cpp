@@ -29,6 +29,8 @@ void Sensors::update_player_reports(SimContext& ctx, PlayerSub& player, Fixed16 
 
 void Sensors::update_player_radar(SimContext& ctx, PlayerSub& player, Fixed16 dt) {
   radar_.update(ctx, player, env_, dt.raw());
+  apr1_.update(ctx, player, env_, dt.raw());
+  escort_detectors_.update(ctx, player, radar_, env_, dt.raw());
 }
 
 void Sensors::forget(const Vehicle& removed) {

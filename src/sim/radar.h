@@ -43,6 +43,11 @@ enum class SjMode : std::int32_t {
 std::int32_t sj_fitted_range(std::uint32_t options);
 // Returns the SD range: 17600 yd when fitted (`sd_radar_fitted_range`).
 std::int32_t sd_fitted_range(std::uint32_t options);
+// Not in the original: returns whether the SJ transmits only through the
+// extended ST periscope radar (options bit 22): the periscope raised below
+// the SJ's own depth limit. Its 3 cm pulses are taken to be beyond the
+// Japanese detectors.
+bool sj_through_periscope(const PlayerSub& player, std::uint32_t options);
 
 class RadarSets {
  public:
@@ -84,7 +89,9 @@ class RadarSets {
   // Switches the SJ (`sj_radar_set_power`): on (PPI mode when `ppi` and the
   // scope is fitted), `release_hold` frees the beam, `toggle` inverts the
   // current state instead. Refused below the radar depth (periscope depth
-  // for the ST). Reports #43/#44 (ST #47/#48) when turned on or off.
+  // for the ST), unless the extended ST periscope radar (options bit 22)
+  // has the periscope raised. Reports #43/#44 (ST #47/#48) when turned on or
+  // off.
   void set_sj_power(SimContext& ctx, const PlayerSub& player, bool on, bool ppi, bool release_hold, bool toggle);
   // Switches the SD (`sd_radar_set_power`), reports #45/#46.
   void set_sd_power(SimContext& ctx, const PlayerSub& player, bool on, bool toggle);

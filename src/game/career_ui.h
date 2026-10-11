@@ -14,6 +14,7 @@
 #include "core/image.h"
 #include "core/random.h"
 #include "game/frontend.h"
+#include "game/mission_rules.h"
 #include "ui/dialog.h"
 
 namespace sh {

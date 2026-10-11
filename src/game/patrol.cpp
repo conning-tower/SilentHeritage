@@ -70,8 +70,9 @@ PatrolPlan build_patrol_scenario(Career& career, const PatrolZone& zone, std::in
     h.hour = r.hour;
     h.minute = r.minute;
   }
-  // The equipment bits 0-5; the SJ-1 replaces the SJa.
-  std::uint32_t equipment = r.equipment & 0x3fu;
+  // The equipment bits 0-5 (and the extended ST's bit 8, which only an
+  // extended career has); the SJ-1 replaces the SJa.
+  std::uint32_t equipment = r.equipment & (0x3fu | static_cast<std::uint32_t>(Equipment::kStRadar));
   if ((equipment & static_cast<std::uint32_t>(Equipment::kSj1Radar)) != 0) {
     equipment &= ~static_cast<std::uint32_t>(Equipment::kSjaRadar);
   }

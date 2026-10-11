@@ -26,6 +26,10 @@ struct MissionBriefing {
   // The options word `0x11a85c`: bit 0 career (PATROL BRIEFING), the
   // equipment bits 16..21.
   std::uint32_t options = 0;
+  // Not in the original: the extended fits listed after the original's,
+  // the APR-1 (with its rule) and the ST periscope radar.
+  bool apr1 = false;
+  bool st_radar = false;
   std::int32_t difficulty = 0;  // 0x125ff0, 0..1000
   // The clock 0x129c10..0x129c20: year since 1930, month 0-based.
   std::int32_t day = 1;

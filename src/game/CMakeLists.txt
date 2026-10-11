@@ -79,6 +79,7 @@ sh_add_module(sh_game
     patrol.cpp
     awards.cpp
     career_letters.cpp
+    equipment_art.cpp
     career_letters_screens.cpp
     career_menus.cpp
     career_menus_view.cpp

@@ -25,6 +25,12 @@ inline constexpr std::uint32_t kSjRadarMask = 0x30000;   // 1 SJ, 2 improved SJ,
 inline constexpr std::uint32_t kStRadar = 0x30000;
 inline constexpr std::uint32_t kSdRadar = 0x40000;
 inline constexpr std::uint32_t kPpiScope = 0x80000;
+// Bit 20: the APR-1 radar detector (equipment bit 4; read only by the APR-1
+// rule).
+inline constexpr std::uint32_t kApr1Detector = 0x100000;
+// Bit 22, not in the original: the ST periscope radar, set by the mission
+// when the ST rule is on and the boat has it (sim/radar.h).
+inline constexpr std::uint32_t kStPeriscopeRadar = 0x400000;
 }  // namespace sensor_option
 
 // The station on screen, as far as the sensors care (`0x11a860`).

@@ -73,18 +73,29 @@ struct MissionRules {
   // The Mark 27 "Cutie" passive homing torpedo from mid-1944
   // (sim/torpedo.h, game/torpedo_load.h).
   bool mark27 = false;
+  // The ST periscope radar (rule and simulation change): a boat fitted with
+  // it (from November 1944, with its SJ) can use the SJ with the periscope
+  // raised as well as at radar depth (sim/radar.h).
+  bool st_radar = false;
+  // The APR-1 radar detector (rule and simulation change): the Japanese
+  // ships and aircraft transmit by type and date, and a boat fitted with the
+  // APR-1 hears them (sim/radar_emissions.h).
+  bool apr1 = false;
 
   // Returns the rules of a new extended game (the extended variant's
   // defaults, where EXTENDED.CFG or a career's rules do not set them): the
   // corrections, the quiet sonar reacquisition, the extended realism with
-  // DETECTABLE RADAR (as at EXPERT), the mixed Mark 18s and the Mark 27.
+  // DETECTABLE RADAR (as at EXPERT), the mixed Mark 18s, the Mark 27, the ST
+  // and the APR-1.
   static constexpr MissionRules extended() {
     return {.fix_obvious_errors = true,
             .quiet_sonar_reacquire = true,
             .detectable_radar = true,
             .extended_realism = true,
             .mixed_mark18 = true,
-            .mark27 = true};
+            .mark27 = true,
+            .st_radar = true,
+            .apr1 = true};
   }
   // Returns whether depth-charge blasts deafen the escorts' sonar, and the
   // noises near an escort's estimate cancel it by the true geometry.
@@ -100,7 +111,7 @@ struct MissionRuleField {
 };
 
 // The saved fields of `MissionRules`; keys must stay as they are once saved.
-inline const std::array<MissionRuleField, 7> kMissionRuleFields{{
+inline const std::array<MissionRuleField, 9> kMissionRuleFields{{
     {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
     {"quiet_sonar_reacquire", &MissionRules::quiet_sonar_reacquire},
     {"keen_escort_sonar", &MissionRules::keen_escort_sonar},
@@ -108,6 +119,8 @@ inline const std::array<MissionRuleField, 7> kMissionRuleFields{{
     {"extended_realism", &MissionRules::extended_realism},
     {"mixed_mark18", &MissionRules::mixed_mark18},
     {"mark27", &MissionRules::mark27},
+    {"st_radar", &MissionRules::st_radar},
+    {"apr1", &MissionRules::apr1},
 }};
 
 // Scenario conditions and player options.

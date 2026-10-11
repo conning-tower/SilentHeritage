@@ -58,6 +58,12 @@ kept with it.
 - **Mark 27 "Cutie":** from mid-1944 boats can carry two homing torpedoes,
   fired on a sonar bearing, that home on the loudest screws ahead after 400
   yards, your own boat included after two minutes.
+- **ST periscope radar:** from November 1944 the SJ radar also works with
+  the periscope raised, and a career receives the ST with a NEW EQUIPMENT
+  letter.
+- **APR-1 radar detector:** from May 1944 the radar operator warns of
+  Japanese radar with the signal's strength (faint, fair or strong), and a
+  career receives the APR-1 with a NEW EQUIPMENT letter.
 
 ## Fixes of the original's bugs
 

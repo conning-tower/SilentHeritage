@@ -16,6 +16,7 @@
 #include "assets/fnt.h"
 #include "core/install.h"
 #include "assets/dat_tables.h"
+#include "assets/scenario.h"
 #include "game/career_boats.h"
 #include "game/career_flow.h"
 #include "game/career_menus.h"
@@ -114,11 +115,12 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
 
 // A front end over the install with the scripted host, for the screens.
 struct Fixture {
-  explicit Fixture(const Install& install)
+  explicit Fixture(const Install& install, bool extended_config = false)
       : paths(ShPaths::load(install)),
         exe(ExeImage::load(install)),
         saves(dir.path(), &install, paths.dir(GameDir::kSave)),
-        front_end({.install = install, .paths = paths, .exe = exe, .saves = saves}, host, host, 1234),
+        front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .extended_config = extended_config},
+                  host, host, 1234),
         ui(front_end) {}
 
   TempDir dir;
@@ -347,6 +349,51 @@ TEST_CASE("A career patrol updates the career from its results", "[career]") {
   REQUIRE(saved.has_value());
   CHECK(saved->career.record.tonnage == r.tonnage);
   CHECK(saved->career.log.size() == 6);
+}
+
+TEST_CASE("A career patrol takes the extended rules, and its port time their deliveries", "[career][radar_rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  const CampaignData campaign = CampaignData::load(install, tables);
+  for (const bool extended : {false, true}) {
+    // The shipped career has no rules of its own: extended, it takes the
+    // extended game's.
+    Fixture f(install, extended);
+    CareerFlow flow(f.ui, tables, campaign);
+    f.host.patrol_end = 5;
+    f.host.patrol_result.end = {.end_code = 5, .fuel = 50000, .return_hours = 0};
+    MissionOutcome& o = f.host.patrol_result.outcome;
+    o.end_code = 5;
+    o.day = 3;
+    o.month = 5;
+    o.year = 15;
+    o.fuel = 50000;
+    o.boat_name = "(SS-337) Carbonero";
+    o.class_name = "BALAO";
+    o.profile_sprite = "P_GATO.SHP";
+    PatrolLogEntry sunk;
+    sunk.day = 3;
+    sunk.month = 5;
+    sunk.year = 15;
+    sunk.hour = 12;
+    sunk.type = 13;
+    sunk.tonnage = 5000;
+    o.patrol_log = {sunk};
+    const int base_y = (480 - 0x168) / 2;
+    // As above, with the APR-1's letter in port when extended (6 screens).
+    f.host.script = {button(0x159, 0x4b, 0x23, 0xaa, 0xc6), button(0xb, 0xe, 0x1bb, 400, 0x79),
+                     button(5, base_y, 0x1e, 0x82, 0xc6), ScriptedHost::click(0x1b2 + 0x63, 0x168 + 12)};
+    for (int i = 0; i < (extended ? 6 : 5); ++i) {
+      f.host.script.push_back(ScriptedHost::key(ui::kKeyEnter));
+    }
+    f.host.script.push_back(button(5, base_y, 0x1e, 0x122, 0xc6));
+    flow.run();
+    CHECK(f.host.script.empty());
+    REQUIRE(f.host.patrol_request.has_value());
+    CHECK(f.host.patrol_request->rules == (extended ? MissionRules::extended() : MissionRules{}));
+    CHECK(((flow.career().record.equipment & static_cast<std::uint32_t>(Equipment::kApr1Detector)) != 0) ==
+          extended);
+  }
 }
 
 TEST_CASE("Back takes each career menu's way back", "[career][back]") {

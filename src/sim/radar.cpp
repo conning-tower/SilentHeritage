@@ -29,6 +29,14 @@ std::int32_t sj_depth_limit(const PlayerSub& player, std::uint32_t options) {
   return st_fitted(options) ? player.sub().periscope_depth_ft : player.sub().radar_depth_ft;
 }
 
+// Returns whether the SJ can transmit: down to its depth limit or, with the
+// extended ST periscope radar (not in the original), with the periscope
+// raised.
+bool sj_can_transmit(const PlayerSub& player, std::uint32_t options) {
+  return player.depth_ft() <= sj_depth_limit(player, options) ||
+         ((options & sensor_option::kStPeriscopeRadar) != 0 && player.periscope_raised());
+}
+
 // Returns the bearing difference folded into [-1800, 1800].
 std::int32_t fold(std::int32_t d) {
   if (d > 1800) {
@@ -79,6 +87,11 @@ std::int32_t sd_fitted_range(std::uint32_t options) {
   return ((options & 0x7ffff) >> 18) != 0 ? kSdRange : 0;
 }
 
+bool sj_through_periscope(const PlayerSub& player, std::uint32_t options) {
+  return (options & sensor_option::kStPeriscopeRadar) != 0 && player.periscope_raised() &&
+         player.depth_ft() > sj_depth_limit(player, options);
+}
+
 void RadarSets::init(SimContext& ctx, PlayerSub& player, const SensorEnvironment& env) {
   // radar_init (0x660a7)
   const std::uint32_t options = ctx.env.options;
@@ -125,7 +138,7 @@ void RadarSets::set_sj_power(SimContext& ctx, const PlayerSub& player, bool on, 
   if (mode == sj_.mode) {
     return;
   }
-  if (player.depth_ft() <= sj_depth_limit(player, options) || mode == SjMode::kOff) {
+  if (sj_can_transmit(player, options) || mode == SjMode::kOff) {
     if ((sj_.mode == SjMode::kOff || mode == SjMode::kOff) && !quiet_) {
       const std::int32_t first = st_fitted(options) ? 47 : 43;
       ctx.crew_message(first + (mode == SjMode::kOff ? 1 : 0));
@@ -166,15 +179,15 @@ void RadarSets::sj_sweep(SimContext& ctx, PlayerSub& player, const SensorEnviron
   if (sj_.power_timer < 0) {
     sj_.power_timer = 0;
   }
-  const std::int32_t limit = sj_depth_limit(player, options);
+  const bool can_transmit = sj_can_transmit(player, options);
   if (env.auto_sj != sj_.last_auto) {
     sj_.auto_armed = true;
     sj_.last_auto = env.auto_sj;
   }
-  if (limit < player.depth_ft()) {
+  if (!can_transmit) {
     sj_.auto_armed = true;
   }
-  if (env.auto_sj && sj_.auto_armed && sj_.mode == SjMode::kOff && player.depth_ft() <= limit) {
+  if (env.auto_sj && sj_.auto_armed && sj_.mode == SjMode::kOff && can_transmit) {
     sj_.auto_armed = false;
     quiet_ = sj_.power_timer > 0;
     set_sj_power(ctx, player, true, true, true, false);
@@ -183,7 +196,7 @@ void RadarSets::sj_sweep(SimContext& ctx, PlayerSub& player, const SensorEnviron
   if (sj_.mode == SjMode::kOff) {
     return;
   }
-  if (limit < player.depth_ft()) {
+  if (!can_transmit) {
     quiet_ = sj_.power_timer > 0;
     set_sj_power(ctx, player, false, false, false, false);
     quiet_ = false;

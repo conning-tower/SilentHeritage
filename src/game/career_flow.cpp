@@ -6,6 +6,7 @@
 
 #include "assets/exe_image.h"
 #include "game/career_boats.h"
+#include "game/career_letters.h"
 #include "game/career_menus.h"
 #include "game/career_save.h"
 #include "game/career_ui.h"
@@ -151,6 +152,8 @@ int CareerFlow::start_career() {
       ui_.extended_config() ? std::optional<MissionRules>(ui_.mission_rules()) : std::nullopt;
   career_ = career_init_new(*choice, ui_.options(), ui_.random(), 0, new_rules.value_or(MissionRules{}));
   career_.rules = new_rules;
+  // Not in the original: the extended deliveries already due.
+  career_.record.equipment |= extended_equipment_on_date(career_.record, new_rules.value_or(MissionRules{}));
   PatrolAssignment assignment;
   if (const std::optional<HomePort> port =
           transfer_home_port(career_, assignment, campaign_, false, true, ui_.random())) {

@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <deque>
 #include <filesystem>
+#include <iterator>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -17,10 +18,12 @@
 #include "assets/exe_image.h"
 #include "assets/fnt.h"
 #include "assets/patrol_zones.h"
+#include "assets/shp.h"
 #include "core/install.h"
 #include "game/career_letters.h"
 #include "game/career_rules.h"
 #include "game/career_ui.h"
+#include "game/equipment_art.h"
 #include "game/frontend.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
@@ -474,4 +477,61 @@ TEST_CASE("Career patrol screens return the original codes", "[career]") {
     // No boat to assign: nothing shown.
     CHECK(s.letters.new_submarine(career, tables, SubCommand::kComSubPac, false, [](Career&) { return false; }) == -2);
   }
+}
+
+TEST_CASE("Extended rules deliver the APR-1 and the ST with their letters", "[career][radar_rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  MissionRules rules;
+  rules.apr1 = true;
+  rules.st_radar = true;
+  CareerRecord r = sample_record();
+  r.month = 11;
+  r.year = 14;
+  r.equipment = 0xef;  // Every original delivery.
+
+  SECTION("with the extended rules") {
+    Screens s(install);
+    s.host.script = {ScriptedHost::key(kEnter)};
+    CHECK(s.letters.new_equipment(r, 1, rules) == -1);
+    s.host.save("equipment_apr1");
+    CHECK(r.equipment == 0xff);
+    s.host.script = {ScriptedHost::key(kEnter)};
+    CHECK(s.letters.new_equipment(r, 1, rules) == -1);
+    s.host.save("equipment_st");
+    CHECK(r.equipment == 0x1ff);
+    // The ST's picture, composed from EQUIP.SHP, in the SD's place.
+    const Image8 picture = st_radar_picture(Shp::load(install, "ART/EQUIP.SHP"));
+    for (int y = 0; y < picture.height(); y += 3) {
+      for (int x = 0; x < picture.width(); x += 3) {
+        CHECK(s.host.last.at(85 + x, 148 + y) == picture.at(x, y));
+      }
+    }
+    CHECK(s.letters.new_equipment(r, 1, rules) == 0);
+  }
+
+  SECTION("as the original") {
+    Screens s(install);
+    CHECK(s.letters.new_equipment(r, 1) == 0);
+    CHECK(r.equipment == 0xef);
+  }
+}
+
+TEST_CASE("The original's NEW EQUIPMENT letters come one a visit in the table's order", "[career]") {
+  SH_REQUIRE_GAME_DATA(install);
+  Screens s(install);
+  CareerRecord r = sample_record();
+  r.month = 11;
+  r.year = 15;
+  r.equipment = 0;
+  // SD, SJa, bathythermograph, PPI, SJ-1, then the Mark 18-1 and 18-2.
+  const std::uint32_t order[] = {0x1, 0x2, 0x20, 0x8, 0x4, 0x40, 0x80};
+  std::uint32_t fitted = 0;
+  for (std::size_t i = 0; i < std::size(order); ++i) {
+    s.host.script = {ScriptedHost::key(kEnter)};
+    CHECK(s.letters.new_equipment(r, 1) == -1);
+    s.host.save("equipment_original_" + std::to_string(i));
+    fitted |= order[i];
+    CHECK(r.equipment == fitted);
+  }
+  CHECK(s.letters.new_equipment(r, 1) == 0);
 }

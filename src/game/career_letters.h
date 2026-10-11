@@ -17,11 +17,13 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "assets/dat_tables.h"
 #include "assets/patrol_zones.h"
 #include "game/career.h"
 #include "game/frontend_results.h"
+#include "sim/context.h"
 
 namespace sh {
 
@@ -118,6 +120,24 @@ EquipmentEntry equipment_entry(const ExeImage& exe, int i);
 // `current_command` != 1). Returns its index, or nothing.
 std::optional<int> new_equipment_due(const ExeImage& exe, const CareerRecord& record, std::int32_t current_command);
 
+// Not in the original: the extended variant's deliveries after the table's,
+// each with its rule: the APR-1 radar detector (5/44, EQUIP.SHP's picture 5,
+// which the original never shows) and the ST periscope radar (11/44, its
+// picture `kStRadarPicture`).
+std::vector<EquipmentEntry> extended_equipment_entries(const MissionRules& rules);
+// The sprite value of the ST's picture, composed by `st_radar_picture`
+// (game/equipment_art.h).
+inline constexpr std::int32_t kStRadarPicture = -1;
+
+// Not in the original: after `new_equipment_due` found nothing, the first
+// extended entry not fitted whose date has come (refits three months later
+// outside ComSubPac), or nothing.
+std::optional<EquipmentEntry> extended_equipment_due(const CareerRecord& record, std::int32_t current_command,
+                                                     const MissionRules& rules);
+// Not in the original: the extended entries a new career dated `record`
+// starts with (those whose date has come).
+std::uint32_t extended_equipment_on_date(const CareerRecord& record, const MissionRules& rules);
+
 // The letter `new_equipment_letter` builds for entry `entry`.
 std::string new_equipment_text(const CareerRecord& record, const EquipmentEntry& entry, const ExeImage& exe,
                                const Font& font);
@@ -160,8 +180,9 @@ class CareerLetters {
 
   // `new_equipment_run` (0x5b501): when equipment is due, fits it on the
   // record and shows its letter. Returns 0 when none was due, else -1
-  // (-2 when the dialog was cancelled).
-  int new_equipment(CareerRecord& record, std::int32_t current_command);
+  // (-2 when the dialog was cancelled). Not in the original: when none of
+  // the original's is due, the career's `rules` may deliver an extended one.
+  int new_equipment(CareerRecord& record, std::int32_t current_command, const MissionRules& rules = {});
 
   // `awards_present` (0x55ecd): the citation or letter of `code` until a
   // key or click. The speech the original reads with it is not played.

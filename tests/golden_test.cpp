@@ -18,6 +18,8 @@
 #include <memory>
 #include <numbers>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #include "assets/scenario.h"
@@ -31,6 +33,7 @@
 #include "golden_rig.h"
 #include "golden_trace.h"
 #include "sim/geometry.h"
+#include "sim/sensor_environment.h"
 
 namespace sh::test {
 namespace {
@@ -229,6 +232,32 @@ TEST_CASE("Each command bar layout keeps the simulation of the golden traces", "
         GoldenTrace trace;
         run_script(game, script, features, trace);
         check_golden(script.name, trace, kSimKinds, install_header(install));
+      }
+    }
+  }
+}
+
+// The radar rules (sim/context.h) with nothing to act on: the ST's rule
+// (the boats are not fitted with it) and the APR-1's (the APR-1 bit
+// cleared) must keep the simulation of the golden traces.
+constexpr std::pair<std::string_view, bool MissionRules::*> kDormantRules[] = {
+    {"st_radar", &MissionRules::st_radar},
+    {"apr1", &MissionRules::apr1},
+};
+
+TEST_CASE("The radar rules keep the simulation of the golden traces without their fits", "[golden][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GoldenGame game(install);
+  for (const auto& [name, rule] : kDormantRules) {
+    for (const GoldenScript& script : scripts()) {
+      DYNAMIC_SECTION(name << " " << script.name) {
+        std::unique_ptr<Mission> mission = script.mission(game);
+        MissionConditions& c = mission->sim().conditions();
+        c.options &= ~(sensor_option::kApr1Detector | sensor_option::kStPeriscopeRadar);
+        c.rules.*rule = true;
+        GoldenMissionRig rig(game, std::move(mission));
+        script.play(rig);
+        check_golden(script.name, rig.trace(), kSimKinds, install_header(install));
       }
     }
   }

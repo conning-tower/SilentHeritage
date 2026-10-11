@@ -245,6 +245,14 @@ void bind_conditions(Io& io, C& c) {
   io.x_i32(c.scenario_roll);
 }
 
+// Not in the original: the extended APR-1 operator's state.
+template <class Io, class A>
+void bind_apr1(Io& io, A& a) {
+  io.x_i32(a.silence);
+  io.x_i32(a.since_report);
+  io.x_i32(a.reported);
+}
+
 template <class Io, class B>
 void bind_blips(Io& io, B& blips) {
   bind_x_vector(io, blips, [](Io& x, auto& b) {
@@ -1086,6 +1094,14 @@ SimStateFile StateIo::capture(Mission& mission, const SimStateParts& parts, cons
     if (mission.conditions_.rules.mark27) {
       out.x_ref(mission.combat_->tdc.sonar_source_);
     }
+    // Not in the original: the extended APR-1's operator, with its rule.
+    if (mission.conditions_.rules.apr1) {
+      bind_apr1(out, sim.sensors().apr1().state());
+    }
+    // Not in the original: the extended escorts' detectors, with their rule.
+    if (mission.conditions_.rules.detectable_radar) {
+      out.x_i32(sim.sensors().escort_detectors().state().heard);
+    }
   }
   f.sim_extension = ext.take();
   if (mission.conditions_.rules != MissionRules{}) {
@@ -1234,6 +1250,12 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
     }
     if (mission.conditions_.rules.mark27 && !ext_reader.at_end()) {
       in.x_ref(mission.combat_->tdc.sonar_source_);
+    }
+    if (mission.conditions_.rules.apr1 && !ext_reader.at_end()) {
+      bind_apr1(in, sim.sensors().apr1().state());
+    }
+    if (mission.conditions_.rules.detectable_radar && !ext_reader.at_end()) {
+      in.x_i32(sim.sensors().escort_detectors().state().heard);
     }
     links.resolve(sim.vehicles_);
     if (!ext_reader.at_end()) {
