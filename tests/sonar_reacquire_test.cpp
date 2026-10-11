@@ -122,7 +122,6 @@ class Listening {
 }  // namespace
 
 TEST_CASE("Original: screws fading back in are called again once 3 minutes passed", "[sensors][quiet_sonar]") {
-  SH_REQUIRE_GAME_EXE();
   Listening l(false);
   CHECK(l.listen(1, true) == 1);
   CHECK(l.resets() == 1);
@@ -140,7 +139,6 @@ TEST_CASE("Original: screws fading back in are called again once 3 minutes passe
 }
 
 TEST_CASE("Quiet reacquire: a ship heard in the last 3 minutes is not called again", "[sensors][quiet_sonar]") {
-  SH_REQUIRE_GAME_EXE();
   Listening l(true);
   // A new ship is called and resets the compression as in the original.
   CHECK(l.listen(1, true) == 1);
@@ -162,7 +160,6 @@ TEST_CASE("Quiet reacquire: a ship heard in the last 3 minutes is not called aga
 }
 
 TEST_CASE("Quiet reacquire: a ship heard only by its pings is still called", "[sensors][quiet_sonar]") {
-  SH_REQUIRE_GAME_EXE();
   for (const bool quiet : {false, true}) {
     INFO(quiet);
     Listening l(quiet);
@@ -178,7 +175,7 @@ TEST_CASE("Quiet reacquire: a ship heard only by its pings is still called", "[s
 }
 
 TEST_CASE("Quiet reacquire: an enemy submarine's screws follow the same rule", "[sensors][quiet_sonar]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   for (const bool quiet : {false, true}) {
     INFO(quiet);
@@ -273,7 +270,7 @@ Run run_hist49(const Install& install, const GameTables& tables, bool quiet, std
 
 }  // namespace
 
-TEST_CASE("Quiet reacquire keeps the random draws and drops only repeated calls", "[sensors][quiet_sonar]") {
+TEST_CASE("Quiet reacquire keeps the random draws and drops only repeated calls", "[sensors][quiet_sonar][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const Run original = run_hist49(install, tables, false, 15);
