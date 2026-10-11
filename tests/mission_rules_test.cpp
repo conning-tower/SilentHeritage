@@ -156,7 +156,7 @@ std::unique_ptr<Mission> restored(const Install& install, const GameTables& tabl
 
 TEST_CASE("A mission keeps its rules, and its save carries them only when they are not the original's",
           "[rules][save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> original = played(install, tables, {});
   // Rules that change nothing in the simulation (the realism choice alone
