@@ -75,7 +75,7 @@ void type(EditorFixture& fx, std::string_view text) {
 }  // namespace
 
 TEST_CASE("ENVIRONMENT commits on OK only", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   const ScnHeader before = s.header;  // 7 December 1941, 12:00, Clear
@@ -110,7 +110,7 @@ TEST_CASE("ENVIRONMENT commits on OK only", "[editor][dialogs]") {
 }
 
 TEST_CASE("EQUIPMENT greys the scope without a surface radar and commits on OK", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   s.header.month = 0;
@@ -128,7 +128,7 @@ TEST_CASE("EQUIPMENT greys the scope without a surface radar and commits on OK",
 }
 
 TEST_CASE("TORPEDOES shows the rows of the available torpedoes and commits on OK", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   const EditorData& data = fx.data;
@@ -159,7 +159,7 @@ TEST_CASE("TORPEDOES shows the rows of the available torpedoes and commits on OK
 }
 
 TEST_CASE("BRIEFING TEXT edits a copy of the briefing", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   // The text box has the focus at once and edits.
@@ -173,7 +173,7 @@ TEST_CASE("BRIEFING TEXT edits a copy of the briefing", "[editor][dialogs]") {
 }
 
 TEST_CASE("OPTIONS saves SBOPTION.SAV and re-validates the equipment", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   const test::TempDir dir;
@@ -197,7 +197,7 @@ TEST_CASE("OPTIONS saves SBOPTION.SAV and re-validates the equipment", "[editor]
 }
 
 TEST_CASE("PASSWORD stores the password encoded", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
 
@@ -246,7 +246,7 @@ TEST_CASE("PASSWORD stores the password encoded", "[editor][dialogs]") {
 }
 
 TEST_CASE("The password is asked three times on load", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   ScnHeader header;
   CHECK(ask_password(fx.ui, header));  // no password: no dialog
@@ -279,7 +279,7 @@ TEST_CASE("The password is asked three times on load", "[editor][dialogs]") {
 }
 
 TEST_CASE("The small boxes return their buttons", "[editor][dialogs]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   EditorUi& ui = fx.ui;
 
