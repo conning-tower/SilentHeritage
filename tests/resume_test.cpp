@@ -154,7 +154,6 @@ struct TextInputHarness {
 };
 
 TEST_CASE("The text fields' edit loops turn the text input on and off", "[ui][resume]") {
-  SH_REQUIRE_GAME_EXE();
   SECTION("a text entry") {
     TextInputHarness h;
     ui::Dialog d(h.gui, 100, 50, 300, 100, ui::kDialogCancel);
@@ -349,7 +348,7 @@ std::array<std::int32_t, 5> mission_time(const Mission& m) {
 }
 
 TEST_CASE("A suspended mission resumes at the next launch as if never left", "[resume]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_resume_mission_test";
   std::filesystem::remove_all(dir);
   constexpr int kSuspendAt = 300;
@@ -451,7 +450,7 @@ Career patrol_career() {
 }
 
 TEST_CASE("A suspended career patrol resumes inside the career", "[resume]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_resume_patrol_test";
   std::filesystem::remove_all(dir);
   const GameTables tables = GameTables::load(install);
@@ -527,7 +526,7 @@ TEST_CASE("A suspended career patrol resumes inside the career", "[resume]") {
 }
 
 TEST_CASE("The launch resumes the menus of the snapshot, a damaged one starts anew", "[resume]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_resume_menu_test";
   std::filesystem::remove_all(dir);
   const SaveDir saves(dir / "SAVE");
@@ -573,7 +572,7 @@ TEST_CASE("The launch resumes the menus of the snapshot, a damaged one starts an
 }
 
 TEST_CASE("The resume snapshot keeps the mission and its save slot", "[resume]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup setup;
   setup.options = RealismFile::kDefaultBits;
@@ -732,7 +731,7 @@ bool log_has_prefix(const std::filesystem::path& dir, std::string_view prefix) {
 }
 
 TEST_CASE("The resume snapshot survives every way Android ends the app", "[resume][lifecycle]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_resume_lifecycle_test";
   std::filesystem::remove_all(dir);
   using Script = std::function<void(AndroidSdl&, int, LifecycleRun&)>;
@@ -880,7 +879,7 @@ TEST_CASE("The resume snapshot survives every way Android ends the app", "[resum
 }
 
 TEST_CASE("The launch's snapshot is kept until its game runs again", "[resume][lifecycle]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_resume_launch_test";
   std::filesystem::remove_all(dir);
   const SaveDir saves(dir / "SAVE");
