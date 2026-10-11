@@ -226,6 +226,7 @@ void open_crew_log(StationEnv& env, const CrewLog& log, std::function<void()> do
   const int time_width = font.text_width("00:00:00") + 8;
   auto d = std::make_unique<ui::Dialog>(env.gui, kDialogX, kDialogY, kDialogW, kDialogH,
                                         ui::kDialogTitled | ui::kDialogFramed | ui::kDialogCancel);
+  d->set_outside_cancel(env.ui.features.outside_click_closes);
   d->emplace<ui::TitleBar>("CREW MESSAGES", ui::return_accept);
   auto& list = d->emplace<LogList>(env.exe, log, crew_log_lines(log.entries(), font, kListW - 12 - time_width),
                                    time_width, env.gui.skin().metrics().button_height);

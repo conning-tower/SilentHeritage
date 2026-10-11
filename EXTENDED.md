@@ -37,6 +37,8 @@ kept with it.
   and the touch ORDERS panel names each tube's type.
 - **Command bar:** the ORDERS button can sit in the bottom bar, with − and +
   around the time compression, or float as in the original, or be hidden.
+- **Closing menus:** a click outside the 1MC, crew log, time compression,
+  game options, detail level or end mission box closes it.
 
 ## Rules
 

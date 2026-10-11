@@ -53,6 +53,10 @@ struct Features {
   // above the bar's ORDERS button and the bar's buttons take touches a
   // little above it.
   CommandBarStyle command_bar = CommandBarStyle::kOrdersButton;
+  // A click outside the in-mission menus with a Cancel (1MC, crew log, time
+  // compression, game options, detail level, end mission) closes them as
+  // their Cancel or Esc does.
+  bool outside_click_closes = false;
   // The scenario editor without the memory budget of SE's 16 MB DOS
   // machine: no gauge, no SCENARIO IS TOO LARGE (the files keep their
   // estimate).
@@ -85,6 +89,7 @@ struct Features {
             .precise_dials = true,
             .panel_status = true,
             .command_bar = CommandBarStyle::kBarOrdersTime,
+            .outside_click_closes = true,
             .editor_no_size_limit = true,
             .editor_fixes = true,
             .torpedo_types = true};

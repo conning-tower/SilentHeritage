@@ -234,6 +234,12 @@ void Dialog::handle_event(const Event& event) {
     hover_ -= first_hotspot_;
   }
   const std::uint16_t mouse = event.flags & kEventMouseMask;
+  if (outside_cancel_ && (event.flags & kEventLeftDown) != 0 &&
+      (event.x < x_ || event.y < y_ || event.x > x_ + w_ || event.y > y_ + h_)) {
+    result_ = kResultCancel;
+    pending_msg_ = Msg::kNone;
+    return;
+  }
   if (mouse != 0) {
     if ((event.flags & kEventLeftUp) != 0) {
       if (hover_ == pressed_index_) {

@@ -32,6 +32,8 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
     {"precise_dials", &Features::precise_dials, true},
     // Reads the boat for the touch panel only.
     {"panel_status", &Features::panel_status, true},
+    // The menus' outside clicks: no script uses them.
+    {"outside_click_closes", &Features::outside_click_closes, true},
     // The scenario editor only.
     {"editor_no_size_limit", &Features::editor_no_size_limit, true},
     {"editor_fixes", &Features::editor_fixes, true},

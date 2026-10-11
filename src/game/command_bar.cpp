@@ -1196,6 +1196,7 @@ void ControlBar::after_menu() {
 void ControlBar::menu_time_compression() {
   // cmd_time_compression_box (0x49094), dialog 0x11fbf8.
   auto d = std::make_unique<ui::Dialog>(env_.gui, 0x97, 0xc3, 0x151, 0x59, 7);
+  d->set_outside_cancel(env_.ui.features.outside_click_closes);
   d->emplace<ui::TitleBar>(str(text::kTimeCompression), ui::return_accept);
   d->emplace<ui::GroupBox>(0x62, 0x2d, 0xf0, 0x48);
   GameClock& clock = env_.mission.sim().clock();
@@ -1243,6 +1244,7 @@ void ControlBar::menu_1mc() {
   cells[5].disabled = up;
   cells[6].disabled = !p.can_rescue_pilot();  // `player_pilot_rescued(-1)`
   auto d = std::make_unique<ui::Dialog>(env_.gui, 0xbd, 0x77, 0x108, 0xff, 7);
+  d->set_outside_cancel(env_.ui.features.outside_click_closes);
   d->emplace<ui::TitleBar>(str(text::k1mc));
   d->emplace<ui::GroupBox>(0xb, 0x2c, 0xfd, 0xf4);
   auto& grid = d->emplace<ui::ButtonGrid>(std::move(cells), ui::return_accept, 7);
@@ -1335,6 +1337,7 @@ void ControlBar::menu_end_mission() {
   const bool patrol = (env_.mission.sim().conditions().options & option::kModeCareer) != 0;
   end_reason_ = 0;
   auto d = std::make_unique<ui::Dialog>(env_.gui, 0xc9, 0xb3, 0xef, 0x8c, 7);
+  d->set_outside_cancel(env_.ui.features.outside_click_closes);
   d->emplace<ui::TitleBar>(str(patrol ? text::kEndPatrol : text::kEndMission));
   d->emplace<ui::GroupBox>(0xb, 0x2c, 0xe4, 0x81);
   d->emplace<ui::ButtonGrid>(read_cells(env_.exe, patrol ? kEndPatrolCells : kEndMissionCells, 3),
@@ -1417,6 +1420,7 @@ void ControlBar::menu_game_options() {
   auto changed = std::make_shared<bool>(false);
   auto save = std::make_shared<bool>(false);
   auto d = std::make_unique<ui::Dialog>(env_.gui, 0x9d, 0x1c, 0x141, 0x19c, 7);
+  d->set_outside_cancel(env_.ui.features.outside_click_closes);
   d->emplace<ui::TitleBar>(str(text::kGameOptions), ui::return_accept);
   d->emplace<ui::GroupBox>(0x11, 0x2b, 0x12f, 0x8f);
   // The check boxes toggle -1 / 0 values (game_options_toggle_*).
@@ -1521,6 +1525,7 @@ void ControlBar::menu_detail_level() {
   DetailOptions& o = env_.detail;
   auto changed = std::make_shared<bool>(false);
   auto d = std::make_unique<ui::Dialog>(env_.gui, 0x9d, 0x82, 0x141, 0x10d, 7);
+  d->set_outside_cancel(env_.ui.features.outside_click_closes);
   d->emplace<ui::TitleBar>(str(text::kDetailLevel), ui::return_accept);
   d->emplace<ui::GroupBox>(0x28, 0x2e, 0x116, 0xba);
   d->emplace<ui::GroupBox>(0x28, 0xbc, 0x116, 0xfd);

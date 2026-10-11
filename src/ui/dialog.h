@@ -305,6 +305,9 @@ class Dialog {
   // Android's Back activates, as its hotkey would (an Esc event marked
   // `Event::back`): the screen's own way back, such as its CANCEL or MAIN
   // MENU button. Without one, Back is Esc.
+  // Not in the original: a left press outside the dialog's rectangle ends
+  // it with `kResultCancel`, as Esc does (the press goes no further).
+  void set_outside_cancel(bool on) { outside_cancel_ = on; }
   void set_back(const Control& control, int sub = 0) {
     back_ = &control;
     back_sub_ = sub;
@@ -369,6 +372,7 @@ class Dialog {
   Control* highlighted_ = nullptr;  // +0xcc
   int run_arg_ = 0;             // +0xd0
   bool open_ = false;
+  bool outside_cancel_ = false;
 };
 
 }  // namespace sh::ui

@@ -1,6 +1,7 @@
-// The extended command bar on HIST01's conn: the command bar styles
-// (ORDERS in the bar, - and + around the time compression, touches a
-// little above the bar), and the original bar with the improvement off.
+// The extended command bar and menus on HIST01's conn: the command bar
+// styles (ORDERS in the bar, - and + around the time compression, touches
+// a little above the bar), the menus closing on a click outside them, and
+// the original bar and menus with the improvements off.
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
@@ -127,6 +128,46 @@ TEST_CASE("controls: off, the bar is the original", "[controls][stations]") {
     }
   }
   CHECK(same);
+}
+
+TEST_CASE("controls: a click outside the 1MC and time compression boxes closes them", "[controls][stations]") {
+  SH_REQUIRE_GAME_DATA(install);
+  Features f;
+  f.outside_click_closes = true;
+  BarRig b(install, f);
+  // 1MC (the bar's right button): outside its box, it closes; the game
+  // runs again.
+  b.rig.click(k1mcX + 30, kBarY + 10);
+  b.rig.frames(2);
+  REQUIRE(b.rig.screen->env().modals.modal_active());
+  b.rig.click(20, 20);
+  b.rig.frames(2);
+  CHECK(!b.rig.screen->env().modals.modal_active());
+  CHECK(b.rig.screen->in_play());
+  // TIME COMPRESSION: + in the box, then outside: closed, the new
+  // compression kept.
+  const std::int32_t start = b.clock().requested_compression();
+  b.rig.click(kOrdersX + 30, kBarY + 10);
+  b.rig.frames(2);
+  REQUIRE(b.rig.screen->env().modals.modal_active());
+  b.rig.click(0x97 + 0xfa + 10, 0xc3 + 0x2f + 8);
+  b.rig.frames(1);
+  CHECK(b.clock().requested_compression() == start * 2);
+  b.rig.click(600, 60);
+  b.rig.frames(2);
+  CHECK(!b.rig.screen->env().modals.modal_active());
+  CHECK(b.clock().requested_compression() == start * 2);
+}
+
+TEST_CASE("controls: off, a click outside the 1MC box leaves it open", "[controls][stations]") {
+  SH_REQUIRE_GAME_DATA(install);
+  BarRig b(install, Features::faithful());
+  b.rig.click(k1mcX + 30, kBarY + 10);
+  b.rig.frames(2);
+  REQUIRE(b.rig.screen->env().modals.modal_active());
+  b.rig.click(20, 20);
+  b.rig.frames(2);
+  CHECK(b.rig.screen->env().modals.modal_active());
 }
 
 }  // namespace sh
