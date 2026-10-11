@@ -52,7 +52,7 @@ Career dated_career(std::int32_t month, std::int32_t year) {
 
 }  // namespace
 
-TEST_CASE("ROSTER0.SAV decodes and round-trips byte for byte", "[career]") {
+TEST_CASE("ROSTER0.SAV decodes and round-trips byte for byte", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const std::vector<std::uint8_t> data = install.read("SAVE/ROSTER0.SAV");
   const RosterFile f = parse_roster(data);
@@ -111,7 +111,7 @@ TEST_CASE("ROSTER0.SAV decodes and round-trips byte for byte", "[career]") {
   CHECK(serialize_roster(f.career) == data);
 }
 
-TEST_CASE("Roster files: older versions, the unsunk log entries", "[career]") {
+TEST_CASE("Roster files: older versions, the unsunk log entries", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const std::vector<std::uint8_t> data = install.read("SAVE/ROSTER0.SAV");
   // A version 4 file: no summary.
@@ -134,7 +134,7 @@ TEST_CASE("Roster files: older versions, the unsunk log entries", "[career]") {
   CHECK(again.career.log.size() == 4);
 }
 
-TEST_CASE("Roster slots: save, list, save as, delete", "[career]") {
+TEST_CASE("Roster slots: save, list, save as, delete", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   TempDir dir;
@@ -175,7 +175,7 @@ TEST_CASE("Roster slots: save, list, save as, delete", "[career]") {
   CHECK(list_rosters(saves).empty());
 }
 
-TEST_CASE("BESTCARS.SAV decodes, round-trips and ranks careers", "[career]") {
+TEST_CASE("BESTCARS.SAV decodes, round-trips and ranks careers", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const std::vector<std::uint8_t> data = install.read("SAVE/BESTCARS.SAV");
   std::optional<BestCareersTable> table = BestCareersTable::parse(data);
@@ -246,7 +246,7 @@ TEST_CASE("BESTCARS.SAV is created when missing", "[career]") {
   CHECK(std::filesystem::file_size(dir.path() / "BESTCARS.SAV") == 1 + 10 * 0x8609);
 }
 
-TEST_CASE("Career boats by date and command", "[career]") {
+TEST_CASE("Career boats by date and command", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::vector<CareerBoatClass> classes = career_boat_classes(tables);
@@ -326,7 +326,6 @@ TEST_CASE("New career choices and record", "[career]") {
   CHECK(choice.preferred_command() == -1);
 
   // The new career's equipment comes from SH.EXE's table.
-  SH_REQUIRE_GAME_EXE();
   NewCareerChoice start;
   start.name = "Dick";
   start.command = 1;
@@ -350,7 +349,6 @@ TEST_CASE("New career choices and record", "[career]") {
 }
 
 TEST_CASE("Equipment deliveries by date", "[career]") {
-  SH_REQUIRE_GAME_EXE();
   // April 1943, outside ComSubPac: the refit items come 3 months late, but
   // the new career reads the supply flag of the last letter's record.
   Career c = dated_career(3, 13);
@@ -375,7 +373,6 @@ TEST_CASE("Equipment deliveries by date", "[career]") {
 
 TEST_CASE("With the rules' corrections a new career's equipment follows each delivery's own flag",
           "[career][rules]") {
-  SH_REQUIRE_GAME_EXE();
   const MissionRules fixed = MissionRules::extended();
   for (const auto& [month, year] : {std::pair{3, 13}, std::pair{11, 12}, std::pair{7, 14}}) {
     for (const std::int32_t command : {-1, 1}) {
@@ -398,7 +395,7 @@ TEST_CASE("With the rules' corrections a new career's equipment follows each del
   CHECK(equipment_for_new_career(c.record, c.summary, 7, MissionRules{}) == 0x23);
 }
 
-TEST_CASE("With the rules' corrections a new boat is in service and stays in its class", "[career][rules]") {
+TEST_CASE("With the rules' corrections a new boat is in service and stays in its class", "[career][rules][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const MissionRules fixed = MissionRules::extended();
@@ -467,7 +464,7 @@ TEST_CASE("A career's rules are kept in ROSTER<n>.EXT, written only when it has 
   CHECK_FALSE(std::filesystem::exists(dir.path() / "ROSTER3.EXT"));
 }
 
-TEST_CASE("Command names and title from SH.EXE", "[career]") {
+TEST_CASE("Command names and title from SH.EXE", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   NewCareerChoice choice;
