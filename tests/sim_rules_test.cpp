@@ -193,7 +193,7 @@ TEST_CASE("Route pruning drops the failing point only with the corrections", "[r
 }
 
 TEST_CASE("An enemy sub's depth stays above a shallow bottom only with the corrections", "[rules][sub]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const FlatSeaFloor shallow(-100 * kUnitsPerFoot);
   for (const MissionRules& rules : {kOriginal, kFixed}) {
