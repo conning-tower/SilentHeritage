@@ -46,7 +46,7 @@ void wait_fade_in(EditorFixture& fx) {
 
 }  // namespace
 
-TEST_CASE("PATROL AREA lists the zones with a version 7 world, limited by date", "[editor][patrol]") {
+TEST_CASE("PATROL AREA lists the zones with a version 7 world, limited by date", "[editor][patrol][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const EditorData& data = test::editor_data(install);
   const std::vector<PatrolZone>& zones = data.zones;
@@ -71,7 +71,7 @@ TEST_CASE("PATROL AREA lists the zones with a version 7 world, limited by date",
 }
 
 TEST_CASE("PATROL AREA picks the Pacific map by the date", "[editor][patrol]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const SeExe& se = test::editor_data(install).se;
   CHECK(campaign_month_index(11, year_of(1941)) == 0);
   CHECK(campaign_month_index(7, year_of(1945)) == 44);
@@ -82,7 +82,7 @@ TEST_CASE("PATROL AREA picks the Pacific map by the date", "[editor][patrol]") {
   CHECK(dated_pacific_map(se, 7, year_of(1945)) == "SPAC_S.SHP");
 }
 
-TEST_CASE("PATROL AREA changes the world on OK only", "[editor][patrol]") {
+TEST_CASE("PATROL AREA changes the world on OK only", "[editor][patrol][content]") {
   SH_REQUIRE_GAME_DATA(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
@@ -150,7 +150,7 @@ TEST_CASE("PATROL AREA changes the world on OK only", "[editor][patrol]") {
 }
 
 TEST_CASE("PATROL AREA asks to save changes first", "[editor][patrol]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   s.modified = true;
@@ -170,7 +170,7 @@ TEST_CASE("PATROL AREA asks to save changes first", "[editor][patrol]") {
 }
 
 TEST_CASE("The ORDERS popup returns the chosen order", "[editor][patrol]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   const std::vector<std::string> labels{"None", "Patrol", "Escort"};
   const std::vector<bool> disabled{false, false, true};
