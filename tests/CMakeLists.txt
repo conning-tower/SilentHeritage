@@ -4,6 +4,8 @@
 add_executable(sh_tests
   # Loads SH.EXE (or the math tables) before the tests.
   game_exe_setup.cpp
+  # A temporary directory per test run.
+  temp_dir_setup.cpp
   core_test.cpp
   fixed_math_test.cpp
   # Graphics formats and drawing.

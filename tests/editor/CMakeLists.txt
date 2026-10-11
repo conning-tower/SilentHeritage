@@ -3,6 +3,7 @@
 add_executable(sh_editor_tests
   # Loads SH.EXE (or the math tables) before the tests.
   ../game_exe_setup.cpp
+  ../temp_dir_setup.cpp
   # Lossless .SCN files.
   scn_file_test.cpp
   # SBOPTION.SAV.
