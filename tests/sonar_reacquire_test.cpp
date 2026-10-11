@@ -8,11 +8,14 @@
 #include <memory>
 #include <vector>
 
+#include "assets/dat_tables.h"
+#include "game/class_params.h"
 #include "game/headless.h"
 #include "game/mission.h"
 #include "game/mission_rules.h"
 #include "game_data.h"
 #include "sim/ai_ship.h"
+#include "sim/enemy_sub.h"
 #include "sim/player_sub.h"
 #include "sim/sensors.h"
 #include "sim/ship.h"
@@ -171,6 +174,56 @@ TEST_CASE("Quiet reacquire: a ship heard only by its pings is still called", "[s
     // The screws then come into range: the first call.
     CHECK(l.listen(1, true) == 1);
     CHECK(l.resets() == 1);
+  }
+}
+
+TEST_CASE("Quiet reacquire: an enemy submarine's screws follow the same rule", "[sensors][quiet_sonar]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  for (const bool quiet : {false, true}) {
+    INFO(quiet);
+    MissionConditions env;
+    env.rules.quiet_sonar_reacquire = quiet;
+    Simulation sim(env, kDeepSea);
+    sim.add(std::make_unique<PlayerSub>(sub_class_params(*tables.find_sub("GATO")),
+                                        fx::Vec3{kOrigin, -100 * kUnitsPerFoot, kOrigin}, Angle10(0), 0));
+    // A surfaced Kaidai 1000 yd south at 10 kn: heard while its screws turn.
+    auto boat = std::make_unique<EnemySub>(fx::Vec3{kOrigin, 0, kOrigin - 1000 * kYard}, Angle10(900),
+                                           Fixed16::from_int(10), ShipOrder::kNone, 1);
+    boat->setup().ship_class = tables.find_ship("KAIDAI TYPE");
+    EnemySub& sub = sim.add(std::move(boat));
+    const std::int32_t turning = sub.motion().power;
+    REQUIRE(turning != 0);
+    sim.clock().set_auto_adjust(false);
+    int resets = 0;
+    const auto listen = [&](std::int32_t seconds, bool on) {
+      sub.motion().power = on ? turning : 0;
+      int reports = 0;
+      for (std::int64_t t = 0; t < static_cast<std::int64_t>(seconds) * 100; t += sim.clock().frame_ticks()) {
+        while (sim.clock().requested_compression() < 8) {
+          sim.clock().double_compression();
+        }
+        sim.clock().advance(15, false);
+        SimContext ctx = sim.context();
+        sub.hydrophone_check(ctx);
+        const std::vector<CrewReport> messages = sim.take_events().crew_messages;
+        reports += static_cast<int>(std::count_if(messages.begin(), messages.end(), is_screws));
+        if (sim.clock().requested_compression() == 1) {
+          ++resets;
+        }
+      }
+      return reports;
+    };
+    CHECK(listen(1, true) == 1);
+    CHECK(listen(240, true) == 0);
+    // A short fade after 3 minutes heard: called again only in the original.
+    CHECK(listen(1, false) == 0);
+    CHECK(listen(1, true) == (quiet ? 0 : 1));
+    CHECK(resets == (quiet ? 1 : 2));
+    // 3 minutes unheard: called again with the rule too.
+    CHECK(listen(181, false) == 0);
+    CHECK(listen(1, true) == 1);
+    CHECK(resets == (quiet ? 2 : 3));
   }
 }
 
