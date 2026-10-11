@@ -80,7 +80,7 @@ TEST_CASE("The crew message log keeps 20 messages", "[stations]") {
   CHECK(log.entry(3).arg1 == 19);
 }
 
-TEST_CASE("Crew messages are formatted with speaker and arguments", "[stations]") {
+TEST_CASE("Crew messages are formatted with speaker and arguments", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   const CrewMessages messages(exe);
@@ -94,7 +94,7 @@ TEST_CASE("Crew messages are formatted with speaker and arguments", "[stations]"
 }
 
 TEST_CASE("The mission starts at the conn and fades in", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   ConnStation* conn = dynamic_cast<ConnStation*>(rig.screen->loop().open_station());
@@ -105,7 +105,7 @@ TEST_CASE("The mission starts at the conn and fades in", "[stations]") {
   rig.save("conn");
 }
 
-TEST_CASE("Golden picture of the conn", "[stations]") {
+TEST_CASE("Golden picture of the conn", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   rig.frames(1);
@@ -117,7 +117,7 @@ TEST_CASE("Golden picture of the conn", "[stations]") {
   CHECK(checksum(picture) == 3635469441u);
 }
 
-TEST_CASE("The telegraph, helm and planes keys order the boat", "[stations]") {
+TEST_CASE("The telegraph, helm and planes keys order the boat", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   rig.frames(1);
@@ -160,7 +160,7 @@ TEST_CASE("The telegraph, helm and planes keys order the boat", "[stations]") {
 }
 
 TEST_CASE("The time compression keys", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -175,7 +175,7 @@ TEST_CASE("The time compression keys", "[stations]") {
   CHECK(clock.requested_compression() == 1);
 }
 
-TEST_CASE("Alt-P raises the periscope and the conn shows it", "[stations]") {
+TEST_CASE("Alt-P raises the periscope and the conn shows it", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   rig.frames(1);
@@ -200,7 +200,7 @@ TEST_CASE("Alt-P raises the periscope and the conn shows it", "[stations]") {
   CHECK(conn->animation() == 2);
 }
 
-TEST_CASE("Backspace repeats the previous crew message", "[stations]") {
+TEST_CASE("Backspace repeats the previous crew message", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   rig.frames(1);
@@ -217,7 +217,7 @@ TEST_CASE("Backspace repeats the previous crew message", "[stations]") {
 }
 
 TEST_CASE("Esc and END MISSION: Abort, then YES, ends the mission", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -236,7 +236,7 @@ TEST_CASE("Esc and END MISSION: Abort, then YES, ends the mission", "[stations]"
 }
 
 TEST_CASE("Android's Back is Esc in a mission: it opens and closes END MISSION", "[stations][back]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -251,7 +251,7 @@ TEST_CASE("Android's Back is Esc in a mission: it opens and closes END MISSION",
 }
 
 TEST_CASE("Alt-Q, NO keeps the mission going", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -267,7 +267,7 @@ TEST_CASE("Alt-Q, NO keeps the mission going", "[stations]") {
   CHECK(rig.frames(2));
 }
 
-TEST_CASE("The 1MC menu rigs for red and the conn reopens with CONN.PAL", "[stations]") {
+TEST_CASE("The 1MC menu rigs for red and the conn reopens with CONN.PAL", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   rig.frames(1);
@@ -290,7 +290,7 @@ TEST_CASE("The 1MC menu rigs for red and the conn reopens with CONN.PAL", "[stat
 }
 
 TEST_CASE("GAME OVER fades to blue and ends the mission", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -313,7 +313,7 @@ TEST_CASE("GAME OVER fades to blue and ends the mission", "[stations]") {
 namespace sh {
 
 TEST_CASE("The time compression button opens its box", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -330,7 +330,7 @@ TEST_CASE("The time compression button opens its box", "[stations]") {
   CHECK(!rig.mission().paused());
 }
 
-TEST_CASE("Alt-1 fires tube 1", "[stations]") {
+TEST_CASE("Alt-1 fires tube 1", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   rig.frames(1);
@@ -347,7 +347,7 @@ TEST_CASE("Alt-1 fires tube 1", "[stations]") {
 }
 
 TEST_CASE("Station keys select installed stations only", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -364,7 +364,7 @@ TEST_CASE("Station keys select installed stations only", "[stations]") {
 namespace sh {
 
 TEST_CASE("The station keys switch between the control-room stations", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -400,7 +400,7 @@ TEST_CASE("The station keys switch between the control-room stations", "[station
 }
 
 TEST_CASE("Extended: GAME OPTIONS' EXTENDED page switches the interface at once", "[stations][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool extended : {false, true}) {
     ControlRig rig(install);
     rig.frames(2);
