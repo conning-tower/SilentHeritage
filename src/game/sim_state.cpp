@@ -1232,7 +1232,7 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
         }
       }
     }
-    if (rules.mark27 && !ext_reader.at_end()) {
+    if (mission.conditions_.rules.mark27 && !ext_reader.at_end()) {
       in.x_ref(mission.combat_->tdc.sonar_source_);
     }
     links.resolve(sim.vehicles_);

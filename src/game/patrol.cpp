@@ -89,7 +89,10 @@ PatrolPlan build_patrol_scenario(Career& career, const PatrolZone& zone, std::in
   if (sub == nullptr) {
     throw DataError("SUBS.DAT: no class " + r.class_name);
   }
-  fill_torpedo_load(h, *sub, tables, random);
+  // The career's rules (the extended variant's torpedo rules) with the
+  // same draws as the original.
+  fill_torpedo_load(h, *sub, tables, random, career.rules.value_or(MissionRules{}),
+                    static_cast<SubCommand>(career.summary.current_command));
   // The outbound transit's fuel, give or take 2.5 %.
   const std::int32_t spread = transit_fuel * 5 / 100;
   const std::int32_t spent = transit_fuel + spread / 2 - random.random_int(spread);

@@ -5,12 +5,16 @@
 
 #include <algorithm>
 #include <array>
+#include <optional>
+#include <set>
 #include <string>
 
 #include "assets/patrol_zones.h"
 #include "assets/world.h"
+#include "game/mission.h"
 #include "game/patrol.h"
 #include "game/saves_options.h"
+#include "game/torpedo_load.h"
 #include "game_data.h"
 #include "sim/geometry.h"
 #include "sim/terrain.h"
@@ -272,4 +276,63 @@ TEST_CASE("a career patrol runs headless", "[career]") {
 }
 
 }  // namespace
+TEST_CASE("A career with the extended rules mixes the Mark 18s on patrol", "[career][rules][torpedo_types]") {
+  SH_REQUIRE_GAME_DATA(install);
+  GameTables tables = GameTables::load(install);
+  add_extended_torpedoes(tables);
+  const std::vector<PatrolZone> zones = load_zones(install);
+  // September 1944, in the Mark 18-2's changeover months.
+  const auto career_at_1944 = [](std::optional<MissionRules> rules) {
+    Career c = test_career();
+    c.record.month = 8;
+    c.record.year = 14;
+    c.rules = rules;
+    return c;
+  };
+  std::set<std::uint32_t> seen_extended;
+  std::set<std::uint32_t> seen_original;
+  std::uint32_t all_18_1 = 0;
+  for (std::uint32_t seed = 1; seed <= 40; ++seed) {
+    for (const bool extended : {false, true}) {
+      Career career = career_at_1944(extended ? std::optional(MissionRules::extended()) : std::nullopt);
+      WatcomRandom random(seed);
+      const PatrolPlan plan = build_patrol_scenario(career, zones.at(9), 9, 20000, 100, tables, random);
+      TorpedoLoad load = scenario_torpedo_load(plan.scenario.header);
+      const SubClass& balao = *tables.find_sub("BALAO");
+      tdc_upgrade_mark18_by_date(load, balao, tables, 14, 8, career.rules.value_or(MissionRules{}));
+      const std::vector<std::uint32_t> carried = carried_torpedo_types(load, balao);
+      CHECK(carried.size() <= kMaxTorpedoTypes);
+      (extended ? seen_extended : seen_original).insert(carried.begin(), carried.end());
+      if (extended && all_18_1 == 0 && plan.scenario.header.tube_torpedoes[0] == 3 &&
+          plan.scenario.header.reloads[1].type != 2) {
+        all_18_1 = seed;
+      }
+    }
+  }
+  // The original's rules: the 18-1 all became 18-2, no Mark 27.
+  CHECK(seen_original.count(3) == 0);
+  CHECK(seen_original.count(kMark27Id) == 0);
+  // The career's extended rules: 18-1 and 18-2 together, and the Mark 27.
+  CHECK(seen_extended.count(3) == 1);
+  CHECK(seen_extended.count(4) == 1);
+  CHECK(seen_extended.count(kMark27Id) == 1);
+
+  // The patrol's mission takes the career's rules (as the career flow's
+  // request does) and carries both Mark 18s.
+  REQUIRE(all_18_1 != 0);
+  Career career = career_at_1944(MissionRules::extended());
+  WatcomRandom random(all_18_1);
+  PatrolPlan plan = build_patrol_scenario(career, zones.at(9), 9, 20000, 100, tables, random);
+  Patrol patrol(install, tables, career, std::move(plan));
+  MissionSetup setup;
+  setup.options = option::kModeCareer | RealismFile::kDefaultBits;
+  setup.random = random;
+  setup.rules = *career.rules;
+  const std::unique_ptr<Mission> mission = patrol.create_mission(std::move(setup));
+  CHECK(mission->sim().conditions().rules.mixed_mark18);
+  const std::vector<std::uint32_t>& start = mission->start_torpedo_types();
+  CHECK(std::ranges::find(start, 3u) != start.end());
+  CHECK(std::ranges::find(start, 4u) != start.end());
+}
+
 }  // namespace sh

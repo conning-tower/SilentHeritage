@@ -59,6 +59,9 @@ TorpedoVehicle::TorpedoVehicle(const Torpedo& weapon, Vehicle* launcher, const f
                                Angle10 pitch, Fixed16 speed, std::int32_t setting, Angle10 course,
                                std::int32_t depth_ft)
     : weapon_(weapon), launcher_(launcher), setting_(setting), course_(course), set_depth_ft_(depth_ft) {
+  if (weapon.id == kMark27Id) {
+    homing_.emplace();
+  }
   motion_.position = position;
   motion_.heading = heading;
   motion_.pitch = pitch;
@@ -103,7 +106,68 @@ void TorpedoVehicle::init(SimContext& ctx) {
 
 void TorpedoVehicle::update(SimContext& ctx, Fixed16 dt) {
   if (!check_arming(ctx, dt.raw())) {
+    if (homing_) {
+      home(ctx, dt.raw());
+    }
     move(ctx, dt.raw());
+  }
+}
+
+void TorpedoVehicle::home(SimContext& ctx, std::int32_t dt) {
+  TorpedoHoming& h = *homing_;
+  h.run_time += dt;
+  if (!h.enabled) {
+    if (run_yards() < TorpedoHoming::kEnableYards) {
+      return;
+    }
+    h.enabled = true;
+    set_depth_ft_ = TorpedoHoming::kDepthFt;
+  }
+  h.listen_timer -= dt;
+  if (h.listen_timer <= 0 && ctx.sim != nullptr) {
+    h.listen_timer += TorpedoHoming::kListenInterval;
+    if (h.listen_timer <= 0) {
+      h.listen_timer = TorpedoHoming::kListenInterval;
+    }
+    // The loudest screws (noise over range) in the cone; no draws.
+    h.target = nullptr;
+    std::int64_t best = 0;
+    for (const std::unique_ptr<Vehicle>& v : ctx.sim->vehicles()) {
+      if (v.get() == this || v->removed() || v->sinking() || v->is_torpedo()) {
+        continue;
+      }
+      if (v.get() == launcher_ && h.run_time < TorpedoHoming::kLauncherSafe << 16) {
+        continue;
+      }
+      std::int32_t noise = 0;
+      if (const auto* ship = dynamic_cast<const Ship*>(v.get())) {
+        noise = ship_noise_level(*ship);
+      } else if (const auto* player = dynamic_cast<const PlayerSub*>(v.get())) {
+        noise = player_noise_level(*player);
+      }
+      if (noise <= 0 || fx::abs(v->speed().raw()) < TorpedoHoming::kMinKnots << 16) {
+        continue;
+      }
+      const fx::Vec3 d = v->position() - motion_.position;
+      const auto yards = static_cast<std::int32_t>(fx::approx_distance(d.x, d.z) / kUnitsPerYard);
+      if (yards > TorpedoHoming::kRangeYards) {
+        continue;
+      }
+      const std::int32_t off = fx::angle_sub(fx::heading_from_delta(d.x, d.z), motion_.heading).tenths();
+      if (off > TorpedoHoming::kConeTenths && off < 3600 - TorpedoHoming::kConeTenths) {
+        continue;
+      }
+      const std::int64_t loudness = static_cast<std::int64_t>(noise) * 10000 / (yards + 10);
+      if (loudness > best) {
+        best = loudness;
+        h.target = v.get();
+      }
+    }
+  }
+  if (h.target != nullptr) {
+    const fx::Vec3 d = h.target->position() - motion_.position;
+    course_ = fx::heading_from_delta(d.x, d.z);
+    motion_.ordered_heading = course_;
   }
 }
 
@@ -257,6 +321,9 @@ void TorpedoVehicle::update_bounds() {
 void TorpedoVehicle::forget(const Vehicle& removed) {
   if (launcher_ == &removed) {
     launcher_ = nullptr;
+  }
+  if (homing_ && homing_->target == &removed) {
+    homing_->target = nullptr;
   }
 }
 
