@@ -141,7 +141,7 @@ void save_screenshot(const std::string& name, const Image8& image, const VgaPale
 }  // namespace
 
 TEST_CASE("controls: dragging the periscope view trains it, finer at 8x", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Harness h(install, with_drag());
   ScopeStation scope(h.services);
   raise_and_open(h, scope);
@@ -171,7 +171,7 @@ TEST_CASE("controls: dragging the periscope view trains it, finer at 8x", "[cont
 }
 
 TEST_CASE("controls: off, a drag on the periscope view changes nothing", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // The same drag with the feature off, and no input at all: the same
   // bearing, pixels and random generator.
   Harness dragged(install, Features::faithful());
@@ -193,7 +193,7 @@ TEST_CASE("controls: off, a drag on the periscope view changes nothing", "[contr
 }
 
 TEST_CASE("controls: a periscope drag draws nothing from the game's generator", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // The drag, and the bearing it ends on set at the start without input:
   // the generator is where it would be.
   Harness dragged(install, with_drag());
@@ -213,7 +213,7 @@ TEST_CASE("controls: a periscope drag draws nothing from the game's generator", 
 }
 
 TEST_CASE("controls: a bridge drag after a hold starts from the press", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Harness h(install, with_drag());
   BridgeStation bridge(h.services);
   bridge.open();
@@ -244,7 +244,7 @@ TEST_CASE("controls: a bridge drag after a hold starts from the press", "[contro
 }
 
 TEST_CASE("controls: off, a bridge drag is the original hold", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // Moving within the train area while held is the same as holding still.
   Harness moved(install, Features::faithful());
   Harness held(install, Features::faithful());
@@ -274,7 +274,7 @@ TEST_CASE("controls: off, a bridge drag is the original hold", "[controls][stati
 }
 
 TEST_CASE("controls: the deck gun drag trains and elevates within its stops", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Harness h(install, with_drag());
   DeckGunStation gun_station(h.services);
   gun_station.open();
@@ -318,7 +318,7 @@ TEST_CASE("controls: the deck gun drag trains and elevates within its stops", "[
 }
 
 TEST_CASE("controls: the TDC dials take a dragged value, only in manual", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Harness h(install, with_dials());
   Tdc& tdc = h.mission->player_combat().tdc;
   TdcStation station(h.services);
@@ -376,7 +376,7 @@ TEST_CASE("controls: the TDC dials take a dragged value, only in manual", "[cont
 }
 
 TEST_CASE("controls: off, the TDC dials are the original clicks", "[controls][stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // A press, a drag and a release on the bearing knob sets the angle of
   // the press, as a plain click does.
   Harness dragged(install, Features::faithful());
@@ -427,7 +427,7 @@ void hold(test::ControlRig& rig, int x, int y, std::uint8_t buttons) {
 }  // namespace
 
 TEST_CASE("controls: the gauges' depth dial takes a dragged order", "[controls][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::ControlRig rig(install);
   rig.screen->env().ui.features.precise_dials = true;
   GaugesStation& gauges = open_gauges(rig);
@@ -484,7 +484,7 @@ TEST_CASE("controls: the gauges' depth dial takes a dragged order", "[controls][
 }
 
 TEST_CASE("controls: off, a drag on the depth dial is the original click", "[controls][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::ControlRig dragged(install);
   test::ControlRig clicked(install);
   const NavTemplate& t = open_gauges(dragged).panel()->layout();
