@@ -108,7 +108,7 @@ TEST_CASE("Collision boxes overlap only where the hulls touch", "[weapons]") {
   CHECK_FALSE(boxes_intersect(ship, unarmed));
 }
 
-TEST_CASE("A Mark 14 runs its WEAPONS.DAT range at its set depth", "[weapons]") {
+TEST_CASE("A Mark 14 runs its WEAPONS.DAT range at its set depth", "[weapons][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const Torpedo& mk14 = *tables.find_torpedo("MARK14");
@@ -135,7 +135,7 @@ TEST_CASE("A Mark 14 runs its WEAPONS.DAT range at its set depth", "[weapons]") 
   CHECK_FALSE(TorpedoVehicle(*tables.find_torpedo("MARK18-1"), nullptr, {}, {}, {}, {}, 0, {}, 10).has_wake());
 }
 
-TEST_CASE("Mark 14s run deep and fire early until their fix dates", "[weapons]") {
+TEST_CASE("Mark 14s run deep and fire early until their fix dates", "[weapons][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const Torpedo& mk14 = *tables.find_torpedo("MARK14");
@@ -172,7 +172,6 @@ TEST_CASE("Mark 14s run deep and fire early until their fix dates", "[weapons]")
 }
 
 TEST_CASE("With the rules' corrections the Mark 14 faults last until their fix days", "[weapons][rules]") {
-  SH_REQUIRE_GAME_EXE();
   const MissionRules fixed = MissionRules::extended();
   const TorpedoFixDates& dates = torpedo_fix_dates();
   for (const FaultDate& d : {dates.deep_running, dates.contact_exploder, dates.magnetic_exploder_off[1]}) {
@@ -195,7 +194,7 @@ TEST_CASE("With the rules' corrections the Mark 14 faults last until their fix d
   }
 }
 
-TEST_CASE("A square Mark 14 hit is a dud two times in three before Aug 1943", "[weapons]") {
+TEST_CASE("A square Mark 14 hit is a dud two times in three before Aug 1943", "[weapons][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const Torpedo& mk14 = *tables.find_torpedo("MARK14");
@@ -229,7 +228,7 @@ TEST_CASE("A square Mark 14 hit is a dud two times in three before Aug 1943", "[
   CHECK(static_cast<double>(late_duds) / kShots == Catch::Approx(0.03).margin(0.03));
 }
 
-TEST_CASE("The TDC solution puts a torpedo into a ship on a steady course", "[weapons][tdc]") {
+TEST_CASE("The TDC solution puts a torpedo into a ship on a steady course", "[weapons][tdc][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   Engagement e(tables, 0, 13, 6);
@@ -278,7 +277,7 @@ TEST_CASE("The TDC solution puts a torpedo into a ship on a steady course", "[we
 }
 
 TEST_CASE("Tubes refuse an empty tube and a gyro angle over 130 deg", "[weapons][tdc]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Engagement e(tables, 0, 13, 6);
   REQUIRE(e.gato.bow_tubes == 6);
@@ -308,7 +307,7 @@ TEST_CASE("Tubes refuse an empty tube and a gyro angle over 130 deg", "[weapons]
 }
 
 TEST_CASE("Reloads take the documented time, one at a time per room", "[weapons]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   for (const bool realistic : {false, true}) {
     Engagement e(tables, realistic ? combat_option::kRealisticReloads : 0, 13, 6);
@@ -339,7 +338,7 @@ TEST_CASE("Reloads take the documented time, one at a time per room", "[weapons]
 }
 
 TEST_CASE("An escort drops its racks across the stern, then throws", "[weapons]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Engagement e(tables, 0, 13, 6);
   Ship& dd = e.add_ship("FUBUKI", 0, 3000, Angle10(0), 0, ShipOrder::kNone);
