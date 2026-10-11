@@ -117,6 +117,8 @@ class Ship : public Vehicle {
   void refresh_sighted() override;
   // The top of its hull box: SHIPS.DAT +188 above its y.
   std::int32_t visual_height() const override;
+  // `ship_is_surface_target` (0x19d04).
+  bool is_surface_target() const override { return visual_height() > 0; }
   // 2 once its lookout height (SHIPS.DAT +192) is under water, else 1.
   std::int32_t exposure() const override;
   bool is_escort() const override;

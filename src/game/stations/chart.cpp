@@ -1976,18 +1976,18 @@ void ChartStation::click(std::int32_t x, std::int32_t y) {
 }
 
 void ChartStation::select_target(std::int32_t x, std::int32_t y) {
-  // tdc_select_target_at_chart_xy (0x7c33b): the nearest visible ship
-  // within zoom / 8 pixels, not hidden by land.
+  // tdc_select_target_at_chart_xy (0x7c33b): the nearest visible surface
+  // target (slot +0x54) within zoom / 8 pixels, not hidden by land.
   const std::int32_t half = std::max(view_.zoom_int() >> 3, 1);
   const bool limited = (env_.mission.sim().conditions().options & option::kLimitedVisibility) != 0;
   const fx::Vec3 sub = env_.mission.player().position();
-  Ship* best = nullptr;
+  Vehicle* best = nullptr;
   std::uint32_t best_distance = 0;
-  for (Ship* ship : env_.mission.ships()) {
-    if (ship->removed() || ship->sinking() || (limited && !ship->sighted())) {
+  for (const std::unique_ptr<Vehicle>& v : env_.mission.sim().vehicles()) {
+    if (!v->is_surface_target() || v->removed() || v->sinking() || (limited && !v->sighted())) {
       continue;
     }
-    const fx::Vec3 p = ship->position();
+    const fx::Vec3 p = v->position();
     if (land_on_line(grid_, {sub.x, sub.z}, {p.x, p.z}).land) {
       continue;
     }
@@ -1995,13 +1995,13 @@ void ChartStation::select_target(std::int32_t x, std::int32_t y) {
     if (c.x - half <= x && x <= c.x + half && c.y - half <= y && y <= c.y + half) {
       const std::uint32_t d = fx::approx_distance(x - c.x, y - c.y);
       if (best == nullptr || d < best_distance) {
-        best = ship;
+        best = v.get();
         best_distance = d;
       }
     }
   }
   if (best != nullptr) {
-    env_.mission.player_combat().tdc.set_target(best);
+    env_.mission.player_combat().tdc.lock_target(best);
   }
 }
 

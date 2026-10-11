@@ -256,7 +256,7 @@ void DeckGun::pick_target_on_bearing(const OwnBoat& own, const std::vector<std::
   std::uint32_t best_distance = 0;
   for (const std::unique_ptr<Vehicle>& v : vehicles) {
     // Slot +0x54: surface targets only (as the TDC's pick).
-    if (dynamic_cast<const Ship*>(v.get()) == nullptr || v->removed() || v->sinking()) {
+    if (!v->is_surface_target() || v->removed() || v->sinking()) {
       continue;
     }
     const TargetSensing s = sensing ? sensing(*v) : TargetSensing{};

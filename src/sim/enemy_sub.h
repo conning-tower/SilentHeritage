@@ -125,9 +125,12 @@ class EnemySub : public Vehicle {
   bool sighted() const override { return sighting_.sighted; }
   void mark_sighted(const GameClock& clock) override;
   std::int32_t add_track_time(std::int32_t dt, bool selected) override;
+  std::int32_t track_time() const override { return sighting_.track_time; }
   void refresh_sighted() override;
   // Its y + SHIPS.DAT +188 x 16.
   std::int32_t visual_height() const override;
+  // `enemy_sub_is_surface_target` (0x19b18): surfaced (or shallow enough).
+  bool is_surface_target() const override { return visual_height() > 0; }
   // 5 deeper than 54 ft, 2 with SHIPS.DAT +192 under water, else 1.
   std::int32_t exposure() const override;
   bool is_submarine() const override { return true; }

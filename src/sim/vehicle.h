@@ -123,6 +123,9 @@ class Vehicle {
   // Slot +0x8c: the world y of its top, what lookouts look for (default:
   // the collision box's top, corner 2).
   virtual std::int32_t visual_height() const { return collision_.box.corners[2].y; }
+  // Slot +0x54: whether the TDC and the deck gun may target it (ships and
+  // enemy submarines whose top is above the water).
+  virtual bool is_surface_target() const { return false; }
   // Slot +0x90: the divisor of the player's sighting range (1 surfaced,
   // 2 below the waterline, 5 deep).
   virtual std::int32_t exposure() const { return 1; }

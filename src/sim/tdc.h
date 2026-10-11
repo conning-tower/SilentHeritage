@@ -182,6 +182,12 @@ class Tdc {
   Mode mode() const { return mode_; }
   Vehicle* target() const { return target_; }
   void set_target(Vehicle* target) { target_ = target; }
+  // Sets and locks `target`, as a pick on the chart (the end of
+  // `tdc_select_target_at_chart_xy` 0x7c33b).
+  void lock_target(Vehicle* target) {
+    locked_ = true;
+    target_ = target;
+  }
   bool locked() const { return locked_; }
   bool following() const { return follow_bearing_; }
   bool tracking() const { return tracking_; }

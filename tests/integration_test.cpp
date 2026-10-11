@@ -28,7 +28,9 @@
 #include "game/saves_options.h"
 #include "game/scengen.h"
 #include "game/shpath.h"
+#include "game/stations/chart.h"
 #include "game_data.h"
+#include "sim/enemy_sub.h"
 #include "sim/geometry.h"
 #include "sim/torpedo.h"
 #include "ui/default_skin.h"
@@ -64,6 +66,23 @@ Scenario hist01_abeam(const Install& install) {
   player.x = ship.x + static_cast<std::int32_t>(d * std::cos(h));
   player.y = ship.y - static_cast<std::int32_t>(d * std::sin(h));
   player.heading = fx::heading_from_delta(ship.x - player.x, ship.y - player.y).tenths() / 10;
+  return scenario;
+}
+
+// Returns HIST01 with HIST57's Kaidai submarine added, stopped on the
+// surface 1500 yd east of the boat.
+Scenario hist01_with_surfaced_sub(const Install& install) {
+  Scenario scenario = parse_scenario(install.read("SCEN/HIST01.SCN"), "HIST01");
+  const Scenario hist57 = parse_scenario(install.read("SCEN/HIST57.SCN"), "HIST57");
+  EnemySubRecord sub = hist57.enemy_subs.front();
+  const PlayerSubRecord& player = *scenario.player_sub;
+  sub.x = player.x + 1500 * kUnitsPerYard;
+  sub.y = player.y;
+  sub.depth = 0;
+  sub.speed = 0;
+  sub.orders = ShipOrders::kNone;
+  sub.waypoints = {};
+  scenario.enemy_subs.push_back(sub);
   return scenario;
 }
 
@@ -156,10 +175,10 @@ std::size_t torpedo_count(const Mission& mission) {
   return n;
 }
 
-// Returns the bearing of `ship` relative to the boat's heading (tenths).
-Angle10 relative_bearing(const Mission& mission, const Ship& ship) {
+// Returns the bearing of `target` relative to the boat's heading (tenths).
+Angle10 relative_bearing(const Mission& mission, const Vehicle& target) {
   const fx::Vec3 p = mission.player().position();
-  const fx::Vec3 s = ship.motion().position;
+  const fx::Vec3 s = target.position();
   const Angle10 to = fx::heading_from_delta(s.x - p.x, s.z - p.z);
   return fx::angle_sub(to, mission.player().heading());
 }
@@ -263,6 +282,49 @@ TEST_CASE("The fire control senses targets from their sensor slots", "[integ]") 
   CHECK(tracked > 0);
   CHECK(combat.sensing(ship).track_time.raw() == tracked);
   CHECK(combat.sensing(ship).track_time.raw() == tracked);
+}
+
+TEST_CASE("A surfaced enemy submarine is marked from the periscope and the chart", "[integ]") {
+  SH_REQUIRE_GAME_DATA(install);
+  SessionRig rig(install, hist01_with_surfaced_sub(install));
+  REQUIRE(rig.frames(60));
+  Mission& mission = rig.mission();
+  REQUIRE(mission.enemy_subs().size() == 1);
+  EnemySub& sub = *mission.enemy_subs().front();
+  PlayerCombat& combat = mission.player_combat();
+  REQUIRE(sub.visual_height() > 0);
+  REQUIRE(combat.sensing(sub).line_of_sight);
+
+  // Space on its bearing locks the TDC on it (slot +0x54 of the enemy
+  // submarine: surfaced), and the crew's tracking gives a solution.
+  rig.key(0x3c00);  // F2: the periscope
+  REQUIRE(rig.screen().stations().current() == StationId::kScope);
+  combat.view_bearing = relative_bearing(mission, sub);
+  rig.key(0x3920);
+  CHECK(combat.tdc.target() == &sub);
+  CHECK(combat.tdc.locked());
+  rig.frames(300);
+  CHECK(combat.tdc.target() == &sub);
+  CHECK(sub.track_time() > 0);
+  CHECK(combat.tdc.quality() > 0);
+  rig.key(0x3920);  // unlocks
+  REQUIRE_FALSE(combat.tdc.locked());
+  combat.view_bearing = fx::angle_add(combat.view_bearing, Angle10(900));
+  rig.frames(2);
+  REQUIRE(combat.tdc.target() != &sub);
+
+  // A click on it on the chart selects and locks it, as the original's
+  // `tdc_select_target_at_chart_xy` does: the chart then draws its marker.
+  rig.key(0x3f00);  // F5: the chart
+  auto* chart = dynamic_cast<ChartStation*>(rig.screen().loop().open_station());
+  REQUIRE(chart != nullptr);
+  chart->view().set_zoom(64 << 16);
+  chart->center_button();
+  rig.frames(2);
+  const ChartPoint p = chart->view().world_to_screen(sub.position().x, sub.position().z);
+  chart->click(p.x, p.y);
+  CHECK(combat.tdc.target() == &sub);
+  CHECK(combat.tdc.locked());
 }
 
 TEST_CASE("A generated convoy mission starts at its time of day, moved out from the target", "[integ]") {

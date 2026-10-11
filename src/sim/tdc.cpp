@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <string>
 
 #include "core/error.h"
+#include "sim/enemy_sub.h"
 #include "sim/geometry.h"
 #include "sim/ship.h"
 #include "sim/torpedo.h"
@@ -53,11 +55,17 @@ TargetState target_state(const Vehicle& target, const TargetSensing& sensing) {
   s.speed = target.speed();
   s.track_time = sensing.track_time;
   // ship_max_speed: atoi of the class's ASCII top speed; uncapped for
-  // other vehicles and ships without a class.
+  // other vehicles and ships without a class. enemy_sub_max_speed
+  // (0x19ba0): the submerged speed once its y is below 0.
   s.max_speed_kts = 0x7fff;
   if (const auto* ship = dynamic_cast<const Ship*>(&target)) {
     if (const ShipClass* cls = ship->setup().ship_class) {
       s.max_speed_kts = std::atoi(cls->top_speed_kts.c_str());
+    }
+  } else if (const auto* sub = dynamic_cast<const EnemySub*>(&target)) {
+    if (const ShipClass* cls = sub->setup().ship_class) {
+      const std::string& speed = sub->position().y < 0 ? cls->submerged_speed_kts : cls->top_speed_kts;
+      s.max_speed_kts = std::atoi(speed.c_str());
     }
   }
   return s;
@@ -198,8 +206,8 @@ void Tdc::pick_target_on_bearing(const OwnBoat& own, Angle10 view_bearing,
   Vehicle* best = nullptr;
   std::uint32_t best_yd = 0;
   for (const std::unique_ptr<Vehicle>& v : vehicles) {
-    // Slot +0x54: only surface targets; the player (vehicle 0) is skipped.
-    if (dynamic_cast<const Ship*>(v.get()) == nullptr || v->removed()) {
+    // Slot +0x54: only surface targets; the player (vehicle 0) is not one.
+    if (!v->is_surface_target() || v->removed()) {
       continue;
     }
     const TargetSensing s = sensing ? sensing(*v) : TargetSensing{};
