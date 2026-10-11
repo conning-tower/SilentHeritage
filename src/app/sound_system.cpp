@@ -19,6 +19,18 @@ SoundSystem::SoundSystem(const Install& install, const ShPaths& paths)
 
 SoundSystem::~SoundSystem() = default;
 
+void SoundSystem::set_log(AudioDevice::Log log) {
+  if (device_) {
+    device_->set_log(std::move(log));
+  }
+}
+
+std::optional<AudioFault> SoundSystem::audio_fault(std::uint64_t now_ms, bool foreground) {
+  return device_ ? device_->check(now_ms, foreground) : std::nullopt;
+}
+
+bool SoundSystem::reopen_audio(AudioFault fault, std::uint64_t now_ms) { return device_->reopen(fault, now_ms); }
+
 void SoundSystem::with_layer(const std::function<void(MelLayer&)>& fn) {
   if (device_) {
     const AudioDevice::Lock lock(*device_);

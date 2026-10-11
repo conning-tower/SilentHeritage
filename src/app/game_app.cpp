@@ -61,6 +61,7 @@ class SdlVideoSound final : public VideoSound {
 
   void start(const SmackerAudioFormat& format) override {
     stop();
+    format_ = format;
     if (!SDL_InitSubSystem(SDL_INIT_AUDIO)) {
       std::fprintf(stderr, "%s: no video sound: %s\n", edition::kExecutable, SDL_GetError());
       return;
@@ -92,11 +93,29 @@ class SdlVideoSound final : public VideoSound {
       SDL_QuitSubSystem(SDL_INIT_AUDIO);
       initialized_ = false;
     }
+    format_.reset();
+  }
+
+  // Stops the track, letting SDL's audio subsystem restart
+  // (`AudioDevice::reopen`); `restore` starts it again, without the sound
+  // queued so far.
+  void release() {
+    const std::optional<SmackerAudioFormat> format = format_;
+    stop();
+    released_ = format;
+  }
+  void restore() {
+    if (released_) {
+      start(*released_);
+      released_.reset();
+    }
   }
 
  private:
   SDL_AudioStream* stream_ = nullptr;
   bool initialized_ = false;
+  std::optional<SmackerAudioFormat> format_;  // While started.
+  std::optional<SmackerAudioFormat> released_;
 };
 
 // The SDL host of the front end and of the scenario editor; its missions
@@ -169,10 +188,19 @@ class GameApp final : public FrontendHost, public EditorRunner {
       keeper_->handle(e);
     }
   }
-  // Logs the launch (with the resume snapshot).
-  void launch() const {
+  // Logs the launch (with the resume snapshot) and, from then on, the
+  // sound output's state.
+  void launch() {
     if (keeper_) {
       keeper_->launch(edition::kName);
+    }
+    if (!headless_) {
+      sound_.set_log([this](std::string_view line) {
+        SDL_Log("%s: %.*s", edition::kExecutable, static_cast<int>(line.size()), line.data());
+        if (log_) {
+          log_->write(line);
+        }
+      });
     }
   }
   // Ends the program: keeps the resume snapshot when it ends on a quit,
@@ -228,6 +256,9 @@ class GameApp final : public FrontendHost, public EditorRunner {
     while (const std::optional<InputEvent> e = display_.poll()) {
       feed(gui, *e);
     }
+    if (!headless_) {
+      keep_sound_output();
+    }
   }
 
   VideoSound* video_sound() override { return sound_.has_device() ? &video_sound_ : nullptr; }
@@ -273,6 +304,19 @@ class GameApp final : public FrontendHost, public EditorRunner {
   }
 
  private:
+  // Reopens the sound output when the system lost it (not in the
+  // original).
+  void keep_sound_output() {
+    const std::uint64_t now = Display::ticks_ms();
+    if (const std::optional<AudioFault> fault = sound_.audio_fault(now, !suspended_)) {
+      // A video's stream would keep the audio subsystem, and the lost
+      // device with it.
+      video_sound_.release();
+      sound_.reopen_audio(*fault, now);
+      video_sound_.restore();
+    }
+  }
+
   // Feeds one input event to the GUI the way the INT 9 / INT 33h handlers
   // feed the original's event queue.
   void feed(ui::Gui& gui, const InputEvent& e) {

@@ -83,6 +83,14 @@ int run_viewer(const Options& options, const sh::Install& install) {
         return 0;
       }
     }
+    if (!headless) {
+      // The sound output lost by the system (a video's stream playing
+      // meanwhile keeps the subsystem: its device may stay lost).
+      const std::uint64_t now_ms = sh::Display::ticks_ms();
+      if (const std::optional<sh::AudioFault> fault = sound.audio_fault(now_ms, true)) {
+        sound.reopen_audio(*fault, now_ms);
+      }
+    }
     const std::uint64_t now_us =
         headless ? static_cast<std::uint64_t>(n) * 1'000'000 / 60 : sh::Display::ticks_ms() * 1000;
     viewer.update(now_us);

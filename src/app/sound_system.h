@@ -2,9 +2,11 @@
 // through the SDL audio device when one can be opened.
 #pragma once
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
+#include <string_view>
 
 #include "audio/audio_device.h"
 #include "audio/mel_layer.h"
@@ -27,6 +29,13 @@ class SoundSystem {
 
   // Returns whether sound reaches a device.
   bool has_device() const { return device_ != nullptr; }
+
+  // `AudioDevice::set_log`; nothing without a device.
+  void set_log(AudioDevice::Log log);
+  // `AudioDevice::check`; nothing without a device.
+  std::optional<AudioFault> audio_fault(std::uint64_t now_ms, bool foreground);
+  // `AudioDevice::reopen`. Requires a device.
+  bool reopen_audio(AudioFault fault, std::uint64_t now_ms);
 
   // Runs `fn` on the layer, holding off the audio thread.
   void with_layer(const std::function<void(MelLayer&)>& fn);

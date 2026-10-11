@@ -29,6 +29,9 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
 - **Text entry:** the system keyboard opens for names and descriptions.
 - **Leaving the app:** the game is kept. The next start resumes where you
   were.
+- **Sound:** when the system cuts the sound output (a call, the screen
+  off, folding the phone, coming back to the app), the game reopens it
+  instead of staying silent until restarted.
 
 ## Fixes
 

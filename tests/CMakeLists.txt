@@ -17,6 +17,8 @@ add_executable(sh_tests
   # Sound and video.
   video_test.cpp
   audio_test.cpp
+  # The SDL sound output reopened when the system loses it.
+  audio_device_test.cpp
   # Simulation.
   sim_clock_test.cpp
   sim_geometry_test.cpp
