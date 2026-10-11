@@ -242,6 +242,14 @@ std::int32_t ai_steer_to_point(MotionState& m, Fixed16 turn_factor, std::int32_t
 // (`ai_find_water_heading`, 0x14c60). Without a grid: the reciprocal.
 Angle10 ai_find_water_heading(SimContext& ctx, std::int32_t x, std::int32_t z, Angle10 heading);
 
+// Returns the bearing from `own` of a vehicle at `target` after `seconds` at
+// `speed` on `heading`: where a friendly on a collision course will be, to
+// turn away from (in `ai_ship_think`). As in the original, the run ahead is
+// 65536 times too long (a 16.16 distance added to world units) and the sums
+// wrap to 32 bits.
+Angle10 ai_friendly_ahead_bearing(fx::Vec3 own, fx::Vec3 target, Angle10 heading, Fixed16 speed,
+                                  std::int32_t seconds);
+
 // Links the members and escorts of convoy `group` to its leader, zeroes the
 // deltas and the leader's zigzag, and sets the escorts' power for twice the
 // leader's speed (`convoy_regroup_on_leader`, 0x8e215).

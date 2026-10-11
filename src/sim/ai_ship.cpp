@@ -477,12 +477,7 @@ void ai_ship_think(Ship& ship, SimContext& ctx, std::int32_t dt) {
           sensors.set_collision_warning(true);
         }
       } else if (t < 61 && d < unset_best) {
-        // Where the friendly will be, to turn away from.
-        const fx::SinCos sc = fx::angle_sincos(theading);
-        const std::int32_t v_units = fx::mul(tspeed.raw(), kUnitsPerSecondPerKnot);
-        const std::int32_t ahead_x = fx::imul(fx::mul(v_units, sc.sin), t);
-        const std::int32_t ahead_z = fx::imul(fx::mul(v_units, sc.cos), t);
-        gun_bearing = fx::heading_from_delta(tpos.x + ahead_x - own.x, ahead_z + tpos.z - own.z).tenths();
+        gun_bearing = ai_friendly_ahead_bearing(own, tpos, theading, tspeed, t).tenths();
         break;
       }
     }
@@ -1050,6 +1045,16 @@ std::int32_t ai_steer_to_point(MotionState& m, Fixed16 turn_factor, std::int32_t
     m.ordered_heading = heading;
   }
   return range;
+}
+
+Angle10 ai_friendly_ahead_bearing(fx::Vec3 own, fx::Vec3 target, Angle10 heading, Fixed16 speed,
+                                  std::int32_t seconds) {
+  const fx::SinCos sc = fx::angle_sincos(heading);
+  const std::int32_t v_units = fx::mul(speed.raw(), kUnitsPerSecondPerKnot);
+  const std::int32_t ahead_x = fx::imul(fx::mul(v_units, sc.sin), seconds);
+  const std::int32_t ahead_z = fx::imul(fx::mul(v_units, sc.cos), seconds);
+  return fx::heading_from_delta(fx::wsub(fx::wadd(target.x, ahead_x), own.x),
+                                fx::wsub(fx::wadd(ahead_z, target.z), own.z));
 }
 
 Angle10 ai_find_water_heading(SimContext& ctx, std::int32_t x, std::int32_t z, Angle10 heading) {

@@ -8,6 +8,7 @@
 #include "sim/sensors.h"
 #include "sim/ship.h"
 #include "sim/simulation.h"
+#include "sim/weapon_math.h"
 #include "sim_classes.h"
 #include "sim_test_grid.h"
 
@@ -205,6 +206,28 @@ TEST_CASE("Route points behind land are pruned at spawn", "[ai]") {
   CHECK(s.setup().route.z[1] == grid.z_of(2));
   CHECK(s.setup().route.x[2] == grid.x_of(1));
   CHECK(s.setup().route.x[3] == -2);
+}
+
+}  // namespace sh
+
+namespace sh {
+
+TEST_CASE("The friendly's predicted position wraps like the original's 32-bit sums", "[ai]") {
+  // As in HIST01: a friendly at 20 kn 60 s ahead runs about 2^31 units
+  // (the run ahead is 65536 times too long), so position + run leaves the
+  // int32 range before the boat's position is taken off again.
+  const fx::Vec3 own{15113700, 0, 15000000};
+  const fx::Vec3 target{30000000, 0, 15000000};
+  const Angle10 east(900);
+  const Fixed16 speed = Fixed16::from_int(20);
+  const fx::SinCos sc = fx::angle_sincos(east);
+  const std::int32_t run = fx::imul(fx::mul(fx::mul(speed.raw(), kUnitsPerSecondPerKnot), sc.sin), 60);
+  REQUIRE(std::int64_t{target.x} + run > INT32_MAX);
+  const std::int64_t dx = std::int64_t{target.x} + run - own.x;
+  REQUIRE(dx <= INT32_MAX);
+  // Wrapping twice gives the exact difference back.
+  CHECK(ai_friendly_ahead_bearing(own, target, east, speed, 60) ==
+        fx::heading_from_delta(static_cast<std::int32_t>(dx), 0));
 }
 
 }  // namespace sh
