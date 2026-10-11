@@ -48,7 +48,7 @@ std::vector<std::string> briefing_lines(const std::string& text) {
   return lines;
 }
 
-TEST_CASE("HIST01's MISSION BRIEFING lists the scenario's start and the boat's load", "[briefing]") {
+TEST_CASE("HIST01's MISSION BRIEFING lists the scenario's start and the boat's load", "[briefing][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -95,7 +95,7 @@ TEST_CASE("HIST01's MISSION BRIEFING lists the scenario's start and the boat's l
   CHECK(briefing_lines(text) == expected);
 }
 
-TEST_CASE("A generated convoy mission's briefing shows the chosen boat and date", "[briefing]") {
+TEST_CASE("A generated convoy mission's briefing shows the chosen boat and date", "[briefing][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -142,7 +142,7 @@ Career test_career() {
   return c;
 }
 
-TEST_CASE("A career patrol's PATROL BRIEFING gives the fuel, not the difficulty or the sky", "[briefing]") {
+TEST_CASE("A career patrol's PATROL BRIEFING gives the fuel, not the difficulty or the sky", "[briefing][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -177,7 +177,7 @@ TEST_CASE("A career patrol's PATROL BRIEFING gives the fuel, not the difficulty 
   CHECK(lines.back() == "***END OF BRIEFING***");
 }
 
-TEST_CASE("The patrol text drops the single mission's lines; equipment follows the option bits", "[briefing]") {
+TEST_CASE("The patrol text drops the single mission's lines; equipment follows the option bits", "[briefing][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   const ui::MenuResources menu = ui::MenuResources::load(install);
@@ -315,7 +315,7 @@ constexpr BriefingHost::Step kBegin{0, 69 + 335 + 60, 19 + 395 + 17};
 constexpr BriefingHost::Step kBriefingOk{0, 0x14 + 0x55 + 60, 0x1e + 0x172 + 12};
 constexpr BriefingHost::Step kBriefingDown{0, 0x14 + 0xf3 + 16, 0x1e + 0x14a + 10};
 
-TEST_CASE("BEGIN on a historical mission shows its briefing; OK starts the mission", "[briefing]") {
+TEST_CASE("BEGIN on a historical mission shows its briefing; OK starts the mission", "[briefing][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
