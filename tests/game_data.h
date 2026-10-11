@@ -7,14 +7,20 @@
 #include <optional>
 
 #include "core/install.h"
+#include "synthetic/install_files.h"
 
 namespace sh::test {
 
 // Returns the install named by the SH_DATA environment variable, or nothing.
+// With SH_TRACE_READS, the paths of the files read are appended to the file
+// it names (synthetic/install_files.h).
 inline std::optional<Install> game_install() {
   const char* dir = std::getenv("SH_DATA");
   if (dir == nullptr || *dir == '\0') {
     return std::nullopt;
+  }
+  if (const char* log = std::getenv("SH_TRACE_READS"); log != nullptr && *log != '\0') {
+    return traced_install(dir, log);
   }
   return Install(dir);
 }

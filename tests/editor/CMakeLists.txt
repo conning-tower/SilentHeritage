@@ -32,7 +32,7 @@ add_executable(sh_editor_tests
   dosbox_screens_test.cpp
 )
 target_include_directories(sh_editor_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-target_link_libraries(sh_editor_tests PRIVATE sh_editor Catch2::Catch2WithMain)
+target_link_libraries(sh_editor_tests PRIVATE sh_test_support sh_editor Catch2::Catch2WithMain)
 # The dialog tests' screenshots (platform/screenshot).
 target_link_libraries(sh_editor_tests PRIVATE sh_platform)
 if(NOT CMAKE_CROSSCOMPILING)

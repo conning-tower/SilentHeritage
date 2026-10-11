@@ -1,0 +1,4807 @@
+# The layout of an original executable (tests/synthetic/exe_manifest.h): synthetic text, layout numbers.
+object 10000 d9392 2005
+object f0000 a4290 2003
+str f002a "WDYU NGBK"
+str f0462 "Igvcnpyg"
+str f047c "Kepke"
+str f0b10 "NOFUFY AAGS"
+str f0b1c "VCUOP V MPBKRG"
+str f0b2b "RIBABOLC G UEKFOR"
+str f0b3d "VIKF PIMEHHR"
+str f0b4a "CKFM PRDN"
+str f0b54 "ELBW KCGD"
+str f0b5e "EPDWY NVP KMCEDS"
+str f0b6f "RCN CCDTGYKHPS"
+str f0b7e "LWHY LUMMKF"
+str f0b8a "RTGR RBFYWD"
+str f0b96 "EHUE WPFL"
+str f0bae "BUYDARM OIMDTERT"
+str f0bbf "OTIMVW"
+str f0bc6 "HALF FAOCPFB"
+str f0bd3 "KS"
+str f0bd6 "\x1e"
+str f0bd8 "\x1f"
+str f0bda "Elpg"
+str f0bdf "Ogdrhcovd'g Sdlf"
+str f0bf0 "Gbkkg"
+str f0bf6 "Ahkucbo"
+str f0bfe "CLU RLADMM"
+str f0c09 "Ioyevvcnveirkvg! Cmf wmlg agmv iok ynfc fnbmpkt mlgt."
+str f0c3f "MD"
+str f0c73 "Ipokbaknsl bcvlhmid tkm fm "
+str f0cbb "."
+str f0cbd "Stt rpm holn?"
+str f0ccb "VTEWATU DFEYOIRE"
+str f0cdc "KL"
+str f0cdf "PVU"
+str f0cf9 "Pabvfgyg Epwsimdtp "
+str f0d39 "."
+str f0d3b "Lhf kwb mhwf?"
+str f0d49 "OHHINYK TSBDNGTUTW"
+str f0eba "  "
+str f0ee9 "Ohus ss mgymkae - "
+str f0f28 " cpo"
+str f0f43 "a"
+str f0f5b "Nlua ri Pege - "
+str f0f97 " vea"
+str f0fb2 "c"
+str f1090 "Lgfa: "
+str f10c3 "Tatuir: "
+str f1110 "Wimwl Ensc: "
+str f11a6 "Sdu Lhgk: "
+str f1252 "Klm: "
+str f1284 "Keogh: "
+str f12d0 "Nlinytp: "
+str f1306 "Bpuyi uahv: "
+str f1357 "Dbkubuu: "
+str f138d "Iwdtiy npwvvro: "
+str f13e2 "Alkwu oedtno: "
+str f141d "Hvumk: "
+str f146a "Scpuvy:\x0a\x0a"
+str f1517 "Nadwsmbb"
+str f1536 "Ehnu Lscp (SOCEN)"
+str f155e "Huuptiu"
+str f157c "Sufuwp"
+str f1780 "***MUA WM PBKDTC KMIVHWN***"
+str f1878 "Vagsistao "
+str f1899 "Gwbgse Cinh"
+str f18a5 "Kovlob Pilf"
+str f18b1 "Ithg Nniui"
+str f18bc "Fbkobchnubeov Phtuhrn Beroc"
+str f18d8 "Yvhranpvtgtvf Ygpst lb Ocbiv"
+str f1914 "Kdmh Avuk Wagsmpbddgks"
+str f1a50 "(NC-"
+str f1a81 ") "
+str f1adc "PLA VUSGDVTO"
+str f1aeb "NGVDYYRRKL"
+str f1af6 "IHY ATGUFDUA"
+str f1b05 "SPHS"
+str f1b0a "INBUF"
+str f1b42 "H-ngg vggbh ym, R-sfs bpyed faa"
+str f1b62 "(g10) HYFWC"
+str f1b6e "CAGDRWE NKAAA"
+str f1bc4 "Psd: "
+str f1bde ", "
+str f1c09 " "
+str f1c2a "Ipih"
+str f1c92 "("
+str f1ca8 ") "
+str f1cbf " Oguad "
+str f1d34 "Kshvp: "
+str f1d50 " cnawm "
+str f1d62 "Ailirfh: "
+str f1d9a "Tcbdi: "
+str f1db6 "."
+str f1dcc " rud "
+str f1ddc "Mryrscot: "
+str f1dfb " % "
+str f20e4 "Ofyypu cdigg anhmdgeg ebigmw:"
+str f2120 " cby, "
+str f2145 " "
+str f215b "Esy: "
+str f2175 ", "
+str f24d2 "Shbdw dsfnyyg:"
+str f24eb "Vshcbfy Yiucml:"
+str f2522 " Fhytn"
+str f2548 " "
+str f2554 "Psynoy"
+str f257a " "
+str f2586 "Eykkfh"
+str f2597 "Vbftbgipy"
+str f25ab "y"
+str f25cb " ngh, "
+str f25f0 " "
+str f2606 "Uho: "
+str f2620 ", "
+str f2637 "Shultrc: "
+str f264b "Sebcbak"
+str f2667 "Cnwvh: "
+str f2679 "Euglcmu"
+str f2695 " hup"
+str f2706 "Nsaoong Lkstad:"
+str f2735 " "
+str f2741 "Fbfvii"
+str f2766 " iyn, "
+str f278b " "
+str f27a1 "Kle: "
+str f27bb ", "
+str f2812 "Twack aotdbfu:"
+str f282b "Fvwwabli sluwy"
+str f2858 " hdw, "
+str f287d " "
+str f2893 "Fev: "
+str f28ad ", "
+str f28ec "Riinv fpvsydd:"
+str f2905 "Sccuydp"
+str f292b " kpt, "
+str f2950 " "
+str f2966 "Cbe: "
+str f2980 ", "
+str f29ac "Dfb: "
+str f29dd "Ghwwuki: "
+str f29fb "Rwoht: "
+str f2a2d " ero"
+str f2a3c "Yilbc: "
+str f2a58 " aien"
+str f2a97 "GY"
+str f2aa0 "Dtatg"
+str f2aa6 "Udhwik"
+str f2aad "Ibwna"
+str f2ab3 "Imsoig nogiooyw #\x01 (GVK ir gmap)"
+str f2d8b "  "
+str f2da8 "Mvluiwd - "
+str f2de9 "Scfymh - "
+str f2e29 "Ugpecgad - "
+str f2e6b "Fulwymn - "
+str f2eac "Beyt - "
+str f2ece "Obh - "
+str f2eef "Bogclgp - "
+str f2f0d "Rmop-Flpy"
+str f2f17 "Wwmswgfl"
+str f2f20 "Trwsligeavo"
+str f2f2c "Osfmvgw"
+str f3052 " Akphk"
+str f3059 "Wucuyyr hakw whlvao:"
+str f308b "Vmkw "
+str f30ab " rs "
+str f30d9 "Wtdnkea #"
+str f30e3 "Goip:"
+str f312f "Vbvg:"
+str f315e "Wfvr:"
+str f3164 "Cv:"
+str f3175 "*** EPCR WGSNMIU ***"
+str f318a "*** NF LEDOAHEF ***"
+str f31f9 "Eugebr"
+str f327c "FTIEAU ADPWLE"
+str f328a "VAOKHC"
+str f3291 "WWOV"
+str f3296 "ETWPBC"
+str f329d "WTFPPM"
+str f32a4 "Ss."
+str f32a8 "Pwfi"
+str f32ad "Gtnl"
+str f32b2 "Vfiuwe"
+str f32b9 "MNUYYT YPFNMA"
+str f32c7 "Wsimho"
+str f32ce "Dofrmf"
+str f32d5 "Yimcl Wamcww Krsbkpmoi Kyvc:"
+str f3365 "Wfvyrs k ltmchw cc ygnhcyap..."
+str f3384 "Pet ofb ibbt?"
+str f3392 "Bfhelw loae lneknd."
+str f33a6 "GKFVMC AYPULB"
+str f33b4 "AA"
+str f33b7 "VVG"
+str f3400 ":"
+str f3447 " "
+str f3510 "ewtuacws.SSC"
+str f351d "oboklht.vsg"
+str f356d "(f"
+str f3588 ")"
+str f358a "Kpcl Nhmfcpvbvy Elmcdrwebekbr, Dda."
+str f35ae "Lrhb Suwemelvkl ldv Iguwmdmy"
+str f35cb "Kalfgra I. Vnevhs"
+str f35dd "Ulnlit itg Nkvmoare"
+str f35f1 "Plw Vbyctm"
+str f35fc "Clflpoccmd Gbsemvytwwm"
+str f3613 "Ssatnv Kmlgai"
+str f3621 "Yhoerrteb Mcougpiyick, Lhi."
+str f363d "Naddnupk"
+str f3646 "Hkyo R. Tfpydp"
+str f3655 "Bbrfbhhbh Uatnlvew"
+str f3668 "Foeb Gvshvvae"
+str f3676 "Htirkohtb Osvhykv"
+str f3688 "Ohccdde U. \x22Kdc\x22 Faedrr"
+str f36a0 "Svmdgs Fpaces"
+str f36ae "Kapp Viibuir"
+str f36bb "Mgdmry Mcutds"
+str f36c9 "Daaektnf Efyhgci"
+str f36da "Twlpbfkrfl Cfosmgsc Vmkoro"
+str f36f5 "Srg Vfpuii"
+str f3700 "Nmghg Pferw"
+str f370c "Fswymhkmac Gbinkhel Gvsfdka"
+str f3728 "Wiyh Fcsr"
+str f3732 "Lychh Idga"
+str f373d "Tcil Bofbglk"
+str f374a "Bowok Ytshe"
+str f3756 "Puuvyyfviyk Bvimnvi"
+str f376a "Wpkm Vusgp"
+str f3775 "Piu Ufdcwc"
+str f3780 "Oybih Ffirarroooi"
+str f3792 "Mdbh Hwgietw"
+str f379f "Aitom Slwnul"
+str f37ac "Bevkk Dhakl"
+str f37b8 "Ihapw Nsucrt"
+str f37c5 "Roidi Licts"
+str f37d1 "Cfdvhus Bthhtdr"
+str f37e1 "Ghld \x22Gfesikmbh\x22 Freo"
+str f37f7 "Pinpu Tfgoddg"
+str f3805 "Nwmvudbs ma"
+str f3811 "Kfeft Tusfd Yhildftsm Entovt"
+str f382e "Ybodw Nkwhdipullr Dmvmgliv"
+str f3849 "Utlin Avvbki"
+str f3856 "Dbbbn Trodbdmtluk Rohmlsaal"
+str f3872 "Bsk Rnpidhv"
+str f387e "Dugnaga Dttdtth"
+str f388e "Iahdwdbyfy Ucktg Tfflpcl"
+str f38a7 "Acae Osbdl RSO pooll yncdcr"
+str f38c3 "Phguynactw"
+str f38ce "YAM"
+str f38d2 "Oevde"
+str f38d8 "Itlhvovfob Pmp"
+str f38e7 "Nbb Kabr"
+str f38f0 "Ivr Yvotnet"
+str f38fc "Bpbhlddwi Cbiger Lwtvf"
+str f3913 "Wun Grgemoub"
+str f3920 "Rdofflr Gdfi Colrshm"
+str f3935 "Dvnf Ygedkvp"
+str f3942 "Ppoh Cdgfus"
+str f394e "Aiao Hfbe"
+str f3958 "GOP Ncbilud Arwiivg"
+str f396c "Bhrv Tductnnm"
+str f397a "Ghbb Rrptd"
+str f3985 "Egrr Ftei"
+str f398f "Mvaici Cryea"
+str f399c "Gbpcccs Swubeot"
+str f39ac "Dapg Bpmcg"
+str f39b7 "Mtwekncfne Ffag Tccsssa"
+str f39cf "Skup Paygbgus"
+str f39dd "Wyknd Tbsgkwp"
+str f39eb "Egg Esorfw"
+str f39f6 "Obnl Ynbihhu"
+str f3a03 "Lkeoc Tslehcr"
+str f3a11 "Tllo Yngw"
+str f3a1b "Deeuo Lcr"
+str f3a25 "Whoa Oogow"
+str f3a30 "Wcuumwto Nuer Highlwr"
+str f3a46 "Isibgtc Nrsikwoh"
+str f3a57 "Nu Ewrkms"
+str f3a61 "Eohlep Safamw"
+str f3a6f "Ldttt Wshlw"
+str f3a7b "Lggad EpPagwu"
+str f3a89 "Bcfpyi Evlgpud"
+str f3a98 "Dplw Cshceumh"
+str f3aa6 "Tadkucy Votaddt"
+str f3ab6 "Wltbi Subpm"
+str f3ac2 "A.R. Ovtnns"
+str f3ace "Fkc,Ovlibrr Giinvo,ONY"
+str f3ae5 "LBCWV MICGDA UDWHUE"
+str f3af9 "Arnktaw Elsg"
+str f3b06 "Lcvv Mhnuvmtv"
+str f3b14 "Iiobahekuma"
+str f3b20 "Fddy Wrrbrodk"
+str f3b2e "Ruowpg Ydfrek Tnafn Gubemohbl"
+str f3b4c "Yibfoepnt Ibrbkkmus"
+str f3b60 "Bemlp G Mwusprm"
+str f3b70 "Yeadetv Ksivcon"
+str f3b80 "Wmopwca Apig"
+str f3b8d "Avnstdst Fvisnfv"
+str f3b9e "386TA AWH Mcadukwy Ercpig"
+str f3bb8 "CPU Veiusapn"
+str f3bc5 "IPA/4OH Tcaehanevpdd"
+str f3bda "Lurbwbbti (f) Dowivunh Oyvbyed, Vbm. 1990-1994"
+str f3c09 "Ypestlkpverl Khklvvgoky"
+str f3c21 "Ehdehmgfe (r) 1991-1994 ab Bgiapkw Too"
+str f3c48 "nmg Doydihwsdml sh Ogurokee-Cefm, Cvp."
+str f3c6f "Gcwyvcl Vgpgc Vkelfpchrh"
+str f3c88 "Nubphnktb (u) 1994 Gfeabugpm, Nap. d.c.w. Ttk Epddpwam"
+str f3cbf "Kvuyglb Imnnbl"
+str f3cce "Droclsd Vvadn esf Bvs Hhsfnfbhdl"
+str f3cef "Reh Tsurdgfg Sioklpcy Vyaind Ccroyhtsewc"
+str f3d18 "Uhbo 45, Veu Tutansrdn, Maeskwotya"
+str f3d3b "D.L.Y. Sntaoypon (UI-383)"
+str f3d55 "N.R. Srkfskl, Kscitub Ifmpcfnc, rfn Cvan Sdnfikdc"
+str f3d87 "Rbiuapkwd Vrmndyte Dwyhivodnkw"
+str f3da6 "Nvssymehmd, Nfw Ekiuot"
+str f3dbd "W.T.L. Htav (VG-297)"
+str f3dd2 "Ylekrlbmv Sybftlcv Vuatpi"
+str f3dec "Olkpnusdm, Scsdarlp"
+str f3e00 "C.F.V. Rivff (DS-423)"
+str f3e16 "Nmgp Rihg Cetivfwl, Ssedl Frrdoydhp"
+str f3e3a "Mafgyh Rltcac Kclfe Oewcurcbg"
+str f3e58 "Emf. Uiieiio A. Rtuto"
+str f3e6e "Uaccp Ytnsbwnbes"
+str f3e7f "C. D. Abfvrw"
+str f3e8c "Rkcpsia, ui Iss Cnpftw dmn ygi rpe al"
+str f3eb2 "wfn Uiofrm Cpkfwvm vhd lbcyckcbp hytcdvc"
+str f3edb "sn raol lyhfiwomh lew sou. Muvne Fktb."
+str f42a4 "1MC"
+str f42a8 "OIND TF UFW?"
+str f42b5 "VKO VAPANST?"
+str f42c2 "GCN PHLUGT?"
+str f42ce "PMTH WAOKBRWPGLD"
+str f42df "-"
+str f42e1 "+"
+str f4339 "FOHI LDFBSDB"
+str f4346 "Ubnn Bdok Vggd"
+str f4355 "Okdm RU Kgsee"
+str f4363 "Rhwp LP Vvvbi"
+str f4371 "Bsft Lpn Pnprtu"
+str f4381 "Gtkvk Fshusfv"
+str f438f "Yubnwd Oabsth"
+str f439d "Dyirekfuh Clekb"
+str f43ad "Fgtpao"
+str f43b4 "Lfmf"
+str f43b9 "Cerr"
+str f43be "Ofccrpo Ountko"
+str f43d9 "Hkphba Fglwfk"
+str f43e7 "Vomm"
+str f43ec "Ubel"
+str f43f1 "EW"
+str f43fb "BVHC WTLFTCY"
+str f4408 "Uessin"
+str f440f "Gououb"
+str f443f "GAU"
+str f4443 "PR"
+str f4446 "Irc tha vfsl?"
+str f4454 "Fedrf mfe tkwsgym."
+str f4467 "UDGFM YPFWPHY"
+str f4581 "DOIO YKWRUD"
+str f458d "VDOB OIVPADK"
+str f45df "Iwbrsepbn ugpufbctc giwbb mbgdtbm?"
+str f4602 "OIAW AOFLCIW"
+str f468b "Fvs Mrrr Kpb"
+str f46a8 "Eyn CF Lnbr"
+str f46d3 "Smb Kfl Lso"
+str f46fa "Scn Wuy Rrhrpg Rumofln"
+str f4814 "Yfhikuy?"
+str f481d "XO0003"
+str f4824 "Gp'yn ausa ibpsto, wle!"
+str f483c "CAPT0464"
+str f4845 "Mpblh wtmveoacv!"
+str f4856 "CAPT0462"
+str f485f "Er Mcpwewsaf, ttb."
+str f4872 "CAPT0463"
+str f487b "Cstd Yuyefriru, cvk."
+str f4890 "DO0062"
+str f4897 "Heodyroam oakeo, nbb."
+str f48ad "YCEWDEAA"
+str f48b6 "Lcncv wrpvs, tlk."
+str f48c8 "DO0067"
+str f48cf "Hcnvupd, gsg."
+str f48dd "\x01 rpngfad gtrlv tpason, gkg."
+str f48fa "\x01 vpiklef lubk tkgopw, ypg."
+str f4916 "HELM0371"
+str f491f "Ucsnrt corudloho, idv."
+str f4936 "DO0063"
+str f493d "Nmedeagc phn vlawc, fyd."
+str f4956 "DO0064"
+str f495d "Dnwe mfpwsyb byrfi, dgb"
+str f4975 "LCODYK"
+str f497c "Nnuboo lr ffae pvyta, dwi!"
+str f4997 "DO0061"
+str f499e "Yulu! Ctop!"
+str f49aa "DO0065"
+str f49b1 "Tesvtw em gvek, uan."
+str f49c6 "DO0066"
+str f49cd "Atcemm py wcha, sip."
+str f49e2 "Mulm \x01!"
+str f49ea "WO0024"
+str f49f1 "Nnnygyo oeh avm nda, cum!"
+str f4a0b "SVBNBTI"
+str f4a13 "Eep takblwk, rbv!"
+str f4a25 "YWIYCAY"
+str f4a2d "Wbenywl ngwseltelc, fmt!"
+str f4a46 "WO0023"
+str f4a4d "Hmbwwt bnw ywhrgof lgel vkgmc!"
+str f4a6c "WO0022"
+str f4a73 "Orveemt iinr cud hdwrpr, tit!"
+str f4a91 "Omlk \x01 yr uua neslc, per."
+str f4aab "Okht \x01 bnuwtl, bcr."
+str f4abf "Cbcc \x01 lyso ws cnosge vr \x02 bhdnlv\x12."
+str f4ae3 "Shbe \x01 cvvu ab wuerb et \x02 fitfhe\x12."
+str f4b06 "ASFYAH"
+str f4b0d "Bnsh \x01 slohod fg fhaal."
+str f4b25 "XO0005"
+str f4b2c "Rad iukyep kkpr mw ylb, tic."
+str f4b49 "PHPFVGMT"
+str f4b52 "Rh'tt knh lk cyeopn mlns, fey!"
+str f4b71 "XO0009"
+str f4b78 "Tc'uy pau mirsoku, yms!"
+str f4b90 "MPKKYOF"
+str f4b98 "\x03 opdhbgl, obh."
+str f4ba8 "MDOKTEI"
+str f4bb0 "\x03 kfranbff, hih."
+str f4bc1 "VNGBLS"
+str f4bc8 "Bg'if ehb oi eeburkelpl cwd, nvp."
+str f4bea "VBCRHMGP"
+str f4bf3 "Ft'bg ymb pk pmmtdiiirs swt, amh!"
+str f4c15 "XO0007"
+str f4c1c "Np'oo mrcwfip nnp ku uig, bpb!"
+str f4c3b "XO0006"
+str f4c42 "Red rgimittyt foko lktwufvscw, ndd!"
+str f4c66 "VHVWLPFI"
+str f4c6f "Mve ttgvaoikp kdr impg."
+str f4c87 "BNETAUP"
+str f4c8f "Kpwcmcwl ymh agsrgnwv. Bb brnv ffotuwh!"
+str f4cb7 "Litaeu nmtu fkwppgiy mreg fauvf!"
+str f4cd8 "GPWVE"
+str f4cde "Lookr gubbmg mpdv mm gabk hgd eivmekw!"
+str f4d05 "RAD0003"
+str f4d0d "Wt-nspda miwsvb ndmihcg \x09 onwgomro."
+str f4d31 "RAD0003"
+str f4d39 "Dut-cosra bclbdr vodlfkm \x09 uhcgtntv."
+str f4d5e "EPGHPDFD"
+str f4d67 "FC onocd du pfuvuc, gpw."
+str f4d80 "CCNBWOYM"
+str f4d89 "ET mpedc ac sbteml, cpp."
+str f4da2 "LFLNCEMS"
+str f4dab "TM bbwui br nmigwf, gnc."
+str f4dc4 "AAIISAFI"
+str f4dcd "EA bidne ph clpmpg, uru."
+str f4de6 "NG rniua tv lf, rfl."
+str f4dfb "MT mvotb wt gdf, rcm."
+str f4e11 "RAD0001"
+str f4e19 "LN ppdpiim essom \x01 lmhu\x11."
+str f4e33 "RAD0002"
+str f4e3b "AP wnugmsm uwsgkhw \x09."
+str f4e51 "RAD0002"
+str f4e59 "PP lsoktuu nwruvch \x09."
+str f4e6f "WO0009"
+str f4e76 "Lgyo yyi\x11 khihgc svv kfugh, sba."
+str f4e97 "WO0025"
+str f4e9e "Mfnw rns\x11 ntsgyyh."
+str f4eb1 "VTGKGV"
+str f4eb8 "Unur beg\x11 mfm yntcashsvme, mec!"
+str f4ed8 "CFLWOGN"
+str f4ee0 "Amda lmurgvpa ackggnr, hdt."
+str f4efc "XO0008"
+str f4f03 "Dyhg mvcvsga, tdvnsit \x09."
+str f4f1c "EAOCBA"
+str f4f23 "Ttllurcn ogkelsy, kdtgaca \x09."
+str f4f40 "TGTMDG"
+str f4f47 "Odbecy mfedd cideaon, dogafvn \x09."
+str f4f68 "PEGPEPM"
+str f4f70 "Nyk temmigg, uyowumk \x09."
+str f4f88 "NUVITGRP"
+str f4f91 "Rkngtai fhscneh, wmvmhvk \x09!"
+str f4fad "APR1"
+str f4fb2 "Dpulu yhhnfbyon pbnhwrku hm GNG-1"
+str f4fd4 "FFIOR"
+str f4fda "Ear IK ahyu!"
+str f4fe7 "MVUGHKEU"
+str f4ff0 "Gcypco NU sivk, acm euc."
+str f5009 "RAIBTHSI"
+str f5012 "Akf spu lpidcr cfoaftr"
+str f5029 "BGDUOVVW"
+str f5032 "Vlfnel usat nysfgm wencipf"
+str f504d "MEHMNDD"
+str f5055 "Dmoyin tvtgpdsno!"
+str f5067 "OKRWCVPA"
+str f5070 "Ywhae fwr dogm bibybud, rto!"
+str f508d "KFESEHPP"
+str f5096 "Ic'cn bsvyk srnnlg lse y nfkmfb, oub!"
+str f50bc "LVGPAILN"
+str f50c5 "Vmveukc dvmuficfd, tgw."
+str f50dd "SLCWHEFP"
+str f50e6 "Umepebmikbw drrilr, nap!"
+str f50ff "XO0001"
+str f5106 "Cy'fe urcyh gwiy wycfa, vnm!"
+str f5123 "2DEEP"
+str f5129 "Ef'ba dli mhko, ykk!"
+str f513e "VNATD"
+str f5144 "Dvlirtoa wfhgd ifknllh, grv."
+str f5161 "WESMHL"
+str f5168 "Thh kpf nly, oub biu!"
+str f517e "TDYTPI"
+str f5185 "Inggai ybof kbp, ykd abt!"
+str f519f "\x03 \x01 \x02"
+str f51a6 "WVN"
+str f51aa "Ootbnb Npfpvan"
+str f51b9 "Bgnhvdup"
+str f51c2 "Ruaksmhbs"
+str f51cc "Vlmst"
+str f51d2 "Mcsho Afsdswhp"
+str f51f3 "Kfdkt Ksewkgwy"
+str f5202 "HDSOU"
+str f528d "Aoppsli Sulg"
+str f529a "Gmr Akau Tbc"
+str f52a7 "Ino UC Esrk"
+str f52b3 "Duwsd Cgbimh"
+str f52c0 "Kry Nld Flpndi Afstfol"
+str f52d7 "Gsilecdb Ttoysd"
+str f52e7 "Innwwo Ehoun"
+str f52f4 "Fmwsta"
+str f52fb "VF"
+str f52fe "PRB"
+str f5302 "Bycgoo"
+str f5309 "Vcpde"
+str f530f "Oldtme Fa Iidw"
+str f531e "Hhagin"
+str f5325 "Lgpdi"
+str f532b "Oegeeb Sf Ftoa"
+str f5358 "RVFOPSVB"
+str f53c1 "UYOR NPSA"
+str f54b3 "\x0a"
+str f54e5 "\x0a"
+str f54ff "("
+str f5501 "BUB"
+str f554d ")"
+str f557f "\x0a"
+str f5599 "\x0a"
+str f55b3 "\x0a"
+str f55cd "Ligk:"
+str f5668 "\x0a"
+str f5682 "Buht:"
+str f56a0 "Wesvrewaa Ngdvvktns Fuank"
+str f56d2 "\x0a\x0a"
+str f56ed "Mggtyoces "
+str f5728 ":\x0a\x0a"
+str f575c " vc khorb uncnrtnhvmp va bou tudahiadv kieu he "
+str f57bc ". Gki htmp mp rklii mfnridv mawdyb lr "
+str f5813 " tb vbadipu."
+str f5838 ":\x0a\x0aTlrwuu nl pue vdvhbnkdr wtep ay "
+str f588c ". Nbb gpam ev brlse wcssnat gwckuo uo "
+str f58e3 " lr ewyoloo."
+str f5a3a " IAUKF"
+str f5a87 " WMSIL"
+str f5a8e "SUVEVWK:"
+str f5a97 "MAHOBD:"
+str f5a9f "NMVO:"
+str f5aa5 "BRPBU:"
+str f5aac "LIOPU:"
+str f5ab3 "KFIC:"
+str f5ab9 "WB'R:"
+str f5abf "KM MDTPS:"
+str f5ac9 "LV KCPRLFRD:"
+str f5ad6 "YADHFYKDU:"
+str f5b6b "DVFV"
+str f5b7b "NGHW"
+str f5b8b "CYOO"
+str f5b9b "OVID"
+str f5c4e "Nuyeua Lbaf"
+str f6828 "\x0a"
+str f6842 "CRYUYMSLBGVV NSSW RVIDLBGI"
+str f68a4 "\x0a\x0a"
+str f68ef "\x0a"
+str f6921 " Osbdr Rlmvdffcv"
+str f6962 "\x0a"
+str f697c "UDUVTT FPWNIC LABW"
+str f69bf "\x0a\x0a"
+str f69e0 "GAMSAPHC:\x0a\x0a"
+str f6a81 "\x0a\x0a\x0a"
+str f6a9d "Bw:"
+str f6ad1 "\x0a"
+str f6aeb "Audo:"
+str f6b21 "\x0a\x0a"
+str f6b3c "Hs: "
+str f6b59 "WUFY VIVKON OWBGCIDHLRL"
+str f6b89 "LOIP ELYK BUFRACWAGM"
+str f6bb6 "VFEP DY IMOFHUW"
+str f6bde "\x0a\x0a\x0a"
+str f6bfa "Ioybfvcfh:\x0a\x0a"
+str f6c4f "\x0a"
+str f6c69 "VRKKINYVA"
+str f6ca3 "\x0a"
+str f6cbd "TEGGIN OSBDYD PFTM"
+str f6d00 "\x0a"
+str f6d1a "(Iiltwvoesa)"
+str f6d57 "\x0a\x0a\x0a\x0a"
+str f6d74 "HGAKELYH:\x0a\x0a"
+str f6f04 "Sovr eifegtppk ca pyhwwwnhdteg dkctws dwh bsvsd tfsulngn duccwt tu coaycvvm vbb up nwt Vkcmyh Gptkym Hmdw. Umno uaani lfb fyslvhtbw gymylsgy gnaddsc vfnyv dbccs tcs wcytitk. Vwvgngbc glw fvsd slmewilkruynll scal ps cifpomosrbr vu l fhae plsd vvmb auump ohhvy hhusfawio. R uuykwlamm lsrp wut ehuk mbss bwpc ew ufmn dwfi rf dnsd aydd omhaig."
+str f7058 "Hworhrp yra is damp hlps ye ocyawi lm ng pgstmgvfidd ralusdrwi. Wdk oay kyny kwygskruheo spb oybwt yi louk myp kpwm, adu pld hkmergn km reuhbt fwk ckm ipw yhowtpa lef. Pa kyr uhp hi lneiui ee cafrsov, rry guwy acedf hwowtv dyin negnmewv em rkv yyfpid. Fmwgww wrrb wdfn vr ruto rvfc ts kfyo hlvh nwsmkv."
+str f7187 "I eiesph bf lpemwa ktg msgt amv vhkv udrv ygdsynbl tw kftwtol. Stciw ch hhkv uuivuy sfabdnwwavm, F sslc mmbw eraomgn iid ekaaoe flduvs nf hl nvhkpyvdhsvgkn ummbnuog ni prrc. Yuihgk ouoikl rt Utnhf Ioneba sd roye fuu tcfvdvs ybukkp."
+str f73b8 "FWIH FE RIY?"
+str f7416 "KU"
+str f7419 "AGA"
+str f7468 "BVADB L TVEKKW"
+str f7477 "Rtoc:"
+str f747d "Kavtl prmf yoor:"
+str f748e "IY"
+str f7491 "OEYWND"
+str f7498 "Hntapsk:"
+str f74e9 "1941"
+str f74ee "1942"
+str f74f3 "1943"
+str f74f8 "1944"
+str f74fd "1945"
+str f7502 "Tdosof"
+str f750c "TDR DOSCUSGUD"
+str f751a "BODOYVBA"
+str f756b ""
+str f759c "\x0a"
+str f75b6 "\x0a"
+str f75d0 "Lwho:"
+str f766b "\x0a"
+str f7685 "Almf:"
+str f76a3 "Savy Yflymg Filkhnr\x0a"
+str f76d0 "Mupa Annfif Hvlfaye\x0a"
+str f7715 "\x0aPs:"
+str f774a "\x0a\x0a"
+str f7765 "Msy eddr meg iguy khvvfbbm tdpk l irm etwh ni tdmhign, srg "
+str f77b9 "Huo owmdr rmmv it mlovitoroe f pma mkwrg sy tnlvsulkb, rko "
+str f7825 ". "
+str f7858 "EP Biwvk"
+str f7861 "HLv Bmodh"
+str f786b "Rupccpipecekwbus"
+str f787c "Egkg Yklphsgl Efbnuwtwi"
+str f7894 "HL-1 Nosoi"
+str f789f "ACTB 18-1 Rfbcily"
+str f78b1 "PWCD 18-2 Klwvasb"
+str f7945 "Uvsdmy"
+str f7979 " fyblmtyi ihoa"
+str f7993 "Wvcn "
+str f7a8f "CAPT0425"
+str f7a98 "CAPT0426"
+str f7aaa "CAPT0428"
+str f7ab3 "CAPT0429"
+str f7abc "CAPT0430"
+str f7ad7 "CAPT0432"
+str f7ae9 "HELM0385"
+str f7af2 "HELM0384"
+str f7afb "HELM0383"
+str f7b04 "HELM0382"
+str f7b0d "HELM0381"
+str f7b16 "HELM0380"
+str f7b1f "HELM0379"
+str f7b28 "HELM0371"
+str f7b31 "HELM0372"
+str f7b3a "HELM0373"
+str f7b43 "HELM0374"
+str f7b4c "HELM0375"
+str f7b55 "HELM0376"
+str f7b5e "HELM0377"
+str f7b67 "HELM0378"
+str f7bb8 "WWIGLOS"
+str f7bc0 "CRAVE EGNVBO"
+str f7bcd "KMDLNA"
+str f7bd4 "YNIVCE  WWBO"
+str f7be1 "CAALLL CSMECSP"
+str f7bf0 "BG"
+str f7bf3 "\x1e"
+str f7bf5 "\x1f"
+str f7c65 ""
+str f7c92 "\x0a"
+str f7caa "\x0a"
+str f7cc2 "Lvui:"
+str f7d51 "\x0a"
+str f7d69 "Cipv:"
+str f7d9b "\x0a"
+str f7db3 "Tl:"
+str f7de3 "\x0a\x0a"
+str f7dfc "Hgvmlydeo "
+str f7e33 ":\x0a"
+str f7e4c "Iyyvlvl va "
+str f7e84 ". Ufwcoo gnn onb rbvvprh hwt hwngd tduovmrh.\x0a\x0a"
+str f7ec9 "Cou. pssuty hpwy:"
+str f7f07 " plgu\x0a"
+str f7f24 "Hoo. bwpy eisbd:"
+str f7f61 " suh\x0a"
+str f8009 "Ryfp: "
+str f8099 "Yknfca Tftg:"
+str f80d2 "\x0a"
+str f80ea "Mwk: "
+str f811c "Ibubf: "
+str f8150 "\x0a"
+str f8168 "Nwbu: "
+str f819b "Opntgo: "
+str f81d0 "\x0a"
+str f81e8 "Sdom Ybypby: "
+str f8222 " ("
+str f8251 "%)"
+str f826a "Sfftoa Trtyem: "
+str f82a6 " ("
+str f82d5 "%)\x0a"
+str f82ef "Rhfln Pbetvu Wdtc: "
+str f832f " kic"
+str f834a "m"
+str f8362 "Ufpptw Hpam: "
+str f839c " lba"
+str f83b7 "o"
+str f83cf "\x0a"
+str f83e7 "Yviu Btds: "
+str f841f " hbomfaw  ("
+str f8457 "%)"
+str f8470 "Plaogcr Tmfhet: "
+str f84ad "%\x0a"
+str f84c6 "Shfub nrwp: "
+str f84ff "Mhguhgb: "
+str f8535 "\x0a"
+str f854d "Rogeec pydwl: "
+str f8588 "Uwscl Lmahnf: "
+str f85c3 "\x0a"
+str f85db "Bdafb: "
+str f860f "\x0a\x0a"
+str f8628 "Mbmpgngs"
+str f8647 "Tyrd Kyde (GGISH)"
+str f866f "Psknlka"
+str f868d "Uamuba"
+str f86aa "\x0a\x0a"
+str f86d9 "-"
+str f871d ", "
+str f874c "-"
+str f8861 "\x0a"
+str f8879 "\x0a"
+str f8891 "***GHI RS COONALC***"
+str f8fb8 "Wlah Cugwy Csd Cmym"
+str f8fcc "HMPA WFEB"
+str f9003 "B-GRND-2.PCX"
+str f9010 "B-GRND-1.PCX"
+str f901d "wfhovry.krc"
+str f9029 "turwg.cim"
+str f9064 "WEH KAKLUHWMK"
+str f9072 "BRLPSG"
+str f9080 "IUKGFN"
+str f90e3 "UFUECLNMNCA"
+str f92c6 " LRRBG"
+str f98a6 "\x0a"
+str f98d6 "\x0a"
+str f98ef "\x0a"
+str f9908 "Fgea:"
+str f999d "\x0a"
+str f99b6 "Gyal:"
+str f99ea "\x0a"
+str f9a03 "Wdftdw wh Abfplengi\x0aPr:"
+str f9a32 "Wwr Ryitsmv"
+str f9a55 "\x0a\x0a"
+str f9a6f "Hiuuwakeo "
+str f9aa8 ":\x0a\x0a"
+str f9ac3 "Wkm nksw ulkd oirkmty lospbac lu ept "
+str f9b17 " ydvcr hdfhfenet "
+str f9b57 ". Nd fie drdhme ot kphtoe eodhoal, w cob ("
+str f9bb0 ") ruru oknp rh lbtknfbe wi hbp."
+str f9be7 "Ioybow yv Irpt Aeolinlro dc "
+str f9c32 ". Smnkk epy mbml dkdowb igeyetk gw ggb "
+str f9c88 " bwess gwitbiwva "
+str f9cc8 "."
+str f9ccc "DKU VBARO"
+str f9cd6 "HKARYH"
+str f9cdd "BPNWCG"
+str f9cfb "MVBGBAEVNHW"
+str f9dce " IYCCU"
+str f9de0 "MISLOOGDKLLB(davb): "
+str f9e0b " bafplkmb; "
+str f9e2d " ghecvdano"
+str f9e43 "KHPHUIOHUN(urfv): "
+str f9e6c " p "
+str f9e86 " r "
+str f9ea0 "FDAWVNOYE: "
+str f9ec2 " gkmogk; "
+str f9ee2 " hmadevlu"
+str f9ef7 "VUL KBVGO(vg): "
+str f9f1d " yalefmcd; "
+str f9f3f " ehnhtewfy"
+str f9f55 "LBU KPAIH(vmpyp): "
+str f9f7e " lgavatrp; "
+str f9fa0 " dwimtpult"
+str f9fb6 "YPUT INTST(fsee): "
+str f9fdf "LCLWN(amreb): "
+str fa004 " wl "
+str fa01f " eplss tlswtnsf"
+str fa045 " pu "
+str fa060 " vnghs npvfurmdd"
+str fa07c "WKUEDBG OCRFL: "
+str fa0a2 " dfwvesh; "
+str fa0c3 " dms; "
+str fa0d5 "inuckourt: "
+str fa0f7 "MEMI: "
+str fa114 " - "
+str fa12e " dbiw"
+str fa16c "KC MIORYA"
+str fa181 "Niclsenw Lcfb oyohyky"
+str fa1a2 "Aiutfgdk: "
+str fa1c3 "Bedbva: "
+str fa1e2 "Vhytpw hfft: "
+str fa206 "--"
+str fa21f "Kskmbrhdk fggrnd hh pltrt hm ohrhwa"
+str fa24e "Uust "
+str fa26a "  "
+str fa278 "ngvfc mfab kunncey"
+str fa296 "wtmbhho"
+str fa305 " geetrsr"
+str fa3ad " oyaev "
+str fa3b5 " cets "
+str fa3d2 " seb"
+str fa3f8 "HHUWR:"
+str fa42d " frype"
+str fa43f "COGGB:"
+str fa474 " tolgg"
+str fa486 "AUKCAWL:"
+str fa4a5 " adt"
+str fa4b5 "DIDYW:"
+str fa514 "nwfyw"
+str fa51a "pbykawwg"
+str fa523 "hrfkt"
+str fa529 "obrtkfnb"
+str fa532 "ulhyd chymavp"
+str fa540 "dhsmmdey rykbhdd"
+str fa551 "edcnp lonsdlg"
+str fa55f "klitcc lwfycla"
+str fa56e "mcm mgmhw olfdnf"
+str fa57f "uvmftm td pmslpt"
+str fa590 "lsmay ipoply"
+str fa59d "gtfgdbs losiih cvah"
+str fa5b1 "Siyw go sdmuousysrm!"
+str fa5c6 "Iceffnef ufm vwokknyu - hvuklah!"
+str fa5e7 "Lktfc vavsylyf"
+str fa5f6 "Gktdvnam ylauerlf"
+str fa608 "Ocopf wutbhsbk"
+str fa617 "Uwstw"
+str fa61d "Nllmvf"
+str fa624 "Devratfp"
+str fa630 "Tgn Ofke Niobls"
+str fa640 "Fubvm mbolawk vcpo fo faymniwna"
+str fa660 "Duirm Vfpf Fhbuac"
+str fa672 "Lnmty uinohnf mtvt tu igbkbsfrg"
+str fa692 "Diiyp Cetmy"
+str fa69e "Blnuffynutm mcv wepivch"
+str fa6b6 "Peobe"
+str fa6bc "Muhbicoba"
+str fa6c6 "Lesrrorv Idyw"
+str fa6d4 "Dpoepkew Mnwi"
+str fa6e2 "Iogdkku sfpr bp giseiyyyk"
+str fa6fc "FH Iusnm"
+str fa705 "Fffulu uaogma plomigfo"
+str fa71c "AO Hicir"
+str fa725 "Hoikdl yshnnd ilvhlsc slcsu"
+str fa741 "Lrw Opblovchb"
+str fa74f "Olmnnolpn wrgio gewwmmi"
+str fa767 "Tcs Hubprdisk"
+str fa775 "Dksgnchhk cipgg sfycgan"
+str fa78d "Npifgac Tvml"
+str fa79a "Idw ykfhkac widbrm wluvna ovc imsvfyl"
+str fa7c0 "Vvkgcps Glre"
+str fa7cd "Nim svsrkgs kbfunv eyfufp bbd wawynov"
+str fa7f3 "Yads Pvksh"
+str fa7fe "Vri uwchy nm efysony on wsr vmwnsrb - Mratlbg lhmuu sugsuwf"
+str fa83a "Bifh Ycn 1"
+str fa845 "Nhnw Bmk 2"
+str fa850 "Eruinb 1"
+str fa859 "Tgnakrw iwpye ybeywgi"
+str fa86f "Fkbsgl 2"
+str fa878 "Oppyeif imrsl ukoiduy"
+str fa88e "Asrhgg 3"
+str fa897 "Tyiybiw mkckt mhuwnoh"
+str fa8ad "Umwegl 4"
+str fa8b6 "Ryubrmn lewic tpclomm"
+str fa8cc "KE Dgrhy 1"
+str fa8d7 "Frgbtvlvm isgco vkwmaty"
+str fa8ef "SF Nsglr 2"
+str fa8fa "Kvudutkso nbvrk ocoddbk"
+str fa912 "LY Eisov 3"
+str fa91d "Yuufsnsok llubp srwfkbt"
+str fa935 "WC Okhky 4"
+str fa940 "Cschkuauv dcdbg wsdueva"
+str fa958 ""
+str fa959 "Cgk Taivknf Owud"
+str fa96a "Lmhoyvr'c Swbiorwd"
+str fa97d "Frt Ttdvauv"
+str fa989 "Yvnd'w Mlwkcvsr"
+str fa999 "Otnda Ewfp"
+str fa9a4 "Enlv't Uled"
+str fa9b0 "Lflbftv Lavm"
+str fa9bd "Iotkyku Suveh"
+str fa9cb "Ebby Cerr"
+str fa9d5 "Uiyhwuc Hvpa 1"
+str fa9e4 "Rpmptew Ymah 2"
+str fa9f3 "Vbfkb Uueu"
+str fa9fe "Gat Kdamry Cecm"
+str faa0e "Das Rriawc Pith"
+str faa1e "Rmh Pkdpgpt"
+str faa2a "Kyv Ufecthk Tvfm"
+str faa3b "Lpuo Khw 1"
+str faa46 "Fhel Nln 2"
+str faa51 "Kmppykaigu"
+str faa5c "Hkgu/Asmcvsg Libme"
+str faa6f "Ipfgeny"
+str faa77 "Awyuviau"
+str faa80 "Cpoom"
+str faa86 "Ctyrg"
+str faa8c "Fcl"
+str faa90 "Ibsf"
+str faa95 "Vwhl"
+str faa9a "Dndpkn"
+str faaa1 "Kwfndsala"
+str faaab "Gufltwp"
+str faab3 "Filhvbyt"
+str faabc "Rimmhbya"
+str faac5 "VRTTVNN"
+str faacd "HRUSYNOW"
+str faad6 "IDCUW"
+str faadc "AABUI"
+str faae2 "IMA"
+str faae6 "DSLD"
+str faaeb "INCG"
+str faaf0 "TISFIS"
+str faaf7 "CISKBDMLS"
+str fab01 "RORGTED"
+str fab09 "TPLNINUR"
+str fab12 "KLSLTLBD"
+str fab22 "Wfelgdb"
+str fab2a "Syemyrnit"
+str fab34 "Kltapfcg"
+str fab3d "Ssykur"
+str fab4d "Dlovln"
+str fab54 "Amdib"
+str fab5a "Tpdfib Fakman"
+str fab7f "Pudd"
+str fab84 "Vhfwyhee"
+str fabf4 "Bbbieh dn wbef da naftdk!"
+str fac99 "Rkowfcl nyyf."
+str faca7 "Nuyr"
+str facb4 "Mfkbnyc"
+str facbc "Iswwhwsf"
+str facc9 "GC"
+str faccc "Aphbvibs Hafypag"
+str facdd "YWI"
+str face1 "Mbtosl Loaooas"
+str facf0 "GF"
+str facf3 "Ollrkfkh Vdduitr"
+str fad04 "GE"
+str fad07 "Sekrbyiadp"
+str fad12 "ON"
+str fad15 "Ahpsywbhiy-Lrldnby"
+str fad28 "EE"
+str fad2b "Ytnlb Opmeorh"
+str fad39 "TM"
+str fad3c "Uiheu Blmumoi"
+str fad4a "TB"
+str fad4d "Cgtdadwrp"
+str fad57 "YO"
+str fad5a "Uinnnm Ivrlsgvan"
+str fad6b "VR"
+str fad6e "Nwogto Gmuvb"
+str fad89 "KW"
+str fad8c "Hkpwfisky"
+str fad96 "KH"
+str fad99 "Idsisutb Sunhcivl"
+str fadab "GV"
+str fadae "Vavtogwvu Vpcgpfh Vsur"
+str fadc5 "CF"
+str fadc8 "Vygno Vlsthwhwv"
+str fadd8 "WW"
+str faddb "Erkrf Nynppykym"
+str fadeb "AP"
+str fadee "Dfrch Doasngmh Ybhydac"
+str fae05 "FR"
+str fae08 "Vev Chdoks"
+str fae13 "IP"
+str fae16 "Pnrmhhi Umfrtn"
+str fae25 "RO"
+str fae28 "Sikkru Ctpr"
+str fae34 "EI"
+str fae37 "Teirb Itanwbmab"
+str fae48 "Ftohbd"
+str fae81 "Nd Hlhl"
+str fae93 "Cwhgenkw"
+str fae9c "Lakynon"
+str faebe ""
+str faebf "UM Daafv (MRc)\x0a"
+str faecf "Orivkswh RD Vtvhw (PU-1)\x0a"
+str faee9 ""
+str faeea "IA Aaeme\x0a"
+str faef4 ""
+str faef5 "Icmd Wlakuhho Bawskwset (AAV)\x0a"
+str faf14 ""
+str faf15 "Vmhihuhtwnhschlf\x0a"
+str faf27 "Nlipwapmcni"
+str faf33 "Nclidc uk Gidarg"
+str faf63 "Pesfiyy"
+str faf6b "Mrsagrv"
+str faf73 "Pwdl"
+str faf78 "Iasdb"
+str faf7e "Sphhfmi"
+str faf86 "Hmcdo"
+str faf8c "Ahda"
+str faf97 "Rrmseedi"
+str fafa6 "AcfOpdfSbopbvw"
+str fafb5 "NbbTdkVcu"
+str fafbf "SirVmmLeKaaWss"
+str faff6 "Obwl"
+str faffb "Dess"
+str fb000 "Fgis Obbvwteens"
+str fb010 "Sivlrtpifd Dpfiblitfa"
+str fb026 "Pfuu"
+str fb02b "Oiamy Ecgnw"
+str fb0f5 "Eifkpedmi Uegg"
+str fb104 "Alpuppm"
+str fb299 "WO0000"
+str fb2a0 "WO0001"
+str fb2a7 "WO0002"
+str fb2ae "WO0003"
+str fb2b5 "WO0004"
+str fb2bc "WO0005"
+str fb2c3 "WO0021"
+str fb2ca "WO0006"
+str fb2d1 "WO0007"
+str fb2d8 "WO0008"
+str fb5f0 "Kfbe:"
+str fb5f6 "Fdvwwg:"
+str fb5fe "Ehs Npky:"
+str fb608 "Ocs Ckwbi:"
+str fb613 "Mmeu Mmdg:"
+str fb61e "Aagiyskp:"
+str fb628 "Htkykyk:"
+str fb631 "Uwrwtuh:"
+str fb63a "Chcwh Wvlc:"
+str fb646 "Lvcdt:"
+str fb64d "VGML RPRWVI"
+str fb659 "IMLA KAW WKBD"
+str fb667 "VDVYCCVG"
+str fb83a "Ewdh-Bdwl"
+str fb844 "Hcolwuvu"
+str fb84d "Tyiorkiwknh"
+str fb859 "Ahcvcov"
+str fba44 "Piovau ndgfswg:"
+str fba6b "Tikh "
+str fba9f " sg "
+str fbcd8 "RHAV SIPW"
+str fbce2 "IBUMHM GRGKVRS"
+str fbcf1 "VRUHAF FIFV"
+str fbcfd "VOUUESGVBS"
+str fbd08 "BVY DESL"
+str fbd11 "TEPVSTC"
+str fbd19 "PCOY WC KLU"
+str fbd25 "IRUODA TGGISRG"
+str fbd34 "YVVGIIEI WGRBNNG"
+str fbd45 "KPWKEU TPWHGRHPC"
+str fbd56 "RPFBWYD OGONLTUYD"
+str fbd68 "RKSFLL WDGPNCIBS"
+str fbd79 "ECYU LMHAPCNU"
+str fbd87 "GABU FFVE"
+str fbd91 "ALGOMWV VGVEOTK"
+str fbda1 "VYKSNHDM GMOINFV"
+str fbdb2 "UYSLE YLVDVV BHFWGHV"
+str fbdc7 "ATRH PTPANI DFRWRMN"
+str fbddb "IDSMKCE"
+str fbde3 "VMSFCB"
+str fbdea "IHDIFAKRWKDE"
+str fbdf7 "CMNYES"
+str fbdfe "YDWWSEV SUUI"
+str fbe0b "KRHBVFM GSEDUTM"
+str fbe1b "HCNLCMV FIFH"
+str fbe28 "VYCAFVW CWNHNRIYEO"
+str fbe3b "KAV BKDCHPUAE"
+str fbe49 "MEVDVGYHH YSEEMNL"
+str fbe5b "DAKOWMG NKTHC IKNP"
+str fbe6e "WYEFCVDEDF LYCO"
+str fbe7e "WOBMATIIU VAVVKM"
+str fbe8f "GCP TRLPGHO"
+str fbe9b "VNTPFKG KTTWMR:"
+str fbeab "KHNNIS"
+str fbeb2 "BP"
+str fbeb5 "YLFCISLE FYLVOHS"
+str fbec6 "YOSDTE"
+str fbecd "HNBVNGF"
+str fbed5 "WPPCE"
+str fbedb "\x1e"
+str fbedd "\x1f"
+str fbedf "OTPR DFIHYN KIWSDOO"
+str fbef3 "YBTHBL"
+str fbefa "WBWNCRU"
+str fbf02 "NDMIE"
+str fbf0c "PTNCSUUC APCTYLR"
+str fbf1d "SFAMMR"
+str fbf24 "FFHVEY"
+str fbf2b "VOLED"
+str fbf31 "COMNYN NUDCWNSUK"
+str fbf42 "CRUYRW"
+str fbf49 "WDKIHCN"
+str fbf51 "IVLGY"
+str fbf57 "RASASNW AHOOKEOCE"
+str fbf69 "KPRYCF"
+str fbf70 "TVGGYFA"
+str fbf78 "OGLGT"
+str fbff2 "KCET AMCCOLLT"
+str fc000 "EO"
+str fc003 "\x1e"
+str fc005 "\x1f"
+str fc007 "Woea"
+str fc00c "Dsfhyfhbm'b Lecb"
+str fc01d "Ddykf"
+str fc023 "Scusffw"
+str fc02b "WRTW LWTUW"
+str fc036 "Unelhraabaobhdi! Ohh uvkn supm vbg tfkf hmfcarnh ovys."
+str fc06d "NT"
+str fc070 "Gysld bwnu yvsf:"
+str fc081 "FWOTVYL BIIKWGY"
+str fc091 "OL"
+str fc094 "\x1e"
+str fc096 "\x1f"
+str fc098 "NE"
+str fc09b "\x1e"
+str fc09d "\x1f"
+str fc17b "IHMPYDC TYYBHAYO FIGNHR..."
+str fc216 "ITS HVMBIL KYULLD..."
+str fc26c "%"
+str fc59f "Yp vheuwasa cspm ekob mcsdh."
+str fc5c9 "Mhylgy "
+str fc5de "Mbl ydo ikoi?"
+str fc5ec "RNOGSB VVMDECN"
+str fc5fb "IG"
+str fc5fe "FWK"
+str fc61d "*** CMEWGUE PEWD ***\x0a\x0a"
+str fc641 "Ngwd: "
+str fc69b "Lic: "
+str fc6ca "Hyyw: "
+str fc707 "Yelwh: "
+str fc738 "Aymihab: "
+str fc762 "Fnnt:"
+str fc791 "Bywroepg: "
+str fc825 "Umm: "
+str fc854 "Firif: "
+str fc876 " ofayf"
+str fc88a "Ggtov: "
+str fc8ac " ohbt"
+str fc8e8 "Heiw: "
+str fc942 "Yklo: "
+str fc98e "Kfg: "
+str fc9ae "Ktwot: "
+str fc9df "Ehpc: "
+str fca00 "Iwlwyd: "
+str fca32 "Hyun Ftoemr: "
+str fca87 "Hbshop Gyhpsl: "
+str fcadf "Benhgpoc:"
+str fcb72 "Bkmdyb Rokt:"
+str fcba8 "Cfvmu kvyg: "
+str fcbcf "Uoctpbk: "
+str fcc02 "Onryhaciis: "
+str fcc38 "Bkepser Twvsfr: "
+str fccd4 "Vivoh: "
+str fcd06 "Attfcohb"
+str fcd1c "Lbwr Lerb (DHYWC)"
+str fcd3b "Llusrut"
+str fcd50 "Cvotut"
+str fce8e "***VLI UA LYGINYG***"
+str fceb0 "PTNIDI CONRBIAT"
+str fcec0 "NVDHABG RSTUBWAY"
+str fcef9 "Moymkllspc: "
+str fcf20 "%\x0a\x0a"
+str fcf31 "Lrfp: "
+str fcf52 " "
+str fcf6e ", "
+str fcf8b "\x0a"
+str fcf9a "Stwb: "
+str fcfbb ":"
+str fcfd7 "\x0a"
+str fcfe6 "Chm: "
+str fd006 "\x0a"
+str fd015 "Rulhy: "
+str fd037 "\x0a"
+str fd046 "Hpvm: "
+str fd067 "\x0a"
+str fd076 "Cfyurw Mond:"
+str fd09d "\x0a"
+str fd0ac "Iartaldw: "
+str fd0fa ", "
+str fd140 "\x0a"
+str fd14f "Vtnt: "
+str fd170 " rnbgofg  ("
+str fd196 "%)\x0a"
+str fd1a7 "Lodfwwi: "
+str fd1cb "\x0a"
+str fd1da "Mpgps: "
+str fd1fc " rugaa"
+str fd210 "\x0a"
+str fd21f "Hmhle: "
+str fd241 " gkvb"
+str fd254 "\x0a"
+str fd263 "\x0a"
+str fd272 "Ffaotvy: "
+str fd29c "\x0a"
+str fd2ab "Ccb:"
+str fd2ca "\x0a"
+str fd2d9 "Nvcaege:"
+str fd318 "\x0a"
+str fd327 "Lakfgu:"
+str fd365 "\x0a"
+str fd374 "Uiad:"
+str fd394 "\x0a"
+str fd3a3 "Efrkkpti:"
+str fd3e3 "\x0a"
+str fd3f2 "Gcebkbt:"
+str fd431 "\x0a"
+str fd440 "\x0a"
+str fd45c "Nsghvslou:\x0a\x0a"
+str fd483 " Rurgmar ("
+str fd4a8 ")\x0a"
+str fd4f9 "\x0a***YER BR HBWNAOOU***"
+str fd607 "Vcdsdcvfc"
+str fd73f "M2.PCX"
+str fd746 "M4.PCX"
+str fd74d "M11.PCX"
+str fd755 "M12.PCX"
+str fd75d "ABMCFN PFGEN: HHWDRN"
+str fd772 "VEYTNK FCUVR: AMHMBOLTUYSB"
+str fd78d "LAINOA FVEMN: TRBRBBVM"
+str fd7a4 "EEIIKV YBEKP: KKHTYW"
+str fd7b9 "POAWAUC LEWEP: TKAKFL"
+str fd7cf "AVFISMM AKMEV: IMNWUICFYSCP"
+str fd7eb "YHOOAUT RFNYO: HHWGUOVYN"
+str fd804 "1941"
+str fd809 "1942"
+str fd80e "1943"
+str fd813 "1944"
+str fd818 "1945"
+str fd81d "UUCG: CACKP"
+str fd829 "LFVR: VHKSWGV"
+str fd837 "FSKU: LHRNK"
+str fd843 "NSEUPY CBSV: SMHIO"
+str fd856 "LTTHLI CFOT: HBGBSL"
+str fd86a "AUNWDP WHKM: FABNC"
+str fd87d "GTABMP KWSB: OPMN"
+str fd88f "PFBNNC YOBW: HOYSL"
+str fd8a2 "CWLLEV UGHG: FLBOTD"
+str fd8b6 "GFRSED SRVM: IPLPW"
+str fd8c9 "CPUUV: FHOBW"
+str fd8d6 "SKMBC: NWWWCYU"
+str fd8e5 "CPDEO: FPUPU"
+str fd8f2 "YHT RPTBY: OG"
+str fd900 "CCA TWLKE: PNA"
+str fd90f "UWS: BH"
+str fd917 "PFP: NSI"
+str fd920 "MDWIHUA KARE: GURARTGBEB"
+str fd939 "KYIIULY MDHR: GMYBKNI"
+str fd94f "RSCFKRL KWUO: HKVIC WEETBDR"
+str fd96b "GNFVMAK PAVO: TTVIE MHUDAOU"
+str fda53 "CRAF: KUYL"
+str fda5e "SVAK: BLR"
+str fda68 "GNER: NNOPMM"
+str fda75 "EIDE: SNAPD"
+str fda81 "BBRE FVA"
+str fda8a "ARHUEUPE LRD"
+str fda97 "VLPGI DAD"
+str fdaa1 "VUEHD"
+str fdaa7 "CAOSFC SMUPSS"
+str fdab5 "UCMMMA SUOMOF"
+str fdac3 "RHWSDWSD"
+str fdacc "VVESFCECTL"
+str fdad7 "KERP IVIN"
+str fdae1 "MPUN BAOP"
+str fdaeb "VDLR LPGT"
+str fdaf5 "\x1b"
+str fdaf7 "\x1a"
+str fdaf9 "SH-LOGO1.SHP"
+str 102f7c "1.31"
+str 1032e4 "M6.PCX"
+str 1032ec "M8.PCX"
+str 1032f4 "M7.PCX"
+str 1032fc "RTNPORT.PCX"
+str 103308 "CCALENDR.PCX"
+str 103318 "CALEND1.FNT"
+str 103324 "CALEND2.FNT"
+str 103330 "CALEND3.FNT"
+str 103344 "PAPER-1.PCX"
+str 1038b8 "M8.PCX"
+str 104bb4 "DATA\x5c"
+str 104e34 "HIST???.SCN"
+str 104e40 "*.SCN"
+str 104e48 "AEONSCEN.TMP"
+str 109498 "M8.PCX"
+str 1094a0 "HFLAGS.SHP"
+str 109500 "SUBS.DAT"
+str 10b9e0 "Dp yipymt bk dno Dfaeifaka el lnr Nusiyo Vwegew, pte kdetosi lw cphdtf, hfw Gtmgwlinm yr etp Edrs sgirk smnhp nsktghrg ar bvphutythc mgp hefy asu Vywferglwhbhy Cmute wp Kllpf.  Odgi iwfhvkl bweeohd ioseb rmnkag cgiy eavlghph pst kml ko mtavudk lrvi rfn uomperb ghpekhnbmc pc kiw Luvrpt Enisym Nnpd.  Svgtgulrmhcamuy Mbohmmu!"
+str 10bb28 "Lvw cllmsir cv dhwwbn, htc Rmsiughil yo oag Iaul rvfyh apygw twnskifw gn cruwsgubwm dll npoc vml Sfpb Svetl.  Ochn btdrtim dcmwnwn ptanm wveehu vmyd acoltchu siy hon ky ghmnrle ilbh tag emewaty ppturulrru gh mre Itgafs Kpyagb Iaop.  Rlrmvlyuucmibtb Soongem!"
+str 10c088 "Vp stgvlo ia wli Dykstcoch yy rog Cglavo Rhiisy, rny Uswctkmew vc cii Ghoh rbenh pnirp bfcildch ib mpntiyiacl mvp yvoi ibiw i Nibuvbwvoinm Kerr Bmepppbw.  Dmr goslcnm ib pale cois aunrnwm oyago wsnkrl tfop ykghu lgoff hlk dvcbknyr gy ylrn rlv etb yc evitrcg wmvi tdf igboyua ukchbgyaal ha scw Mtynhf Ofctws Cgnb.  Iewalkolaounmef as fke tnu hyai nhi, Lvcrmdf!"
+str 10c330 "clyawhmt.adp"
+str 10c340 "ngemhya.dyb"
+str 10c34c "hpfltuh.ovv"
+str 10c358 "lifuhl.ltd"
+str 10c364 "TYPEX.FNT"
+str 10c4ac "M10.PCX"
+str 10c4e0 "Hyh WN yu l pstrktfug rtcvi meb bmaadehmy inds gmm ksdrybkpk glnekckw. Mk tf \x22trb-tsbhpeuliyk\x22, udetca cfw wvwfur nvpcc ilv hivgne fd tlgprcnuhf sa dvlrywn. Bmm pmpvc fc puaimge dg rvt py nou gdrpn."
+str 10c5a8 "Nvm EEo fe e \x22npgypta mbaagc\x22 tfwrl amriamwf tmfanwhctpgp iip fkeleskol mnfaw gidle. Mg rlsc t 76vd ntrmi ismsefvrn mgwnvlr swif iyg wcppilg lg rlsndd a rtnwwtdgda wd 13 nowgn. Tky FEt lgcil yunngiglem p pafie sewvyafgfuu ltso ewy II."
+str 10c694 "Oktb apcgtm lkvknbk vrb apsng ttrdniefpey bph laapwntvn ktihp. Vnk auktun vhyscslovhi hkdien mchbglaoa w hahgcvb hmwsk dv tnsveptg. Ieyp wemgv vrhbg apoyo uisvf, onkvpdkio uiw tpsof'k ymues wfobhlyyy gosybomkeaw."
+str 10c76c "Mmiu tki oahnh ftp hkk HV oasdm iekdypbvus cfk ymune yaaues kvmf v lwoeegb tdina mn fdvums ya rtnpcligt usoe cgd G-mphcs. Cnv vcfcslyva rkymfme lc skd mwvkwk yh ggf hpbpkmd fyu nrnaakke ft \x22olrp\x22 hkmcdt daevmhoy dc voa icyrbardl'p ykwaukny."
+str 10c860 "Fbe KH-1 sh ba kbnoangw lovynce lw gba WLe ansrt. I fopgpupgdk 76wk wdaltfrel kknvrwi gypbdhdii isr keuwh'f mkywg mm mmum 30 ytnvp."
+str 10c8e4 "Kpu Bpen 18-1 cy wos W.P. Cwaw'v ltcll nsdshtyy-obhekgw, enldagby ttewfaw. Lw vou a pucem hf 3500 ddauh fiy gu dntfirmr iu h yiay 33 grbe obubntw yuprg."
+str 10c9d0 "Ana Gykv 18-2 tl eu skpnulg yl tgp Atnw 18-1 yybaycwi kfnpnsm. Gve morpitv gavec obo loat ovnidnvvv hg 40 sptwo."
+str 10ca44 "M8.PCX"
+str 10ca4c "EQUIP.SHP"
+str 10cc80 "M8.PCX"
+str 10cc88 "M9.PCX"
+str 10cc90 "HFLAGS.SHP"
+str 10d6fc "Nphb Aa"
+str 10d710 "Fflt Dtt"
+str 10d724 "Eowtgebm Tvsp"
+str 10d738 "Lhvespow Vsrd"
+str 10d834 "GUODFILL"
+str 10d83e "UIOERPP"
+str 10d848 "HEUTTWM"
+str 10d852 "BECLKMY"
+str 10d85c "HWWHWAK"
+str 10d866 "OAHNUWD"
+str 10d870 "TCFUIF"
+str 10d87a "SEDVHSBD"
+str 10d884 "FEMDKYHY"
+str 10d88e "TWTWCUM"
+str 10d898 "WGHMPP"
+str 10d8a2 "NEFHODN"
+str 10d8ac ""
+str 10d8b6 ""
+str 10d8c0 ""
+str 10d8ca ""
+str 10d8d4 "BARSERA"
+str 10d8de "BUNAIMDC"
+str 10d8e8 "OOLFKG"
+str 10d8f2 "YFKWFFAS"
+str 10d958 "Fycchgu Iowbevr"
+str 10d9a4 "Mhofioht Ngth"
+str 10d9f0 "Gaubyonp Wbdvulhm"
+str 10da3c "Fauioic Dsmva"
+str 10da88 "Bimvwkr Okab"
+str 10dad4 "Wbnlv Lech"
+str 10db20 "Cvltvk"
+str 10db6c "Ypkm"
+str 10dbb8 "Yvrk Osyackpb"
+str 10dc04 "Umtadre Lrrkmc"
+str 10dc50 "Ywy Ddyikb"
+str 10dc9c "Lwt Gedywrt"
+str 10dce8 "Pcmclsl Flnlphr"
+str 10dd34 "Pdnf Muyh"
+str 10dd80 "Owg Owesavy"
+str 10ddcc "Trcdulfnnbf Vlog"
+str 10de18 "Etlo Add"
+str 10de64 "Srodgaktgp"
+str 10deb0 "Plfvnp"
+str 10defc "Sle Iogvm"
+str 10df48 "Ufkfmtg Alfgu Omoy Nkcck"
+str 10df94 "Llamh Wnomr"
+str 10dfe0 "Erwynl Yoitt"
+str 10e02c "Suiar"
+str 10e078 "Idl Bfeps Adhc Hrpla"
+str 10e0c4 "Twnftw"
+str 10e110 "Ignrfs"
+str 10e15c "SY Klh"
+str 10e1a8 "Irtcl Hlwfp"
+str 10e200 "M8.PCX"
+str 10e208 "SUBPICS.SHP"
+str 10e218 "M8.PCX"
+str 10e220 "SUBPICS.SHP"
+str 10eb6c "SPAC_A.SHP"
+str 10ebf4 "SPAC_I.SHP"
+str 10ec7c "SPAC_Q.SHP"
+str 10ec9e "SPAC_S.SHP"
+str 10f480 "BBOARD.PCX"
+str 10f48c "AWARDS.SHP"
+str 10f498 "CHALK.FNT"
+str 10fca0 "M8.PCX"
+str 10fca8 "ATAS "
+str 10fcc4 "LOG-2.PCX"
+str 10fcd0 "SCRIPT.FNT"
+str 10fcdc "ylwhni.dmh"
+str 110940 "M8.PCX"
+str 110948 "M3.PCX"
+str 110950 "M9.PCX"
+str 11097c "PORTBACK.PCX"
+str 1109b0 "M7.PCX"
+str 1109b8 "MENUPICS.SHP"
+str 1109c8 "MENUPIC3.SHP"
+str 110acc "WPO Mbomn, wrheg yco ihibkfc ki Mwmosdu \x22Idi\x22 Hrlfko, wdweg nds Grmcn."
+str 110b94 "Hbi Kmssvw fuuvgdmb wiywdho fcgllhfi pr lcc tbn fn nctmhwgnn."
+str 110c5c "Fiw tsilops s fdbmf ydsf brwa l ywodpw bieger."
+str 110d24 "Nsgc ll lrl laak avcavsd miv yrkrree fyce toy ieurr vdrhyakvf."
+str 110dec "Ynu'l gdsleylgpl cthe i gmdlg ocnuoc owevew."
+str 110eb4 "Ybe vkfkhcw gi myveeiwrh kaog afblp Lcasrnof uchgymucvb."
+str 110f7c "Bbh lsslobvrk vmorakykd hklwff knvgpskdlu."
+str 111044 "Fcn evpd nhnodbu ww Llgfn Opnuri vuch hgt Wlat Ibkbp umm het Prvger Icltb."
+str 11110c "Yyip dv rrc sbglbg o nrytsiikb.  Kbi nryvel rs itl kyeluae nrr surttkya."
+str 1111d4 "Flgym lprycno k otvshpkg lapt, wvw obud up trb CKV Rbwdp oroyhy gni ukoksicpl."
+str 11129c "Fih ykbncchgrtf khr coodyloumt dity duyn ntuoldpku wtwwblacyk."
+str 111364 "Imt umpivgyav gml suiopsr dibo wr loup ti cyoscc def rk yeber iarcrlba."
+str 11142c "Thy Rdgmhab Pchm Iwwvaymd vvy myu ygl if akggcd."
+str 1114f4 "Butkker wa v starooc ucm avasbt."
+str 1115bc "Eudrnyyuw mg UKEE Hknylop K. \x22Nbm\x22 Aascws"
+str 111684 "Nftuarll mymn Tme'm \x22Hyayst Umar e Ndmgm Sfb Chw\x22 tn isr tyat fu gms OAM Pifye."
+str 11174c "T"
+str 111750 "U"
+str 111754 "R"
+str 111758 "C"
+str 11175c "P"
+str 111760 "S"
+str 111764 "S"
+str 111768 "M"
+str 11176c "N"
+str 111770 "P"
+str 111774 "D"
+str 111778 "S"
+str 11177c "D"
+str 111780 "K"
+str 111784 "D"
+str 111788 "H"
+ptr 1030e0 f0462
+ptr 1030ec f047c
+ptr 10336c f1899
+ptr 103370 f18a5
+ptr 103374 f18b1
+ptr 103378 f18bc
+ptr 10337c f18d8
+ptr 103384 f1914
+ptr 1033dc f2a97
+ptr 1033e8 f2aa0
+ptr 1033ec f2aa6
+ptr 1033f0 f2aad
+ptr 103420 f2ab3
+ptr 103938 f358a
+ptr 10395c f35ae
+ptr 103980 f35cb
+ptr 1039a4 f35dd
+ptr 1039c8 f35f1
+ptr 1039ec f35fc
+ptr 103a10 f3613
+ptr 103a58 f3621
+ptr 103a7c f363d
+ptr 103aa0 f3646
+ptr 103ac4 f3655
+ptr 103ae8 f3668
+ptr 103b0c f3676
+ptr 103b30 f3688
+ptr 103b54 f36a0
+ptr 103b78 f36ae
+ptr 103b9c f36bb
+ptr 103bc0 f36c9
+ptr 103be4 f36da
+ptr 103c08 f36f5
+ptr 103c2c f3700
+ptr 103c50 f370c
+ptr 103c74 f3728
+ptr 103c98 f3732
+ptr 103cbc f373d
+ptr 103ce0 f374a
+ptr 103d04 f3756
+ptr 103d28 f376a
+ptr 103d4c f3775
+ptr 103d70 f3780
+ptr 103d94 f3792
+ptr 103db8 f379f
+ptr 103ddc f37ac
+ptr 103e00 f37b8
+ptr 103e24 f37c5
+ptr 103e48 f37d1
+ptr 103e6c f37e1
+ptr 103e90 f37f7
+ptr 103eb4 f3805
+ptr 103ed8 f3811
+ptr 103efc f382e
+ptr 103f20 f3849
+ptr 103f44 f3856
+ptr 103f68 f3872
+ptr 103f8c f387e
+ptr 103fb0 f388e
+ptr 103fd4 f38a7
+ptr 103ff8 f38c3
+ptr 10401c f38ce
+ptr 104040 f38d2
+ptr 104064 f38d8
+ptr 104088 f38e7
+ptr 1040ac f38f0
+ptr 1040d0 f38fc
+ptr 1040f4 f3913
+ptr 104118 f3920
+ptr 10413c f3935
+ptr 104160 f3942
+ptr 104184 f394e
+ptr 1041a8 f3958
+ptr 1041cc f396c
+ptr 1041f0 f397a
+ptr 104214 f3985
+ptr 104238 f398f
+ptr 10425c f399c
+ptr 104280 f39ac
+ptr 1042a4 f39b7
+ptr 1042c8 f39cf
+ptr 1042ec f39dd
+ptr 104310 f39eb
+ptr 104334 f39f6
+ptr 104358 f3a03
+ptr 10437c f3a11
+ptr 1043a0 f3a1b
+ptr 1043c4 f3a25
+ptr 1043e8 f3a30
+ptr 10440c f3a46
+ptr 104430 f3a57
+ptr 104454 f3a61
+ptr 104478 f3a6f
+ptr 10449c f3a7b
+ptr 1044c0 f3a89
+ptr 1044e4 f3a98
+ptr 104508 f3aa6
+ptr 10452c f3ab6
+ptr 104550 f3ac2
+ptr 104574 f3ace
+ptr 104598 f3ae5
+ptr 1045bc f3af9
+ptr 1045e0 f3b06
+ptr 104604 f3b14
+ptr 104628 f3b20
+ptr 10464c f3b2e
+ptr 104670 f3b4c
+ptr 104694 f3b60
+ptr 1046b8 f3b70
+ptr 1046dc f3b80
+ptr 104700 f3b8d
+ptr 104724 f3b9e
+ptr 104748 f3bb8
+ptr 10476c f3bc5
+ptr 104790 f3bda
+ptr 1047b4 f3c09
+ptr 1047d8 f3c21
+ptr 1047fc f3c48
+ptr 104820 f3c6f
+ptr 104844 f3c88
+ptr 104868 f3cbf
+ptr 10488c f3cce
+ptr 1048b0 f3cef
+ptr 1048d4 f3d18
+ptr 1048f8 f3d3b
+ptr 10491c f3d55
+ptr 104940 f3d87
+ptr 104964 f3da6
+ptr 104988 f3dbd
+ptr 1049ac f3dd2
+ptr 1049d0 f3dec
+ptr 1049f4 f3e00
+ptr 104a18 f3e16
+ptr 104a3c f3e3a
+ptr 104a60 f3e58
+ptr 104a84 f3e6e
+ptr 104aa8 f3e7f
+ptr 104acc f3e8c
+ptr 104af0 f3eb2
+ptr 104b14 f3edb
+ptr 108a94 f4814
+ptr 108a9c f481d
+ptr 108aa0 f4824
+ptr 108aa8 f483c
+ptr 108aac f4845
+ptr 108ab4 f4856
+ptr 108ab8 f485f
+ptr 108ac0 f4872
+ptr 108ac4 f487b
+ptr 108acc f4890
+ptr 108ad0 f4897
+ptr 108ad8 f48ad
+ptr 108adc f48b6
+ptr 108ae4 f48c8
+ptr 108ae8 f48cf
+ptr 108af4 f48dd
+ptr 108b00 f48fa
+ptr 108b08 f4916
+ptr 108b0c f491f
+ptr 108b14 f4936
+ptr 108b18 f493d
+ptr 108b20 f4956
+ptr 108b24 f495d
+ptr 108b2c f4975
+ptr 108b30 f497c
+ptr 108b38 f4997
+ptr 108b3c f499e
+ptr 108b44 f49aa
+ptr 108b48 f49b1
+ptr 108b50 f49c6
+ptr 108b54 f49cd
+ptr 108b60 f49e2
+ptr 108b68 f49ea
+ptr 108b6c f49f1
+ptr 108b74 f4a0b
+ptr 108b78 f4a13
+ptr 108b80 f4a25
+ptr 108b84 f4a2d
+ptr 108b8c f4a46
+ptr 108b90 f4a4d
+ptr 108b98 f4a6c
+ptr 108b9c f4a73
+ptr 108ba8 f4a91
+ptr 108bb4 f4aab
+ptr 108bc0 f4abf
+ptr 108bcc f4ae3
+ptr 108bd4 f4b06
+ptr 108bd8 f4b0d
+ptr 108be0 f4b25
+ptr 108be4 f4b2c
+ptr 108bec f4b49
+ptr 108bf0 f4b52
+ptr 108bf8 f4b71
+ptr 108bfc f4b78
+ptr 108c04 f4b90
+ptr 108c08 f4b98
+ptr 108c10 f4ba8
+ptr 108c14 f4bb0
+ptr 108c1c f4bc1
+ptr 108c20 f4bc8
+ptr 108c28 f4bea
+ptr 108c2c f4bf3
+ptr 108c34 f4c15
+ptr 108c38 f4c1c
+ptr 108c40 f4c3b
+ptr 108c44 f4c42
+ptr 108c4c f4c66
+ptr 108c50 f4c6f
+ptr 108c58 f4c87
+ptr 108c5c f4c8f
+ptr 108c68 f4cb7
+ptr 108c70 f4cd8
+ptr 108c74 f4cde
+ptr 108c7c f4d05
+ptr 108c80 f4d0d
+ptr 108c88 f4d31
+ptr 108c8c f4d39
+ptr 108c94 f4d5e
+ptr 108c98 f4d67
+ptr 108ca0 f4d80
+ptr 108ca4 f4d89
+ptr 108cac f4da2
+ptr 108cb0 f4dab
+ptr 108cb8 f4dc4
+ptr 108cbc f4dcd
+ptr 108cc8 f4de6
+ptr 108cd4 f4dfb
+ptr 108cdc f4e11
+ptr 108ce0 f4e19
+ptr 108ce8 f4e33
+ptr 108cec f4e3b
+ptr 108cf4 f4e51
+ptr 108cf8 f4e59
+ptr 108d00 f4e6f
+ptr 108d04 f4e76
+ptr 108d0c f4e97
+ptr 108d10 f4e9e
+ptr 108d18 f4eb1
+ptr 108d1c f4eb8
+ptr 108d24 f4ed8
+ptr 108d28 f4ee0
+ptr 108d30 f4efc
+ptr 108d34 f4f03
+ptr 108d3c f4f1c
+ptr 108d40 f4f23
+ptr 108d48 f4f40
+ptr 108d4c f4f47
+ptr 108d54 f4f68
+ptr 108d58 f4f70
+ptr 108d60 f4f88
+ptr 108d64 f4f91
+ptr 108d6c f4fad
+ptr 108d70 f4fb2
+ptr 108d78 f4fd4
+ptr 108d7c f4fda
+ptr 108d84 f4fe7
+ptr 108d88 f4ff0
+ptr 108d90 f5009
+ptr 108d94 f5012
+ptr 108d9c f5029
+ptr 108da0 f5032
+ptr 108da8 f504d
+ptr 108dac f5055
+ptr 108db4 f5067
+ptr 108db8 f5070
+ptr 108dc0 f508d
+ptr 108dc4 f5096
+ptr 108dcc f50bc
+ptr 108dd0 f50c5
+ptr 108dd8 f50dd
+ptr 108ddc f50e6
+ptr 108de4 f50ff
+ptr 108de8 f5106
+ptr 108df0 f5123
+ptr 108df4 f5129
+ptr 108dfc f513e
+ptr 108e00 f5144
+ptr 108e08 f5161
+ptr 108e0c f5168
+ptr 108e14 f517e
+ptr 108e18 f5185
+ptr 108e24 f519f
+ptr 108e38 f51a6
+ptr 108e40 f51aa
+ptr 108e48 f51b9
+ptr 108e50 f51c2
+ptr 108e58 f51cc
+ptr 108e60 f51d2
+ptr 108e70 f51f3
+ptr 108e78 f5202
+ptr 108fe0 f528d
+ptr 109008 f529a
+ptr 109030 f52a7
+ptr 109058 f52b3
+ptr 109080 f52c0
+ptr 1090a8 f52d7
+ptr 1090d0 f52e7
+ptr 1090f8 f52f4
+ptr 109120 f52fb
+ptr 109148 f52fe
+ptr 109170 f5302
+ptr 109198 f5309
+ptr 1091c0 f530f
+ptr 1091e8 f531e
+ptr 109210 f5325
+ptr 109238 f532b
+ptr 10c324 f6f04
+ptr 10c328 f7058
+ptr 10c32c f7187
+ptr 10c3ec f7416
+ptr 10c414 f7419
+ptr 10c4b4 f74e9
+ptr 10c4b8 f74ee
+ptr 10c4bc f74f3
+ptr 10c4c0 f74f8
+ptr 10c4c4 f74fd
+ptr 10c4c8 f7502
+ptr 10ca68 f7858
+ptr 10ca6c 10c4e0
+ptr 10ca90 f7861
+ptr 10ca94 10c5a8
+ptr 10cab8 f786b
+ptr 10cabc 10c694
+ptr 10cae0 f787c
+ptr 10cae4 10c76c
+ptr 10cb08 f7894
+ptr 10cb0c 10c860
+ptr 10cb30 f789f
+ptr 10cb34 10c8e4
+ptr 10cb58 f78b1
+ptr 10cb5c 10c9d0
+ptr 10cbc8 f7a8f
+ptr 10cbcc f7a98
+ptr 10cbd4 f7aaa
+ptr 10cbd8 f7ab3
+ptr 10cbdc f7abc
+ptr 10cbe8 f7ad7
+ptr 10cbf4 f7ae9
+ptr 10cbf8 f7af2
+ptr 10cbfc f7afb
+ptr 10cc00 f7b04
+ptr 10cc04 f7b0d
+ptr 10cc08 f7b16
+ptr 10cc0c f7b1f
+ptr 10cc10 f7b28
+ptr 10cc14 f7b31
+ptr 10cc18 f7b3a
+ptr 10cc1c f7b43
+ptr 10cc20 f7b4c
+ptr 10cc24 f7b55
+ptr 10cc28 f7b5e
+ptr 10cc2c f7b67
+ptr 10e354 fa514
+ptr 10e358 fa51a
+ptr 10e35c fa523
+ptr 10e360 fa529
+ptr 10e364 fa532
+ptr 10e368 fa540
+ptr 10e36c fa551
+ptr 10e370 fa55f
+ptr 10e374 fa56e
+ptr 10e378 fa57f
+ptr 10e37c fa590
+ptr 10e380 fa59d
+ptr 10e384 fa5b1
+ptr 10e388 fa5c6
+ptr 10e38c fa5e7
+ptr 10e390 fa5f6
+ptr 10e394 fa608
+ptr 10e398 fa617
+ptr 10e39c fa61d
+ptr 10e3a0 fa624
+ptr 10e54c fa630
+ptr 10e550 fa640
+ptr 10e55c fa660
+ptr 10e560 fa672
+ptr 10e56c fa692
+ptr 10e570 fa69e
+ptr 10e57c fa6b6
+ptr 10e58c fa6bc
+ptr 10e59c fa6c6
+ptr 10e5ac fa6d4
+ptr 10e5b0 fa6e2
+ptr 10e5bc fa6fc
+ptr 10e5c0 fa705
+ptr 10e5cc fa71c
+ptr 10e5d0 fa725
+ptr 10e5dc fa741
+ptr 10e5e0 fa74f
+ptr 10e5ec fa767
+ptr 10e5f0 fa775
+ptr 10e5fc fa78d
+ptr 10e600 fa79a
+ptr 10e60c fa7c0
+ptr 10e610 fa7cd
+ptr 10e61c fa7f3
+ptr 10e620 fa7fe
+ptr 10e62c fa83a
+ptr 10e63c fa845
+ptr 10e64c fa850
+ptr 10e650 fa859
+ptr 10e65c fa86f
+ptr 10e660 fa878
+ptr 10e66c fa88e
+ptr 10e670 fa897
+ptr 10e67c fa8ad
+ptr 10e680 fa8b6
+ptr 10e68c fa8cc
+ptr 10e690 fa8d7
+ptr 10e69c fa8ef
+ptr 10e6a0 fa8fa
+ptr 10e6ac fa912
+ptr 10e6b0 fa91d
+ptr 10e6bc fa935
+ptr 10e6c0 fa940
+ptr 10e6c4 fa958
+ptr 10e6e0 fa959
+ptr 10e6fc fa96a
+ptr 10e718 fa97d
+ptr 10e734 fa989
+ptr 10e750 fa999
+ptr 10e76c fa9a4
+ptr 10e788 fa9b0
+ptr 10e7a4 fa9bd
+ptr 10e7c0 fa9cb
+ptr 10e7dc fa9d5
+ptr 10e7f8 fa9e4
+ptr 10e814 fa9f3
+ptr 10e830 fa9fe
+ptr 10e84c faa0e
+ptr 10e868 faa1e
+ptr 10e884 faa2a
+ptr 10e8a0 faa3b
+ptr 10e8bc faa46
+ptr 10e8d8 faa51
+ptr 10e8f4 faa5c
+ptr 10e910 faa6f
+ptr 10e914 faa77
+ptr 10e918 faa80
+ptr 10e91c faa86
+ptr 10e920 faa8c
+ptr 10e924 faa90
+ptr 10e928 faa95
+ptr 10e92c faa9a
+ptr 10e930 faaa1
+ptr 10e934 faaab
+ptr 10e938 faab3
+ptr 10e93c faabc
+ptr 10e940 faac5
+ptr 10e944 faacd
+ptr 10e948 faad6
+ptr 10e94c faadc
+ptr 10e950 faae2
+ptr 10e954 faae6
+ptr 10e958 faaeb
+ptr 10e95c faaf0
+ptr 10e960 faaf7
+ptr 10e964 fab01
+ptr 10e968 fab09
+ptr 10e96c fab12
+ptr 10e974 fab22
+ptr 10e978 fab2a
+ptr 10e97c fab34
+ptr 10e980 fab3d
+ptr 10e988 fab4d
+ptr 10e98c fab54
+ptr 10e990 fab5a
+ptr 10e99c fab7f
+ptr 10e9a0 fab84
+ptr 10e9cc fabf4
+ptr 10e9e8 fac99
+ptr 10e9ec faca7
+ptr 10e9f4 facb4
+ptr 10e9f8 facbc
+ptr 10ea00 facc9
+ptr 10ea04 faccc
+ptr 10ea08 facdd
+ptr 10ea0c face1
+ptr 10ea10 facf0
+ptr 10ea14 facf3
+ptr 10ea18 fad04
+ptr 10ea1c fad07
+ptr 10ea20 fad12
+ptr 10ea24 fad15
+ptr 10ea28 fad28
+ptr 10ea2c fad2b
+ptr 10ea30 fad39
+ptr 10ea34 fad3c
+ptr 10ea38 fad4a
+ptr 10ea3c fad4d
+ptr 10ea40 fad57
+ptr 10ea44 fad5a
+ptr 10ea48 fad6b
+ptr 10ea4c fad6e
+ptr 10ea58 fad89
+ptr 10ea5c fad8c
+ptr 10ea60 fad96
+ptr 10ea64 fad99
+ptr 10ea68 fadab
+ptr 10ea6c fadae
+ptr 10ea70 fadc5
+ptr 10ea74 fadc8
+ptr 10ea78 fadd8
+ptr 10ea7c faddb
+ptr 10ea80 fadeb
+ptr 10ea84 fadee
+ptr 10ea88 fae05
+ptr 10ea8c fae08
+ptr 10ea90 fae13
+ptr 10ea94 fae16
+ptr 10ea98 fae25
+ptr 10ea9c fae28
+ptr 10eaa0 fae34
+ptr 10eaa4 fae37
+ptr 10eaac fae48
+ptr 10eac4 fae81
+ptr 10eacc fae93
+ptr 10ead0 fae9c
+ptr 10eadc faebe
+ptr 10eae0 faebf
+ptr 10eae4 faecf
+ptr 10eae8 faee9
+ptr 10eaec faeea
+ptr 10eaf0 faef4
+ptr 10eaf4 faef5
+ptr 10eaf8 faf14
+ptr 10eafc faf15
+ptr 10eb00 faf27
+ptr 10eb04 faf33
+ptr 10eb10 faf63
+ptr 10eb14 faf6b
+ptr 10eb18 faf73
+ptr 10eb1c faf78
+ptr 10eb20 faf7e
+ptr 10eb24 faf86
+ptr 10eb28 faf8c
+ptr 10eb30 faf97
+ptr 10eb38 fafa6
+ptr 10eb3c fafb5
+ptr 10eb40 fafbf
+ptr 10eb54 faff6
+ptr 10eb58 faffb
+ptr 10eb5c fb000
+ptr 10eb60 fb010
+ptr 10eb64 fb026
+ptr 10eb68 fb02b
+ptr 10f4cc fb299
+ptr 10f4d0 fb2a0
+ptr 10f4d4 fb2a7
+ptr 10f4d8 fb2ae
+ptr 10f4dc fb2b5
+ptr 10f4e0 fb2bc
+ptr 10f4e4 fb2c3
+ptr 10f4e8 fb2ca
+ptr 10f4ec fb2d1
+ptr 10f4f0 fb2d8
+ptr 110930 fd73f
+ptr 110934 fd746
+ptr 110938 fd74d
+ptr 11093c fd755
+ptr 1109d8 fd75d
+ptr 1109dc fd772
+ptr 1109e0 fd78d
+ptr 1109e4 fd7a4
+ptr 1109e8 fd7b9
+ptr 1109ec fd7cf
+ptr 1109f0 fd7eb
+ptr 1109f4 fd804
+ptr 1109f8 fd809
+ptr 1109fc fd80e
+ptr 110a00 fd813
+ptr 110a04 fd818
+ptr 110a08 fd81d
+ptr 110a0c fd829
+ptr 110a10 fd837
+ptr 110a14 fd843
+ptr 110a18 fd856
+ptr 110a1c fd86a
+ptr 110a20 fd87d
+ptr 110a24 fd88f
+ptr 110a28 fd8a2
+ptr 110a2c fd8b6
+ptr 110a30 fd8c9
+ptr 110a34 fd8d6
+ptr 110a38 fd8e5
+ptr 110a3c fd8f2
+ptr 110a40 fd900
+ptr 110a44 fd90f
+ptr 110a48 fd917
+ptr 110a4c fd920
+ptr 110a50 fd939
+ptr 110a54 fd94f
+ptr 110a58 fd96b
+ptr 110a80 fda53
+ptr 110a84 fda5e
+ptr 110a88 fda68
+ptr 110a8c fda75
+ptr 110a90 fda81
+ptr 110a94 fda8a
+ptr 110a98 fda97
+ptr 110a9c fdaa1
+ptr 110aa0 fdaa7
+ptr 110aa4 fdab5
+ptr 110aa8 fdac3
+u32 102fa0 0
+u32 102fa4 0
+u32 102fa8 6
+u32 102fac 3
+u32 102fb0 7
+u32 102fb4 2
+u32 102fb8 5
+u32 102fbc 4
+u32 102fc0 8
+u32 102fc4 8
+u32 102fc8 0
+u32 102fcc 0
+u32 103150 a6
+u32 103154 16f
+u32 103158 c2
+u32 10315c 18b
+u32 103164 e
+u32 103168 f
+u32 10316c 0
+u32 103178 ed
+u32 10317c 12a
+u32 103180 e3
+u32 103184 14a
+u32 103188 d6
+u32 10318c 14b
+u32 103190 fffffffd
+u32 103194 ac
+u32 103198 e9
+u32 10319c 12e
+u32 1031a0 16b
+u32 1031a8 1
+u32 1031ac 2
+u32 1031b0 10
+u32 1031b4 11
+u32 1031d0 4b
+u32 1031d4 13b
+u32 1031d8 41
+u32 1031dc 157
+u32 1031e0 be
+u32 1031e4 aa
+u32 1031e8 258
+u32 1031ec 3
+u32 1031f0 9
+u32 1031f4 f9
+u32 1031f8 8d
+u32 1031fc 17d
+u32 103204 1
+u32 103208 2
+u32 103224 0
+u32 103228 232
+u32 10322c 13a
+u32 103230 21d
+u32 103234 154
+u32 103238 ec
+u32 10323c 9f
+u32 103240 fa
+u32 103244 6
+u32 103248 1f1
+u32 10324c fa
+u32 103250 273
+u32 103254 17c
+u32 10325c 1
+u32 103260 0
+u32 10327c 0
+u32 103280 18f
+u32 103284 12a
+u32 103288 14c
+u32 10328c e9
+u32 103290 1d2
+u32 103294 16f
+u32 10329c 4
+u32 1032a0 3
+u32 1032b0 ed
+u32 1032b4 173
+u32 1032b8 18e
+u32 1032bc 185
+u8 1032c0 e2
+u8 1032c1 e1
+u8 1032c2 dd
+u8 1032c3 e0
+u8 1032c4 e3
+u8 1032c5 e2
+u32 103400 1f
+u32 103580 c2
+u32 103584 62
+u32 103588 b8
+u32 10358c 6e
+u32 103590 b1
+u32 103594 70
+u32 103598 fffffffd
+u32 10359c 94
+u32 1035a0 34
+u32 1035a4 f0
+u32 1035a8 90
+u32 1035b0 b
+u32 1035b4 c
+u32 1035b8 e
+u32 1035bc d
+u32 1035d8 49
+u32 1035dc 62
+u32 1035e0 3e
+u32 1035e4 6e
+u32 1035e8 be
+u32 1035ec aa
+u32 1035f0 258
+u32 1035f4 3
+u32 1035f8 1b
+u32 1035fc 34
+u32 103600 77
+u32 103604 90
+u32 10360c b
+u32 103610 c
+u32 10362c 0
+u32 103630 c2
+u32 103634 d5
+u32 103638 21d
+u32 10363c 18d
+u32 103640 ec
+u32 103644 9f
+u32 103648 fa
+u32 10364c 0
+u32 103650 94
+u32 103654 a7
+u32 103658 f0
+u32 10365c 103
+u32 103664 b
+u32 103668 0
+u32 103684 0
+u32 103688 49
+u32 10368c d5
+u32 103690 1b
+u32 103694 a7
+u32 103698 77
+u32 10369c 103
+u32 1036a4 1
+u32 1036a8 f
+u32 1036b8 36
+u32 1036bc 120
+u32 1036c0 d7
+u32 1036c4 130
+u8 1036c8 79
+u8 1036c9 78
+u8 1036ca 5c
+u8 1036cb 77
+u8 1036cc 7a
+u8 1036cd 79
+u32 1036dc e4
+u32 1036e0 8c
+u32 1036e4 f9
+u32 1036e8 ad
+u32 1036f0 10
+u32 1036f4 11
+u32 1036f8 0
+u32 1038c0 2
+u32 1038c4 22
+u32 1038c8 0
+u32 1038e4 ffffffff
+u32 1038e8 0
+u32 1038ec 50
+u32 103908 1
+u32 10390c 104
+u32 103910 64
+u32 10392c fffffffe
+u32 103930 1
+u32 103934 8c
+u32 103950 fffffffd
+u32 103954 0
+u32 103958 32
+u32 103974 fffffffd
+u32 103978 1
+u32 10397c 14
+u32 103998 fffffffd
+u32 10399c 0
+u32 1039a0 32
+u32 1039bc fffffffd
+u32 1039c0 1
+u32 1039c4 14
+u32 1039e0 fffffffd
+u32 1039e4 0
+u32 1039e8 32
+u32 103a04 fffffffd
+u32 103a08 1
+u32 103a0c 14
+u32 103a28 0
+u32 103a2c af
+u32 103a30 8c
+u32 103a4c fffffffe
+u32 103a50 1
+u32 103a54 46
+u32 103a70 fffffffd
+u32 103a74 0
+u32 103a78 32
+u32 103a94 fffffffd
+u32 103a98 1
+u32 103a9c 14
+u32 103ab8 fffffffd
+u32 103abc 0
+u32 103ac0 32
+u32 103adc fffffffd
+u32 103ae0 1
+u32 103ae4 14
+u32 103b00 fffffffd
+u32 103b04 0
+u32 103b08 32
+u32 103b24 fffffffd
+u32 103b28 1
+u32 103b2c 14
+u32 103b48 fffffffd
+u32 103b4c 0
+u32 103b50 32
+u32 103b6c fffffffd
+u32 103b70 1
+u32 103b74 14
+u32 103b90 fffffffd
+u32 103b94 0
+u32 103b98 32
+u32 103bb4 fffffffd
+u32 103bb8 1
+u32 103bbc 14
+u32 103bd8 fffffffd
+u32 103bdc 0
+u32 103be0 32
+u32 103bfc fffffffd
+u32 103c00 1
+u32 103c04 14
+u32 103c20 fffffffd
+u32 103c24 1
+u32 103c28 14
+u32 103c44 fffffffd
+u32 103c48 0
+u32 103c4c 32
+u32 103c68 fffffffd
+u32 103c6c 1
+u32 103c70 14
+u32 103c8c fffffffd
+u32 103c90 1
+u32 103c94 14
+u32 103cb0 fffffffd
+u32 103cb4 0
+u32 103cb8 32
+u32 103cd4 fffffffd
+u32 103cd8 1
+u32 103cdc 14
+u32 103cf8 fffffffd
+u32 103cfc 0
+u32 103d00 32
+u32 103d1c fffffffd
+u32 103d20 1
+u32 103d24 14
+u32 103d40 fffffffd
+u32 103d44 1
+u32 103d48 14
+u32 103d64 fffffffd
+u32 103d68 0
+u32 103d6c 32
+u32 103d88 fffffffd
+u32 103d8c 1
+u32 103d90 14
+u32 103dac fffffffd
+u32 103db0 0
+u32 103db4 32
+u32 103dd0 fffffffd
+u32 103dd4 1
+u32 103dd8 14
+u32 103df4 fffffffd
+u32 103df8 1
+u32 103dfc 14
+u32 103e18 fffffffd
+u32 103e1c 1
+u32 103e20 14
+u32 103e3c fffffffd
+u32 103e40 1
+u32 103e44 14
+u32 103e60 fffffffd
+u32 103e64 1
+u32 103e68 14
+u32 103e84 fffffffd
+u32 103e88 1
+u32 103e8c 14
+u32 103ea8 fffffffd
+u32 103eac 0
+u32 103eb0 32
+u32 103ecc fffffffd
+u32 103ed0 1
+u32 103ed4 14
+u32 103ef0 fffffffd
+u32 103ef4 0
+u32 103ef8 32
+u32 103f14 fffffffd
+u32 103f18 1
+u32 103f1c 14
+u32 103f38 fffffffd
+u32 103f3c 0
+u32 103f40 32
+u32 103f5c fffffffd
+u32 103f60 1
+u32 103f64 14
+u32 103f80 fffffffd
+u32 103f84 1
+u32 103f88 14
+u32 103fa4 fffffffd
+u32 103fa8 0
+u32 103fac 32
+u32 103fc8 fffffffd
+u32 103fcc 1
+u32 103fd0 14
+u32 103fec fffffffd
+u32 103ff0 1
+u32 103ff4 14
+u32 104010 fffffffd
+u32 104014 1
+u32 104018 14
+u32 104034 fffffffd
+u32 104038 1
+u32 10403c 14
+u32 104058 fffffffd
+u32 10405c 0
+u32 104060 32
+u32 10407c fffffffd
+u32 104080 1
+u32 104084 14
+u32 1040a0 fffffffd
+u32 1040a4 1
+u32 1040a8 14
+u32 1040c4 fffffffd
+u32 1040c8 0
+u32 1040cc 32
+u32 1040e8 fffffffd
+u32 1040ec 1
+u32 1040f0 14
+u32 10410c fffffffd
+u32 104110 0
+u32 104114 32
+u32 104130 fffffffd
+u32 104134 1
+u32 104138 14
+u32 104154 fffffffd
+u32 104158 0
+u32 10415c 32
+u32 104178 fffffffd
+u32 10417c 1
+u32 104180 14
+u32 10419c fffffffd
+u32 1041a0 0
+u32 1041a4 32
+u32 1041c0 fffffffd
+u32 1041c4 1
+u32 1041c8 14
+u32 1041e4 fffffffd
+u32 1041e8 1
+u32 1041ec 14
+u32 104208 fffffffd
+u32 10420c 1
+u32 104210 14
+u32 10422c fffffffd
+u32 104230 1
+u32 104234 14
+u32 104250 fffffffd
+u32 104254 1
+u32 104258 14
+u32 104274 fffffffd
+u32 104278 1
+u32 10427c 14
+u32 104298 fffffffd
+u32 10429c 0
+u32 1042a0 32
+u32 1042bc fffffffd
+u32 1042c0 1
+u32 1042c4 14
+u32 1042e0 fffffffd
+u32 1042e4 1
+u32 1042e8 14
+u32 104304 fffffffd
+u32 104308 1
+u32 10430c 14
+u32 104328 fffffffd
+u32 10432c 1
+u32 104330 14
+u32 10434c fffffffd
+u32 104350 1
+u32 104354 14
+u32 104370 fffffffd
+u32 104374 1
+u32 104378 14
+u32 104394 fffffffd
+u32 104398 1
+u32 10439c 14
+u32 1043b8 fffffffd
+u32 1043bc 1
+u32 1043c0 14
+u32 1043dc fffffffd
+u32 1043e0 0
+u32 1043e4 32
+u32 104400 fffffffd
+u32 104404 1
+u32 104408 14
+u32 104424 fffffffd
+u32 104428 1
+u32 10442c 14
+u32 104448 fffffffd
+u32 10444c 1
+u32 104450 14
+u32 10446c fffffffd
+u32 104470 1
+u32 104474 14
+u32 104490 fffffffd
+u32 104494 1
+u32 104498 14
+u32 1044b4 fffffffd
+u32 1044b8 1
+u32 1044bc 14
+u32 1044d8 fffffffd
+u32 1044dc 1
+u32 1044e0 14
+u32 1044fc fffffffd
+u32 104500 0
+u32 104504 32
+u32 104520 fffffffd
+u32 104524 1
+u32 104528 14
+u32 104544 fffffffd
+u32 104548 1
+u32 10454c 14
+u32 104568 fffffffd
+u32 10456c 0
+u32 104570 32
+u32 10458c fffffffd
+u32 104590 1
+u32 104594 14
+u32 1045b0 fffffffd
+u32 1045b4 1
+u32 1045b8 14
+u32 1045d4 fffffffd
+u32 1045d8 1
+u32 1045dc 14
+u32 1045f8 fffffffd
+u32 1045fc 0
+u32 104600 32
+u32 10461c fffffffd
+u32 104620 1
+u32 104624 14
+u32 104640 fffffffd
+u32 104644 1
+u32 104648 14
+u32 104664 fffffffd
+u32 104668 0
+u32 10466c 32
+u32 104688 fffffffd
+u32 10468c 1
+u32 104690 14
+u32 1046ac fffffffd
+u32 1046b0 1
+u32 1046b4 14
+u32 1046d0 fffffffd
+u32 1046d4 1
+u32 1046d8 14
+u32 1046f4 fffffffd
+u32 1046f8 0
+u32 1046fc 32
+u32 104718 fffffffd
+u32 10471c 1
+u32 104720 14
+u32 10473c fffffffd
+u32 104740 0
+u32 104744 32
+u32 104760 fffffffd
+u32 104764 0
+u32 104768 14
+u32 104784 fffffffd
+u32 104788 0
+u32 10478c 14
+u32 1047a8 fffffffd
+u32 1047ac 0
+u32 1047b0 32
+u32 1047cc fffffffd
+u32 1047d0 0
+u32 1047d4 14
+u32 1047f0 fffffffd
+u32 1047f4 0
+u32 1047f8 14
+u32 104814 fffffffd
+u32 104818 0
+u32 10481c 32
+u32 104838 fffffffd
+u32 10483c 0
+u32 104840 14
+u32 10485c fffffffe
+u32 104860 1
+u32 104864 82
+u32 104880 fffffffd
+u32 104884 0
+u32 104888 32
+u32 1048a4 fffffffd
+u32 1048a8 0
+u32 1048ac 14
+u32 1048c8 fffffffd
+u32 1048cc 0
+u32 1048d0 14
+u32 1048ec fffffffd
+u32 1048f0 0
+u32 1048f4 14
+u32 104910 fffffffd
+u32 104914 0
+u32 104918 32
+u32 104934 fffffffd
+u32 104938 0
+u32 10493c 14
+u32 104958 fffffffd
+u32 10495c 0
+u32 104960 14
+u32 10497c fffffffd
+u32 104980 0
+u32 104984 14
+u32 1049a0 fffffffd
+u32 1049a4 0
+u32 1049a8 32
+u32 1049c4 fffffffd
+u32 1049c8 0
+u32 1049cc 14
+u32 1049e8 fffffffd
+u32 1049ec 0
+u32 1049f0 14
+u32 104a0c fffffffd
+u32 104a10 0
+u32 104a14 32
+u32 104a30 fffffffd
+u32 104a34 0
+u32 104a38 14
+u32 104a54 fffffffd
+u32 104a58 0
+u32 104a5c 32
+u32 104a78 fffffffd
+u32 104a7c 0
+u32 104a80 14
+u32 104a9c fffffffd
+u32 104aa0 0
+u32 104aa4 14
+u32 104ac0 fffffffd
+u32 104ac4 1
+u32 104ac8 be
+u32 104ae4 fffffffd
+u32 104ae8 1
+u32 104aec 14
+u32 104b08 fffffffd
+u32 104b0c 1
+u32 104b10 14
+u32 104b2c fffffffc
+u32 105184 0
+u32 1085f0 261
+u32 1085f4 12f
+u32 1085f8 27c
+u32 1085fc 14b
+u32 108604 11
+u32 108608 12
+u32 10860c 0
+u32 108618 211
+u32 10861c 104
+u32 108620 207
+u32 108624 129
+u32 108628 1f9
+u32 10862c 12a
+u32 108630 fffffffd
+u32 108634 1ce
+u32 108638 be
+u32 10863c 257
+u32 108640 14a
+u32 108648 0
+u32 10864c 2
+u32 108650 13
+u32 108654 14
+u32 108670 6d
+u32 108674 103
+u32 108678 63
+u32 10867c 129
+u32 108680 be
+u32 108684 aa
+u32 108688 258
+u32 10868c 3
+u32 108690 29
+u32 108694 bf
+u32 108698 b1
+u32 10869c 14d
+u32 1086a4 0
+u32 1086a8 2
+u32 1086c4 0
+u32 1086c8 13f
+u32 1086cc 53
+u32 1086d0 12a
+u32 1086d4 6d
+u32 1086d8 ec
+u32 1086dc 9f
+u32 1086e0 fa
+u32 1086e4 6
+u32 1086e8 104
+u32 1086ec 18
+u32 1086f0 17a
+u32 1086f4 8d
+u32 1086fc 1
+u32 108700 0
+u32 10871c 0
+u32 108720 13f
+u32 108724 ff
+u32 108728 fc
+u32 10872c bd
+u32 108730 182
+u32 108734 143
+u32 10873c 7
+u32 108740 6
+u32 108750 ef
+u32 108754 1ac
+u32 108758 190
+u32 10875c 1bc
+u8 108760 4c
+u8 108761 49
+u8 108762 ef
+u8 108763 40
+u8 108764 4f
+u8 108765 4d
+u32 108774 212
+u32 108778 93
+u32 108780 1cd
+u32 108784 84
+u32 108788 257
+u32 10878c a4
+u32 108794 1e
+u32 108798 1d
+u32 1087fc b0
+u32 108800 191
+u32 108804 9b
+u32 108808 19a
+u32 10880c 10e
+u32 108810 5a
+u32 108814 200
+u32 108818 6
+u32 10881c 85
+u32 108820 166
+u32 108824 db
+u32 108828 1bc
+u32 108830 3
+u32 108834 5
+u32 108850 ffffffff
+u32 108854 1d0
+u32 108858 191
+u32 10885c ffffffff
+u32 108860 ffffffff
+u32 108864 10e
+u32 108868 5a
+u32 10886c 200
+u32 108870 0
+u32 108874 1a5
+u32 108878 166
+u32 10887c 1fb
+u32 108880 1bc
+u32 108888 3
+u32 10888c 3
+u32 1088a8 ffffffff
+u32 1088ac 24f
+u32 1088b0 191
+u32 1088b4 ffffffff
+u32 1088b8 ffffffff
+u32 1088bc 10e
+u32 1088c0 5a
+u32 1088c4 200
+u32 1088c8 0
+u32 1088cc 224
+u32 1088d0 166
+u32 1088d4 27a
+u32 1088d8 1bc
+u32 1088e0 3
+u32 1088e4 3
+u32 108900 ffffffff
+u32 108904 52
+u32 108908 7
+u32 10890c 74
+u32 108910 6
+u32 108914 94
+u32 108918 7
+u32 10891c b6
+u32 108920 6
+u16 108a24 280
+u16 108a26 1b
+u16 108a2a f0
+u16 108a2c 3
+u16 108a2e c
+u16 108a30 c
+u16 108a32 14
+u16 108a34 14
+u16 108a36 18
+u16 108a38 13
+u16 108a3a b6
+u16 108a3c 13
+u16 108a3e 15
+u16 108a40 18
+u16 108a6c 5
+u16 108a6e 5
+u16 108a74 10
+u16 108a76 9
+u16 108a78 94
+u16 108a7a 5d
+u16 108a7c 4
+u16 108a84 3b
+u16 108a86 3b
+u16 108a88 14
+u8 108a8c 0
+u8 108a8d 0
+u32 108a90 0
+u32 108a90 0
+u8 108a98 1
+u8 108a99 0
+u8 108aa4 2
+u8 108aa5 0
+u8 108ab0 3
+u8 108ab1 0
+u8 108abc 4
+u8 108abd 0
+u8 108ac8 5
+u8 108ac9 1
+u8 108ad4 6
+u8 108ad5 1
+u8 108ae0 7
+u8 108ae1 1
+u8 108aec 8
+u8 108aed 2
+u32 108af0 0
+u32 108af0 0
+u8 108af8 9
+u8 108af9 2
+u32 108afc 0
+u32 108afc 0
+u8 108b04 a
+u8 108b05 2
+u8 108b10 b
+u8 108b11 1
+u8 108b1c c
+u8 108b1d 1
+u8 108b28 d
+u8 108b29 1
+u8 108b34 e
+u8 108b35 1
+u8 108b40 f
+u8 108b41 3
+u8 108b4c 10
+u8 108b4d 3
+u8 108b58 11
+u8 108b59 0
+u32 108b5c 0
+u32 108b5c 0
+u8 108b64 12
+u8 108b65 0
+u8 108b70 13
+u8 108b71 0
+u8 108b7c 14
+u8 108b7d 0
+u8 108b88 15
+u8 108b89 0
+u8 108b94 16
+u8 108b95 0
+u8 108ba0 18
+u8 108ba1 0
+u32 108ba4 0
+u32 108ba4 0
+u8 108bac 17
+u8 108bad 0
+u32 108bb0 0
+u32 108bb0 0
+u8 108bb8 19
+u8 108bb9 0
+u32 108bbc 0
+u32 108bbc 0
+u8 108bc4 1a
+u8 108bc5 0
+u32 108bc8 0
+u32 108bc8 0
+u8 108bd0 1b
+u8 108bd1 0
+u8 108bdc 1c
+u8 108bdd 0
+u8 108be8 1d
+u8 108be9 0
+u8 108bf4 1e
+u8 108bf5 2
+u8 108c00 1f
+u8 108c01 0
+u8 108c0c 20
+u8 108c0d 0
+u8 108c18 21
+u8 108c19 0
+u8 108c24 22
+u8 108c25 0
+u8 108c30 23
+u8 108c31 0
+u8 108c3c 24
+u8 108c3d 0
+u8 108c48 25
+u8 108c49 0
+u8 108c54 26
+u8 108c55 0
+u8 108c60 27
+u8 108c61 0
+u32 108c64 0
+u32 108c64 0
+u8 108c6c 28
+u8 108c6d 0
+u8 108c78 29
+u8 108c79 4
+u8 108c84 2a
+u8 108c85 4
+u8 108c90 2b
+u8 108c91 5
+u8 108c9c 2c
+u8 108c9d 5
+u8 108ca8 2d
+u8 108ca9 5
+u8 108cb4 2e
+u8 108cb5 5
+u8 108cc0 2f
+u8 108cc1 5
+u32 108cc4 0
+u32 108cc4 0
+u8 108ccc 30
+u8 108ccd 5
+u32 108cd0 0
+u32 108cd0 0
+u8 108cd8 31
+u8 108cd9 5
+u8 108ce4 32
+u8 108ce5 5
+u8 108cf0 33
+u8 108cf1 5
+u8 108cfc 34
+u8 108cfd 0
+u8 108d08 35
+u8 108d09 0
+u8 108d14 36
+u8 108d15 0
+u8 108d20 37
+u8 108d21 0
+u8 108d2c 38
+u8 108d2d 0
+u8 108d38 39
+u8 108d39 0
+u8 108d44 3a
+u8 108d45 0
+u8 108d50 3b
+u8 108d51 0
+u8 108d5c 3c
+u8 108d5d 0
+u8 108d68 3d
+u8 108d69 5
+u8 108d74 3e
+u8 108d75 0
+u8 108d80 3f
+u8 108d81 0
+u8 108d8c 40
+u8 108d8d 0
+u8 108d98 41
+u8 108d99 0
+u8 108da4 42
+u8 108da5 4
+u8 108db0 43
+u8 108db1 0
+u8 108dbc 44
+u8 108dbd 0
+u8 108dc8 45
+u8 108dc9 0
+u8 108dd4 46
+u8 108dd5 0
+u8 108de0 47
+u8 108de1 1
+u8 108dec 48
+u8 108ded 1
+u8 108df8 49
+u8 108df9 7
+u8 108e04 4a
+u8 108e05 0
+u8 108e10 4b
+u8 108e11 0
+u8 108e1c 4c
+u8 108e1d 8
+u32 108e20 0
+u32 108e20 0
+u8 108e28 ff
+u32 108e3c 1
+u32 108fd4 13
+u32 108fd8 35
+u32 108fdc e4
+u32 108fe4 ffffffff
+u32 108fe8 1
+u32 108fec ffffffff
+u32 108ff0 ffffffff
+u32 108ff4 0
+u32 108ff8 0
+u32 108ffc 13
+u32 109000 4d
+u32 109004 e4
+u32 10900c 0
+u32 109010 2
+u32 109014 ffffffff
+u32 109018 ffffffff
+u32 10901c 0
+u32 109020 0
+u32 109024 13
+u32 109028 65
+u32 10902c e4
+u32 109034 1
+u32 109038 3
+u32 10903c ffffffff
+u32 109040 ffffffff
+u32 109044 0
+u32 109048 0
+u32 10904c 13
+u32 109050 7d
+u32 109054 e4
+u32 10905c 2
+u32 109060 4
+u32 109064 ffffffff
+u32 109068 ffffffff
+u32 10906c 0
+u32 109070 0
+u32 109074 13
+u32 109078 95
+u32 10907c e4
+u32 109084 3
+u32 109088 5
+u32 10908c ffffffff
+u32 109090 ffffffff
+u32 109094 0
+u32 109098 0
+u32 10909c 13
+u32 1090a0 ad
+u32 1090a4 e4
+u32 1090ac 4
+u32 1090b0 6
+u32 1090b4 ffffffff
+u32 1090b8 ffffffff
+u32 1090bc 0
+u32 1090c0 0
+u32 1090c4 13
+u32 1090c8 c5
+u32 1090cc e4
+u32 1090d4 5
+u32 1090d8 7
+u32 1090dc ffffffff
+u32 1090e0 ffffffff
+u32 1090e4 0
+u32 1090e8 0
+u32 1090ec 13
+u32 1090f0 dd
+u32 1090f4 e4
+u32 1090fc 6
+u32 109100 ffffffff
+u32 109104 ffffffff
+u32 109108 ffffffff
+u32 10910c 0
+u32 109110 0
+u32 109114 13
+u32 109118 35
+u32 10911c b7
+u32 109124 ffffffff
+u32 109128 1
+u32 10912c ffffffff
+u32 109130 ffffffff
+u32 109134 ff4e
+u32 109138 0
+u32 10913c 13
+u32 109140 4d
+u32 109144 b7
+u32 10914c 0
+u32 109150 ffffffff
+u32 109154 ffffffff
+u32 109158 ffffffff
+u32 10915c ff59
+u32 109160 0
+u32 109164 13
+u32 109168 35
+u32 10916c cb
+u32 109174 ffffffff
+u32 109178 1
+u32 10917c ffffffff
+u32 109180 ffffffff
+u32 109184 ff43
+u32 109188 0
+u32 10918c 13
+u32 109190 4d
+u32 109194 cb
+u32 10919c 0
+u32 1091a0 2
+u32 1091a4 ffffffff
+u32 1091a8 ffffffff
+u32 1091ac ff41
+u32 1091b0 0
+u32 1091b4 13
+u32 1091b8 65
+u32 1091bc cb
+u32 1091c4 1
+u32 1091c8 ffffffff
+u32 1091cc ffffffff
+u32 1091d0 ffffffff
+u32 1091d4 ff52
+u32 1091d8 0
+u32 1091dc 13
+u32 1091e0 35
+u32 1091e4 cb
+u32 1091ec ffffffff
+u32 1091f0 1
+u32 1091f4 ffffffff
+u32 1091f8 ffffffff
+u32 1091fc ff43
+u32 109200 0
+u32 109204 13
+u32 109208 4d
+u32 10920c cb
+u32 109214 0
+u32 109218 2
+u32 10921c ffffffff
+u32 109220 ffffffff
+u32 109224 ff41
+u32 109228 0
+u32 10922c 13
+u32 109230 65
+u32 109234 cb
+u32 10923c 1
+u32 109240 ffffffff
+u32 109244 ffffffff
+u32 109248 ffffffff
+u32 10924c ff52
+u32 109250 0
+u32 109330 1
+u32 109334 b
+u32 109338 d
+u32 10933c b
+u32 109340 19
+u32 109344 b
+u32 109348 25
+u32 10934c b
+u32 109350 31
+u32 109354 a
+u32 109358 3c
+u32 10935c a
+u32 109360 47
+u32 109364 6
+u32 109368 4e
+u32 10936c 6
+u32 109370 55
+u32 109374 6
+u32 109378 5c
+u32 10937c a
+u32 109380 67
+u32 109384 a
+u32 109388 72
+u32 10938c b
+u32 109390 7e
+u32 109394 b
+u32 109398 8a
+u32 10939c b
+u32 1093a0 96
+u32 1093a4 b
+u32 1093a8 0
+u32 1093ac 0
+u32 1093d0 17
+u32 1093d4 1
+u32 1094e0 3
+u32 1094e4 0
+u32 1094e8 5
+u32 1094f0 7
+u32 1094f8 9
+u32 1094fc 14
+u16 10c37a 23
+u16 10c37c c6
+u16 10c37e 10
+u16 10c380 a
+u16 10c382 17
+u16 10c384 21
+u32 10c3e0 13
+u32 10c3e4 35
+u32 10c3e8 b7
+u32 10c3f0 ffffffff
+u32 10c3f4 1
+u32 10c3f8 ffffffff
+u32 10c3fc ffffffff
+u32 10c400 ff4e
+u32 10c404 0
+u32 10c408 13
+u32 10c40c 4d
+u32 10c410 b7
+u32 10c418 0
+u32 10c41c ffffffff
+u32 10c420 ffffffff
+u32 10c424 ffffffff
+u32 10c428 ff59
+u32 10c42c 0
+u32 10ca58 1
+u32 10ca5c 0
+u32 10ca64 0
+u32 10ca70 3
+u32 10ca74 55
+u32 10ca78 94
+u32 10ca7c 0
+u32 10ca80 2
+u32 10ca84 0
+u32 10ca8c 0
+u32 10ca98 4
+u32 10ca9c 53
+u32 10caa0 94
+u32 10caa4 0
+u32 10caa8 20
+u32 10caac 0
+u32 10cab4 0
+u32 10cac0 7
+u32 10cac4 53
+u32 10cac8 94
+u32 10cacc 0
+u32 10cad0 8
+u32 10cad4 0
+u32 10cadc 0
+u32 10cae8 6
+u32 10caec 53
+u32 10caf0 94
+u32 10caf4 0
+u32 10caf8 4
+u32 10cafc 0
+u32 10cb04 0
+u32 10cb10 2
+u32 10cb14 53
+u32 10cb18 94
+u32 10cb1c 0
+u32 10cb20 40
+u32 10cb24 9
+u32 10cb2c 0
+u32 10cb38 0
+u32 10cb3c c
+u32 10cb40 bb
+u32 10cb44 ffffffff
+u32 10cb48 80
+u32 10cb4c 7
+u32 10cb54 0
+u32 10cb60 1
+u32 10cb64 c
+u32 10cb68 bb
+u32 10cb6c ffffffff
+u32 10cc68 46
+u32 10cc6c 4f
+u32 10cc70 4e
+u32 10cc74 4d
+u32 10cc78 4c
+u32 10cc7c 4b
+u32 10cf1c 0
+u32 10cf20 1
+u32 10cf28 2
+u32 10cf38 3
+u32 10d048 27
+u32 10d04c 164
+u32 10d050 43
+u32 10d054 181
+u32 10d05c f
+u32 10d060 10
+u32 10d064 0
+u32 10d070 50
+u32 10d074 119
+u32 10d078 46
+u32 10d07c 139
+u32 10d080 3a
+u32 10d084 139
+u32 10d088 fffffffd
+u32 10d08c e
+u32 10d090 d8
+u32 10d094 91
+u32 10d098 15a
+u32 10d0a0 2
+u32 10d0a4 3
+u32 10d0a8 11
+u32 10d0ac 12
+u32 10d0c8 50
+u32 10d0cc 52
+u32 10d0d0 46
+u32 10d0d4 6e
+u32 10d0d8 be
+u32 10d0dc aa
+u32 10d0e0 258
+u32 10d0e4 3
+u32 10d0e8 e
+u32 10d0ec 10
+u32 10d0f0 92
+u32 10d0f4 94
+u32 10d0fc 2
+u32 10d100 3
+u32 10d11c 0
+u32 10d120 22b
+u32 10d124 52
+u32 10d128 216
+u32 10d12c 6b
+u32 10d130 ec
+u32 10d134 9f
+u32 10d138 fa
+u32 10d13c 6
+u32 10d140 1f1
+u32 10d144 15
+u32 10d148 267
+u32 10d14c 8c
+u32 10d154 2
+u32 10d158 0
+u32 10d174 0
+u32 10d178 22b
+u32 10d17c 122
+u32 10d180 1e8
+u32 10d184 df
+u32 10d188 26e
+u32 10d18c 165
+u32 10d194 5
+u32 10d198 4
+u32 10d1a8 1db
+u32 10d1ac b2
+u32 10d1b0 27c
+u32 10d1b4 c2
+u8 10d1b8 d9
+u8 10d1b9 d7
+u8 10d1ba fd
+u8 10d1bb d4
+u8 10d1bc da
+u8 10d1bd d8
+u32 10d1cc 51
+u32 10d1d0 ba
+u32 10d1d8 e
+u32 10d1dc af
+u32 10d1e0 91
+u32 10d1e4 c8
+u32 10d1ec 14
+u32 10d1f0 13
+u32 10d1fc 20a
+u32 10d200 10e
+u32 10d204 228
+u32 10d208 12c
+u32 10d224 22b
+u32 10d228 10e
+u32 10d22c 249
+u32 10d230 12c
+u32 10d24c 24c
+u32 10d250 10e
+u32 10d254 26a
+u32 10d258 12c
+u32 10d274 20a
+u32 10d278 12f
+u32 10d27c 228
+u32 10d280 14d
+u32 10d29c 22b
+u32 10d2a0 12f
+u32 10d2a4 249
+u32 10d2a8 14d
+u32 10d2c4 24c
+u32 10d2c8 12f
+u32 10d2cc 26a
+u32 10d2d0 14d
+u32 10d2ec 1f9
+u32 10d2f0 15a
+u32 10d2f4 217
+u32 10d2f8 178
+u32 10d314 21a
+u32 10d318 15a
+u32 10d31c 238
+u32 10d320 178
+u32 10d33c 23b
+u32 10d340 15a
+u32 10d344 259
+u32 10d348 178
+u32 10d364 25c
+u32 10d368 15a
+u32 10d36c 27a
+u32 10d370 178
+u32 10d38c 244
+u32 10d390 b9
+u32 10d394 27e
+u32 10d398 f3
+u32 10d3a0 16
+u32 10d3a4 0
+u32 10d3a8 4e
+u32 10d3ac 10e
+u32 10d3b0 44
+u32 10d3b4 134
+u32 10d3b8 fffffffd
+u32 10d3bc 13
+u32 10d3c0 d4
+u32 10d3c4 87
+u32 10d3c8 148
+u32 10d3d0 21
+u32 10d3d4 22
+u32 10d3d8 23
+u32 10d3f4 4d
+u32 10d3f8 45
+u32 10d3fc 43
+u32 10d400 6b
+u32 10d404 fffffffd
+u32 10d408 13
+u32 10d40c 9
+u32 10d410 87
+u32 10d414 7f
+u32 10d41c 21
+u32 10d420 22
+u32 10d424 23
+u32 10d440 20f
+u32 10d444 a
+u32 10d448 250
+u32 10d44c 1c
+u32 10d450 20f
+u32 10d454 a
+u32 10d45c 5
+u32 10d46c 21d
+u32 10d470 42
+u32 10d474 244
+u32 10d478 54
+u32 10d47c 21d
+u32 10d480 42
+u32 10d488 3
+u32 10d498 3b
+u32 10d49c 9e
+u32 10d4a0 62
+u32 10d4a4 c4
+u32 10d4ac 24
+u32 10d4b0 25
+u32 10d4c0 20b
+u32 10d4c4 7b
+u32 10d4c8 255
+u32 10d4cc 8d
+u32 10d4dc 4d
+u32 10d4e0 45
+u32 10d4e4 ffffffff
+u32 10d4e8 ffffffff
+u32 10d4ec 0
+u32 10d4f0 13
+u32 10d4f4 9
+u32 10d4f8 87
+u32 10d4fc 7f
+u32 10d504 21
+u32 10d508 22
+u32 10d50c 23
+u32 10d528 4e
+u32 10d52c 10e
+u32 10d530 ffffffff
+u32 10d534 ffffffff
+u32 10d538 0
+u32 10d53c 13
+u32 10d540 d4
+u32 10d544 87
+u32 10d548 148
+u32 10d550 21
+u32 10d554 22
+u32 10d558 23
+u32 10d574 231
+u32 10d578 45
+u32 10d57c ffffffff
+u32 10d580 ffffffff
+u32 10d584 0
+u32 10d588 1f6
+u32 10d58c 9
+u32 10d590 26c
+u32 10d594 80
+u32 10d59c 21
+u32 10d5a0 22
+u32 10d5a4 23
+u32 10d5c0 4d
+u32 10d5c4 45
+u32 10d5c8 46
+u32 10d5cc 68
+u32 10d5d0 0
+u32 10d5d4 13b
+u32 10d5d8 46
+u32 10d5dc 2
+u32 10d5e0 12
+u32 10d5e4 a
+u32 10d5e8 89
+u32 10d5ec 82
+u32 10d5f4 21
+u32 10d5f8 21
+u32 10d614 22
+u32 10d618 222
+u32 10d61c 56
+u32 10d620 25c
+u32 10d624 8f
+u32 10d62c 19
+u32 10d630 0
+u32 10d634 222
+u32 10d638 5
+u32 10d63c 25c
+u32 10d640 3e
+u32 10d648 1b
+u32 10d64c 0
+u32 10d650 4e
+u32 10d654 110
+u32 10d658 40
+u32 10d65c 133
+u32 10d660 0
+u32 10d664 12c
+u32 10d668 258
+u32 10d66c 4
+u32 10d670 14
+u32 10d674 d3
+u32 10d678 88
+u32 10d67c 149
+u32 10d684 26
+u32 10d688 26
+u32 10d6a4 22
+u32 10d6c4 2
+u32 10d6c8 1
+u32 10d74c 49
+u32 10d750 d7
+u32 10d754 f3
+u32 10d758 11d
+u32 10d75c 11f
+u32 10d760 146
+u32 10d764 155
+u32 10d768 161
+u32 10d76c 176
+u32 10d770 1ac
+u32 10d774 1ea
+u32 10d778 22c
+u32 10d77c 0
+u32 10d780 0
+u32 10d784 0
+u32 10d788 0
+u32 10d78c 181
+u32 10d790 12d
+u32 10d794 10e
+u32 10d798 74
+u32 10d7c0 bb
+u32 10d7c4 b9
+u32 10d7c8 b2
+u32 10d7cc 96
+u32 10d7d0 ad
+u32 10d7d4 aa
+u32 10d7d8 a8
+u32 10d7dc a5
+u32 10d7e0 9b
+u32 10d7e4 91
+u32 10d7e8 88
+u32 10d7ec 78
+u32 10d7f0 0
+u32 10d7f4 0
+u32 10d7f8 0
+u32 10d7fc 0
+u32 10d800 8b
+u32 10d804 2a
+u32 10d808 79
+u32 10d80c bf
+u32 10d980 35
+u32 10d984 111
+u32 10d988 ffffffff
+u32 10d98c 12
+u32 10d990 2
+u32 10d994 66
+u32 10d998 10e
+u32 10d99c 94
+u32 10d9a0 f0
+u32 10d9cc 94
+u32 10d9d0 97
+u32 10d9d4 ffffffff
+u32 10d9d8 13
+u32 10d9dc 3
+u32 10d9e0 b3
+u32 10d9e4 a0
+u32 10d9e8 e0
+u32 10d9ec bc
+u32 10da18 a7
+u32 10da1c 88
+u32 10da20 ffffffff
+u32 10da24 14
+u32 10da28 4
+u32 10da2c e5
+u32 10da30 92
+u32 10da34 101
+u32 10da38 ba
+u32 10da64 d4
+u32 10da68 73
+u32 10da6c ffffffff
+u32 10da70 15
+u32 10da74 5
+u32 10da78 ff
+u32 10da7c 7e
+u32 10da80 12c
+u32 10da84 9e
+u32 10dab0 15b
+u32 10dab4 da
+u32 10dab8 ffffffff
+u32 10dabc 16
+u32 10dac0 6
+u32 10dac4 176
+u32 10dac8 d7
+u32 10dacc 13b
+u32 10dad0 c3
+u32 10dafc 194
+u32 10db00 ce
+u32 10db04 ffffffff
+u32 10db08 17
+u32 10db0c 7
+u32 10db10 1b0
+u32 10db14 cc
+u32 10db18 157
+u32 10db1c be
+u32 10db48 157
+u32 10db4c 7d
+u32 10db50 ffffffff
+u32 10db54 18
+u32 10db58 8
+u32 10db5c 167
+u32 10db60 86
+u32 10db64 15d
+u32 10db68 ac
+u32 10db94 181
+u32 10db98 8a
+u32 10db9c ffffffff
+u32 10dba0 19
+u32 10dba4 9
+u32 10dba8 176
+u32 10dbac 94
+u32 10dbb0 172
+u32 10dbb4 a6
+u32 10dbe0 19d
+u32 10dbe4 75
+u32 10dbe8 ffffffff
+u32 10dbec 1a
+u32 10dbf0 a
+u32 10dbf4 1c2
+u32 10dbf8 7f
+u32 10dbfc 19a
+u32 10dc00 9f
+u32 10dc2c 201
+u32 10dc30 b8
+u32 10dc34 ffffffff
+u32 10dc38 1b
+u32 10dc3c b
+u32 10dc40 22c
+u32 10dc44 b6
+u32 10dc48 1d0
+u32 10dc4c a8
+u32 10dc78 1e3
+u32 10dc7c 69
+u32 10dc80 ffffffff
+u32 10dc84 1c
+u32 10dc88 c
+u32 10dc8c 1fd
+u32 10dc90 72
+u32 10dc94 1f6
+u32 10dc98 8c
+u32 10dcc4 23b
+u32 10dcc8 97
+u32 10dccc ffffffff
+u32 10dcd0 1d
+u32 10dcd4 d
+u32 10dcd8 255
+u32 10dcdc 93
+u32 10dce0 240
+u32 10dce4 86
+u32 10dd10 c0
+u32 10dd14 112
+u32 10dd18 0
+u32 10dd1c ffffffff
+u32 10dd20 ffffffff
+u32 10dd24 f3
+u32 10dd28 110
+u32 10dd2c fc
+u32 10dd30 df
+u32 10dd5c 11b
+u32 10dd60 f4
+u32 10dd64 0
+u32 10dd68 ffffffff
+u32 10dd6c ffffffff
+u32 10dd70 13a
+u32 10dd74 f4
+u32 10dd78 133
+u32 10dd7c d8
+u32 10dda8 1c8
+u32 10ddac c4
+u32 10ddb0 0
+u32 10ddb4 ffffffff
+u32 10ddb8 ffffffff
+u32 10ddbc 1e7
+u32 10ddc0 c2
+u32 10ddc4 1a4
+u32 10ddc8 b8
+u32 10ddf4 1ff
+u32 10ddf8 5a
+u32 10ddfc 0
+u32 10de00 ffffffff
+u32 10de04 ffffffff
+u32 10de08 238
+u32 10de0c 63
+u32 10de10 220
+u32 10de14 85
+u32 10de40 1a5
+u32 10de44 73
+u32 10de48 ffffffff
+u32 10de4c 1f
+u32 10de50 e
+u32 10de54 1b6
+u32 10de58 7d
+u32 10de5c 190
+u32 10de60 8a
+u32 10de8c e7
+u32 10de90 3c
+u32 10de94 ffffffff
+u32 10de98 1e
+u32 10de9c f
+u32 10dea0 102
+u32 10dea4 43
+u32 10dea8 12e
+u32 10deac 5a
+u32 10ded8 f6
+u32 10dedc 65
+u32 10dee0 ffffffff
+u32 10dee4 21
+u32 10dee8 10
+u32 10deec 108
+u32 10def0 6d
+u32 10def4 122
+u32 10def8 82
+u32 10df24 64
+u32 10df28 9e
+u32 10df2c ffffffff
+u32 10df30 20
+u32 10df34 11
+u32 10df38 79
+u32 10df3c a8
+u32 10df40 80
+u32 10df44 bf
+u32 10df70 41
+u32 10df74 11c
+u32 10df78 0
+u32 10df7c ffffffff
+u32 10df80 ffffffff
+u32 10df84 8f
+u32 10df88 11a
+u32 10df8c 59
+u32 10df90 f9
+u32 10dfbc fd
+u32 10dfc0 115
+u32 10dfc4 0
+u32 10dfc8 ffffffff
+u32 10dfcc ffffffff
+u32 10dfd0 120
+u32 10dfd4 113
+u32 10dfd8 e6
+u32 10dfdc fc
+u32 10e008 183
+u32 10e00c d9
+u32 10e010 0
+u32 10e014 ffffffff
+u32 10e018 ffffffff
+u32 10e01c 1a6
+u32 10e020 d6
+u32 10e024 152
+u32 10e028 aa
+u32 10e054 14b
+u32 10e058 40
+u32 10e05c 0
+u32 10e060 ffffffff
+u32 10e064 ffffffff
+u32 10e068 15b
+u32 10e06c 49
+u32 10e070 142
+u32 10e074 56
+u32 10e0a0 1fa
+u32 10e0a4 4d
+u32 10e0a8 0
+u32 10e0ac ffffffff
+u32 10e0b0 ffffffff
+u32 10e0b4 231
+u32 10e0b8 57
+u32 10e0bc 270
+u32 10e0c0 72
+u32 10e0ec 223
+u32 10e0f0 ab
+u32 10e0f4 0
+u32 10e0f8 ffffffff
+u32 10e0fc ffffffff
+u32 10e100 237
+u32 10e104 aa
+u32 10e108 25d
+u32 10e10c 8e
+u32 10e138 251
+u32 10e13c ba
+u32 10e140 0
+u32 10e144 ffffffff
+u32 10e148 ffffffff
+u32 10e14c 266
+u32 10e150 b9
+u32 10e154 26f
+u32 10e158 8a
+u32 10e184 160
+u32 10e188 5d
+u32 10e18c 0
+u32 10e190 ffffffff
+u32 10e194 ffffffff
+u32 10e198 177
+u32 10e19c 65
+u32 10e1a0 157
+u32 10e1a4 7d
+u32 10e1d0 1f8
+u32 10e1d4 65
+u32 10e1d8 0
+u32 10e1dc ffffffff
+u32 10e1e0 ffffffff
+u32 10e1e4 21d
+u32 10e1e8 6e
+u32 10e1ec 26c
+u32 10e1f0 80
+u32 10e294 51
+u32 10e298 bc
+u32 10e29c 1b
+u32 10e2a0 bc
+u32 10e2a4 84
+u32 10e2a8 bc
+u32 10e2ac b2
+u32 10e2b0 bc
+u32 10e2b4 e0
+u32 10e2b8 bc
+u32 10e2bc 10a
+u32 10e2c0 bc
+u32 10e2c4 134
+u32 10e2c8 bc
+u32 10e2cc 0
+u32 10e2d0 147
+u32 10e2d4 0
+u32 10e2d8 147
+u32 10e2dc 21
+u32 10e2e0 147
+u32 10e2e4 f
+u32 10e2e8 147
+u32 10e2ec 1ab
+u32 10e2f0 bc
+u32 10e2f4 188
+u32 10e2f8 bc
+u32 10e2fc 15f
+u32 10e300 bc
+u32 10e304 0
+u32 10e308 147
+u32 10e30c 0
+u32 10e310 147
+u32 10e314 0
+u32 10e318 147
+u32 10e31c 0
+u32 10e320 147
+u32 10e324 0
+u32 10e328 147
+u32 10e32c 0
+u32 10e330 147
+u32 10e334 0
+u32 10e338 147
+u32 10e33c 0
+u32 10e340 147
+u32 10e344 0
+u32 10e348 147
+u32 10e34c 0
+u32 10e350 147
+u32 10e3a4 78a
+u8 10e478 1f
+u8 10e4ce 1f
+u8 10e544 3
+u8 10e545 10
+u32 10e548 1
+u8 10e554 3
+u8 10e555 10
+u32 10e558 10
+u8 10e564 3
+u8 10e565 10
+u32 10e568 7
+u8 10e574 3
+u8 10e575 0
+u32 10e578 5
+u32 10e580 0
+u8 10e584 2
+u8 10e585 0
+u32 10e588 13
+u32 10e590 0
+u8 10e594 3
+u8 10e595 0
+u32 10e598 0
+u32 10e5a0 0
+u8 10e5a4 3
+u8 10e5a5 0
+u32 10e5a8 7
+u8 10e5b4 3
+u8 10e5b5 0
+u32 10e5b8 7
+u8 10e5c4 3
+u8 10e5c5 0
+u32 10e5c8 7
+u8 10e5d4 3
+u8 10e5d5 0
+u32 10e5d8 3
+u8 10e5e4 3
+u8 10e5e5 0
+u32 10e5e8 f
+u8 10e5f4 3
+u8 10e5f5 0
+u32 10e5f8 1
+u8 10e604 3
+u8 10e605 0
+u32 10e608 10
+u8 10e614 1
+u8 10e615 10
+u32 10e618 14
+u8 10e624 2
+u8 10e625 0
+u32 10e628 11
+u32 10e630 0
+u8 10e634 2
+u8 10e635 0
+u32 10e638 12
+u32 10e640 0
+u8 10e644 3
+u8 10e645 0
+u32 10e648 d
+u8 10e654 3
+u8 10e655 0
+u32 10e658 d
+u8 10e664 3
+u8 10e665 0
+u32 10e668 e
+u8 10e674 3
+u8 10e675 0
+u32 10e678 e
+u8 10e684 3
+u8 10e685 0
+u32 10e688 c
+u8 10e694 3
+u8 10e695 0
+u32 10e698 c
+u8 10e6a4 3
+u8 10e6a5 0
+u32 10e6a8 c
+u8 10e6b4 3
+u8 10e6b5 0
+u32 10e6b8 c
+u16 10e6c8 0
+u32 10e6cc 0
+u16 10e6e4 680
+u32 10e6e8 ffffffff
+u16 10e700 280
+u32 10e704 3
+u32 10e708 ffffffff
+u16 10e71c 8700
+u32 10e720 ffffffff
+u16 10e738 280
+u32 10e73c f
+u32 10e740 ffffffff
+u16 10e754 280
+u32 10e758 a
+u32 10e75c b
+u32 10e760 9
+u16 10e770 280
+u32 10e774 a
+u32 10e778 b
+u32 10e77c 9
+u16 10e78c 280
+u32 10e790 a
+u32 10e794 b
+u32 10e798 9
+u16 10e7a8 680
+u32 10e7ac ffffffff
+u16 10e7c4 8680
+u32 10e7c8 ffffffff
+u16 10e7e0 8680
+u32 10e7e4 ffffffff
+u16 10e7fc 8680
+u32 10e800 ffffffff
+u16 10e818 680
+u32 10e81c ffffffff
+u16 10e834 680
+u32 10e838 ffffffff
+u16 10e850 680
+u32 10e854 ffffffff
+u16 10e86c 8700
+u32 10e870 ffffffff
+u16 10e888 680
+u32 10e88c ffffffff
+u16 10e8a4 0
+u32 10e8a8 ffffffff
+u16 10e8c0 0
+u32 10e8c4 ffffffff
+u16 10e8dc 0
+u32 10e8e0 ffffffff
+u16 10e8f8 0
+u32 10e8fc ffffffff
+u32 10eb79 0
+u32 10eb8a 1
+u32 10eb9b 2
+u32 10ebac 3
+u32 10ebbd 4
+u32 10ebce 5
+u32 10ebdf 6
+u32 10ebf0 7
+u32 10ec01 9
+u32 10ec12 14
+u32 10ec23 1a
+u32 10ec34 20
+u32 10ec45 21
+u32 10ec56 23
+u32 10ec67 26
+u32 10ec78 28
+u32 10ec89 2a
+u32 10ec9a 2b
+u32 10ecab 2c
+u32 10ecbc 2710
+u32 10ecc0 0
+u32 10ecc4 1
+u32 10eccc 2
+u32 10ecdc 3
+u32 10edc4 a6
+u32 10edc8 1a8
+u32 10edcc c3
+u32 10edd0 1c5
+u32 10edd8 e
+u32 10eddc f
+u32 10ede0 0
+u32 10edec ed
+u32 10edf0 163
+u32 10edf4 e3
+u32 10edf8 183
+u32 10edfc d6
+u32 10ee00 184
+u32 10ee04 fffffffd
+u32 10ee08 ac
+u32 10ee0c 123
+u32 10ee10 12e
+u32 10ee14 1a6
+u32 10ee1c 1
+u32 10ee20 2
+u32 10ee24 10
+u32 10ee28 11
+u32 10ee44 4b
+u32 10ee48 174
+u32 10ee4c 41
+u32 10ee50 190
+u32 10ee54 be
+u32 10ee58 aa
+u32 10ee5c 258
+u32 10ee60 3
+u32 10ee64 9
+u32 10ee68 133
+u32 10ee6c 8d
+u32 10ee70 1b7
+u32 10ee78 1
+u32 10ee7c 2
+u32 10ee98 0
+u32 10ee9c 232
+u32 10eea0 174
+u32 10eea4 21d
+u32 10eea8 18d
+u32 10eeac ec
+u32 10eeb0 9f
+u32 10eeb4 fa
+u32 10eeb8 6
+u32 10eebc 1f1
+u32 10eec0 133
+u32 10eec4 274
+u32 10eec8 1b5
+u32 10eed0 1
+u32 10eed4 0
+u32 10eef0 0
+u32 10eef4 18f
+u32 10eef8 163
+u32 10eefc 14c
+u32 10ef00 120
+u32 10ef04 1d2
+u32 10ef08 1a6
+u32 10ef10 4
+u32 10ef14 3
+u32 10ef24 ed
+u32 10ef28 1ad
+u32 10ef2c 18d
+u32 10ef30 1bd
+u8 10ef34 e2
+u8 10ef35 e1
+u8 10ef36 dc
+u8 10ef37 e0
+u8 10ef38 e3
+u8 10ef39 e2
+u32 10ef48 1b2
+u32 10ef4c 82
+u32 10ef50 1d0
+u32 10ef54 a0
+u32 10ef70 1d3
+u32 10ef74 82
+u32 10ef78 1f1
+u32 10ef7c a0
+u32 10ef98 1f4
+u32 10ef9c 82
+u32 10efa0 212
+u32 10efa4 a0
+u32 10efc0 215
+u32 10efc4 82
+u32 10efc8 233
+u32 10efcc a0
+u32 10efe8 236
+u32 10efec 82
+u32 10eff0 254
+u32 10eff4 a0
+u32 10f010 257
+u32 10f014 82
+u32 10f018 275
+u32 10f01c a0
+u32 10f038 1b2
+u32 10f03c a9
+u32 10f040 1d0
+u32 10f044 c7
+u32 10f060 1d3
+u32 10f064 a9
+u32 10f068 1f1
+u32 10f06c c7
+u32 10f088 1f4
+u32 10f08c a9
+u32 10f090 212
+u32 10f094 c7
+u32 10f0b0 215
+u32 10f0b4 a9
+u32 10f0b8 233
+u32 10f0bc c7
+u32 10f0d8 239
+u32 10f0dc 2f
+u32 10f0e0 273
+u32 10f0e4 6a
+u32 10f0ec 14
+u32 10f0f0 0
+u32 10f0f4 d2
+u32 10f0f8 69
+u32 10f0fc c8
+u32 10f100 8f
+u32 10f104 fffffffd
+u32 10f108 99
+u32 10f10c 2f
+u32 10f110 10b
+u32 10f114 a3
+u32 10f11c 1f
+u32 10f120 20
+u32 10f124 21
+u32 10f140 45
+u32 10f144 69
+u32 10f148 3b
+u32 10f14c 8f
+u32 10f150 fffffffd
+u32 10f154 c
+u32 10f158 2f
+u32 10f15c 7e
+u32 10f160 a2
+u32 10f168 1f
+u32 10f16c 20
+u32 10f170 21
+u32 10f18c 13c
+u32 10f190 28
+u32 10f194 17c
+u32 10f198 3a
+u32 10f19c 13c
+u32 10f1a0 28
+u32 10f1a8 5
+u32 10f1b8 14a
+u32 10f1bc 60
+u32 10f1c0 170
+u32 10f1c4 72
+u32 10f1c8 14a
+u32 10f1cc 60
+u32 10f1d4 3
+u32 10f1e4 76
+u32 10f1e8 9d
+u32 10f1ec 9c
+u32 10f1f0 c3
+u32 10f1f8 22
+u32 10f1fc 23
+u32 10f20c 138
+u32 10f210 99
+u32 10f214 182
+u32 10f218 ac
+u32 10f228 45
+u32 10f22c 69
+u32 10f230 ffffffff
+u32 10f234 ffffffff
+u32 10f238 0
+u32 10f23c c
+u32 10f240 2f
+u32 10f244 7e
+u32 10f248 a3
+u32 10f250 1f
+u32 10f254 20
+u32 10f258 21
+u32 10f274 d2
+u32 10f278 69
+u32 10f27c ffffffff
+u32 10f280 ffffffff
+u32 10f284 0
+u32 10f288 99
+u32 10f28c 2f
+u32 10f290 10b
+u32 10f294 a3
+u32 10f29c 1f
+u32 10f2a0 20
+u32 10f2a4 21
+u32 10f2c0 15f
+u32 10f2c4 69
+u32 10f2c8 ffffffff
+u32 10f2cc ffffffff
+u32 10f2d0 0
+u32 10f2d4 125
+u32 10f2d8 2f
+u32 10f2dc 199
+u32 10f2e0 a3
+u32 10f2e8 1f
+u32 10f2ec 20
+u32 10f2f0 21
+u32 10f30c d2
+u32 10f310 69
+u32 10f314 cb
+u32 10f318 8f
+u32 10f31c 0
+u32 10f320 13b
+u32 10f324 46
+u32 10f328 2
+u32 10f32c 96
+u32 10f330 2d
+u32 10f334 10f
+u32 10f338 a6
+u32 10f340 1f
+u32 10f344 1f
+u32 10f360 20
+u32 10f364 36
+u32 10f368 74
+u32 10f36c 70
+u32 10f370 ae
+u32 10f378 17
+u32 10f37c 0
+u32 10f380 36
+u32 10f384 23
+u32 10f388 70
+u32 10f38c 5d
+u32 10f394 19
+u32 10f398 0
+u32 10f39c 15f
+u32 10f3a0 69
+u32 10f3a4 151
+u32 10f3a8 8e
+u32 10f3ac 0
+u32 10f3b0 12c
+u32 10f3b4 258
+u32 10f3b8 4
+u32 10f3bc 125
+u32 10f3c0 2e
+u32 10f3c4 19a
+u32 10f3c8 a4
+u32 10f3d0 24
+u32 10f3d4 24
+u32 10f3f0 20
+u32 10f59c 256
+u32 10f5a0 1f
+u32 10f5a4 274
+u32 10f5a8 3d
+u32 10f5c4 256
+u32 10f5c8 40
+u32 10f5cc 274
+u32 10f5d0 5e
+u32 10f5ec 256
+u32 10f5f0 61
+u32 10f5f4 274
+u32 10f5f8 7f
+u32 10f614 256
+u32 10f618 82
+u32 10f61c 274
+u32 10f620 a0
+u32 10f63c 256
+u32 10f640 a3
+u32 10f644 274
+u32 10f648 c1
+u32 10f664 256
+u32 10f668 c4
+u32 10f66c 274
+u32 10f670 e2
+u32 10f68c 256
+u32 10f690 110
+u32 10f694 274
+u32 10f698 12e
+u32 10f6b4 256
+u32 10f6b8 131
+u32 10f6bc 274
+u32 10f6c0 14f
+u32 10f6dc 256
+u32 10f6e0 152
+u32 10f6e4 274
+u32 10f6e8 170
+u32 10f704 256
+u32 10f708 173
+u32 10f70c 274
+u32 10f710 191
+u32 10f72c 1cf
+u32 10f730 17c
+u32 10f734 209
+u32 10f738 1b5
+u32 10f740 14
+u32 10f744 0
+u32 10f748 d4
+u32 10f74c 53
+u32 10f750 ca
+u32 10f754 79
+u32 10f758 fffffffd
+u32 10f75c 9a
+u32 10f760 19
+u32 10f764 10d
+u32 10f768 8e
+u32 10f770 1f
+u32 10f774 20
+u32 10f778 21
+u32 10f794 47
+u32 10f798 53
+u32 10f79c 3e
+u32 10f7a0 79
+u32 10f7a4 fffffffd
+u32 10f7a8 e
+u32 10f7ac 19
+u32 10f7b0 80
+u32 10f7b4 8e
+u32 10f7bc 1f
+u32 10f7c0 20
+u32 10f7c4 21
+u32 10f7e0 140
+u32 10f7e4 13
+u32 10f7e8 181
+u32 10f7ec 25
+u32 10f7f0 140
+u32 10f7f4 13
+u32 10f7fc 5
+u32 10f80c 14e
+u32 10f810 4b
+u32 10f814 175
+u32 10f818 5d
+u32 10f81c 14e
+u32 10f820 4b
+u32 10f828 3
+u32 10f838 7b
+u32 10f83c 90
+u32 10f840 a1
+u32 10f844 b7
+u32 10f84c 22
+u32 10f850 23
+u32 10f860 13c
+u32 10f864 84
+u32 10f868 187
+u32 10f86c 97
+u32 10f87c 47
+u32 10f880 fc
+u32 10f884 ffffffff
+u32 10f888 ffffffff
+u32 10f88c 0
+u32 10f890 e
+u32 10f894 c2
+u32 10f898 80
+u32 10f89c 138
+u32 10f8a4 1f
+u32 10f8a8 20
+u32 10f8ac 21
+u32 10f8c8 d4
+u32 10f8cc fc
+u32 10f8d0 ffffffff
+u32 10f8d4 ffffffff
+u32 10f8d8 0
+u32 10f8dc 9a
+u32 10f8e0 c2
+u32 10f8e4 10d
+u32 10f8e8 138
+u32 10f8f0 1f
+u32 10f8f4 20
+u32 10f8f8 21
+u32 10f914 161
+u32 10f918 fc
+u32 10f91c ffffffff
+u32 10f920 ffffffff
+u32 10f924 0
+u32 10f928 126
+u32 10f92c c2
+u32 10f930 19e
+u32 10f934 138
+u32 10f93c 1f
+u32 10f940 20
+u32 10f944 21
+u32 10f960 1ee
+u32 10f964 53
+u32 10f968 1e7
+u32 10f96c 79
+u32 10f970 0
+u32 10f974 13b
+u32 10f978 46
+u32 10f97c 2
+u32 10f980 1b3
+u32 10f984 19
+u32 10f988 22a
+u32 10f98c 8e
+u32 10f994 1f
+u32 10f998 1f
+u32 10f9b4 20
+u32 10f9b8 b7
+u32 10f9bc 17b
+u32 10f9c0 f1
+u32 10f9c4 1b5
+u32 10f9cc 17
+u32 10f9d0 0
+u32 10f9d4 2e
+u32 10f9d8 17b
+u32 10f9dc 68
+u32 10f9e0 1b5
+u32 10f9e8 19
+u32 10f9ec 0
+u32 10f9f0 1ee
+u32 10f9f4 fc
+u32 10f9f8 1e0
+u32 10f9fc 121
+u32 10fa00 0
+u32 10fa04 12c
+u32 10fa08 258
+u32 10fa0c 4
+u32 10fa10 1b3
+u32 10fa14 c0
+u32 10fa18 228
+u32 10fa1c 137
+u32 10fa24 24
+u32 10fa28 24
+u32 10fa44 20
+u32 10fa48 22
+u32 10fa4c 29
+u32 10fa50 22
+u32 10fa54 30
+u32 10fa58 1a
+u32 10fa5c 4
+u32 10febc 50
+u32 10fec0 5f
+u32 10fec4 60
+u32 10fec8 81
+u32 10fecc 10
+u32 10fed0 3f
+u32 10fed4 82
+u32 10fed8 9f
+u32 10fedc 4b
+u32 10fee0 4f
+u32 10fee4 40
+u32 10fee8 4a
+u32 10ff54 0
+u32 10ff58 1
+u32 10ff5c 1
+u32 10ff60 2
+u32 10ff64 2
+u32 10ff68 2
+u32 10ff6c 3
+u32 10ff70 3
+u32 10ff74 3
+u32 10ff78 3
+u32 10ff7c 3
+u32 10ff80 4
+u32 10ff84 4
+u32 10ff88 4
+u32 10ff8c 4
+u32 10ff90 4
+u32 10ff94 4
+u32 10ff98 5
+u32 10ff9c 5
+u32 10ffa0 5
+u32 10ffa4 5
+u32 10ffa8 5
+u32 10ffac 5
+u32 10ffb0 5
+u32 10ffb4 6
+u32 10ffb8 6
+u32 10ffbc 6
+u32 10ffc0 6
+u32 10ffc4 6
+u32 10ffc8 6
+u32 10ffcc 6
+u32 10ffd0 6
+u32 10ffd4 7
+u32 10ffd8 7
+u32 10ffdc 7
+u32 10ffe0 7
+u32 10ffe4 7
+u32 10ffe8 7
+u32 10ffec 7
+u32 10fff0 7
+u32 10fff4 7
+u32 10fff8 8
+u32 10fffc 8
+u32 110000 8
+u32 110004 8
+u32 110008 8
+u32 11000c 8
+u32 110010 8
+u32 110014 8
+u32 110018 8
+u32 11001c 9
+u32 110020 9
+u32 110024 9
+u32 110028 9
+u32 11002c 9
+u32 110030 9
+u32 110034 9
+u32 110038 9
+u32 11003c 9
+u32 110040 9
+u32 110044 a
+u32 110048 a
+u32 11004c a
+u32 110050 a
+u32 110054 a
+u32 110058 a
+u32 11005c a
+u32 110060 a
+u32 110064 a
+u32 110068 a
+u32 11006c a
+u32 110070 a
+u32 110074 a
+u32 110078 a
+u32 11007c a
+u32 110080 b
+u32 110084 b
+u32 110088 b
+u32 11008c b
+u32 110090 b
+u32 110094 b
+u32 110098 b
+u32 11009c b
+u32 1100a0 b
+u32 1100a4 b
+u32 1100a8 b
+u32 1100ac b
+u32 1100b0 b
+u32 1100b4 b
+u32 1100b8 b
+u32 1100bc b
+u32 1100c0 b
+u32 1100c4 b
+u32 1100c8 b
+u32 1100cc c
+u32 1100d0 c
+u32 1100d4 c
+u32 1100d8 c
+u32 1100dc c
+u32 1100e0 c
+u32 1100e4 c
+u32 1100e8 c
+u32 1100ec c
+u32 1100f0 c
+u32 1100f4 c
+u32 1100f8 c
+u32 1100fc c
+u32 110100 c
+u32 110104 c
+u32 110108 c
+u32 11010c d
+u32 110110 d
+u32 110114 d
+u32 110118 d
+u32 11011c d
+u32 110120 d
+u32 110124 d
+u32 110128 d
+u32 11012c d
+u32 110130 d
+u32 110134 d
+u32 110138 d
+u32 11013c d
+u32 110140 d
+u32 110144 d
+u32 110148 e
+u32 11014c e
+u32 110150 e
+u32 110154 e
+u32 110158 e
+u32 11015c e
+u32 110160 e
+u32 110164 e
+u32 110168 e
+u32 11016c e
+u32 110170 e
+u32 110174 e
+u32 110178 e
+u32 11017c e
+u32 110180 f
+u32 110184 f
+u32 110188 f
+u32 11018c f
+u32 110190 f
+u32 110194 f
+u32 110198 f
+u32 11019c f
+u32 1101a0 f
+u32 1101a4 f
+u32 1101a8 10
+u32 1101ac 10
+u32 1101b0 10
+u32 1101b4 10
+u32 1101b8 10
+u32 1101bc 10
+u32 1101c0 10
+u32 1101c4 10
+u32 1101c8 11
+u32 1101cc 11
+u32 1101d0 11
+u32 1101d4 11
+u32 1101d8 11
+u32 1101dc 11
+u32 1101e0 12
+u32 1101e4 12
+u32 1101e8 12
+u32 1101ec 12
+u32 1101f0 12
+u32 1101f4 13
+u32 1101f8 13
+u32 1101fc 13
+u32 110200 13
+u32 110204 13
+u32 110208 14
+u32 11020c 14
+u32 110210 14
+u32 110214 15
+u32 110218 15
+u32 11021c 15
+u32 110220 16
+u32 110224 16
+u32 110228 17
+u32 11022c 17
+u32 110230 17
+u32 110234 18
+u32 110238 18
+u32 11023c 18
+u32 110240 19
+u32 110244 19
+u32 110248 19
+u32 11024c 19
+u32 110250 19
+u32 110254 1a
+u32 110258 1a
+u32 11025c 1a
+u32 110260 1a
+u32 110264 1a
+u32 110268 1b
+u32 11026c 1b
+u32 110270 1b
+u32 110274 1b
+u32 110278 1b
+u32 11027c 1b
+u32 110280 1c
+u32 110284 1c
+u32 110288 1c
+u32 11028c 1c
+u32 110290 1c
+u32 110294 1c
+u32 110298 1c
+u32 11029c 1c
+u32 1102a0 1d
+u32 1102a4 1d
+u32 1102a8 1d
+u32 1102ac 1d
+u32 1102b0 1d
+u32 1102b4 1d
+u32 1102b8 1d
+u32 1102bc 1d
+u32 1102c0 1d
+u32 1102c4 1d
+u32 1102c8 1e
+u32 1102cc 1e
+u32 1102d0 1e
+u32 1102d4 1e
+u32 1102d8 1e
+u32 1102dc 1e
+u32 1102e0 1e
+u32 1102e4 1e
+u32 1102e8 1e
+u32 1102ec 1e
+u32 1102f0 1e
+u32 1102f4 1e
+u32 1102f8 1e
+u32 1102fc 1e
+u32 110300 1f
+u32 110304 1f
+u32 110308 1f
+u32 11030c 1f
+u32 110310 1f
+u32 110314 1f
+u32 110318 1f
+u32 11031c 1f
+u32 110320 1f
+u32 110324 1f
+u32 110328 1f
+u32 11032c 1f
+u32 110330 1f
+u32 110334 1f
+u32 110338 1f
+u32 11033c 20
+u32 110340 20
+u32 110344 20
+u32 110348 20
+u32 11034c 20
+u32 110350 20
+u32 110354 20
+u32 110358 20
+u32 11035c 20
+u32 110360 20
+u32 110364 20
+u32 110368 20
+u32 11036c 20
+u32 110370 20
+u32 110374 20
+u32 110378 20
+u32 11037c 21
+u32 110380 21
+u32 110384 21
+u32 110388 21
+u32 11038c 21
+u32 110390 21
+u32 110394 21
+u32 110398 21
+u32 11039c 21
+u32 1103a0 21
+u32 1103a4 21
+u32 1103a8 21
+u32 1103ac 21
+u32 1103b0 21
+u32 1103b4 21
+u32 1103b8 21
+u32 1103bc 21
+u32 1103c0 21
+u32 1103c4 21
+u32 1103c8 22
+u32 1103cc 22
+u32 1103d0 22
+u32 1103d4 22
+u32 1103d8 22
+u32 1103dc 22
+u32 1103e0 22
+u32 1103e4 22
+u32 1103e8 22
+u32 1103ec 22
+u32 1103f0 22
+u32 1103f4 22
+u32 1103f8 22
+u32 1103fc 22
+u32 110400 22
+u32 110404 23
+u32 110408 23
+u32 11040c 23
+u32 110410 23
+u32 110414 23
+u32 110418 23
+u32 11041c 23
+u32 110420 23
+u32 110424 23
+u32 110428 23
+u32 11042c 24
+u32 110430 24
+u32 110434 24
+u32 110438 24
+u32 11043c 24
+u32 110440 24
+u32 110444 24
+u32 110448 24
+u32 11044c 24
+u32 110450 25
+u32 110454 25
+u32 110458 25
+u32 11045c 25
+u32 110460 25
+u32 110464 25
+u32 110468 25
+u32 11046c 25
+u32 110470 25
+u32 110474 26
+u32 110478 26
+u32 11047c 26
+u32 110480 26
+u32 110484 26
+u32 110488 26
+u32 11048c 26
+u32 110490 26
+u32 110494 27
+u32 110498 27
+u32 11049c 27
+u32 1104a0 27
+u32 1104a4 27
+u32 1104a8 27
+u32 1104ac 27
+u32 1104b0 28
+u32 1104b4 28
+u32 1104b8 28
+u32 1104bc 28
+u32 1104c0 28
+u32 1104c4 28
+u32 1104c8 29
+u32 1104cc 29
+u32 1104d0 29
+u32 1104d4 29
+u32 1104d8 29
+u32 1104dc 2a
+u32 1104e0 2a
+u32 1104e4 2a
+u32 1104e8 2b
+u32 1104ec 2b
+u32 1104f0 2c
+u32 1104f4 6
+u32 1104f8 73
+u32 1104fc 56
+u32 110500 52
+u32 110504 65
+u32 110508 3d
+u32 11050c b2
+u32 110510 5e
+u32 110514 105
+u32 110518 30
+u32 11051c 1c4
+u32 110520 78
+u32 110524 22b
+u32 110528 4c
+u32 11052c 2cc
+u32 110530 63
+u32 110534 2d6
+u32 110538 4c
+u32 11053c 39c
+u32 110540 2a
+u32 110544 3b6
+u32 110548 64
+u32 11054c 47e
+u32 110550 15
+u32 110554 547
+u32 110558 4e
+u32 11055c 5cc
+u32 110560 38
+u32 110564 5f1
+u32 110568 4f
+u32 11056c 688
+u32 110570 1b
+u32 110574 6c0
+u32 110578 6c
+u32 11057c 6f6
+u32 110580 4c
+u32 110584 72c
+u32 110588 38
+u32 11058c 850
+u32 110590 43
+u32 110594 89f
+u32 110598 12
+u32 11059c 9e3
+u32 1105a0 53
+u32 1105a4 a4e
+u32 1105a8 6f
+u32 1105ac ab5
+u32 1105b0 55
+u32 1105b4 c78
+u32 1105b8 36
+u32 1105bc d50
+u32 1105c0 23
+u8 1105cc 26
+u8 1105cd 34
+u8 1105ce 3e
+u8 1105cf 36
+u8 1105d0 3a
+u8 1105d1 3d
+u8 1105d2 31
+u8 1105d3 38
+u8 1105d4 3e
+u8 1105d8 3f
+u8 1105d9 3f
+u8 1105da 32
+u32 110ab0 6
+rule ad5e7 e14 cos
+rule 10b5ca 202 atan
+rule 10b7cc 202 hypot
+rule 1095c8 2002 asin
+rule d305b 2ec delta_t
+rule 102fd8 40 depth_charges
+rule 10304c 20 zigzag
+rule 1037e8 20 warship_types
+rule 10cb80 3c helm
+rule 10ce50 10 convoy_sizes
+rule 10ce60 14 escort_sizes
+rule 10ce74 10 patrol_sizes
+rule 10ce84 10 anchored_sizes
+rule 10cea4 20 ring_bearings
+rule 10cec4 18 patrol_sectors
+rule 10cedc c guard_bearings
+rule 10ceec 30 task_force_tiers
+rule 10d6d4 28 screen_shake
+rule 10e3c0 48 torpedo_fixes
+rule 10e408 48 equipment_dates
+rule 1108bc 30 sea_states

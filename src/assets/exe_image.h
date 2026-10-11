@@ -30,6 +30,9 @@ struct LeObject {
   bool is_exec() const { return (flags & 0x4) != 0; }
 };
 
+// What an `ExeImage` read returned, for the read trace of the test builds.
+enum class ExeRead : std::uint8_t { kU8, kU16, kU32, kBytes, kString, kStringPointer };
+
 // The flat, relocated image of SH.EXE's LE module. Reads are by linear address
 // and bounds-checked (`DataError` outside the image).
 class ExeImage {
@@ -70,6 +73,18 @@ class ExeImage {
   // empty string for a NULL pointer.
   std::string_view string_pointer(std::uint32_t pointer_address) const;
 
+#ifdef SH_TRACE_EXE_READS
+  // Not in the original. Called on every read of any image, with the image,
+  // the address, the size read (the string's length with its NUL) and the
+  // kind of read: the test builds' trace of the addresses the code reads
+  // (CMake option SH_TRACE_EXE_READS; nothing in other builds).
+  using ReadObserver = void (*)(const ExeImage& image, std::uint32_t address, std::size_t size, ExeRead kind);
+  static void set_read_observer(ReadObserver observer);
+  // Returns the linear addresses holding a 32-bit pointer (the sources of
+  // the 32-bit offset fixups), sorted.
+  const std::vector<std::uint32_t>& pointer_sources() const { return pointer_sources_; }
+#endif
+
  private:
   std::size_t offset_of(std::uint32_t address, std::size_t n) const;
 
@@ -78,6 +93,9 @@ class ExeImage {
   std::uint32_t base_ = 0;
   std::size_t fixups_applied_ = 0;
   double fixup_consistency_ = 0.0;
+#ifdef SH_TRACE_EXE_READS
+  std::vector<std::uint32_t> pointer_sources_;
+#endif
 };
 
 }  // namespace sh

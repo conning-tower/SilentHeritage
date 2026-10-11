@@ -237,6 +237,14 @@ ExeImage::ExeImage(std::span<const std::uint8_t> exe) {
     }
     ++fixups_applied_;
   };
+#ifdef SH_TRACE_EXE_READS
+  for (const Fixup& fx : fixups) {
+    if (static_cast<FixupSource>(fx.type) == FixupSource::kOffset32) {
+      pointer_sources_.push_back(fx.source);
+    }
+  }
+  std::ranges::sort(pointer_sources_);
+#endif
   for (const Fixup& fx : fixups) {
     switch (static_cast<FixupSource>(fx.type)) {
       case FixupSource::kOffset32:
@@ -267,13 +275,42 @@ std::size_t ExeImage::offset_of(std::uint32_t address, std::size_t n) const {
   return address - base_;
 }
 
-std::uint8_t ExeImage::u8(std::uint32_t address) const { return image_[offset_of(address, 1)]; }
+#ifdef SH_TRACE_EXE_READS
+namespace {
+ExeImage::ReadObserver g_read_observer = nullptr;
+}  // namespace
 
-std::uint16_t ExeImage::u16(std::uint32_t address) const { return read_u16le(image_, offset_of(address, 2)); }
+void ExeImage::set_read_observer(ReadObserver observer) { g_read_observer = observer; }
 
-std::uint32_t ExeImage::u32(std::uint32_t address) const { return read_u32le(image_, offset_of(address, 4)); }
+#define SH_EXE_READ(address, size, kind)                     \
+  do {                                                       \
+    if (g_read_observer != nullptr) {                        \
+      g_read_observer(*this, (address), (size), (kind));     \
+    }                                                        \
+  } while (false)
+#else
+#define SH_EXE_READ(address, size, kind) \
+  do {                                   \
+  } while (false)
+#endif
+
+std::uint8_t ExeImage::u8(std::uint32_t address) const {
+  SH_EXE_READ(address, 1, ExeRead::kU8);
+  return image_[offset_of(address, 1)];
+}
+
+std::uint16_t ExeImage::u16(std::uint32_t address) const {
+  SH_EXE_READ(address, 2, ExeRead::kU16);
+  return read_u16le(image_, offset_of(address, 2));
+}
+
+std::uint32_t ExeImage::u32(std::uint32_t address) const {
+  SH_EXE_READ(address, 4, ExeRead::kU32);
+  return read_u32le(image_, offset_of(address, 4));
+}
 
 std::span<const std::uint8_t> ExeImage::bytes(std::uint32_t address, std::size_t n) const {
+  SH_EXE_READ(address, n, ExeRead::kBytes);
   return std::span<const std::uint8_t>(image_).subspan(offset_of(address, n), n);
 }
 
@@ -283,13 +320,17 @@ std::string_view ExeImage::c_string(std::uint32_t address) const {
   if (nul == image_.end()) {
     throw DataError(std::format("SH.EXE: unterminated string at {:#x}", address));
   }
-  return std::string_view(reinterpret_cast<const char*>(image_.data() + start),
-                          static_cast<std::size_t>(nul - image_.begin()) - start);
+  const std::size_t length = static_cast<std::size_t>(nul - image_.begin()) - start;
+  SH_EXE_READ(address, length + 1, ExeRead::kString);
+  return std::string_view(reinterpret_cast<const char*>(image_.data() + start), length);
 }
 
 std::string_view ExeImage::string_pointer(std::uint32_t pointer_address) const {
-  const std::uint32_t pointer = u32(pointer_address);
+  SH_EXE_READ(pointer_address, 4, ExeRead::kStringPointer);
+  const std::uint32_t pointer = read_u32le(image_, offset_of(pointer_address, 4));
   return pointer == 0 ? std::string_view() : c_string(pointer);
 }
+
+#undef SH_EXE_READ
 
 }  // namespace sh

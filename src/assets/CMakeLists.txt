@@ -44,3 +44,6 @@ sh_add_module(sh_assets
     ${SH_ASSETS_SOUND_SOURCES}
     ${SH_ASSETS_VIDEO_SOURCES}
   DEPS sh_core)
+if(SH_TRACE_EXE_READS)
+  target_compile_definitions(sh_assets PUBLIC SH_TRACE_EXE_READS)
+endif()

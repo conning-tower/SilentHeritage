@@ -1,0 +1,948 @@
+# The layout of an original executable (tests/synthetic/exe_manifest.h): synthetic text, layout numbers.
+object 10000 76e52 2005
+object 90000 85660 2003
+str 90320 "Bladbyfs"
+str 90340 "Renumn"
+str 90398 "0"
+str 9039a "1"
+str 9039c "2"
+str 9039e "3"
+str 903a0 "4"
+str 903a2 "5"
+str 903a4 "6"
+str 903a6 "7"
+str 903a8 "8"
+str 903aa "9"
+str 906e0 "VGYGDB EEKL"
+str 906ec "AK"
+str 906ef "CGDSKV"
+str 906f6 "ABAEDAPYHYF"
+str 90702 "Ifif:"
+str 90708 "Kryg:"
+str 9070e ":"
+str 90710 "Rgbityu:"
+str 90719 "Umy Vmsmhaynoa:"
+str 90729 "Wud:"
+str 9072e "Ykapyvvo:"
+str 90738 "ILLCIS"
+str 9073f "MG"
+str 90742 "YNWEFDSDD"
+str 9074c "Khifgtg Fnmgk:"
+str 9075b "Kdsyk:"
+str 90762 "Tai Gtrsd:"
+str 9076d "Ysamkvrtdubpsahc:"
+str 9077f "VKMCKN"
+str 90786 "LD"
+str 90789 "LYFUFWWNN"
+str 90793 "Dfg"
+str 90797 "Wsnseor"
+str 9079f "Bvpltun:"
+str 907a8 "Eibosop:"
+str 907b1 "LFBLFE"
+str 907b8 "WP"
+str 907bb "OCDEWSCO YLLF"
+str 907c9 "\x1e"
+str 907cb "\x1f"
+str 907cd "DRMFMU"
+str 907d4 "UM"
+str 907d7 "BCYDIKO"
+str 907df "Nvnby"
+str 907e5 "Obne"
+str 907ea "Boplobli"
+str 907f3 "Uvkmcy Rbrtt"
+str 90800 "Ollwcwytt"
+str 9080a "Fukbp ep iouh:"
+str 90819 "Wleivyb Rgimr Puhplbd"
+str 9082f "Gmmmebo Kfsmlw Mtdnn"
+str 90844 "Mobk Gb Cadpf Mdwlnrl"
+str 9085a "Lcdodtlyb"
+str 90864 "ACENVN"
+str 9086b "VD"
+str 9086e "AIRCBY"
+str 90875 "AHFTBT PRA MGNT"
+str 90885 "HHPEMS"
+str 9088c "APNEKP"
+str 90893 "MBDYKC UML GSKF"
+str 908a3 "FEAKPK"
+str 908aa "BYYYCO"
+str 908b2 "VOSHTD"
+str 908b9 "FYAKSH"
+str 908c0 "RLPGRY NFFRUAYU HNVI"
+str 908d5 "KBBRKU"
+str 908dc "TKNTGT"
+str 908fd "NWCO GEBLGFBW"
+str 9090b "WEGNDY"
+str 90912 "VDNU"
+str 90917 "MFNCCY"
+str 9091e "\x1e"
+str 90920 "\x1f"
+str 9092b "ULGCLO"
+str 90932 "DURRCB"
+str 90956 "MS"
+str 90960 "BINOSKE"
+str 90968 "WVME"
+str 9096d "OLTHFKP"
+str 90975 "SSEWFP"
+str 9097c "OTYO VC GMO?"
+str 90989 "FRAUGHKR"
+str 90a3b "Rbckb Nglred:"
+str 90a61 "/"
+str 90a7b " ioke "
+str 90a9a "/"
+str 90b08 " LLPTG"
+str 90b0f "Rlnwb:"
+str 90b2e " skh"
+str 90b33 "Mua Nwvnm:"
+str 90b3e "Wuvtwtlic:"
+str 90b61 " nmf"
+str 90b66 "Uut Alrbb:"
+str 90b71 "Imfv Dfmwr:"
+str 90b95 " mn"
+str 90b99 "Ndvtmncae:"
+str 90ba4 "Prorhfdf:"
+str 90bc6 " daua"
+str 90bcc "Fnnwl:"
+str 90beb " vl"
+str 90bef "Ekrkomlcp:"
+str 90c12 "/"
+str 90c2c " begv "
+str 90c4b "/"
+str 90c59 "Oiak:"
+str 90c6b " - "
+str 90c87 "\x22"
+str 90cb9 "(KO-"
+str 90cd6 ") "
+str 90ce5 "ANWYBE GCVM PLKC"
+str 90d56 "hpmduu.ukw"
+str 90d85 "Oirfksb:"
+str 90d9a " diom"
+str 90da0 "Ewgm:"
+str 90db2 " l "
+str 90dce "\x22"
+str 90ddc "ONCA"
+str 90de1 "Miwpow:"
+str 90df5 " vk"
+str 90df9 "Ckivvovht:"
+str 90e04 "HF'u:"
+str 90e16 "KIIB"
+str 90e1b "Ngsv:"
+str 90e2d " co"
+str 90e31 "Wcucl:"
+str 90e44 "UFPM"
+str 90e49 "Cyyth:"
+str 90e5c " hg"
+str 90e60 "Rwetkpsf:"
+str 90e76 "MEGB"
+str 90e7b "Giduf:"
+str 90e9a " ("
+str 90eb5 ")"
+str 90ec3 " ycc"
+str 90ec8 "Cstthmsok:"
+str 90eeb "/"
+str 90f05 " dlkm "
+str 90f24 "/"
+str 90f92 " '"
+str 90fad "'"
+str 90faf "Hfto:"
+str 90fc1 "Rpmh:"
+str 90fdf " at"
+str 90fe3 "Olotur Dsu:"
+str 91007 " fsh"
+str 9100c "Fgvgke:"
+str 9102c " co"
+str 91030 "Rfy Ddbra:"
+str 91053 " vnc"
+str 91058 "Camhcr:"
+str 91078 " yh"
+str 9107c "Vhbwm:"
+str 9109b " omirw"
+str 910a2 "Pyrb:"
+str 910a8 "Pdoulun:"
+str 910c9 " lm"
+str 910cd "Udvri:"
+str 910d4 "Bcdeknfta:"
+str 910f7 "/"
+str 91111 " dmmm "
+str 91130 "/"
+str 9113e "Oucywraca:"
+str 91165 "Cstvwkw - "
+str 91188 ":"
+str 911a2 "Gnkyru   - "
+str 911c6 ":"
+str 911e0 "Lokigpco - "
+str 91204 ":"
+str 9121e "Kmnvpop   - "
+str 91243 ":"
+str 91269 "1"
+str 9126b "2"
+str 9126d "3"
+str 9126f "4"
+str 91271 "5"
+str 91273 "6"
+str 91275 "7"
+str 91277 "8"
+str 91279 "9"
+str 9127b "10"
+str 9127e "MARK10"
+str 912b5 "POYYFB IOITVY OIUT:"
+str 912c9 "EDLEA"
+str 912cf ""
+str 9136d "?"
+str 9136f "Hwk sse ynwa gro twou wi snlnmftsi"
+str 91392 "HKPHKFPIAYF RRTFITLW"
+str 913a7 "OUDEYUD"
+str 913af "BB"
+str 913b2 "PWD"
+str 913c2 "KWTILL YSAM FEGE:"
+str 913d4 "UAIUK"
+str 91520 "SMFO UBWYYWHOMK"
+str 91530 "SFUR"
+str 91535 "SUDL RGPIUNNI"
+str 91543 "PRRU"
+str 91548 "ETRVIN USMCSKPC"
+str 91558 "TBLEVM"
+str 915f1 "?"
+str 915f3 "Bbh sig rtol tnv hgro bg ryinfm"
+str 91613 "KYITKUII SCSNUWEC"
+str 91625 "YWMTPFC"
+str 916fd "Dwsm mpruaub et uimuouwa?"
+str 91717 "MGFDWDF"
+str 9171f "AY DUHHU EP KGDOV?"
+str 91732 "Fp oaass krt cokcwf bocbihohc ngtay."
+str 91757 "Gws tvk prth tul twud iw ikfokupw?"
+str 9177a "Akc ioe dawi lpp bnsw vk tnmm?"
+str 91848 "COO EPUFEDIM"
+str 91855 "Ktbsa mhrkc rec em tgdlpybk"
+str 9187e "ATICODN LRDICAVD RW "
+str 9189f "fsgmhir ukgh oorwflot?"
+str 918b6 "Ifn fio idnw ies ilvp fl yrpkkwir"
+str 918d8 "VICVCBY"
+str 918ec "KBIBH HHHLEHAU"
+str 918fb "Rvpcuosa ovugdiol fms osriwe"
+str 91918 "Nodkuyhe vh dacokgmde"
+str 9192e "ETCGGL BWYVNU!"
+str 9193d "GCHWK"
+str 91973 "Tmfuvu Pthcao Kkrkeyvy Mrfbry"
+str 91991 "Ycetyal "
+str 9199a "Plowihtrd bg Euch Emiyckpuvg Ulueakweswrke, Ymp."
+str 919cb "Rlgfusctn\x19 1996 Hfwsdgkde Pvwemllpumr, Gvl."
+str 919f7 "Rra selicv ecolgvst."
+str 91a0c "RUY/4TB Ykwdyuemmkuo"
+str 91a21 "Ftyrrhvwi\x19 1990-1994 Ddpewrvd Cbafhga, Ihv."
+str 91a4d "Nlm bkhhad cewbreaa."
+str 91a62 "386GE BIG Hocvpgnb Wkgowd"
+str 91a7c "Yipuibyug\x19 1992-1994 Lsw-Rogfvv Wufk, Osf."
+str 91aa7 "Rpm hwdwtl wrgylfkt."
+str 91abc "Wtk"
+str 91ac0 ""
+str 91ac1 "Vdo"
+str 91ac5 ""
+str 91ac6 "Buwl Mkyremwsyv"
+str 91ad6 ""
+str 91ad7 "Ysub Imlledti"
+str 91ae5 ""
+str 91ae6 "Rwoa Lhkrlnlt"
+str 91af4 ""
+str 91af5 "Spfogn Cifggsmy"
+str 91b05 ""
+str 91b06 "Elao"
+str 91b0b ""
+str 91b0c "Dhbrfoey"
+str 91b15 ""
+str 91b16 "Pouhvpwh Rads"
+str 91b24 ""
+str 91b25 "Filoln Dsii"
+str 91b31 ""
+str 91b32 "Gwbvhkhygue"
+str 91b3e ""
+str 91b3f "Ffgwofebe"
+str 91b49 ""
+str 91b4a "Obucmhtvh"
+str 91b54 ""
+str 91b55 "Kyyumhf"
+str 91b5d ""
+str 91b5e "Bircy"
+str 91b64 ""
+str 91b65 "?"
+str 91b67 "Weofr"
+str 91b6d "Kcvd"
+str 91b72 "1941"
+str 91b77 "1942"
+str 91b7c "1943"
+str 91b81 "1944"
+str 91b86 "1945"
+str 91b8b "Iuvo"
+str 91b90 "AYy"
+str 91b94 "SJ-1"
+str 91b99 "Sfls"
+str 91b9e "IA"
+str 91ba1 "PE"
+str 91ba4 "O-Kknsd"
+str 91bac "BPV"
+str 91bb0 "Gv"
+str 91bb3 "Msm"
+str 91bb7 "WI"
+str 91bba "GGD"
+str 91e5c "OCDUFPA"
+str 91e66 "\x1c"
+str 91e68 "\x1d"
+str 91e6a "Iemle:"
+str 91e71 "rc."
+str 91e75 "Frav:"
+str 91e7b "DSBK"
+str 91e80 "FVB"
+str 91e84 "KPNI"
+str 91e89 "Aurhhpre:"
+str 91e93 "Rcbwm"
+str 91e99 "dlrrm"
+str 91e9f "Vld:"
+str 91ea4 "Lmdcik"
+str 91eab "%"
+str 91ead "Tonmvowt:"
+str 91eb7 "Mmktkb:"
+str 91ebf "Iflff"
+str 91ec5 "dcosa"
+str 91ecb "Acy:"
+str 91ed0 "Oahsd"
+str 91ed6 "sc"
+str 91ed9 "Kdo:"
+str 91ede "Fkbflb:"
+str 91ee6 "%"
+str 91ee8 "Pynpwnfr:"
+str 91ef2 "Bfhpr:"
+str 91ef9 "Ocw Hseyn:"
+str 91f04 "Hpghdb:"
+str 91f0c "Cipm:"
+str 91f12 "Dwatsneivf:"
+str 91f1e "Hiru Twcgs"
+str 91f29 ":"
+str 91f2b "fne"
+str 91f2f "ryob"
+str 91f34 "Stcytyks:"
+str 91f3e "Kcould Whtil"
+str 91f4b ":"
+str 91f4d "hwv"
+str 91f51 "pwbs"
+str 91f56 "Oida Rsdva"
+str 91f61 ":"
+str 91f63 "eep"
+str 91f67 "ytrh"
+str 91f6c "Algpivod:"
+str 91f76 "Mgcd Rskpd"
+str 91f81 ":"
+str 91f83 "mfd"
+str 91f87 "bgpw"
+str 91f8c "AIKR VLNFMF"
+str 91f9a "POCH"
+str 91f9f "TAPSI"
+str 91fa8 "DUVI"
+str 91fad "CNYABO U MUTY"
+str 91fbd "YVHFBV"
+str 91fc4 "VSDRYV"
+str 91ff1 "ISUD"
+str 91ff6 "SFIRLLSUG"
+str 92000 "GRULVHYM"
+str 92009 "MGENEBYIL"
+str 92013 "HMNHL-POYEF"
+str 9202b " Imenlw:"
+str 92034 "Gkmfhvo:"
+str 9203d ""
+str 920c2 "P-tlv kcnce nc, Y-sga ahdbr pll"
+str 920ee " mf"
+str 9210b "Ngulo IPV/Kphde Ptnhm Ispolc vfi Bwti Kmh"
+str 92141 "Ldcapl CTIMBB "
+str 92168 "Nncrwy "
+str 92188 "Sleyvw "
+str 92209 "NEIUGB "
+str 92229 "?"
+str 9222b "cicm thr tmmtbnms?"
+str 9223e "Ese cgb yihs pty rmgp uh ccfwfw gscl tymype"
+str 9226a "DLCCTVD"
+str 9227e "DARW YBIYNW"
+str 9228a "ENNKEP KIIPUD"
+str 92298 "MEHW HORBCW"
+str 922c9 "Rih: "
+str 922e7 ", "
+str 9231a " "
+str 9233f "Tmfc"
+str 9235e "DVK IRI"
+str 92366 "YPH NWCW"
+str 92393 "ISBIBO IROUC"
+str 923dd ""
+str 9243d "Td ubarbkdtf dvnvity tyccl"
+str 92458 "ROYNOP NOCYBO EGVLSM"
+str 9246d "RGDYS"
+str 9247f "*** "
+str 9249c " ***"
+str 924ad "     "
+str 9251b "  "
+str 92532 "  "
+str 92567 ""
+str 92574 "Legoke Rvthmh: "
+str 9259c " butet"
+str 925af "     "
+str 9262f "Crodl: "
+str 9264f "Wrt: "
+str 9266d ", "
+str 92688 "Sgomy: "
+str 926a8 " yaus"
+str 926ba "Bwrsbne: "
+str 926dc "Rudag: "
+str 92751 " ("
+str 9276c ")"
+str 927f5 " okr"
+str 92806 "Ahgfci: "
+str 92827 " ["
+str 92842 "]"
+str 928a8 ") "
+str 929af " '"
+str 929ca "'"
+str 929e4 "Kcdl: "
+str 92a03 "Pmslw: "
+str 92a7a "Bttvtb dypli: "
+str 92a89 "Cumi ysmsy: "
+str 92aa2 "Urigpy: "
+str 92b08 "Idyu wyyvp: "
+str 92b2d ":"
+str 92b9d "\x1a"
+str 92bb7 "\x1b"
+str 92c09 "cork hssl astbe rkuarf ucoohev."
+str 92c29 "Lwnklv hotoisw vdc eebwbyd dttsa onwmocun"
+str 92c53 "IEYSHD RDLABN TMPKLI?"
+str 92c69 "FYKMKRL"
+str 92c7d "%"
+str 92c7f "Nwyv"
+str 92c84 "Frblic"
+str 92c8b "Yfvdgs"
+str 92c92 "Tepagb Khpldr"
+str 92ca0 "Tpepvi Fbmbfi"
+str 92cae "Csurmbarb"
+str 92cb8 "Vmyobb Scbl"
+str 92cc4 "Aevgafw"
+str 92ccc "Mvwa"
+str 92cd1 "Eguled"
+str 92cd8 "Srukik"
+str 92cdf "Dift"
+str 92ce4 "Yedroa Knrcfl"
+str 92cf2 "Knovdu Llycdb"
+str 92d00 "Knsa"
+str 92d05 "Hmcwsor"
+str 92d0d "Vbnr"
+str 92d12 "Byddpg"
+str 92d19 "Nfrnem"
+str 92d20 "Lfmgrm"
+str 92d27 "Lkamol Tgpb"
+str 92d33 "Nrkok Pgfi"
+str 92d3e "Ouobokl Liak"
+str 92d4b "Rsprt Wymg"
+str 92d56 "Btivk Ibciv"
+str 92d62 "Gdldhkh Rudvf"
+str 92d70 "Wfhnp Khcio"
+str 92d7c "Bcpt"
+str 92d81 "Hhtoy 1/3"
+str 92d8b "Yrssa 2/3"
+str 92d95 "Kwwal Nlkblpvo"
+str 92da4 "Ygfcf Yfpe"
+str 92daf "Sctlt Nmwuw"
+str 92dbb "Phdh Hmhubploc"
+str 92dca "Ufpa Ymgg"
+str 92dd4 "Aopv 2/3"
+str 92ddd "Obtp 1/3"
+str 92de6 "Tnoynd t peekirpu"
+str 92e09 "Yybhyp mealwacw #\x01"
+str 92e1c "Pcmulb fpk dlpn gk ygt hcutsn"
+str 92e3a "Apglkn ldr ycufvb fu ilg klynmp vgrp"
+str 92e5f "Iwfrrs siy ccmtle yguewr"
+str 92e78 "Cwukty es evhwh veci om argl"
+str 92e95 "Srcwkt tu ypnfp uyhp vy miyufltvem"
+str 92eb8 "Fiuykp ha rgyvbk et aytvbh"
+str 92ed3 "FM"
+str 92ed6 "W"
+str 92ed8 "N"
+str 92eda "S"
+str 92edc "P"
+str 92ede "Y"
+str 92ee0 "C"
+str 92ee2 "A"
+str 92ee4 "M"
+str 92ee6 "Tnv"
+str 92eea "Sl"
+str 92eed "Wm"
+str 92ef0 "Ogw"
+str 92ef6 "Lnhhnk Vbcm: TDSWP"
+str 92f09 "Lvordk Olmm: WFSVCW"
+str 92f1d "Usmfpv Bfmh: SGMRS"
+str 92f30 "BLDTDG"
+str 92f42 "WORLD-1.WLD"
+str 93057 "(FU-"
+str 93072 ") "
+str 93080 "MARK14"
+str 93087 "MARK10"
+str 9315f "BRHRH"
+str 93220 "RBLP"
+str 938ab "Rfhlpue"
+str 938b3 "Ssiohfyd"
+str 938bc "Lroii"
+str 938c2 "Aibpn"
+str 938c8 "Wks"
+str 938cc "Yeel"
+str 938d1 "Trtw"
+str 938d6 "Gpunvc"
+str 938dd "Mmfgflaov"
+str 938e7 "Tgcuowf"
+str 938ef "Ocgnavsn"
+str 938f8 "Dnrosviw"
+str 93990 "Igblb"
+str 93996 "Ymnfar Epwkap"
+str 939a4 "Mhdapo Ersnak"
+str 939b2 "Rpnumrwt"
+str 939bb "Llyl"
+str 939c0 "Vdmfubdo"
+str 939c9 "Prpap"
+str 939cf "Ea"
+str 939d2 "Lbp"
+str 939d6 "Tioklybide"
+str 939e1 "100-199 ohvy"
+str 939ee "200-299 fegf"
+str 939fb "300-399 cytd"
+str 93a08 "400-499 ivka"
+str 93b05 "HK"
+str 93b08 "Gtrgecuc Notkmmw"
+str 93b19 "ARU"
+str 93b1d "Eytmtt Ekwstvt"
+str 93b2c "GC"
+str 93b2f "Teegtpau Blrlaln"
+str 93b40 "BC"
+str 93b43 "Kslnrvbkrp"
+str 93b4e "ON"
+str 93b51 "Wklcygimur-Grpursl"
+str 93b64 "GH"
+str 93b67 "Sscfu Yrgvgan"
+str 93b75 "OF"
+str 93b78 "Woibn Rukgigm"
+str 93b86 "CF"
+str 93b89 "Pcrgpngvb"
+str 93b93 "RP"
+str 93b96 "Ubibam Lkuhwkaan"
+str 93ba7 "SE"
+str 93baa "Fwcyhb Rdnde"
+str 93bc5 "VM"
+str 93bc8 "Yuhcserbs"
+str 93bd2 "RB"
+str 93bd5 "Fdpsbfbv Glkilcnc"
+str 93be7 "TR"
+str 93bea "Ybshthtru Dvdunrp Fbti"
+str 93c01 "DL"
+str 93c04 "Wrtwv Lhewnmlsv"
+str 93c14 "NW"
+str 93c17 "Vovyw Nloidkwoi"
+str 93c27 "KW"
+str 93c2a "Mulvd Gghnyhkd Aehocfo"
+str 93c41 "WB"
+str 93c44 "Nuh Rwmuwe"
+str 93c4f "TI"
+str 93c52 "Msokvwc Rglovf"
+str 93c61 "LA"
+str 93c64 "Gedwdu Aieu"
+str 93c70 "MU"
+str 93c73 "Barre Tewftloav"
+str 93c83 ""
+str 93c84 "Oewhcb"
+str 93c8b "Ckgkngs"
+str 93c93 "Igntvfh Cnuhlp"
+str 93ca2 "Yswb Nbimbb"
+str 98308 "1.00"
+str 98350 ".SCN"
+str 983b4 "ART\x5c"
+str 9bc78 "SUBPICS.SHP"
+str 9bc84 "AIRPICS.SHP"
+str 9f194 "SPAC_A.SHP"
+str 9f20b "SPAC_H.SHP"
+str 9f21c "SPAC_I.SHP"
+str 9f2c6 "SPAC_S.SHP"
+ptr 98264 90320
+ptr 98274 90340
+ptr 988dc 90398
+ptr 988e0 9039a
+ptr 988e4 9039c
+ptr 988e8 9039e
+ptr 988ec 903a0
+ptr 988f0 903a2
+ptr 988f4 903a4
+ptr 988f8 903a6
+ptr 988fc 903a8
+ptr 98900 903aa
+ptr 9bccc 91973
+ptr 9bcdc 91991
+ptr 9bcec 9199a
+ptr 9bcfc 919cb
+ptr 9bd0c 919f7
+ptr 9bd1c 91a0c
+ptr 9bd2c 91a21
+ptr 9bd3c 91a4d
+ptr 9bd4c 91a62
+ptr 9bd5c 91a7c
+ptr 9bd6c 91aa7
+ptr 9bd74 91abc
+ptr 9bd78 91ac0
+ptr 9bd80 24899
+ptr 9bd88 91ac1
+ptr 9bd8c 91ac5
+ptr 9bd94 248a4
+ptr 9bd9c 91ac6
+ptr 9bda0 91ad6
+ptr 9bda8 248c5
+ptr 9bdb0 91ad7
+ptr 9bdb4 91ae5
+ptr 9bdbc 248ba
+ptr 9bdc4 91ae6
+ptr 9bdc8 91af4
+ptr 9bdd0 248af
+ptr 9bdd8 91af5
+ptr 9bddc 91b05
+ptr 9bde4 248d0
+ptr 9bdec 91b06
+ptr 9bdf0 91b0b
+ptr 9bdf8 24836
+ptr 9be04 9bd74
+ptr 9be08 91b0c
+ptr 9be0c 91b15
+ptr 9be14 2484c
+ptr 9be1c 91b16
+ptr 9be20 91b24
+ptr 9be28 24857
+ptr 9be30 91b25
+ptr 9be34 91b31
+ptr 9be3c 24862
+ptr 9be44 91b32
+ptr 9be48 91b3e
+ptr 9be50 2486d
+ptr 9be58 91b3f
+ptr 9be5c 91b49
+ptr 9be64 24878
+ptr 9be6c 91b4a
+ptr 9be70 91b54
+ptr 9be78 24883
+ptr 9be80 91b55
+ptr 9be84 91b5d
+ptr 9be8c 2488e
+ptr 9be98 9be08
+ptr 9be9c 91b5e
+ptr 9bea0 91b64
+ptr 9bea8 24841
+ptr 9beb4 9be9c
+ptr 9bebc 91b65
+ptr 9bec0 9beb0
+ptr 9becc 91b67
+ptr 9bed0 9be00
+ptr 9bedc 91b6d
+ptr 9bee0 9be94
+ptr 9beec 9beb8
+ptr 9bef4 91b72
+ptr 9bef8 91b77
+ptr 9befc 91b7c
+ptr 9bf00 91b81
+ptr 9bf04 91b86
+ptr 9bf08 91b8b
+ptr 9bf0c 91b90
+ptr 9bf10 91b94
+ptr 9bf14 91b99
+ptr 9bf18 91b9e
+ptr 9bf1c 91ba1
+ptr 9bf20 91ba4
+ptr 9bf24 91bac
+ptr 9bf28 91bb0
+ptr 9bf2c 91bb3
+ptr 9c08c 91bb7
+ptr 9c0b4 91bba
+ptr 9e640 92c7f
+ptr 9e644 92c84
+ptr 9e648 92c8b
+ptr 9e64c 92c92
+ptr 9e650 92ca0
+ptr 9e654 92cae
+ptr 9e658 92cb8
+ptr 9e65c 92cc4
+ptr 9e660 92ccc
+ptr 9e664 92cd1
+ptr 9e668 92cd8
+ptr 9e678 92cdf
+ptr 9e67c 92ce4
+ptr 9e680 92cf2
+ptr 9e690 92d00
+ptr 9e694 92d05
+ptr 9e6a0 92d0d
+ptr 9e6a4 92d12
+ptr 9e6b0 92d19
+ptr 9e6b4 92d20
+ptr 9e6b8 92d27
+ptr 9e6c8 92d33
+ptr 9e6cc 92d3e
+ptr 9e6d0 92d4b
+ptr 9e6d4 92d56
+ptr 9e6d8 92d62
+ptr 9e6dc 92d70
+ptr 9e6e0 92d7c
+ptr 9e6e4 92d81
+ptr 9e6e8 92d8b
+ptr 9e6ec 92d95
+ptr 9e6f0 92da4
+ptr 9e6f4 92daf
+ptr 9e6f8 92dbb
+ptr 9e6fc 92dca
+ptr 9e700 92dd4
+ptr 9e704 92ddd
+ptr 9e70c 92de6
+ptr 9e714 92e09
+ptr 9e718 92e1c
+ptr 9e71c 92e3a
+ptr 9e720 92e5f
+ptr 9e724 92e78
+ptr 9e728 92e95
+ptr 9e72c 92eb8
+ptr 9e730 92ed3
+ptr 9e734 92ed6
+ptr 9e738 92ed8
+ptr 9e73c 92eda
+ptr 9e740 92edc
+ptr 9e744 92ede
+ptr 9e748 92ee0
+ptr 9e74c 92ee2
+ptr 9e750 92ee4
+ptr 9e754 92ee6
+ptr 9e758 92eea
+ptr 9e75c 92eed
+ptr 9e760 92ef0
+ptr 9e774 92ef6
+ptr 9e778 92f09
+ptr 9e77c 92f1d
+ptr 9ef38 938ab
+ptr 9ef3c 938b3
+ptr 9ef40 938bc
+ptr 9ef44 938c2
+ptr 9ef48 938c8
+ptr 9ef4c 938cc
+ptr 9ef50 938d1
+ptr 9ef54 938d6
+ptr 9ef58 938dd
+ptr 9ef5c 938e7
+ptr 9ef60 938ef
+ptr 9ef64 938f8
+ptr 9efb4 93990
+ptr 9efb8 93996
+ptr 9efbc 939a4
+ptr 9efc0 939b2
+ptr 9efc4 939bb
+ptr 9efc8 939c0
+ptr 9efcc 939c9
+ptr 9efd0 939cf
+ptr 9efd4 939d2
+ptr 9efd8 939d6
+ptr 9efdc 939e1
+ptr 9efe0 939ee
+ptr 9efe4 939fb
+ptr 9efe8 93a08
+ptr 9f028 93b05
+ptr 9f02c 93b08
+ptr 9f030 93b19
+ptr 9f034 93b1d
+ptr 9f038 93b2c
+ptr 9f03c 93b2f
+ptr 9f040 93b40
+ptr 9f044 93b43
+ptr 9f048 93b4e
+ptr 9f04c 93b51
+ptr 9f050 93b64
+ptr 9f054 93b67
+ptr 9f058 93b75
+ptr 9f05c 93b78
+ptr 9f060 93b86
+ptr 9f064 93b89
+ptr 9f068 93b93
+ptr 9f06c 93b96
+ptr 9f070 93ba7
+ptr 9f074 93baa
+ptr 9f080 93bc5
+ptr 9f084 93bc8
+ptr 9f088 93bd2
+ptr 9f08c 93bd5
+ptr 9f090 93be7
+ptr 9f094 93bea
+ptr 9f098 93c01
+ptr 9f09c 93c04
+ptr 9f0a0 93c14
+ptr 9f0a4 93c17
+ptr 9f0a8 93c27
+ptr 9f0ac 93c2a
+ptr 9f0b0 93c41
+ptr 9f0b4 93c44
+ptr 9f0b8 93c4f
+ptr 9f0bc 93c52
+ptr 9f0c0 93c61
+ptr 9f0c4 93c64
+ptr 9f0c8 93c70
+ptr 9f0cc 93c73
+ptr 9f0d0 93c83
+ptr 9f0d4 93c84
+ptr 9f0d8 93c8b
+ptr 9f0dc 93c93
+ptr 9f0e0 93ca2
+u32 9bc94 0
+u8 9bc98 7
+u8 9bc99 55
+u8 9bc9a 6
+u8 9bc9b 0
+u32 9bc9c 0
+u8 9bca0 7
+u8 9bca1 38
+u8 9bca2 1
+u8 9bca3 0
+u32 9bca4 0
+u8 9bca8 7
+u8 9bca9 64
+u8 9bcaa d
+u8 9bcab 0
+u32 9bcac ffffffff
+u8 9bcb0 18
+u8 9bcb1 0
+u8 9bcb2 0
+u8 9bcb3 0
+u8 9bcb4 0
+u8 9bcb5 2
+u8 9bcb6 1
+u8 9bcb7 e
+u8 9bcb8 c
+u8 9bcb9 3
+u8 9bcba 4
+u8 9bcbb 6
+u8 9bcbc 5
+u8 9bcbd a
+u8 9bcbe d
+u8 9bcbf b
+u8 9bcc0 9
+u8 9bcc1 8
+u8 9bcc2 7
+u32 9bcc4 c1
+u32 9bcc8 e
+u32 9bcd0 0
+u32 9bcd4 c1
+u32 9bcd8 19
+u32 9bce0 ffffffff
+u32 9bce4 c1
+u32 9bce8 24
+u32 9bcf0 0
+u32 9bcf4 c1
+u32 9bcf8 2f
+u32 9bd00 0
+u32 9bd04 c1
+u32 9bd08 3a
+u32 9bd10 0
+u32 9bd14 c1
+u32 9bd18 55
+u32 9bd20 0
+u32 9bd24 c1
+u32 9bd28 60
+u32 9bd30 0
+u32 9bd34 c1
+u32 9bd38 6b
+u32 9bd40 0
+u32 9bd44 c1
+u32 9bd48 86
+u32 9bd50 0
+u32 9bd54 c1
+u32 9bd58 91
+u32 9bd60 0
+u32 9bd64 c1
+u32 9bd68 9c
+u32 9bd70 0
+u32 9bd84 0
+u32 9bd98 0
+u32 9bdac 0
+u32 9bdc0 0
+u32 9bdd4 0
+u32 9bde8 0
+u32 9bdfc 0
+u32 9be00 7
+u32 9be18 0
+u32 9be2c 0
+u32 9be40 0
+u32 9be54 0
+u32 9be68 0
+u32 9be7c 0
+u32 9be90 0
+u32 9be94 7
+u32 9beac 0
+u32 9beb0 1
+u32 9beb8 5
+u32 9bec4 0
+u32 9bec8 37
+u32 9bed4 0
+u32 9bed8 80
+u32 9bee4 0
+u32 9bee8 3
+u32 9bef0 ffffffff
+u32 9c080 13
+u32 9c084 35
+u32 9c088 b7
+u32 9c090 ffffffff
+u32 9c094 1
+u32 9c098 ffffffff
+u32 9c09c ffffffff
+u32 9c0a0 ff4e
+u32 9c0a4 0
+u32 9c0a8 13
+u32 9c0ac 4d
+u32 9c0b0 b7
+u32 9c0b8 0
+u32 9c0bc ffffffff
+u32 9c0c0 ffffffff
+u32 9c0c4 ffffffff
+u32 9c0c8 ff59
+u32 9c0cc 0
+u32 9e66c 0
+u32 9e670 1
+u32 9e674 2
+u32 9e684 0
+u32 9e688 3
+u32 9e68c 4
+u32 9e698 0
+u32 9e69c 7
+u32 9e6a8 0
+u32 9e6ac 6
+u32 9e6bc 2
+u32 9e6c0 1
+u32 9e6c4 6
+u32 9e708 0
+u32 9e708 0
+u32 9ea30 0
+u32 9ea38 c
+u32 9ea3c 7
+u32 9ea44 c
+u32 9ea48 7
+u32 9ea50 d
+u32 9ea54 6
+u32 9ea5c d
+u32 9ea60 4
+u32 9ea68 e
+u32 9ea6c 2
+u32 9ea74 d
+u32 9f1a1 0
+u32 9f1b2 1
+u32 9f1c3 2
+u32 9f1d4 3
+u32 9f1e5 4
+u32 9f1f6 5
+u32 9f207 6
+u32 9f218 7
+u32 9f229 9
+u32 9f23a 14
+u32 9f24b 1a
+u32 9f25c 20
+u32 9f26d 21
+u32 9f27e 23
+u32 9f28f 26
+u32 9f2a0 28
+u32 9f2b1 2a
+u32 9f2c2 2b
+u32 9f2d3 2c
+u32 9f2e4 2710

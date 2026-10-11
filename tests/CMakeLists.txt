@@ -1,3 +1,33 @@
+# The tests' own library: in-memory and traced installs, and the synthetic
+# install (synthetic/).
+add_library(sh_test_support STATIC
+  synthetic/install_files.cpp
+  # The writers of the game's file formats.
+  synthetic/encoders.cpp
+  synthetic/table_encoders.cpp
+  # The structure of the original's files.
+  synthetic/manifest.cpp
+  # The synthetic install and its generators.
+  synthetic/procedural.cpp
+  synthetic/synthetic_install.cpp
+  synthetic/gen_tables.cpp
+  synthetic/gen_art.cpp
+  synthetic/gen_world.cpp
+  synthetic/gen_media.cpp
+  synthetic/gen_scenarios.cpp
+  synthetic/gen_misc.cpp
+  # The synthetic executables.
+  synthetic/exe_manifest.cpp
+  synthetic/exe_rules.cpp
+  synthetic/le_writer.cpp
+)
+target_include_directories(sh_test_support PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_compile_definitions(sh_test_support PRIVATE SH_SYNTHETIC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/synthetic")
+# The synthetic install written to a directory: make_synthetic_install <dir>.
+add_executable(make_synthetic_install synthetic/make_synthetic_install.cpp)
+target_link_libraries(make_synthetic_install PRIVATE sh_test_support)
+target_link_libraries(sh_test_support PUBLIC sh_core sh_assets)
+
 # Unit tests, one block per area. Tests needing the original game files read
 # the install from the SH_DATA environment variable and are skipped when it is
 # unset (game_data.h).
@@ -126,10 +156,14 @@ add_executable(sh_tests
   golden_game_rig.cpp
   golden_test.cpp
   golden_game_test.cpp
+  # The synthetic install: its format writers.
+  synthetic_encoders_test.cpp
+  synthetic_manifest_test.cpp
+  synthetic_install_test.cpp
 )
 # The committed golden traces, recorded in place with SH_GOLDEN_RECORD.
 target_compile_definitions(sh_tests PRIVATE SH_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/golden")
-target_link_libraries(sh_tests PRIVATE sh_core sh_gfx sh_assets sh_audio sh_sim sh_ui sh_game
+target_link_libraries(sh_tests PRIVATE sh_test_support sh_core sh_gfx sh_assets sh_audio sh_sim sh_ui sh_game
   Catch2::Catch2WithMain)
 # Main program and asset viewer.
 target_link_libraries(sh_tests PRIVATE sh_platform sh_viewer)

@@ -11,6 +11,9 @@ endif()
 
 option(SH_BUILD_TESTS "Build the unit tests" ON)
 option(SH_SANITIZE "Use ASan/UBSan in debug builds (Linux only)" ON)
+# Not for the game: a test build tracing the SH.EXE / SE.EXE addresses the
+# code reads (tests/synthetic, SH_TRACE_EXE_READS).
+option(SH_TRACE_EXE_READS "Trace the reads of the original executables (test builds)" OFF)
 
 # The edition built: its product name (window title, messages, Android
 # label), SDL per-user folder, executable and application id, in the
