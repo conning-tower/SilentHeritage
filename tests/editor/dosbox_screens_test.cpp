@@ -178,7 +178,7 @@ std::array<bool, 2> indicators_lit(EditorRig& rig) {
 
 }  // namespace
 
-TEST_CASE("The DOSBox captures started by the game", "[editor][screens]") {
+TEST_CASE("The DOSBox captures started by the game", "[editor][screens][content]") {
   SH_REQUIRE_GAME_DATA(install);
   EditorRig rig(install, true);
   rig.host.frame_limit = 100'000;
@@ -229,7 +229,7 @@ TEST_CASE("The DOSBox captures started by the game", "[editor][screens]") {
   CHECK(rig.editor.run() == EditorExit::kExit);
 }
 
-TEST_CASE("The DOSBox captures started from DOS", "[editor][screens]") {
+TEST_CASE("The DOSBox captures started from DOS", "[editor][screens][content]") {
   SH_REQUIRE_GAME_DATA(install);
   EditorRig rig(install, false);
   rig.host.frame_limit = 100'000;
@@ -259,7 +259,7 @@ TEST_CASE("The DOSBox captures started from DOS", "[editor][screens]") {
 // limited by date (the lists' lengths), the date moved from 7 Dec 1941 to
 // late 1944 before 213614 (the aircraft list without the D3A and B5N, the
 // sub list without the TENCH).
-TEST_CASE("The DOSBox captures of the object panels and dialogs", "[editor][screens]") {
+TEST_CASE("The DOSBox captures of the object panels and dialogs", "[editor][screens][content]") {
   SH_REQUIRE_GAME_DATA(install);
   EditorRig rig(install, true);
   rig.host.frame_limit = 100'000;
@@ -458,7 +458,7 @@ TEST_CASE("The DOSBox captures of the object panels and dialogs", "[editor][scre
 // enemy sub's TOOLBOX, then an airstrike on Kochi and a photo recon of
 // Tokushima with their panels, the view scrolled 150 lines down.
 TEST_CASE("The DOSBox captures of the enemy sub and mission panels", "[editor][screens]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorRig rig(install, true);
   rig.host.frame_limit = 100'000;
   const auto chart = [&rig]() -> ChartScreen& { return rig.editor.chart(); };
