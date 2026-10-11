@@ -57,7 +57,7 @@ TEST_CASE("Chart edge scroll: the margin, and the original's over a panel", "[ed
 }
 
 TEST_CASE("Chart edge scroll: the chart scrolls at the margin; its bar has no button", "[edgescroll]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   chart.view().set_zoom(8 << 16);
