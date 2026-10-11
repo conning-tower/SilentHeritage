@@ -58,7 +58,7 @@ TEST_CASE("The save name is upper-cased and cut at a space", "[editor][file]") {
 }
 
 TEST_CASE("SAVE SCENARIO edits the scenario name", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   const std::vector<std::string> names{"ALPHA", "BRAVO", "CHARLIE"};
 
@@ -101,7 +101,7 @@ TEST_CASE("SAVE SCENARIO edits the scenario name", "[editor][file]") {
 }
 
 TEST_CASE("The Load / Delete dialog returns the chosen scenario", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   const std::vector<ScenarioListEntry> entries{
       {"HIST01.SCN", "Pearl Harbor\n", long_briefing()},
