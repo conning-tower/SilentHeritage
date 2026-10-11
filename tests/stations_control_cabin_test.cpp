@@ -40,7 +40,7 @@ RadioMessage message(std::int32_t template_index) {
 
 }  // namespace
 
-TEST_CASE("Radio messages fill their RMSG.DAT template", "[stations]") {
+TEST_CASE("Radio messages fill their RMSG.DAT template", "[stations][content]") {
   SH_REQUIRE_GAME_EXE();
   const std::string bases[] = {"Truk"};
   const std::string types[] = {"Buoy", "City"};
@@ -55,7 +55,7 @@ TEST_CASE("Radio messages fill their RMSG.DAT template", "[stations]") {
 }
 
 TEST_CASE("The cabin pages follow the keys and the hotspots", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   CabinStation& cabin = install_cabin(rig);
   const StationRegistry& stations = rig.screen->stations();
@@ -101,7 +101,7 @@ TEST_CASE("The cabin pages follow the keys and the hotspots", "[stations]") {
 }
 
 TEST_CASE("The conn's cabin door opens the cabin", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   CabinStation& cabin = install_cabin(rig);
   rig.frames(1);
@@ -115,7 +115,7 @@ TEST_CASE("The conn's cabin door opens the cabin", "[stations]") {
   CHECK(cabin.open_page() == 0);
 }
 
-TEST_CASE("The calendar of HIST01", "[stations]") {
+TEST_CASE("The calendar of HIST01", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   Mission& mission = rig.mission();
@@ -143,7 +143,7 @@ TEST_CASE("The calendar of HIST01", "[stations]") {
                              << lines[7]);
 }
 
-TEST_CASE("The patrol log pages its entries nine at a time", "[stations]") {
+TEST_CASE("The patrol log pages its entries nine at a time", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   CabinStation& cabin = install_cabin(rig);
@@ -179,7 +179,7 @@ TEST_CASE("The patrol log pages its entries nine at a time", "[stations]") {
   CHECK(cabin.open_page() == 0);
 }
 
-TEST_CASE("The radio log opens at the first unread message", "[stations]") {
+TEST_CASE("The radio log opens at the first unread message", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   CabinStation& cabin = install_cabin(rig);
