@@ -141,7 +141,7 @@ std::vector<std::uint8_t> state_cut_after_log(std::int32_t tonnage, std::size_t 
 
 }  // namespace
 
-TEST_CASE("A career selected on patrol from the roster gets its patrol state", "[gamereview]") {
+TEST_CASE("A career selected on patrol from the roster gets its patrol state", "[gamereview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   TempDir dir;
@@ -171,7 +171,7 @@ TEST_CASE("A career selected on patrol from the roster gets its patrol state", "
   CHECK(in_port.patrol_state.empty());
 }
 
-TEST_CASE("A two-point route group heads for its second point and moves", "[gamereview]") {
+TEST_CASE("A two-point route group heads for its second point and moves", "[gamereview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::vector<PatrolZone> zones = parse_patrol_zones(install.read("DATA/PZ.DAT"), "PZ.DAT");
@@ -220,7 +220,7 @@ TEST_CASE("A two-point route group heads for its second point and moves", "[game
   CHECK(distance(g->position) < distance(start));
 }
 
-TEST_CASE("The roster starts on its last row after the last one was deleted", "[gamereview]") {
+TEST_CASE("The roster starts on its last row after the last one was deleted", "[gamereview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   // A front end over the install whose host clicks VIEW once.
   class Host final : public FrontendHost, public MissionRunner {
@@ -267,7 +267,7 @@ TEST_CASE("The roster starts on its last row after the last one was deleted", "[
   CHECK(selection == 0);
 }
 
-TEST_CASE("A roster that cannot be written keeps its last save", "[gamereview]") {
+TEST_CASE("A roster that cannot be written keeps its last save", "[gamereview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   TempDir dir;
   const SaveDir saves(dir.path(), &install, "SAVE/");
@@ -281,7 +281,7 @@ TEST_CASE("A roster that cannot be written keeps its last save", "[gamereview]")
   CHECK(saves.read("ROSTER1.SAV") == before);
 }
 
-TEST_CASE("Damaged saves and rosters read as none", "[gamereview]") {
+TEST_CASE("Damaged saves and rosters read as none", "[gamereview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   TempDir dir;
   const SaveDir saves(dir.path(), &install, "SAVE/");
@@ -304,7 +304,7 @@ TEST_CASE("Damaged saves and rosters read as none", "[gamereview]") {
   CHECK(view.record.tonnage == saved->career.record.tonnage);
 }
 
-TEST_CASE("VIEW CAREER reads a patrol state up to its patrol log", "[gamereview]") {
+TEST_CASE("VIEW CAREER reads a patrol state up to its patrol log", "[gamereview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   TempDir dir;
   const SaveDir saves(dir.path(), &install, "SAVE/");
@@ -381,7 +381,7 @@ TEST_CASE("Extension counts past the end and bad routes are rejected", "[gamerev
 }
 
 TEST_CASE("The contact groups forget a removed vehicle at once", "[gamereview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::vector<PatrolZone> zones = parse_patrol_zones(install.read("DATA/PZ.DAT"), "PZ.DAT");
   ZoneData zone = ZoneData::load(install, zones.at(0));
@@ -425,7 +425,7 @@ TEST_CASE("The contact groups forget a removed vehicle at once", "[gamereview]")
 }
 
 TEST_CASE("A single mission's scenario group forgets its deleted vehicles", "[gamereview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
   ContactGroup* g = mission->scenario_group();
@@ -440,7 +440,7 @@ TEST_CASE("A single mission's scenario group forgets its deleted vehicles", "[ga
 }
 
 TEST_CASE("The chart's view and panels are kept in the state lists", "[gamereview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
   const GameTables tables = GameTables::load(install);
@@ -498,7 +498,7 @@ TEST_CASE("The chart's view and panels are kept in the state lists", "[gamerevie
 namespace sh {
 
 TEST_CASE("The AA guns' state is the combat's and is kept in the state lists", "[gamereview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
   const GameTables tables = GameTables::load(install);
