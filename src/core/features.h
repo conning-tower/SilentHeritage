@@ -45,9 +45,15 @@ constexpr std::string_view command_bar_label(CommandBarStyle style) {
 }
 
 struct Features {
-  // Screens wider than 4:3: the chart and the 3D views fill the window's
-  // width.
+  // Screens wider than 4:3: the chart and the bridge fill the window's
+  // width; the other screens are shown centred between side fills.
   bool wide_screen = false;
+  // The views draw their random details (shell tracers, the bomber
+  // formations' spread, the radar's A-scope noise) from a generator of
+  // their own. This changes the simulation: in the original they draw from
+  // the game's generator, so what is displayed changes the game's random
+  // sequence; with this the simulation is the same whatever station shows.
+  bool draw_random = false;
   // The crew's message log: clicking the message strip of the command bar
   // lists the crew's messages with their game times.
   bool crew_log = false;
@@ -99,6 +105,7 @@ struct Features {
   // Returns every improvement.
   static constexpr Features extended() {
     return {.wide_screen = true,
+            .draw_random = true,
             .crew_log = true,
             .chart_tools = true,
             .last_boat = true,

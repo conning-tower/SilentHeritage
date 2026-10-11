@@ -19,9 +19,10 @@ struct FlagExpectation {
   bool keeps_simulation;
 };
 inline constexpr FlagExpectation kFlagExpectations[] = {
-    // Its views draw from a render generator of their own, so the game's
-    // generator no longer sees the views' draws.
-    {"wide_screen", &Features::wide_screen, false},
+    {"wide_screen", &Features::wide_screen, true},
+    // The views draw from a generator of their own, so the game's generator
+    // no longer sees the views' draws.
+    {"draw_random", &Features::draw_random, false},
     {"crew_log", &Features::crew_log, true},
     {"chart_tools", &Features::chart_tools, true},
     // The front end's SUB CLASS screen only (golden_game_test.cpp).

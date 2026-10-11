@@ -62,6 +62,8 @@ void StationEnvHost::play_sfx_at(std::int32_t sfx, std::int32_t volume) { env_.s
 
 bool StationEnvHost::full_redraw() const { return env_.ui.redraw; }
 
+WatcomRandom* StationEnvHost::draw_random() { return &env_.draw_random(); }
+
 Fixed16 next_magnification(Fixed16 zoom) {
   // tbt_cycle_zoom / scope_toggle_magnification: doubles up to 8x.
   return zoom.raw() < 0x80000 ? Fixed16::from_raw(zoom.raw() << 1) : Fixed16::from_int(1);
@@ -112,9 +114,14 @@ void AttackServices::shade_palette(const VgaPalette* overlay) {
 }
 
 RenderList AttackServices::render_world(const ViewEye& eye) {
-  RenderList list = world_.render(mission_, eye, mission_.sim().random());
+  RenderList list = world_.render(mission_, eye, draw_random());
   world_.lighting().cycle_lights(palette_);
   return list;
+}
+
+WatcomRandom& AttackServices::draw_random() {
+  WatcomRandom* own = host_.draw_random();
+  return own != nullptr ? *own : mission_.sim().random();
 }
 
 Viewport AttackServices::world_window(int x0, int top, int x1, int bottom) {

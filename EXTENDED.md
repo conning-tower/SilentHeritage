@@ -45,6 +45,9 @@ kept with it.
 
 ## Rules
 
+- **What you watch does not change the game:** shell tracers, the bomber
+  formations' spread and the radar's noise no longer draw from the game's
+  dice, so a mission plays out the same whichever station you look at.
 - **Sonar reports:** a ship the sound man has already reported is reported
   again, and the time compression reset, only after 3 minutes unheard.
 - **Undeafened escorts:** a new REALISM item that gives the escorts the

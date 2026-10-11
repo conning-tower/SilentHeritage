@@ -167,6 +167,7 @@ add_executable(sh_tests
   synthetic_encoders_test.cpp
   synthetic_manifest_test.cpp
   synthetic_install_test.cpp
+  draw_random_test.cpp
 )
 # The committed golden traces, recorded in place with SH_GOLDEN_RECORD.
 target_compile_definitions(sh_tests PRIVATE SH_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/golden")

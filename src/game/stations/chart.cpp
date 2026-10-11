@@ -1288,7 +1288,7 @@ void ChartStation::draw_air_group(const AirGroup& g) {
   if (!g.sighted()) {
     return;
   }
-  WatcomRandom& random = env_.mission.sim().random();
+  WatcomRandom& random = env_.draw_random();
   const auto saved = static_cast<std::uint32_t>(random.rand());
   random.srand(g.formation_seed());
   std::int32_t spread = 700;

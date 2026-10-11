@@ -18,6 +18,7 @@
 #include "core/features.h"
 #include "core/fixed.h"
 #include "core/image.h"
+#include "core/random.h"
 #include "game/station.h"
 #include "game/station_env.h"
 #include "game/world_view_adapter.h"
@@ -105,6 +106,10 @@ class AttackStationHost {
   // The full redraw flag of the frame (0x11a898), set after a menu or a
   // modal dialog covered the station.
   virtual bool full_redraw() const { return false; }
+  // The generator the views draw their random details from
+  // (`Features::draw_random`; not in the original), or nullptr for the
+  // game's own, as the original draws them.
+  virtual WatcomRandom* draw_random() { return nullptr; }
 };
 
 // The host of the stations in the mission screen (`MissionScreen`): the
@@ -125,6 +130,7 @@ class StationEnvHost final : public AttackStationHost {
   void play_sfx(std::int32_t sfx) override;
   void play_sfx_at(std::int32_t sfx, std::int32_t volume) override;
   bool full_redraw() const override;
+  WatcomRandom* draw_random() override;
 
   std::function<std::unique_ptr<StationPanel>(PanelSite)> nav_panels;
   std::function<std::unique_ptr<StationPanel>(PanelSite)> id_books;
@@ -164,6 +170,9 @@ class AttackServices {
   const Shp& cursors() const { return cursors_; }
   const Shp& global_sprites() const { return global_; }
   const Font& bearing_font() const { return bearing_font_; }
+  // Returns the generator the views draw their random details from: the
+  // host's (`AttackStationHost::draw_random`), else the game's.
+  WatcomRandom& draw_random();
 
   // Selects the station the loop switches to (`0x11a860 = ...`).
   void go_to(StationId id) { stations_.select(id); }

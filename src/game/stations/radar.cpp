@@ -435,7 +435,7 @@ void RadarStation::Impl::draw_ascope(const Viewport& vp, const std::vector<Radar
                                      std::int32_t range, std::uint8_t base) {
   // radar_draw_ascope (0x65c51): the noise grass, then a spike per blip
   // seen for 4 sweeps within 1.25 x the range.
-  WatcomRandom& random = mission().sim().random();
+  WatcomRandom& random = services.draw_random();
   const std::int32_t limit = range + range / 4;
   for (int x = 0; x <= width; ++x) {
     const std::int32_t length = random.random_int(5) + 3;

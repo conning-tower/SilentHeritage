@@ -19,6 +19,7 @@
 #include "audio/mel_layer.h"
 #include "core/features.h"
 #include "core/install.h"
+#include "core/random.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
 #include "ui/dialog.h"
@@ -177,6 +178,9 @@ struct MissionUiState {
   // The improvements beyond the original the mission runs with (not in
   // the original).
   Features features{};
+  // The views' own generator (`Features::draw_random`; not in the
+  // original).
+  WatcomRandom draw_generator;
   // The 16 animation tick counters 0x129bc0..0x129bfc, advanced by the
   // 100 Hz game timer while the simulation runs (`game_timer_tick`).
   std::array<std::int32_t, 16> timers{};
@@ -253,6 +257,9 @@ struct StationEnv {
   void default_cursor() { gui.mouse().set_cursor(assets.cursors, ui::CursorId::kPointer); }
   // Returns tick counter `t` (the screens reset it by assignment).
   std::int32_t& timer(GameTimer t) { return ui.timers[static_cast<std::size_t>(t)]; }
+  // Returns the generator the views draw their random details from: their
+  // own with `Features::draw_random`, else the game's, as the original.
+  WatcomRandom& draw_random();
 };
 
 // `load_pcx(name, screen, palette)` (0x589cc): draws the PCX `art_file`

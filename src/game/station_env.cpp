@@ -5,8 +5,13 @@
 
 #include "assets/pcx.h"
 #include "assets/speech.h"
+#include "game/mission.h"
 
 namespace sh {
+
+WatcomRandom& StationEnv::draw_random() {
+  return ui.features.draw_random ? ui.draw_generator : mission.sim().random();
+}
 
 StationAssets StationAssets::load(const Install& install) {
   return {Shp::load(install, "ART/CURSORS.SHP"), Shp::load(install, "ART/GLOBAL.SHP"),
