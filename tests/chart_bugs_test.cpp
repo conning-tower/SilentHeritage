@@ -45,7 +45,7 @@ std::uint64_t region_hash(const Image8& img, int x0, int y0, int x1, int y1) {
 TEST_CASE("The TIME COMPRESSION value is not drawn over a black box", "[chartbugs]") {
   // Dialog 0x11fbf8: the value's text field has no fill (+0x30 = -1) and
   // uses the GUI colours (+0x2c = -1).
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   open_chart(rig);
   rig.screen->bar().menu_time_compression();
@@ -62,7 +62,7 @@ TEST_CASE("The TIME COMPRESSION value is not drawn over a black box", "[chartbug
 
 TEST_CASE("A single mission's units form one route group shown on the zoomed-out chart", "[chartbugs]") {
   // init_spawn_scenario_units / convoy_group_from_scenario.
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ContactGroup* g = rig.mission().scenario_group();
   REQUIRE(g != nullptr);
@@ -85,7 +85,7 @@ TEST_CASE("A single mission's units form one route group shown on the zoomed-out
   CHECK(g->report.symbol_frame != 0);
 }
 
-TEST_CASE("A held telegraph keeps its hub while no overlay reaches the panel", "[chartbugs]") {
+TEST_CASE("A held telegraph keeps its hub while no overlay reaches the panel", "[chartbugs][content]") {
   // chart_view_redraw_overlays repaints the open panel only when an overlay
   // meets it; a repaint does not draw a pressed control.
   SH_REQUIRE_GAME_DATA(install);
