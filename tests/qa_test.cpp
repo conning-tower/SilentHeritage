@@ -83,7 +83,7 @@ struct SessionRig {
 
 }  // namespace
 
-TEST_CASE("The XO's message box writes its lines in the GUI text colour", "[qa]") {
+TEST_CASE("The XO's message box writes its lines in the GUI text colour", "[qa][content]") {
   // show_message_box / ask_yes_no (0x4c38d / 0x4c670): the line fields
   // draw through the GUI glyph table (+0x2c = -1), so the lines are dark
   // on the grey box instead of FONT1's raw light grey.
@@ -124,7 +124,7 @@ TEST_CASE("Every '+' and '-' key changes the time compression", "[qa]") {
   CHECK(hotkey_for(*bios_key_word(SDLK_P, SDL_KMOD_LSHIFT)) == HotkeyAction::kPeriscopeDepth);
 }
 
-TEST_CASE("Periscope depth from the surface in HIST01 with the expert sailing model", "[qa]") {
+TEST_CASE("Periscope depth from the surface in HIST01 with the expert sailing model", "[qa][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup setup;
@@ -149,7 +149,7 @@ TEST_CASE("Periscope depth from the surface in HIST01 with the expert sailing mo
   CHECK(p.depth_ft() == 65);
 }
 
-TEST_CASE("The engines are heard and the telegraph orders spoken", "[qa]") {
+TEST_CASE("The engines are heard and the telegraph orders spoken", "[qa][content]") {
   // player_update_engine_sounds (0x5cb90) had only its order logic.
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
@@ -202,7 +202,6 @@ TEST_CASE("The engines are heard and the telegraph orders spoken", "[qa]") {
 }
 
 TEST_CASE("The helmsman answers the helm orders and reports on course", "[qa]") {
-  SH_REQUIRE_GAME_EXE();
   // player_update_helm_and_dive (0x5c4f2): HELM03xx.RAW with crew messages
   // #8 / #9 / #10, ONCOURSE.RAW when a steered course is reached.
   const FlatSeaFloor deep(-3000 * kUnitsPerFoot);
@@ -237,7 +236,7 @@ TEST_CASE("Firing from any station is heard once and spoken", "[qa]") {
   // The TDC's tube buttons fired silently (the key path played the launch
   // sound twice): fire_tube (0x7cd70) plays sfx 0x14 and the order, and
   // the reload ends with the "tube loaded" speech.
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
   HeadlessRunner(*mission).run(2);
