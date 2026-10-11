@@ -101,7 +101,7 @@ constexpr std::uint32_t kGreen = 0x46c85a;  // the lamps and frames of kLampGree
 }  // namespace
 
 TEST_CASE("controls: the panel reads the depth order in effect", "[controls][cmdpanel]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
   PlayerSub& sub = mission->player();
@@ -142,7 +142,7 @@ TEST_CASE("controls: the panel reads the depth order in effect", "[controls][cmd
 }
 
 TEST_CASE("controls: the panel reads each tube's state", "[controls][cmdpanel]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
   TorpedoTubes& tubes = mission->player_combat().tubes;
@@ -167,7 +167,7 @@ TEST_CASE("controls: the panel reads each tube's state", "[controls][cmdpanel]")
 }
 
 TEST_CASE("controls: a boat's missing tubes are absent from the panel", "[controls][cmdpanel]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // HIST01's BALAO has 10 tubes; an S-boat or a Gato-less loadout has
   // fewer: the panel's tubes past `count()` are absent.
   const GameTables tables = GameTables::load(install);
@@ -239,7 +239,7 @@ TEST_CASE("controls: the panel draws the live state, and today's look without on
   CHECK(count(today, t5, 0xc00000) > 0);
 }
 
-TEST_CASE("controls: live panel window screenshots", "[.controls_panel_window]") {
+TEST_CASE("controls: live panel window screenshots", "[.controls_panel_window][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const char* frame_path = std::getenv("SH_PANEL_FRAME");
   const char* out = std::getenv("SH_PANEL_OUT");
