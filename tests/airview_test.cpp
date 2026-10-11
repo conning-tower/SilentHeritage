@@ -77,7 +77,7 @@ std::vector<std::uint8_t> chart_patch(const test::ControlRig& rig, const ChartSt
 
 }  // namespace
 
-TEST_CASE("The view adds a sighted aircraft and an enemy submarine with their sprites", "[airview]") {
+TEST_CASE("The view adds a sighted aircraft and an enemy submarine with their sprites", "[airview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = HeadlessRunner::load(install, tables, kScenario, {});
@@ -154,7 +154,7 @@ TEST_CASE("The view adds a sighted aircraft and an enemy submarine with their sp
 }
 
 TEST_CASE("Smoke puffs grow from 2000 to 6000 units over their half second", "[airview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = HeadlessRunner::load(install, tables, kScenario, {});
   const fx::Vec3 own = mission->player().position();
@@ -175,7 +175,7 @@ TEST_CASE("Smoke puffs grow from 2000 to 6000 units over their half second", "[a
   CHECK(o->size == 4000u << 16);
 }
 
-TEST_CASE("Radio reports read like the original's RMSG.DAT messages", "[airview]") {
+TEST_CASE("Radio reports read like the original's RMSG.DAT messages", "[airview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = HeadlessRunner::load(install, tables, kScenario, {});
@@ -224,7 +224,7 @@ TEST_CASE("Radio reports read like the original's RMSG.DAT messages", "[airview]
 }
 
 TEST_CASE("Radio messages wait for the radio, then reach the log with the crew's report", "[airview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = HeadlessRunner::load(install, tables, kScenario, {});
   RadioRoom radio(*mission, "ComSubSoWesPac");
@@ -274,7 +274,7 @@ TEST_CASE("Radio messages wait for the radio, then reach the log with the crew's
   CHECK(clock.requested_compression() == 1);
 }
 
-TEST_CASE("The chart shows a surfaced enemy submarine and hides a submerged one", "[airview]") {
+TEST_CASE("The chart shows a surfaced enemy submarine and hides a submerged one", "[airview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   test::ControlRig rig(install, kScenario);
   auto owned = std::make_unique<ChartStation>(rig.screen->env());
@@ -311,7 +311,7 @@ TEST_CASE("The chart shows a surfaced enemy submarine and hides a submerged one"
 
 namespace sh {
 
-TEST_CASE("A downed pilot the boat touched comes aboard once it is slow", "[airview]") {
+TEST_CASE("A downed pilot the boat touched comes aboard once it is slow", "[airview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = HeadlessRunner::load(install, tables, kScenario, {});
