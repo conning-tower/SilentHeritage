@@ -57,7 +57,7 @@ std::vector<std::uint8_t> row_of(const Image8& img, int y) {
 
 }  // namespace
 
-TEST_CASE("CAT directory of 3DSHIPS.CAT", "[gfx][cat]") {
+TEST_CASE("CAT directory of 3DSHIPS.CAT", "[gfx][cat][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const CatArchive cat = CatArchive::load(install, "ART/3DSHIPS.CAT");
   REQUIRE(cat.entries().size() == 81);
@@ -74,7 +74,7 @@ TEST_CASE("CAT directory of 3DSHIPS.CAT", "[gfx][cat]") {
   CHECK_THROWS_AS(cat.member("NOPE.SHP"), DataError);
 }
 
-TEST_CASE("SHP from a CAT member matches the reference decoder", "[gfx][shp]") {
+TEST_CASE("SHP from a CAT member matches the reference decoder", "[gfx][shp][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const CatArchive cat = CatArchive::load(install, "ART/3DSHIPS.CAT");
   const Shp shp = Shp::parse(cat.member("ABOAS.SHP"), "ABOAS.SHP");
@@ -91,7 +91,7 @@ TEST_CASE("SHP from a CAT member matches the reference decoder", "[gfx][shp]") {
   CHECK(fnv1a(shp.frame(11).decode().image.pixels()) == 0xaacb00d2u);
 }
 
-TEST_CASE("SHP files: frame boxes, pixels, partial palettes", "[gfx][shp]") {
+TEST_CASE("SHP files: frame boxes, pixels, partial palettes", "[gfx][shp][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Shp gui = Shp::load(install, "ART/GUISPR.SHP");
   CHECK(gui.version() == "1.10");
@@ -125,7 +125,7 @@ TEST_CASE("SHP files: frame boxes, pixels, partial palettes", "[gfx][shp]") {
   CHECK(screen[0] == 0);
 }
 
-TEST_CASE("Every original sprite set and font parses like the Python tools", "[gfx][shp][fnt]") {
+TEST_CASE("Every original sprite set and font parses like the Python tools", "[gfx][shp][fnt][content]") {
   SH_REQUIRE_GAME_DATA(install);
   auto opaque_pixels = [](const Shp& shp) {
     long n = 0;
@@ -193,7 +193,7 @@ TEST_CASE("SHP parsing rejects rows overrunning the box", "[gfx][shp]") {
   CHECK(ok.frame(0).decode().image.at(1, 0) == 9);
 }
 
-TEST_CASE("PCX decode matches the reference decoder, palette as load_pcx", "[gfx][pcx]") {
+TEST_CASE("PCX decode matches the reference decoder, palette as load_pcx", "[gfx][pcx][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const PcxImage m3 = load_pcx(install, "ART/M3.PCX");
   CHECK(m3.image.width() == 640);
@@ -216,7 +216,7 @@ TEST_CASE("PCX decode matches the reference decoder, palette as load_pcx", "[gfx
 }
 
 TEST_CASE("FNT glyphs and text width", "[gfx][fnt]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Font font = Font::load(install, "ART/GUI_S.FNT");
   CHECK(font.glyph_count() == 127);
   CHECK(font.height() == 15);
@@ -228,7 +228,7 @@ TEST_CASE("FNT glyphs and text width", "[gfx][fnt]") {
   CHECK(font.text_width(std::string("Hel\0lo", 6)) == font.text_width("Hel"));
 }
 
-TEST_CASE("Glyph blitter: colour table, transparency, clipping", "[gfx][fnt]") {
+TEST_CASE("Glyph blitter: colour table, transparency, clipping", "[gfx][fnt][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Font font = Font::load(install, "ART/GUI_S.FNT");
   const GlyphColourTable gui = gui_colour_table();
@@ -362,7 +362,7 @@ TEST_CASE("Transformed sprites: identity, mirror, scale", "[gfx][sprite]") {
                   std::invalid_argument);
 }
 
-TEST_CASE("Transformed sprites: a quarter turn of a real frame", "[gfx][sprite]") {
+TEST_CASE("Transformed sprites: a quarter turn of a real frame", "[gfx][sprite][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Shp gui = Shp::load(install, "ART/GUISPR.SHP");
   const SpriteFrame& f = gui.frame(0);
