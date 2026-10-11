@@ -61,8 +61,10 @@ struct MissionRules {
   // noises near them.
   bool keen_escort_sonar = false;
 
-  // Returns the rules of a new extended game: the corrections on.
-  static constexpr MissionRules extended() { return {.fix_obvious_errors = true}; }
+  // Returns the rules of a new extended game (the extended variant's
+  // defaults, where EXTENDED.CFG or a career's rules do not set them): the
+  // corrections and the quiet sonar reacquisition on.
+  static constexpr MissionRules extended() { return {.fix_obvious_errors = true, .quiet_sonar_reacquire = true}; }
   // Returns whether depth-charge blasts deafen the escorts' sonar, and the
   // noises near an escort's estimate cancel it by the true geometry.
   constexpr bool escorts_deafened() const { return fix_obvious_errors && !keen_escort_sonar; }

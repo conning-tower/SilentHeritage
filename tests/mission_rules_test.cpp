@@ -73,9 +73,9 @@ TEST_CASE("Mission rules round-trip through their RULE section and EXTENDED.CFG 
     CHECK(parse_mission_rules_config(mission_rules_config(rules), keen()) == rules);
   }
   CHECK(encode_mission_rules(keen()) ==
-        section({{"fix_obvious_errors", 1}, {"quiet_sonar_reacquire", 0}, {"keen_escort_sonar", 1}}));
+        section({{"fix_obvious_errors", 1}, {"quiet_sonar_reacquire", 1}, {"keen_escort_sonar", 1}}));
   CHECK(mission_rules_config(fixed()) ==
-        "rule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 0\nrule.keen_escort_sonar = 0\n");
+        "rule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 1\nrule.keen_escort_sonar = 0\n");
   // The extended game's rules: the corrections, deafened escorts.
   CHECK(fixed().escorts_deafened());
   CHECK_FALSE(keen().escorts_deafened());
@@ -83,7 +83,8 @@ TEST_CASE("Mission rules round-trip through their RULE section and EXTENDED.CFG 
 }
 
 TEST_CASE("Mission rules skip unknown keys and keep the defaults of missing ones", "[rules]") {
-  CHECK(decode_mission_rules(section({{"a_later_rule", 7}, {"fix_obvious_errors", 1}})) == fixed());
+  CHECK(decode_mission_rules(section({{"a_later_rule", 7}, {"fix_obvious_errors", 1}})) ==
+        MissionRules{.fix_obvious_errors = true});
   CHECK(decode_mission_rules(section({})) == MissionRules{});
   // A truncated section is damaged.
   std::vector<std::uint8_t> cut = section({{"fix_obvious_errors", 1}});
@@ -92,7 +93,8 @@ TEST_CASE("Mission rules skip unknown keys and keep the defaults of missing ones
 
   // Other settings, unknown rules, bad values and stray text are skipped.
   CHECK(parse_mission_rules_config("ui.wide_screen = 1\r\nrule.a_later_rule = 3\n"
-                                   "  rule.fix_obvious_errors\t=  1  \r\nnot a setting\n") == fixed());
+                                   "  rule.fix_obvious_errors\t=  1  \r\nnot a setting\n") ==
+        MissionRules{.fix_obvious_errors = true});
   CHECK(parse_mission_rules_config("rule.fix_obvious_errors = yes\n") == MissionRules{});
   CHECK(parse_mission_rules_config("rule.fix_obvious_errors = 1x") == MissionRules{});
   CHECK(parse_mission_rules_config("") == MissionRules{});
@@ -113,7 +115,7 @@ TEST_CASE("EXTENDED.CFG gives the rules of the save directory, the extended defa
   const std::optional<std::vector<std::uint8_t>> text = saves.read(kExtendedConfigName);
   REQUIRE(text);
   CHECK(std::string(text->begin(), text->end()) ==
-        "ui.wide_screen = 1\nrule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 0\nrule.keen_escort_sonar = 1\n");
+        "ui.wide_screen = 1\nrule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 1\nrule.keen_escort_sonar = 1\n");
 }
 
 // Returns a historical mission run for a while with `rules`.
