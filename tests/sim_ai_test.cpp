@@ -139,7 +139,7 @@ TEST_CASE("An alerted escort hunts a sonar contact and drops a pattern", "[ai]")
   CHECK(escort.dropping_charges());
 }
 
-TEST_CASE("The convoy leader zigzags in timed legs", "[ai]") {
+TEST_CASE("The convoy leader zigzags in timed legs", "[ai][content]") {
   SH_REQUIRE_GAME_EXE();
   Simulation sim(MissionConditions{}, kDeepSea);
   auto ship = std::make_unique<Ship>(test::lfreight(), fx::Vec3{kOrigin, 0, kOrigin}, Angle10(0),
