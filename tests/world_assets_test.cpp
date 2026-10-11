@@ -118,7 +118,7 @@ TEST_CASE("RLE90 expands runs and escaped marks", "[lzw]") {
   CHECK_THROWS_AS(rle90_decode(std::vector<std::uint8_t>{'a', 0x90}), DataError);
 }
 
-TEST_CASE("Every .WLD map parses with its region, grid, chart and bounds", "[wld]") {
+TEST_CASE("Every .WLD map parses with its region, grid, chart and bounds", "[wld][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto files = install.list("DATA", ".WLD");
   REQUIRE(files.size() == 15);
@@ -170,7 +170,7 @@ TEST_CASE("Every .WLD map parses with its region, grid, chart and bounds", "[wld
   CHECK(w8.locations[0].type == LocationType::kTown);
 }
 
-TEST_CASE("World coordinates map to grid cells and lat/lon like the original", "[wld]") {
+TEST_CASE("World coordinates map to grid cells and lat/lon like the original", "[wld][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const World w = parse_world(install.read("DATA/WORLD-8.WLD"), "WORLD-8.WLD");
   CHECK(w.cell_size() == 0x10000);
@@ -209,7 +209,7 @@ TEST_CASE("Terrain levels convert to heights", "[wld]") {
   CHECK(terrain_level_to_height(-31, 0) == -31 * 800);
 }
 
-TEST_CASE("WORLD-1.OBS holds the nine landmark objects", "[obs]") {
+TEST_CASE("WORLD-1.OBS holds the nine landmark objects", "[obs][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto objects = parse_objects(install.read("DATA/WORLD-1.OBS"), "WORLD-1.OBS");
   REQUIRE(objects.size() == 9);
@@ -225,7 +225,7 @@ TEST_CASE("WORLD-1.OBS holds the nine landmark objects", "[obs]") {
   CHECK(std::string(objects[0].shp.begin(), objects[0].shp.begin() + 4) == "1.00");
 }
 
-TEST_CASE("Every .ENV parses; ENV-01 header fields", "[env]") {
+TEST_CASE("Every .ENV parses; ENV-01 header fields", "[env][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto files = install.list("DATA", ".ENV");
   REQUIRE(files.size() == 14);
@@ -261,7 +261,7 @@ TEST_CASE("Every .ENV parses; ENV-01 header fields", "[env]") {
   CHECK(pal[130 * 3 + 2] == 19);
 }
 
-TEST_CASE("Every .SCN parses; HIST01 and HIST57 contents", "[scn]") {
+TEST_CASE("Every .SCN parses; HIST01 and HIST57 contents", "[scn][content]") {
   SH_REQUIRE_GAME_DATA(install);
   auto files = install.list("SCEN", ".SCN");
   REQUIRE(files.size() == 60);
@@ -347,7 +347,7 @@ TEST_CASE("Every .SCN parses; HIST01 and HIST57 contents", "[scn]") {
 }
 
 TEST_CASE("Malformed scenarios are rejected", "[scn]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   auto data = install.read("SCEN/HIST01.SCN");
   auto truncated = data;
   truncated.resize(truncated.size() - 10);
@@ -360,7 +360,7 @@ TEST_CASE("Malformed scenarios are rejected", "[scn]") {
   CHECK_THROWS_AS(parse_scenario(bad_tag, "tag"), DataError);
 }
 
-TEST_CASE("Every .CR parses; SJAPAN route 0", "[cr]") {
+TEST_CASE("Every .CR parses; SJAPAN route 0", "[cr][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto files = install.list("DATA", ".CR");
   REQUIRE(files.size() == 15);
@@ -397,7 +397,7 @@ TEST_CASE("Every .CR parses; SJAPAN route 0", "[cr]") {
   CHECK(r0.waypoints[1].z1 == 12142849);
 }
 
-TEST_CASE("PZ.DAT lists the 15 patrol zones", "[pz]") {
+TEST_CASE("PZ.DAT lists the 15 patrol zones", "[pz][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto zones = parse_patrol_zones(install.read("DATA/PZ.DAT"), "PZ.DAT");
   REQUIRE(zones.size() == 15);
@@ -426,7 +426,7 @@ TEST_CASE("PZ.DAT lists the 15 patrol zones", "[pz]") {
   CHECK(zones[14].bases == "MAP15BAS.DAT");
 }
 
-TEST_CASE("Every MAP<n>BASE.DAT parses; Hiroshima and Kure", "[bases]") {
+TEST_CASE("Every MAP<n>BASE.DAT parses; Hiroshima and Kure", "[bases][content]") {
   SH_REQUIRE_GAME_DATA(install);
   for (int map = 1; map <= 15; ++map) {
     const std::string file = "DATA/" + base_file_name(map);
