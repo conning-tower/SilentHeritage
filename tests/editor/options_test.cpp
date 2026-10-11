@@ -34,7 +34,7 @@ std::vector<std::uint8_t> all_on_file() {
 
 }  // namespace
 
-TEST_CASE("The shipped SBOPTION.SAV reads back byte for byte", "[editor_options]") {
+TEST_CASE("The shipped SBOPTION.SAV reads back byte for byte", "[editor_options][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
