@@ -93,7 +93,7 @@ bool in_range(std::uint8_t v, int lo, int hi) { return v >= lo && v <= hi; }
 
 }  // namespace
 
-TEST_CASE("The radar display plots a blip at its bearing and range", "[stations2]") {
+TEST_CASE("The radar display plots a blip at its bearing and range", "[stations2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = radar_mission(install, tables);
@@ -153,7 +153,7 @@ TEST_CASE("The radar display plots a blip at its bearing and range", "[stations2
 }
 
 TEST_CASE("The radar's switch turns the SJ off, to the PPI and to the A-scope", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = radar_mission(install, tables);
   HeadlessRunner(*mission).run(3);
