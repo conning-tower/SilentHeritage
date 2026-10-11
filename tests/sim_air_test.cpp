@@ -89,7 +89,7 @@ const T* find_vehicle(const Simulation& sim) {
 }  // namespace
 
 TEST_CASE("Enemy submarine and aircraft inits draw in the original order", "[air][enemysub]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Theatre t(tables, 4242);
   WatcomRandom replay = t.sim.random();
@@ -107,7 +107,7 @@ TEST_CASE("Enemy submarine and aircraft inits draw in the original order", "[air
   CHECK(plane.flight().heading == Angle10(1800));
 }
 
-TEST_CASE("HIST57 spawns its submarine and escort aircraft", "[air][enemysub]") {
+TEST_CASE("HIST57 spawns its submarine and escort aircraft", "[air][enemysub][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> m = Mission::load(install, tables, "SCEN/HIST57.SCN", {});
@@ -140,7 +140,7 @@ TEST_CASE("HIST57 spawns its submarine and escort aircraft", "[air][enemysub]") 
 }
 
 TEST_CASE("Air sorties launch at the reference range when light and fog allow", "[air]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Theatre t(tables);
   Aircraft& plane = t.add_aircraft("VAL", 1, true);
@@ -182,7 +182,7 @@ TEST_CASE("Air sorties launch at the reference range when light and fog allow", 
 }
 
 TEST_CASE("An aircraft bombs a surfaced boat inside its release range, then strafes", "[air]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Theatre t(tables);
   SensorEnvironment& env = t.sim.sensors().environment();
@@ -222,7 +222,7 @@ TEST_CASE("An aircraft bombs a surfaced boat inside its release range, then stra
 }
 
 TEST_CASE("An aircraft homes and lands out of range in bad light", "[air]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Theatre t(tables);
   SensorEnvironment& env = t.sim.sensors().environment();
@@ -246,7 +246,7 @@ TEST_CASE("An aircraft homes and lands out of range in bad light", "[air]") {
 }
 
 TEST_CASE("An alerted enemy submarine dives to its orders' depths", "[enemysub]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   SECTION("A veteran crew closes the contact at periscope depth") {
     Theatre t(tables);
@@ -292,7 +292,7 @@ TEST_CASE("An alerted enemy submarine dives to its orders' depths", "[enemysub]"
 }
 
 TEST_CASE("A bomber group radios its strike, bombs its target and leaves downed pilots", "[air]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Theatre t(tables, 99);
   std::vector<BaseRecord> bases(1);
@@ -360,7 +360,7 @@ TEST_CASE("A bomber group radios its strike, bombs its target and leaves downed 
 }
 
 TEST_CASE("A photo recon radios its target after its delay and expires", "[air]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Theatre t(tables, 5);
   std::vector<BaseRecord> bases(1);
