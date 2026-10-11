@@ -122,7 +122,7 @@ std::vector<std::uint8_t> synthetic_file(std::uint8_t version) {
 
 }  // namespace
 
-TEST_CASE("Shipped version-7 .SCN files are written back byte-identical", "[scn_file]") {
+TEST_CASE("Shipped version-7 .SCN files are written back byte-identical", "[scn_file][content]") {
   SH_REQUIRE_GAME_DATA(install);
   int version7 = 0;
   for (const std::string& file : shipped_scenarios(install)) {
@@ -137,7 +137,7 @@ TEST_CASE("Shipped version-7 .SCN files are written back byte-identical", "[scn_
   CHECK(version7 == 31);
 }
 
-TEST_CASE("Older .SCN versions are re-saved as version 7 with the reader's defaults", "[scn_file]") {
+TEST_CASE("Older .SCN versions are re-saved as version 7 with the reader's defaults", "[scn_file][content]") {
   SH_REQUIRE_GAME_DATA(install);
   int older = 0;
   for (const std::string& file : shipped_scenarios(install)) {
@@ -217,7 +217,7 @@ TEST_CASE("Every version from 2 to 7 reads with the reader's defaults and keeps 
 }
 
 TEST_CASE("Passwords are stored with the key added to all 15 bytes", "[scn_file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // The encoded bytes (the password key added, NULs included).
   const std::array<std::uint8_t, kScnPasswordSize> secret = {'S', 'E' + 2, 'C' + 1, 'R' + 14, 'E' + 12, 'T' + 3, 4, 6,
                                                             5,   10,      13,      11,       9,        8,       7};
