@@ -68,6 +68,12 @@ class CareerUi {
   void add_exit_area(ui::Dialog& dialog) { fe_.add_exit_area(dialog); }
   int run_menu_dialog(ui::Dialog& dialog) { return fe_.run_menu_dialog(dialog); }
   int realism_menu(bool load_and_save, bool cancel_disabled) { return fe_.realism_menu(load_and_save, cancel_disabled); }
+  // The extended variant's rules (not in the original): whether careers
+  // keep rules (`FrontendServices::extended_config`), the rules of a game
+  // begun now and those the REALISM dialog edits.
+  bool extended_config() const { return fe_.extended_config_; }
+  MissionRules mission_rules() const { return fe_.mission_rules(); }
+  MissionRules& realism_rules() { return fe_.realism_rules_; }
   void show_message_box(std::string_view title, std::string_view line1, std::string_view line2) {
     fe_.show_message_box(title, line1, line2);
   }

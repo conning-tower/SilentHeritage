@@ -115,7 +115,7 @@ int run(const Options& options, const sh::Install& install) {
                           .scaling = options.scaling,
                           .touch_panel = options.touch_panel,
                           .features = options.faithful ? sh::Features::faithful() : sh::Features::for_build(),
-                          .extended_rules = sh::edition::kExtended && !options.faithful,
+                          .extended_config = sh::edition::kExtended && !options.faithful,
                           .keys = options.keys,
                           .screenshot = {},
                           .frames = options.frames};

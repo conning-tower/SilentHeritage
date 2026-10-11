@@ -63,10 +63,14 @@ std::vector<CareerBoatClass> career_boat_classes(const GameTables& tables);
 // Original bugs kept: the boat is drawn among all the class's boats, not
 // only those in service (the count of those is drawn and dropped); when the
 // draw gives the career's current boat, the class table's first entry (the
-// S-boats) is taken instead and a boat drawn again.
+// S-boats) is taken instead and a boat drawn again. With
+// `rules.fix_obvious_errors` (not in the original), the boat is the one the
+// first draw picks among those in service (all of them when none is), and
+// the same boat again is drawn again in the same class (taken when it is
+// the class's only one).
 // Throws `DataError` when the chosen class has no CARSUB boat.
 bool assign_new_boat(CareerRecord& record, const CareerSummary& summary, SubCommand home_command,
-                     const GameTables& tables, WatcomRandom& random);
+                     const GameTables& tables, WatcomRandom& random, const MissionRules& rules = {});
 
 // ------------------------------------------------------------ new career
 
@@ -104,9 +108,11 @@ std::array<std::string, 3> new_career_command_names(const NewCareerChoice& choic
 // with `stale_letter`). Fields the original leaves from the previous
 // career in memory start at 0. The home port, the boat and the roster slot
 // are set afterwards (`career_transfer_home_port`, `assign_new_boat`,
-// `find_free_roster_slot`).
+// `find_free_roster_slot`). With `rules.fix_obvious_errors` (not in the
+// original), each delivery's own supply flag decides its delay instead of
+// `stale_letter`'s.
 Career career_init_new(const NewCareerChoice& choice, std::uint32_t options, WatcomRandom& random,
-                       std::int32_t stale_letter = 0);
+                       std::int32_t stale_letter = 0, const MissionRules& rules = {});
 
 // ---------------------------------------------------------- new equipment
 
@@ -140,8 +146,10 @@ std::int32_t deliver_next_equipment(CareerRecord& record, const CareerSummary& s
 // with the 3-month delay decided by record `stale_letter`'s supply flag
 // (the original reads the index the last letter left in 0x124cbc instead of
 // each record's: 0 at start-up, 7 past the table, whose flag is non-zero).
+// With `rules.fix_obvious_errors` (not in the original), each record's own
+// flag decides.
 std::uint32_t equipment_for_new_career(const CareerRecord& record, const CareerSummary& summary,
-                                       std::int32_t stale_letter);
+                                       std::int32_t stale_letter, const MissionRules& rules = {});
 
 // `career_commander_title` (0x1dc92): "Commander " and the name.
 std::string career_commander_title(const CareerRecord& record, const ExeImage& exe);

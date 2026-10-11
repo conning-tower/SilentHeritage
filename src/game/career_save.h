@@ -36,6 +36,13 @@ inline constexpr std::int32_t kRosterSlots = 100;
 
 // Returns "ROSTER<slot>.SAV".
 std::string roster_file_name(std::int32_t slot);
+// Returns "ROSTER<slot>.EXT", the extended variant's file of the career's
+// rules (`Career::rules`, `rule.<key> = <value>` lines, game/mission_rules.h;
+// not in the original).
+std::string career_rules_file_name(std::int32_t slot);
+// Returns the rules of ROSTER<slot>.EXT over the extended defaults, or
+// nothing without the file.
+std::optional<MissionRules> load_career_rules(const SaveDir& saves, std::int32_t slot);
 
 // A parsed roster file.
 struct RosterFile {
@@ -56,14 +63,14 @@ RosterFile parse_roster(std::span<const std::uint8_t> data);
 std::vector<std::uint8_t> serialize_roster(const Career& career);
 
 // `career_save` (0x18e52): writes the career to ROSTER<roster_slot>.SAV,
-// first setting the record's log count. Returns false when it cannot be
-// written; the file then keeps its previous content (the original deletes
-// it).
+// first setting the record's log count, and its rules, when it has some, to
+// ROSTER<roster_slot>.EXT. Returns false when it cannot be written; the file
+// then keeps its previous content (the original deletes it).
 bool save_career(const SaveDir& saves, Career& career);
 // Reads ROSTER<slot>.SAV whole, or nothing when it is missing, empty or
 // malformed.
 std::optional<RosterFile> load_roster(const SaveDir& saves, std::int32_t slot);
-// `career_delete_roster_file` (0x19252).
+// `career_delete_roster_file` (0x19252), with the career's ROSTER<slot>.EXT.
 void delete_roster(const SaveDir& saves, std::int32_t slot);
 // `career_find_free_roster_slot` (0x18054): the first slot from 0 without a
 // file (a deleted install file counts as free), 99 when all are taken.

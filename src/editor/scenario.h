@@ -126,8 +126,12 @@ class Scenario {
   // The memory budget of the current world (0xa5108, `memory_budget`).
   std::int32_t memory_budget() const { return memory_budget_; }
   // Whether the estimate exceeds the budget ("SCENARIO IS TOO LARGE",
-  // `check_scenario_size`).
-  bool too_large() const { return header.required_memory > memory_budget_; }
+  // `check_scenario_size`); never without a size limit.
+  bool too_large() const { return size_limited_ && header.required_memory > memory_budget_; }
+  // Whether the budget applies (`Features::editor_no_size_limit` clears it;
+  // not in the original).
+  bool size_limited() const { return size_limited_; }
+  void set_size_limited(bool limited) { size_limited_ = limited; }
 
   // ------------------------------------------------------------ File
 
@@ -313,6 +317,7 @@ class Scenario {
   EditorObject* selected_ = nullptr;
   ModelCache cache_;
   std::int32_t memory_budget_ = 0;
+  bool size_limited_ = true;
   // The player record global 0xaf95c: the last file's, which a file without
   // a player record also spawns (the default player's before any load).
   ScnPlayerSub player_record_;

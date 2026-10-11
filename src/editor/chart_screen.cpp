@@ -2177,7 +2177,8 @@ std::unique_ptr<ui::Dialog> ChartScreen::make_toolbox() {
   next_button_->disabled = single;
   add_sprite_button(*d, {60, 44, 90, 64}, kCentre, kCentre + 1, [this] { center_on_selection(); });
   d->emplace<ui::GroupBox>(11, 128, 286, 146);
-  gauge_ = &d->emplace<ui::Area>(
+  // Without a size limit there is no gauge (not in the original).
+  gauge_ = !scenario_.size_limited() ? nullptr : &d->emplace<ui::Area>(
       119, 44, 193, 60,
       [this](ui::Dialog& dlg, ui::Area& a, ui::Msg msg, int, const ui::Event&) {
         // sbchart_draw_memory_gauge (0x4440c): the bar and "N%" of the

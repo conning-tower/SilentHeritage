@@ -53,6 +53,11 @@ enum class AircraftState : std::int32_t {
   kHold = 17,
 };
 
+// The strafing run's contact bearing (0..3599) folded past 180 degrees as
+// the original folds it, by 900, or by 3600 with `rules.fix_obvious_errors`
+// (not in the original).
+std::int32_t strafe_bearing(std::int32_t contact_bearing, const MissionRules& rules);
+
 // The AIRCRAFT.DAT fields of the flight model and the AI.
 struct AircraftParams {
   std::int32_t max_speed_kn = 0;  // +124 (knots, despite the docs' mph)

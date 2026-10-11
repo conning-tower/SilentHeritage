@@ -13,6 +13,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
@@ -198,6 +199,10 @@ struct Career {
   // The version `patrol_state` is written in (the roster file's version,
   // `sim_read_state`'s argument; 7 for a state captured in game).
   std::uint8_t patrol_state_version = 7;
+  // The extended variant's rules of the career (not in the original), kept
+  // in ROSTER<n>.EXT beside its roster; none for the original's rules (the
+  // faithful variant writes no such file).
+  std::optional<MissionRules> rules;
 };
 
 }  // namespace sh

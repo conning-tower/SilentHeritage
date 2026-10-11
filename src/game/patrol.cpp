@@ -108,7 +108,7 @@ PatrolPlan build_patrol_scenario(Career& career, const PatrolZone& zone, std::in
 
 PlayerStart career_player_start(const ZoneData& zone, std::string_view home_port,
                                 const std::array<std::int32_t, 4>& open_edges, const World& world,
-                                const SeaFloor& floor, WatcomRandom& random) {
+                                const SeaFloor& floor, WatcomRandom& random, const MissionRules& rules) {
   // bases_place_player_start (0x16be4), new patrol.
   for (std::size_t i = 0; i < zone.bases.size(); ++i) {
     const BaseRecord& b = zone.bases[i];
@@ -122,7 +122,10 @@ PlayerStart career_player_start(const ZoneData& zone, std::string_view home_port
   const auto deep = [&grid](std::int32_t column, std::int32_t row) { return grid.at(column, row) < kDeepWater; };
   // Non-zero: the edge is not drawn. Each edge drawn sets the flag of the
   // edge it checked for water, the wrong one for the two row edges (so a
-  // wet south edge also opens the north one), as the original.
+  // wet south edge also opens the north one), as the original; each its own
+  // with `rules.fix_obvious_errors` (not in the original).
+  const std::size_t south_mark = rules.fix_obvious_errors ? 0 : 1;
+  const std::size_t north_mark = rules.fix_obvious_errors ? 1 : 0;
   std::array<std::int32_t, 4> excluded{};
   for (std::size_t e = 0; e < 4; ++e) {
     excluded[e] = open_edges[e] == 0 ? 1 : 0;
@@ -146,7 +149,7 @@ PlayerStart career_player_start(const ZoneData& zone, std::string_view home_port
         for (std::int32_t c = 0; c < w && !wet; ++c) {
           wet = deep(c, h - 1);
         }
-        excluded[1] = wet ? 0 : -1;
+        excluded[south_mark] = wet ? 0 : -1;
         if (!wet) {
           continue;
         }
@@ -159,7 +162,7 @@ PlayerStart career_player_start(const ZoneData& zone, std::string_view home_port
         for (std::int32_t c = 0; c < w && !wet; ++c) {
           wet = deep(c, 0);
         }
-        excluded[0] = wet ? 0 : -1;
+        excluded[north_mark] = wet ? 0 : -1;
         if (!wet) {
           continue;
         }
@@ -396,7 +399,8 @@ void Patrol::init_contacts(Mission& mission) {
   mission.sky().set_daily_fog(weather_.daily_fog());
   save_world_state();
   spawner_ = std::make_unique<MissionContactSpawner>(mission);
-  groups_ = std::make_unique<ContactGroups>(tables_, zone_, mission.world(), *spawner_);
+  groups_ = std::make_unique<ContactGroups>(tables_, zone_, mission.world(), *spawner_, false,
+                                            &mission.sim().conditions().rules);
   WatcomRandom& random = mission.sim().random();
   const GameClock& clock = mission.sim().clock();
   groups_->init(clock, random);
@@ -421,7 +425,8 @@ void Patrol::place_player(Mission& mission) {
     return;
   }
   const PlayerStart start = career_player_start(zone_, plan_.home_port, plan_.zone.start_edges, mission.world(),
-                                                mission.floor(), mission.sim().random());
+                                                mission.floor(), mission.sim().random(),
+                                                mission.sim().conditions().rules);
   mission.place_player_at(start.x, start.z, start.heading);
 }
 

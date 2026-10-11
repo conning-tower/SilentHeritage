@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "game/stations/cabin.h"
+#include "sim/context.h"
 
 namespace sh {
 
@@ -82,6 +83,9 @@ struct MissionOutcome {
   std::vector<PatrolLogEntry> patrol_log;
   // The hostile vessels afloat, in the vehicle list's order.
   std::vector<AfloatVessel> afloat;
+  // The extended variant's rules of the mission (its realism choice counts
+  // in the rating).
+  MissionRules rules;
 };
 
 // The results record 0x187254 (0x11c bytes) with its sunk list.

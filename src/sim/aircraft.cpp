@@ -47,6 +47,12 @@ std::int32_t bank_toward(Angle10 heading, std::int32_t wanted) {
 
 }  // namespace
 
+std::int32_t strafe_bearing(std::int32_t contact_bearing, const MissionRules& rules) {
+  // The original folds the bearing by 900 instead of 3600.
+  const std::int32_t fold_by = rules.fix_obvious_errors ? 3600 : 900;
+  return contact_bearing > 1800 ? contact_bearing - fold_by : contact_bearing;
+}
+
 AircraftParams AircraftParams::from(const AircraftType& type) {
   AircraftParams p;
   p.max_speed_kn = static_cast<std::int32_t>(type.max_speed_mph);
@@ -491,8 +497,7 @@ void Aircraft::think(SimContext& ctx, std::int32_t dt) {
         const std::int32_t range = range_to(ai_.contact.x, ai_.contact.z);
         // Normalised into 0..3599 first (angle_sub(angle_add(heading, 0), 0)).
         const std::int32_t heading = fold(fx::angle_sub(fx::angle_add(f.heading, Angle10(0)), Angle10(0)).tenths());
-        // The original folds the bearing by 900 instead of 3600.
-        const std::int32_t bearing = contact_bearing > 1800 ? contact_bearing - 900 : contact_bearing;
+        const std::int32_t bearing = strafe_bearing(contact_bearing, ctx.env.rules);
         ai_.opening_time = std::max(ai_.opening_time - elapsed, 0);
         if (range < ai_.release_offset && fx::abs(heading - bearing) < 151) {
           f.ordered_altitude_ft = 80;

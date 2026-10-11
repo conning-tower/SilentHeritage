@@ -3,6 +3,7 @@
 #include <array>
 #include <utility>
 
+#include "game/extended_config.h"
 #include "game/stations/bridge.h"
 #include "game/stations/deckgun.h"
 #include "game/stations/radar.h"
@@ -50,6 +51,11 @@ MissionSession::MissionSession(MissionScreenSetup setup, std::unique_ptr<Mission
   screen.install(StationId::kRadar, std::make_unique<RadarStation>(*services_));
   // goption_save / gdetail_save after the GAME OPTIONS / DETAIL LEVEL menus.
   screen.bar().on_options_changed = [&saves, &options] { options.save(saves); };
+  if (setup.extended_config) {
+    // Not in the original: the EXTENDED page's improvements, kept for the
+    // next missions and the front end.
+    screen.bar().on_features_changed = [&saves](const Features& features) { save_features(saves, features); };
+  }
   screen.bar().on_detail_changed = [this, &saves] {
     detail_.save(saves);
     world_->options() = world_view_options(detail_);

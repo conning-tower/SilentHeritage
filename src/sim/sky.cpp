@@ -210,8 +210,11 @@ void Sky::on_minute_started(const GameClock& clock) {
     changed();
   }
   // Also while clearing (the original tests the state against 0): the fog
-  // keeps coming back between the lift and return times.
-  if (fog_state_ != FogState::kSteady && fog_pct_ < fog_density_) {
+  // keeps coming back between the lift and return times. Only while foggy
+  // with the rules' corrections (not in the original).
+  const bool fixed = rules_ != nullptr && rules_->fix_obvious_errors;
+  const bool drifts = fixed ? fog_state_ == FogState::kFoggy : fog_state_ != FogState::kSteady;
+  if (drifts && fog_pct_ < fog_density_) {
     fog_pct_ += random_->random_int(3);
     if (fog_density_ < fog_pct_) {
       fog_pct_ = fog_density_;

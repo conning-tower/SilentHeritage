@@ -196,6 +196,92 @@ TEST_CASE("Contact groups: route group kinds follow the convoy chance", "[career
   }
 }
 
+TEST_CASE("An alert route's patrol keeps the zone's size only with the corrections", "[career][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const Fixture f(install);
+  const std::size_t month = 14;  // Feb 1943
+  for (std::uint32_t seed = 1; seed < 200; ++seed) {
+    for (const bool fixed : {false, true}) {
+      ContactGroup g;
+      g.route_kind = RouteGroupKind::kPatrol;
+      g.crew = 1;
+      g.fast_or_intercept = false;
+      g.coastal_or_submerged = true;
+      std::int32_t air_pct = 30;
+      WatcomRandom random(seed);
+      draw_route_group_kind(g, f.zone.zone, month, {15, 20, 25, 40}, air_pct, random,
+                            fixed ? MissionRules::extended() : MissionRules{});
+      // The zone's weighted size: the first running sum above a roll of 100.
+      WatcomRandom expected(seed);
+      const std::int32_t roll = expected.random_int(100);
+      std::int32_t table_size = 2;
+      std::int32_t sum = 0;
+      for (std::int32_t i = 0; i < 3; ++i) {
+        sum += f.zone.zone.convoy_size_pct[month][static_cast<std::size_t>(i)];
+        if (roll < sum) {
+          table_size = i;
+          break;
+        }
+      }
+      if (fixed) {
+        // The table's size (0..2), 12 kn, one draw.
+        CHECK(g.size == table_size);
+        CHECK(g.speed == 12 << 16);
+        CHECK(g.coastal_or_submerged);
+        CHECK(random.state() == expected.state());
+      } else {
+        // The submarines' draws: 1..3 (2 at most when intercepting), 10..14 kn.
+        CHECK(g.size >= 1);
+        CHECK(g.size <= 3);
+        CHECK(g.speed >> 16 >= 10);
+        CHECK(g.speed >> 16 <= 14);
+        CHECK(random.state() != expected.state());
+      }
+      CHECK(air_pct == 30);
+    }
+  }
+}
+
+TEST_CASE("Anchored crews follow the campaign month only with the corrections", "[career][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool fixed : {false, true}) {
+    Fixture f(install);
+    f.zone.routes.clear();
+    f.zone.zone.sampan_density = 0;
+    f.zone.bases.resize(1);
+    f.zone.owners.resize(1);
+    // March 1943: calendar month 2, a campaign month past 12; green by the
+    // calendar month's row, elite by any other.
+    for (auto& row : f.zone.zone.crew_pct) {
+      row = {0, 0, 100};
+    }
+    f.zone.zone.crew_pct[2] = {100, 0, 0};
+    const MissionRules rules = fixed ? MissionRules::extended() : MissionRules{};
+    ContactGroups groups(f.tables, f.zone, f.world, f.spawner, false, &rules);
+    WatcomRandom random(42);
+    const GameClock clock = clock_on(13, 2, 15);
+    groups.init(clock, random);
+    groups.update_bases(clock, random, false);
+    REQUIRE(of_kind(groups, ContactGroupKind::kAnchored).size() == 1);
+    groups.update(clock, far_view(0), random);
+    // In radar range of the harbour, away from the patrol point (as above).
+    const BaseRecord& base = f.zone.bases[0];
+    const Angle10 away = fx::heading_from_delta(base.harbor.x - base.patrol.x, base.harbor.z - base.patrol.z);
+    const fx::SinCos r = fx::angle_sincos(away);
+    ContactView view;
+    view.player_x = base.harbor.x + fx::mul(9500 * 0x30, r.sin);
+    view.player_z = base.harbor.z + fx::mul(9500 * 0x30, r.cos);
+    view.sj_range_yd = 10000;
+    groups.update(clock, view, random);
+    REQUIRE(!f.spawner.spawned.empty());
+    // The anchored ships are green; the base's aircraft take the drawn crew.
+    REQUIRE(!f.spawner.spawned.front().aircraft.empty());
+    for (const auto& a : f.spawner.spawned.front().aircraft) {
+      CHECK(static_cast<std::int32_t>(a.crew) == (fixed ? 2 : 0));
+    }
+  }
+}
+
 TEST_CASE("Contact groups: the bases spawn anchored ships and patrols", "[career]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);

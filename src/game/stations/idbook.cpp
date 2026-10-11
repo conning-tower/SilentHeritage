@@ -8,6 +8,7 @@
 #include "assets/pcx.h"
 #include "core/error.h"
 #include "core/install.h"
+#include "game/mission.h"
 #include "gfx/sprite.h"
 #include "gfx/viewport.h"
 #include "ui/controls.h"
@@ -406,7 +407,11 @@ void IdBook::index_click(int mouse_y) {
     }
   }
   reload_pages_picture();
-  // The original draws without updating the open flag (0x122200).
+  // The original draws without updating the open flag (0x122200); the
+  // rules' corrections open the book (not in the original).
+  if (env_.mission.sim().conditions().rules.fix_obvious_errors) {
+    open_ = env_.ui.id_book_page >= 0;
+  }
   draw_page();
 }
 

@@ -96,6 +96,7 @@ add_executable(sh_tests
   sitduck_test.cpp
   # Mission saves: MISSn.SAV, the state lists, the career saved on patrol.
   mission_rules_test.cpp
+  sim_rules_test.cpp
   mission_save_test.cpp
   # Photo reconnaissance: the target in view, the photo, the mission's end.
   recon_test.cpp

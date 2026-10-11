@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "game/crew_log_view.h"
+#include "game/extended_config.h"
 #include "game/mission.h"
 #include "gfx/sprite.h"
 #include "gfx/text.h"
@@ -77,6 +78,10 @@ constexpr std::uint32_t kLandTexture = 0xf4313;
 constexpr std::uint32_t kShipWakes = 0xf4320;
 constexpr std::uint32_t kTorpedoWakes = 0xf432b;
 constexpr std::uint32_t kGameOptions = 0xf4339;
+// The extended variant's GAME OPTIONS button and page title (not in the
+// original).
+constexpr std::string_view kExtendedButton = "EXTENDED";
+constexpr std::string_view kExtendedTitle = "EXTENDED OPTIONS";
 constexpr std::uint32_t kAutoTorpLoad = 0xf4346;
 constexpr std::uint32_t kAutoSjRadar = 0xf4355;
 constexpr std::uint32_t kAutoSdRadar = 0xf4363;
@@ -1332,7 +1337,16 @@ void ControlBar::menu_game_options() {
   d->emplace<ui::GroupBox>(0x11, 0xf9, 0x12f, 0x166);
   d->emplace<ui::Label>(0x6e, 0x101, str(text::kEffectsVolume), ui::FontSlot::kCustom, false, font1);
   const bool career = (env_.mission.sim().conditions().options & option::kModeCareer) != 0;
-  auto& save_button = d->emplace<ui::Button>(0x5f, 0x171, 0x82, str(career ? text::kSaveCareer : text::kSaveMission),
+  // Not in the original: EXTENDED beside SAVE.
+  const bool extended = static_cast<bool>(on_features_changed);
+  if (extended) {
+    d->emplace<ui::Button>(0xab, 0x171, 0x82, std::string(text::kExtendedButton), [this](int) {
+      extended_requested_ = true;
+      return ui::kResultAccept;
+    });
+  }
+  auto& save_button = d->emplace<ui::Button>(extended ? 0x14 : 0x5f, 0x171, 0x82,
+                                             str(career ? text::kSaveCareer : text::kSaveMission),
                                              [save](int) {
                                                // game_options_save_button (0x4bf51)
                                                *save = true;
@@ -1349,6 +1363,40 @@ void ControlBar::menu_game_options() {
     }
     if (*changed && on_options_changed) {
       on_options_changed();
+    }
+    if (extended_requested_) {
+      extended_requested_ = false;
+      menu_extended_options();
+      return;
+    }
+    after_menu();
+  });
+}
+
+void ControlBar::menu_extended_options() {
+  // Not in the original: the GAME OPTIONS dialog's frame and check boxes.
+  Features& features = env_.ui.features;
+  auto changed = std::make_shared<bool>(false);
+  constexpr int kRow = 0x17;
+  const int h = 0x50 + static_cast<int>(kFeatureOptions.size()) * kRow;
+  auto d = std::make_unique<ui::Dialog>(env_.gui, 0x9d, (kScreenHeight - h) / 2, 0x141, h, 7);
+  d->emplace<ui::TitleBar>(std::string(text::kExtendedTitle), ui::return_accept);
+  d->emplace<ui::GroupBox>(0x11, 0x2b, 0x12f, 0x2b + static_cast<int>(kFeatureOptions.size()) * kRow + 0x10);
+  int y = 0x32;
+  for (const FeatureOption& o : kFeatureOptions) {
+    auto& box = d->emplace<ui::CheckBox>(0x36, y, std::string(o.label), [&features, changed, o](bool flip) {
+      if (flip) {
+        features.*o.member = !(features.*o.member);
+        *changed = true;
+      }
+      return features.*o.member;
+    });
+    box.disabled = !o.in_mission;
+    y += kRow;
+  }
+  env_.modals.run_modal(std::move(d), ModalFrame::kMenu, [this, changed, &features](int) {
+    if (*changed && on_features_changed) {
+      on_features_changed(features);
     }
     after_menu();
   });

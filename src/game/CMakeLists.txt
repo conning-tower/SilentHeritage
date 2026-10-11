@@ -6,6 +6,7 @@ sh_add_module(sh_game
     class_params.cpp
     headless.cpp
     mission.cpp
+    extended_config.cpp
     mission_rules.cpp
     mission_loop.cpp
     screen_shake.cpp
@@ -48,6 +49,7 @@ sh_add_module(sh_game
     frontend.cpp
     frontend_credits.cpp
     frontend_encounter.cpp
+    frontend_options.cpp
     frontend_realism.cpp
     frontend_screen.cpp
     frontend_video.cpp

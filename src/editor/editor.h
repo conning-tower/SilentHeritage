@@ -15,6 +15,7 @@
 #include <optional>
 #include <string>
 
+#include "core/features.h"
 #include "core/install.h"
 #include "editor/chart_screen.h"
 #include "editor/data.h"
@@ -78,6 +79,8 @@ struct EditorServices {
   const SaveDir& saves;
   // CUSTOM\: the player's directory over the install's.
   const SaveDir& custom;
+  // The improvements beyond the original the editor runs with.
+  Features features{};
 };
 
 class Editor {

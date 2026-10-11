@@ -194,6 +194,7 @@ EditorExit Editor::run() {
   options_ = EditorOptions::load(services_.saves);
   data_.emplace(EditorData::load(install));
   scenario_ = std::make_unique<Scenario>(install, *data_, options_, clock_);
+  scenario_->set_size_limited(!services_.features.editor_no_size_limit);
   files_ = std::make_unique<FileCommands>(FileEnv{
       .ui = ui_, .scenario = *scenario_, .install = install, .paths = services_.paths, .custom = services_.custom});
   menu_ = std::make_unique<EditorMenu>(se_, started_by_game_, selection_);
@@ -204,7 +205,7 @@ EditorExit Editor::run() {
   // for a key or a click (the map is drawn at the first frame here).
   chart_ = std::make_unique<ChartScreen>(
       ChartScreenEnv{install, ui_.gui(), ui_.palette(), ui_.font1(), ui_.msg_font(), ui_.menu_font(), ui_.sbchart(),
-                     ui_.cursors()},
+                     ui_.cursors(), services_.features},
       *scenario_, options_, chart_hooks(), started_by_game_);
   close_intro();
   chart_->open();

@@ -47,7 +47,7 @@ void CareerFlow::save() { save_career(ui_.saves(), career_); }
 
 int CareerFlow::new_submarine(bool offer) {
   return letters_.new_submarine(career_, tables_, home_command(), offer, [this](Career& c) {
-    return assign_new_boat(c.record, c.summary, home_command(), tables_, ui_.random());
+    return assign_new_boat(c.record, c.summary, home_command(), tables_, ui_.random(), rules());
   });
 }
 
@@ -100,8 +100,21 @@ void CareerFlow::run() {
   }
 }
 
+MissionRules CareerFlow::rules() const { return career_.rules.value_or(MissionRules{}); }
+
+void CareerFlow::adopt_rules() {
+  // Not in the original: a career without ROSTER<n>.EXT (begun in the
+  // original or the faithful variant) takes the extended defaults.
+  if (ui_.extended_config()) {
+    career_.rules = load_career_rules(ui_.saves(), career_.record.roster_slot).value_or(MissionRules::extended());
+  } else {
+    career_.rules.reset();
+  }
+}
+
 void CareerFlow::resume(Career career) {
   career_ = std::move(career);
+  adopt_rules();
   if (base_loop() == career_code::kLeaveCareer) {
     return;
   }
@@ -133,13 +146,17 @@ int CareerFlow::start_career() {
     return ui::kResultCancel;
   }
   RealismFile::load(ui_.saves(), ui_.options());
-  career_ = career_init_new(*choice, ui_.options(), ui_.random());
+  // Not in the original: the rules of a new extended game.
+  const std::optional<MissionRules> new_rules =
+      ui_.extended_config() ? std::optional<MissionRules>(ui_.mission_rules()) : std::nullopt;
+  career_ = career_init_new(*choice, ui_.options(), ui_.random(), 0, new_rules.value_or(MissionRules{}));
+  career_.rules = new_rules;
   PatrolAssignment assignment;
   if (const std::optional<HomePort> port =
           transfer_home_port(career_, assignment, campaign_, false, true, ui_.random())) {
     letters_.homeport(career_.record, *port, false);
   }
-  assign_new_boat(career_.record, career_.summary, home_command(), tables_, ui_.random());
+  assign_new_boat(career_.record, career_.summary, home_command(), tables_, ui_.random(), rules());
   career_.record.roster_slot = find_free_roster_slot(ui_.saves());
   save();
   return new_submarine(false);
@@ -174,6 +191,7 @@ int CareerFlow::roster_select_loop() {
         career_ = career_from_roster_entry(entries[static_cast<std::size_t>(result)], tables_);
         career_.log = load_career_log(ui_.saves(), career_.record);
         load_roster_patrol_state(ui_.saves(), career_);
+        adopt_rules();
         return ui::kResultAccept;
       } else {
         return ui::kResultCancel;

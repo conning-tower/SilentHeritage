@@ -57,7 +57,8 @@ struct FakeDialogs {
 };
 
 struct ChartRig {
-  explicit ChartRig(const Install& game, std::string_view file = {})
+  // `features`: the extended variant's improvements the chart runs with.
+  explicit ChartRig(const Install& game, std::string_view file = {}, const Features& features = {})
       : install(game),
         data(editor_data(game)),
         scenario(game, data, options, [] { return 1000; }),
@@ -114,8 +115,10 @@ struct ChartRig {
       std::copy(fake.sub_name.begin(), fake.sub_name.end(), name.begin());
       return ui::kResultAccept;
     };
-    chart = std::make_unique<ChartScreen>(ChartScreenEnv{game, gui, palette, font1, msg, menu, sbchart, cursors},
-                                          scenario, options, hooks, true);
+    scenario.set_size_limited(!features.editor_no_size_limit);
+    chart = std::make_unique<ChartScreen>(
+        ChartScreenEnv{game, gui, palette, font1, msg, menu, sbchart, cursors, features}, scenario, options, hooks,
+        true);
     gui.mouse().update(320, 200, 0, 0);
     chart->open();
     frames(1, true);

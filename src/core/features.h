@@ -35,6 +35,13 @@ struct Features {
   // The touch command panel shows the depth order in effect and each
   // tube's state.
   bool panel_status = false;
+  // The scenario editor without the memory budget of SE's 16 MB DOS
+  // machine: no gauge, no SCENARIO IS TOO LARGE (the files keep their
+  // estimate).
+  bool editor_no_size_limit = false;
+  // The scenario editor's corrections of SE's plain errors (cancelling
+  // SELECT SHIP TYPE leaves the scenario unmodified).
+  bool editor_fixes = false;
 
   // Returns the original game's set: no improvement.
   static constexpr Features faithful() { return {}; }
@@ -46,7 +53,9 @@ struct Features {
             .last_boat = true,
             .drag_rotate = true,
             .precise_dials = true,
-            .panel_status = true};
+            .panel_status = true,
+            .editor_no_size_limit = true,
+            .editor_fixes = true};
   }
   // Returns the set of this build's variant.
   static constexpr Features for_build() { return edition::kExtended ? extended() : faithful(); }

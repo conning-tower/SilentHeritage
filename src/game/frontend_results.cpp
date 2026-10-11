@@ -138,7 +138,7 @@ MissionResults compute_mission_results(const MissionOutcome& o, std::uint32_t op
     }
   }
 
-  const std::int32_t rating = realism_rating(options);
+  const std::int32_t rating = realism_rating(options, o.rules.keen_escort_sonar);
   r.realism_pct = realism_rating_percent(rating);
   if (single_mission) {
     score -= score / 2 * (1000 - o.difficulty) / 1000;
@@ -174,6 +174,7 @@ MissionOutcome mission_outcome(const Mission& mission, std::int32_t end_code,
   o.fuel = player.fuel();
   o.crew = mission.player_crew();
   o.difficulty = mission.difficulty_rating();
+  o.rules = mission.sim().conditions().rules;
   o.hull_damage_pct = mission.player_combat().damage.hull_pct();
   o.system_damage_pct = mission.player_combat().damage.damage_pct();
   o.patrol_log.assign(patrol_log.begin(), patrol_log.end());

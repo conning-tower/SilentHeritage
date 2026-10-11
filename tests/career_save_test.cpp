@@ -16,6 +16,7 @@
 #include "game/career.h"
 #include "game/career_boats.h"
 #include "game/career_save.h"
+#include "game/mission_rules.h"
 #include "game/saves_options.h"
 #include "game_data.h"
 
@@ -370,6 +371,100 @@ TEST_CASE("Equipment deliveries by date", "[career]") {
   }
   CHECK(delivered == 7);
   CHECK(c.record.equipment == 0xef);
+}
+
+TEST_CASE("With the rules' corrections a new career's equipment follows each delivery's own flag",
+          "[career][rules]") {
+  SH_REQUIRE_GAME_EXE();
+  const MissionRules fixed = MissionRules::extended();
+  for (const auto& [month, year] : {std::pair{3, 13}, std::pair{11, 12}, std::pair{7, 14}}) {
+    for (const std::int32_t command : {-1, 1}) {
+      Career c = dated_career(month, year);
+      c.summary.current_command = command;
+      // The deliveries due by their own flags, whatever the last letter.
+      std::uint32_t due = 0;
+      for (std::size_t i = 0; i < equipment_deliveries().size(); ++i) {
+        if (equipment_due(i, c.record, c.summary)) {
+          due |= equipment_deliveries()[i].bit;
+        }
+      }
+      CHECK(equipment_for_new_career(c.record, c.summary, 0, fixed) == due);
+      CHECK(equipment_for_new_career(c.record, c.summary, 7, fixed) == due);
+    }
+  }
+  // The original's rules keep the last letter's flag.
+  const Career c = dated_career(3, 13);
+  CHECK(equipment_for_new_career(c.record, c.summary, 0, MissionRules{}) == 0x03);
+  CHECK(equipment_for_new_career(c.record, c.summary, 7, MissionRules{}) == 0x23);
+}
+
+TEST_CASE("With the rules' corrections a new boat is in service and stays in its class", "[career][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  const MissionRules fixed = MissionRules::extended();
+  const auto full_year = [](std::uint32_t y) { return static_cast<std::int32_t>(y < 100 ? 1900 + y : y); };
+  // Returns the CARSUB boat named `name` ("(SS-n) Name").
+  const auto boat_of = [&tables](const std::string& name) -> const CarsubBoat* {
+    for (const CarsubBoat& b : tables.carsub) {
+      if (name == "(SS-" + std::to_string(b.hull_number) + ") " + b.name) {
+        return &b;
+      }
+    }
+    return nullptr;
+  };
+  std::int32_t original_late = 0;
+  std::int32_t original_fallbacks = 0;
+  for (std::uint32_t seed = 1; seed <= 200; ++seed) {
+    // March 1943, ComSubPac: a Gato, commissioned by then.
+    WatcomRandom random(seed);
+    Career c = dated_career(2, 13);
+    REQUIRE(assign_new_boat(c.record, c.summary, SubCommand::kComSubPac, tables, random, fixed));
+    REQUIRE(c.record.class_name == "GATO");
+    const CarsubBoat* boat = boat_of(c.record.boat);
+    REQUIRE(boat != nullptr);
+    CHECK(full_year(boat->avail_year) * 12 + static_cast<std::int32_t>(boat->avail_month) <= 1943 * 12 + 3);
+    // The second assignment of a new career: another Gato.
+    const std::string first = c.record.boat;
+    REQUIRE(assign_new_boat(c.record, c.summary, SubCommand::kComSubPac, tables, random, fixed));
+    CHECK(c.record.class_name == "GATO");
+    CHECK(c.record.boat != first);
+
+    // The original's: any Gato hull, and the S-boats after a repeat.
+    WatcomRandom r(seed);
+    Career o = dated_career(2, 13);
+    REQUIRE(assign_new_boat(o.record, o.summary, SubCommand::kComSubPac, tables, r));
+    const CarsubBoat* ob = boat_of(o.record.boat);
+    REQUIRE(ob != nullptr);
+    original_late += full_year(ob->avail_year) * 12 + static_cast<std::int32_t>(ob->avail_month) > 1943 * 12 + 3;
+    REQUIRE(assign_new_boat(o.record, o.summary, SubCommand::kComSubPac, tables, r));
+    original_fallbacks += o.record.class_name == "S CLASS" ? 1 : 0;
+  }
+  CHECK(original_late > 0);
+  CHECK(original_fallbacks > 0);
+}
+
+TEST_CASE("A career's rules are kept in ROSTER<n>.EXT, written only when it has some", "[career][rules]") {
+  TempDir dir;
+  const SaveDir saves(dir.path());
+  Career c = dated_career(2, 13);
+  c.record.roster_slot = 3;
+  REQUIRE(save_career(saves, c));
+  CHECK_FALSE(std::filesystem::exists(dir.path() / "ROSTER3.EXT"));
+  CHECK_FALSE(load_career_rules(saves, 3));
+
+  MissionRules keen = MissionRules::extended();
+  keen.keen_escort_sonar = true;
+  c.rules = keen;
+  REQUIRE(save_career(saves, c));
+  CHECK(std::filesystem::exists(dir.path() / "ROSTER3.EXT"));
+  CHECK(load_career_rules(saves, 3) == keen);
+  // A file without a rule's line gives that rule the extended default.
+  REQUIRE(saves.write("ROSTER3.EXT", std::vector<std::uint8_t>{}));
+  CHECK(load_career_rules(saves, 3) == MissionRules::extended());
+
+  delete_roster(saves, 3);
+  CHECK_FALSE(std::filesystem::exists(dir.path() / "ROSTER3.SAV"));
+  CHECK_FALSE(std::filesystem::exists(dir.path() / "ROSTER3.EXT"));
 }
 
 TEST_CASE("Command names and title from SH.EXE", "[career]") {

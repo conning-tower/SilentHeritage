@@ -196,15 +196,27 @@ struct RouteState {
   std::int32_t alert_timer = 0;   // +0x18: seconds to the next decay
 };
 
+// The per-kind fields of a new route group `g` (`convoy_build_on_route`
+// 0x2e4c9, after its common draws): a convoy's size and speed, a task
+// force's warships (raising `air_pct`), a submarines' group's size, speed
+// and flags. The original's alert-route patrol draws its size from the
+// zone's table for `month`, then falls through into the submarines' draws;
+// `rules.fix_obvious_errors` keeps its size, at 12 kn (not in the
+// original).
+void draw_route_group_kind(ContactGroup& g, const PatrolZone& zone, std::size_t month,
+                           const std::array<std::uint8_t, 4>& warship_mix, std::int32_t& air_pct, WatcomRandom& random,
+                           const MissionRules& rules);
+
 class ContactGroups final : public ContactGroupHook {
   friend class StateIo;  // The state files (game/vehicle_state.h).
  public:
   // The groups of `zone` (its routes, bases and owner table, which
   // `update_bases` updates) on the patrol map `world`, spawning through
-  // `spawner`. `limit_classes` is the low-memory flag 0x1242d0. All must
-  // outlive the groups.
+  // `spawner`. `limit_classes` is the low-memory flag 0x1242d0. `rules`,
+  // the mission's (null: the original's), select the corrections of the
+  // original's errors (not in the original). All must outlive the groups.
   ContactGroups(const GameTables& tables, ZoneData& zone, const World& world, ContactSpawner& spawner,
-                bool limit_classes = false);
+                bool limit_classes = false, const MissionRules* rules = nullptr);
 
   // `contacts_init` (0x2d9fd): the route states, the per-role largest
   // visual sizes 0x119228 and the first day's routes and sampans.
@@ -247,6 +259,8 @@ class ContactGroups final : public ContactGroupHook {
   GeneratorParams& generator_params() { return params_; }
 
  private:
+  // Returns whether the rules' corrections apply.
+  bool fixes() const;
   void routes_new_day(const GameClock& clock, WatcomRandom& random);
   void routes_update(const GameClock& clock, const ContactView& view, WatcomRandom& random);
   void move_groups(const GameClock& clock, const ContactView& view, WatcomRandom& random);
@@ -275,6 +289,7 @@ class ContactGroups final : public ContactGroupHook {
   const World& world_;
   ContactSpawner& spawner_;
   bool limit_classes_;
+  const MissionRules* rules_;
 
   std::vector<std::unique_ptr<ContactGroup>> groups_;  // 0x119248
   std::vector<RouteState> routes_;                     // 0x1191e8

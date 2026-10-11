@@ -249,4 +249,30 @@ TEST_CASE("The captain's ID book opens from its cover and closes on it", "[idboo
   CHECK(env.ui.id_book_page == 5);
 }
 
+TEST_CASE("With the rules' corrections a tab clicked on the cover opens the book", "[idbook][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool fixed : {false, true}) {
+    ControlRig rig(install);
+    StationEnv& env = rig.screen->env();
+    rig.mission().sim().conditions().rules = fixed ? MissionRules::extended() : MissionRules{};
+    auto owned = std::make_unique<CabinStation>(env);
+    rig.screen->install(StationId::kCabin, std::move(owned));
+    rig.screen->stations().select(StationId::kCabin);
+    rig.frames(2);
+    rig.settle();
+    rig.click(0xb0, 0xc0);
+    rig.frames(2);
+    rig.settle();
+    REQUIRE(env.ui.id_book_page == -1);
+    // A tab on the cover: the heavy cruisers' page.
+    rig.click(0x236, 0x75 + 0x17 + 2 * 0x1a + 3);
+    CHECK(env.ui.id_book_page == index_of(env.tables, "FURUTAKA"));
+    // The page's right part: the next page's cursor when the book is open,
+    // the cover's open-book cursor for the original.
+    rig.gui.mouse().update(300, 200, 0, 0);
+    rig.frames(1);
+    CHECK(rig.gui.mouse().cursor_frame() == (fixed ? IdBook::kCursorNextPage : IdBook::kCursorOpenBook));
+  }
+}
+
 }  // namespace sh

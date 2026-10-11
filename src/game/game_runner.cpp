@@ -7,6 +7,7 @@
 #include "assets/dat_tables.h"
 #include "assets/scenario.h"
 #include "core/error.h"
+#include "game/extended_config.h"
 #include "game/mission.h"
 #include "game/mission_session.h"
 #include "game/scengen.h"
@@ -205,7 +206,10 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
                           .options = options,
                           .detail = detail,
                           .sound_lock = services_.sound_lock,
-                          .features = services_.features},
+                          .features = services_.extended_config
+                                          ? load_features(services_.saves, services_.features)
+                                          : services_.features,
+                          .extended_config = services_.extended_config},
                          std::move(mission), services_.saves);
   MissionScreen& screen = session.screen();
   // The blocking loops of the in-game dialogs (the SAVE MISSION name

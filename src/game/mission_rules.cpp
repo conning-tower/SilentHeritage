@@ -6,6 +6,7 @@
 #include <variant>
 
 #include "core/byte_reader.h"
+#include "game/extended_config.h"
 #include "game/saves_options.h"
 #include "sim/state_io.h"
 
@@ -40,14 +41,6 @@ const MissionRuleField* find_field(std::string_view key) {
     }
   }
   return nullptr;
-}
-
-std::string_view trim(std::string_view s) {
-  const std::size_t first = s.find_first_not_of(" \t\r");
-  if (first == std::string_view::npos) {
-    return {};
-  }
-  return s.substr(first, s.find_last_not_of(" \t\r") - first + 1);
 }
 
 std::optional<std::int32_t> parse_int(std::string_view s) {
@@ -94,35 +87,31 @@ std::string mission_rules_config(const MissionRules& rules) {
   return text;
 }
 
-MissionRules parse_mission_rules_config(std::string_view text) {
-  MissionRules rules;
-  while (!text.empty()) {
-    const std::size_t eol = text.find('\n');
-    const std::string_view line = text.substr(0, eol);
-    text = eol == std::string_view::npos ? std::string_view() : text.substr(eol + 1);
-    const std::size_t eq = line.find('=');
-    if (eq == std::string_view::npos) {
+MissionRules parse_mission_rules_config(std::string_view text, const MissionRules& defaults) {
+  MissionRules rules = defaults;
+  for (const auto& [key, value] : parse_config(text)) {
+    if (!key.starts_with(kConfigPrefix)) {
       continue;
     }
-    const std::string_view name = trim(line.substr(0, eq));
-    if (!name.starts_with(kConfigPrefix)) {
-      continue;
-    }
-    const MissionRuleField* f = find_field(name.substr(kConfigPrefix.size()));
-    const std::optional<std::int32_t> value = parse_int(trim(line.substr(eq + 1)));
-    if (f != nullptr && value) {
-      set(rules, *f, *value);
+    const MissionRuleField* f = find_field(std::string_view(key).substr(kConfigPrefix.size()));
+    const std::optional<std::int32_t> v = parse_int(value);
+    if (f != nullptr && v) {
+      set(rules, *f, *v);
     }
   }
   return rules;
 }
 
+std::string merge_mission_rules_config(std::string_view text, const MissionRules& rules) {
+  return merge_config(text, kConfigPrefix, mission_rules_config(rules));
+}
+
 MissionRules load_mission_rules(const SaveDir& dir) {
-  const std::optional<std::vector<std::uint8_t>> data = dir.read(kExtendedConfigName);
-  if (!data) {
-    return {};
-  }
-  return parse_mission_rules_config({reinterpret_cast<const char*>(data->data()), data->size()});
+  return parse_mission_rules_config(read_config(dir), MissionRules::extended());
+}
+
+bool save_mission_rules(const SaveDir& dir, const MissionRules& rules) {
+  return write_config(dir, kConfigPrefix, mission_rules_config(rules));
 }
 
 }  // namespace sh

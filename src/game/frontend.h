@@ -75,6 +75,12 @@ struct GeneratorParams {
   bool operator==(const GeneratorParams&) const = default;
 };
 
+// `encounter_setup_mission`'s month length (0xa1960, the table 0x10e46c of
+// SH.EXE, by year since 1930 and 0-based month), as the original reads it,
+// or as laid out with `rules.fix_obvious_errors` (not in the original).
+std::int32_t encounter_month_days(const ExeImage& exe, std::int32_t month, std::int32_t year,
+                                  const MissionRules& rules);
+
 // A mission the player launched from the front end.
 struct MissionRequest {
   MissionType type = MissionType::kScenario;
@@ -91,8 +97,8 @@ struct MissionRequest {
   GameOptions game_options;
   // The game's random generator as the front end leaves it.
   WatcomRandom random;
-  // The extended variant's rules of a new mission (sim/context.h); a saved
-  // or resumed mission keeps those of its save.
+  // The extended variant's rules of the mission (sim/context.h); a saved or
+  // resumed mission keeps those of its save when it has them.
   MissionRules rules;
   // A mission restarted from `SAVE\MISS<n>.SAV` (`continue_mission_loop`,
   // the options word in saved-mission mode with the save's realism): its
@@ -156,9 +162,11 @@ struct FrontendServices {
   const SaveDir* custom = nullptr;
   // The improvements beyond the original the screens run with.
   Features features{};
-  // New single missions take their rules from EXTENDED.CFG
-  // (game/mission_rules.h); false: the original's rules.
-  bool extended_rules = false;
+  // The extended variant's settings file EXTENDED.CFG (game/extended_config.h)
+  // is read and written: its improvements over `features`, the rules of new
+  // games, the last boat chosen. False: the original's rules, `features`
+  // alone, no file.
+  bool extended_config = false;
 };
 
 // The MENU skin with the list metrics the scenario screens change.
@@ -222,8 +230,12 @@ class FrontEnd {
   // `realism_menu` (0xa2863) with `load_and_save` (-1 in the front end):
   // the REALISM dialog over the options word, loaded from REALISM.SAV first
   // and saved after OK when `load_and_save`; `cancel_disabled` greys
-  // CANCEL. Returns the dialog result (-1 OK, -2 cancel).
+  // CANCEL. Returns the dialog result (-1 OK, -2 cancel). With
+  // `extended_config`, the dialog also edits the KEEN ESCORT SONAR of
+  // `realism_rules` (not in the original), loaded from and saved to
+  // EXTENDED.CFG with REALISM.SAV.
   int realism_menu(bool load_and_save, bool cancel_disabled);
+  MissionRules& realism_rules() { return realism_rules_; }
 
   // `mission_briefing_screen` (0xa5a07): the MISSION BRIEFING (PATROL
   // BRIEFING in a career) dialog over the screen as it is (the loading
@@ -256,6 +268,9 @@ class FrontEnd {
   // `load_pcx(name, screen, palette)` for ART\<name>: the picture into the
   // screen and its palette into the screen palette (not the DAC).
   void load_screen_pcx(std::string_view name);
+  // Returns the rules of a mission begun now: EXTENDED.CFG's with
+  // `extended_config`, else the original's (not in the original).
+  MissionRules mission_rules() const;
   // Returns the string of SH.EXE at `address`.
   std::string exe_string(std::uint32_t address) const;
   // Returns the `count` strings of the `char*` table at `address`.
@@ -314,6 +329,9 @@ class FrontEnd {
   void career_menu_loop(const ResumeSnapshot* resume = nullptr);
   // `show_credits` (0x3579c, frontend_credits.cpp).
   void show_credits();
+  // The main menu's EXTENDED OPTIONS page (frontend_options.cpp, not in the
+  // original): the improvements of `kFeatureOptions`, kept in EXTENDED.CFG.
+  void extended_options_screen();
   // `interviews_screen` (0xa8bff, frontend_interviews.cpp): the INTERVIEWS
   // pages until MAIN MENU.
   void interviews_screen();
@@ -355,8 +373,9 @@ class FrontEnd {
   FrontendHost& host_;
   MissionRunner& runner_;
   const SaveDir* custom_;
-  const Features features_;
-  const bool extended_rules_;
+  const bool extended_config_;
+  // The improvements, as EXTENDED OPTIONS sets them.
+  Features features_;
   EditorRunner* editor_ = nullptr;
   std::unique_ptr<ui::Dialog> status_popup_;  // 0x120670
 
@@ -383,6 +402,9 @@ class FrontEnd {
 
   GameOptions game_options_;
   std::uint32_t options_ = 0;  // 0x11a85c
+  // The rules the REALISM dialog edits with the options word: its KEEN
+  // ESCORT SONAR (not in the original).
+  MissionRules realism_rules_;
   EncounterSettings encounter_;
   // The scenario list position kept across the REALISM dialog (0x18a654
   // selection, 0x18a658 top row).
@@ -395,7 +417,7 @@ class FrontEnd {
   // description); kept between visits.
   bool subsel_statistics_ = true;
   // The class last chosen on the SUB CLASS screen, for `Features::last_boat`
-  // (not in the original).
+  // (not in the original), kept in EXTENDED.CFG with `extended_config`.
   std::string subsel_last_class_;
   // The CONTINUE MISSION list position (0x18a65c selection, 0x18a660 top
   // row) and the save chosen (its header, 0x122238).

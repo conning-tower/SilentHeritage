@@ -8,6 +8,7 @@
 #include "assets/fnt.h"
 #include "core/byte_reader.h"
 #include "core/error.h"
+#include "game/mission_rules.h"
 #include "game/saves_options.h"
 #include "ui/menu_skin.h"
 
@@ -133,6 +134,17 @@ const HomePort* find_home_port(const GameTables& tables, std::string_view name) 
 
 std::string roster_file_name(std::int32_t slot) { return std::format("ROSTER{}.SAV", slot); }
 
+std::string career_rules_file_name(std::int32_t slot) { return std::format("ROSTER{}.EXT", slot); }
+
+std::optional<MissionRules> load_career_rules(const SaveDir& saves, std::int32_t slot) {
+  const std::optional<std::vector<std::uint8_t>> data = saves.read(career_rules_file_name(slot));
+  if (!data) {
+    return std::nullopt;
+  }
+  return parse_mission_rules_config({reinterpret_cast<const char*>(data->data()), data->size()},
+                                    MissionRules::extended());
+}
+
 RosterFile parse_roster(std::span<const std::uint8_t> data) {
   std::size_t offset = 0;
   RosterFile f = parse_header(data, offset);
@@ -174,6 +186,11 @@ bool save_career(const SaveDir& saves, Career& career) {
   if (!saves.write(name, serialize_roster(career))) {
     return false;
   }
+  if (career.rules) {
+    const std::string text = mission_rules_config(*career.rules);
+    return saves.write(career_rules_file_name(career.record.roster_slot),
+                       {reinterpret_cast<const std::uint8_t*>(text.data()), text.size()});
+  }
   return true;
 }
 
@@ -189,7 +206,10 @@ std::optional<RosterFile> load_roster(const SaveDir& saves, std::int32_t slot) {
   }
 }
 
-void delete_roster(const SaveDir& saves, std::int32_t slot) { saves.remove(roster_file_name(slot)); }
+void delete_roster(const SaveDir& saves, std::int32_t slot) {
+  saves.remove(roster_file_name(slot));
+  saves.remove(career_rules_file_name(slot));
+}
 
 std::int32_t find_free_roster_slot(const SaveDir& saves) {
   std::int32_t slot = 0;

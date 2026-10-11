@@ -178,11 +178,12 @@ void EnemySub::update(SimContext& ctx, Fixed16 dt_s) {
     think(ctx, dt);
   }
   // enemy_sub_update_depth (0x7f926): the ordered depth (feet) is clamped
-  // with world units, as the original.
+  // with world units, as the original; in feet with the rules' corrections
+  // (not in the original).
   if (!sinking()) {
     const std::int32_t floor_y = ctx.floor.height_at(motion_.position.x, motion_.position.z) - 0x140;
     if (dive_.ordered_depth_ft * -kUnitsPerFoot < floor_y) {
-      dive_.ordered_depth_ft = floor_y;
+      dive_.ordered_depth_ft = ctx.env.rules.fix_obvious_errors ? -floor_y / kUnitsPerFoot : floor_y;
     }
     sub_dive_update(dive_, params_, motion_, dt_s, nullptr, ctx.env.sea_state, ctx.floor);
   }

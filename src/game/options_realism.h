@@ -43,10 +43,15 @@ inline std::int32_t sailing_model(std::uint32_t options) { return static_cast<st
 std::uint32_t cycle_combat_level(std::uint32_t options);
 std::uint32_t cycle_sailing_model(std::uint32_t options);
 
+// The factor of the extended variant's KEEN ESCORT SONAR (not in the
+// original): 1.10.
+inline constexpr std::int32_t kKeenEscortSonarFactor = 0x1199a;
+
 // `realism_rating` (0xa2d57): the realism rating of `options` in 16.16
 // (1.15 at most), computed with the original's rounded fixed-point
-// products.
-std::int32_t realism_rating(std::uint32_t options);
+// products; times `kKeenEscortSonarFactor` with `keen_escort_sonar` (the
+// extended variant's realism choice, `MissionRules`).
+std::int32_t realism_rating(std::uint32_t options, bool keen_escort_sonar = false);
 // The rounded percentage `realism_rating_text` (0xa2c60) shows, e.g. 115.
 std::int32_t realism_rating_percent(std::int32_t rating);
 

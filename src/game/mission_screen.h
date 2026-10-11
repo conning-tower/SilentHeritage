@@ -61,6 +61,9 @@ struct MissionScreenSetup {
   SoundLock* sound_lock = nullptr;
   // The improvements beyond the original the mission runs with.
   Features features{};
+  // EXTENDED.CFG is read and written (game/extended_config.h): GAME OPTIONS
+  // has its EXTENDED page.
+  bool extended_config = false;
 };
 
 class MissionScreen : private MissionSound,

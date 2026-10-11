@@ -162,8 +162,7 @@ SimStateFile capture_sim_state(Mission& mission, const SimStateParts& parts, con
 // with its boat and no other unit (game/mission_save.h): the boat's state,
 // the TDC and deck gun, the routes and contact groups (into `parts`), the
 // vehicles with their links, then the "SIM " extension when present. The
-// mission's rules become those of the "RULE" section, the original's
-// without one.
+// mission's rules become those of the "RULE" section when there is one.
 // Throws `DataError` when a vehicle's class is missing.
 void restore_sim_state(Mission& mission, const SimStateFile& file, const SimStateParts& parts);
 

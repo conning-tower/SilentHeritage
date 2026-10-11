@@ -31,7 +31,7 @@ std::uint32_t cycle_sailing_model(std::uint32_t options) {
   return (options & ~option::kSailingModelMask) | model << 4;
 }
 
-std::int32_t realism_rating(std::uint32_t options) {
+std::int32_t realism_rating(std::uint32_t options, bool keen_escort_sonar) {
   // The factors of the manual (pp. 6-9) as 16.16 constants.
   std::int32_t r = 0x12666 - (3 - combat_level(options)) * 0x2666;
   r -= fx::mul(r, (2 - sailing_model(options)) * 0x199a);
@@ -56,6 +56,9 @@ std::int32_t realism_rating(std::uint32_t options) {
     if (((options & f.bit) != 0) == f.when_set) {
       r = fx::mul(r, f.factor);
     }
+  }
+  if (keen_escort_sonar) {
+    r = fx::mul(r, kKeenEscortSonarFactor);
   }
   return r;
 }

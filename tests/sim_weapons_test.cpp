@@ -171,6 +171,30 @@ TEST_CASE("Mark 14s run deep and fire early until their fix dates", "[weapons]")
   CHECK(before_fix(clock, torpedo_fix_dates().contact_exploder));
 }
 
+TEST_CASE("With the rules' corrections the Mark 14 faults last until their fix days", "[weapons][rules]") {
+  SH_REQUIRE_GAME_EXE();
+  const MissionRules fixed = MissionRules::extended();
+  const TorpedoFixDates& dates = torpedo_fix_dates();
+  for (const FaultDate& d : {dates.deep_running, dates.contact_exploder, dates.magnetic_exploder_off[1]}) {
+    GameClock clock;
+    // The month before the fix: over for the original, not with the
+    // corrections.
+    REQUIRE(d.month > 1);
+    clock.init(d.year, d.month - 1, 15, 0, 0);
+    CHECK_FALSE(before_fix(clock, d));
+    CHECK_FALSE(before_fix(clock, d, MissionRules{}));
+    CHECK(before_fix(clock, d, fixed));
+    // The fix's day: over for both.
+    clock.init(d.year, d.month, d.day, 0, 0);
+    CHECK_FALSE(before_fix(clock, d));
+    CHECK_FALSE(before_fix(clock, d, fixed));
+    // Two months before: faulty for both.
+    clock.init(d.year, d.month - 2, 1, 0, 0);
+    CHECK(before_fix(clock, d));
+    CHECK(before_fix(clock, d, fixed));
+  }
+}
+
 TEST_CASE("A square Mark 14 hit is a dud two times in three before Aug 1943", "[weapons]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);

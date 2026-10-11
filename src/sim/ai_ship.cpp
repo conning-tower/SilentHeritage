@@ -235,11 +235,15 @@ void ai_ship_init(Ship& ship, SimContext& ctx) {
   ai.depth_charges = ai.cls.depth_charges;
   // Route pruning: while a point is in shallow water (less than 1.5 drafts)
   // or its leg to the next crosses land, the *next* point is dropped and
-  // the check moves on past it (as the original's loop does).
+  // the check moves on past it (as the original's loop does). With the
+  // rules' corrections the failing point is dropped (the point in shallow
+  // water, or the next one when only the leg crosses land) and the check
+  // runs again on the point's new leg (not in the original).
   ShipSetup& s = ship.setup();
   Route& r = s.route;
   const Sensors* sensors = context_sensors(ctx);
   const TerrainGrid* grid = sensors != nullptr ? sensors->environment().grid : nullptr;
+  const bool fixed = ctx.env.rules.fix_obvious_errors;
   for (std::int32_t i = 0; i < r.count; ++i) {
     const std::int32_t x = r.x[static_cast<std::size_t>(i)];
     const std::int32_t z = r.z[static_cast<std::size_t>(i)];
@@ -252,15 +256,19 @@ void ai_ship_init(Ship& ship, SimContext& ctx) {
       next_x = r.x[0];
       next_z = r.z[0];
     }
-    if (ctx.floor.height_at(x, z) < ai.cls.draft_ft * -0x30 / 2 &&
-        (grid == nullptr || !land_on_line(*grid, {x, z}, {next_x, next_z}).land)) {
+    const bool deep = ctx.floor.height_at(x, z) < ai.cls.draft_ft * -0x30 / 2;
+    if (deep && (grid == nullptr || !land_on_line(*grid, {x, z}, {next_x, next_z}).land)) {
       break;
     }
-    for (std::int32_t j = i + 1; j <= r.count && j < Route::kCapacity; ++j) {
+    const std::int32_t dropped = fixed && !deep ? i : i + 1;
+    for (std::int32_t j = dropped; j <= r.count && j < Route::kCapacity; ++j) {
       r.x[static_cast<std::size_t>(j)] = route_x(s, j + 1);
       r.z[static_cast<std::size_t>(j)] = route_z(s, j + 1);
     }
     --r.count;
+    if (fixed) {
+      --i;
+    }
   }
 }
 

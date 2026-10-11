@@ -1104,9 +1104,13 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
   Simulation& sim = *mission.sim_;
   ByteReader ext_reader(f.sim_extension, "state extension");
   ByteReader* ext = f.sim_extension.empty() ? nullptr : &ext_reader;
-  const MissionRules rules = f.rules_extension.empty() ? MissionRules{} : decode_mission_rules(f.rules_extension);
-  mission.conditions_.rules = rules;
-  sim.env_.rules = rules;
+  // A save without rules (the original's, a faithful build's) keeps those
+  // the mission was set up with.
+  if (!f.rules_extension.empty()) {
+    const MissionRules rules = decode_mission_rules(f.rules_extension);
+    mission.conditions_.rules = rules;
+    sim.env_.rules = rules;
+  }
   VehicleLinks links;
   {
     StateIn in(f.player, ext, links);

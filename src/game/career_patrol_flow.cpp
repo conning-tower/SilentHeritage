@@ -60,7 +60,7 @@ bool CareerFlow::start_patrol() {
     if (choice == PatrolOrdersResult::kBegin) {
       break;
     }
-    if (letters_.patrol_orders_realism(r)) {
+    if (letters_.patrol_orders_realism(r, career_.rules)) {
       options = career_realism_options(options, r);
       save();
     }
@@ -97,6 +97,7 @@ bool CareerFlow::start_patrol() {
   request.options = options;
   request.game_options = GameOptions::load(ui_.saves());
   request.random = random;
+  request.rules = rules();
   PatrolResult played;
   const std::int32_t end = ui_.runner().run_patrol(request, played);
   if (end == kEndQuitToDos) {
@@ -148,7 +149,7 @@ bool CareerFlow::start_patrol() {
   }
   // A boat lost (0x187350): carsub_assign_new_boat, then NEW SUBMARINE.
   if (!over && results.boat_lost != 0) {
-    assign_new_boat(r, career_.summary, home_command(), tables_, random);
+    assign_new_boat(r, career_.summary, home_command(), tables_, random, rules());
     new_submarine(false);
   }
   save();

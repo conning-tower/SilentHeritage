@@ -24,6 +24,7 @@
 #include "core/random.h"
 #include "sim/astronomy.h"
 #include "sim/clock.h"
+#include "sim/context.h"
 
 namespace sh {
 
@@ -42,7 +43,8 @@ struct SkyState {
 // The fog of the day (`0x11b7cc`).
 enum class FogState : std::int32_t {
   // Clear until the return time; the original's drift also raises the fog
-  // meanwhile, so it keeps coming back (a bug kept).
+  // meanwhile, so it keeps coming back (a bug kept, unless
+  // `MissionRules::fix_obvious_errors`).
   kClearing = -1,
   kSteady = 0,     // No drift (no fog day, or the fog of `clock_init`).
   kFoggy = 1,      // Fog until the lift time.
@@ -90,6 +92,9 @@ class Sky : public ClockObserver {
   Sky(const Ephemeris& ephemeris, const World& world, WatcomRandom& random, std::uint32_t options,
       std::int32_t fog_day, std::int32_t fog_density);
 
+  // Sets the rules the fog follows (the mission's, which must outlive the
+  // sky); null for the original's.
+  void set_rules(const MissionRules* rules) { rules_ = rules; }
   // Sets the world position the sky is seen from (the player boat,
   // `0x11a9c4`/`0x11a9cc`).
   void set_observer(std::int32_t x, std::int32_t z) {
@@ -172,6 +177,7 @@ class Sky : public ClockObserver {
   const World& world_;
   WatcomRandom* random_;
   std::uint32_t options_ = 0;
+  const MissionRules* rules_ = nullptr;
   SkyListener* listener_ = nullptr;
   ClockObserver* next_ = nullptr;
   std::int32_t observer_x_ = 0;

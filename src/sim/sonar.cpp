@@ -55,6 +55,33 @@ std::int32_t ship_noise_level(const Ship& ship) {
   return noise > 100 ? 100 : noise;
 }
 
+bool sonar_noise_cancels(const fx::Vec3& ship, Angle10 heading, std::int32_t beam, const fx::Vec3& estimate,
+                         const fx::Vec3& p, std::int32_t noise, const MissionRules& rules) {
+  // Within noise x 8 yd of the estimate, or in the beam no farther than the
+  // estimate's range from the map origin (the original's slips, kept: that
+  // range and the bearing taken x - x, x - z). With
+  // `MissionRules::escorts_deafened`, in the beam no farther from the ship
+  // than the estimate, its bearing taken from the ship (not in the
+  // original).
+  const auto d =
+      static_cast<std::int32_t>(fx::approx_distance(p.x - estimate.x, p.z - estimate.z) / kUnitsPerYard);
+  if (d <= noise * 800 / 100) {
+    return true;
+  }
+  if (rules.escorts_deafened()) {
+    const Angle10 b = fx::heading_from_delta(p.x - ship.x, p.z - ship.z);
+    const std::int32_t off = fold(fx::angle_sub(b, heading).tenths() - beam);
+    const auto noise_range = static_cast<std::int32_t>(fx::approx_distance(p.x - ship.x, p.z - ship.z) / kUnitsPerYard);
+    const auto estimate_range =
+        static_cast<std::int32_t>(fx::approx_distance(estimate.x - ship.x, estimate.z - ship.z) / kUnitsPerYard);
+    return off >= -75 && off <= 75 && noise_range <= estimate_range;
+  }
+  const auto origin_range = static_cast<std::int32_t>(fx::approx_distance(estimate.x, estimate.z) / kUnitsPerYard);
+  const Angle10 b = fx::heading_from_delta(p.x - ship.x, p.x - ship.z);
+  const std::int32_t off = fold(fx::angle_sub(b, heading).tenths() - beam);
+  return off >= -75 && off <= 75 && origin_range >= d;
+}
+
 void ship_hydrophone_check(Ship& ship, SimContext& ctx) {
   // ship_hydrophone_check (0x6fe2c); the screw sound loop within 1000 yd is
   // left to the audio layer, its quiet-time reset is kept.
@@ -190,10 +217,14 @@ void ai_ship_sonar_search(Ship& ship, SimContext& ctx, std::int32_t dt) {
   }
   const auto& vehicles = ctx.sim->vehicles();
   // A loud noise near the ship deafens the whole search (only explosions
-  // mask; see docs/structures.md "Bugs in the original").
+  // mask; see docs/structures.md "Bugs in the original"). With
+  // `MissionRules::escorts_deafened` the underwater blasts do too (not in
+  // the original).
+  const bool deafened = ctx.env.rules.escorts_deafened();
   std::size_t searched = vehicles.size();
   for (const auto& v : vehicles) {
-    const std::int32_t noise = v->masks_sonar() ? v->noise_level() : 0;
+    const bool masks = v->masks_sonar() || (deafened && v->class_id() == VehicleClass::kBlastNoise);
+    const std::int32_t noise = masks ? v->noise_level() : 0;
     if (noise > 0) {
       const fx::Vec3 p = v->position();
       const auto d =
@@ -265,28 +296,13 @@ void ai_ship_sonar_search(Ship& ship, SimContext& ctx, std::int32_t dt) {
     }
   }
   if (strength > 0) {
-    // Another noise near the estimate cancels it: within noise x 8 yd, or in
-    // the beam no farther than the estimate's range from the map origin (the
-    // original's slips, kept: that range and the bearing taken x - x, x - z).
-    const auto origin_range =
-        static_cast<std::int32_t>(fx::approx_distance(estimate.position.x, estimate.position.z) / kUnitsPerYard);
     for (const auto& v : vehicles) {
-      if (v.get() == &ship || v.get() == estimate.vehicle) {
+      if (v.get() == &ship || v.get() == estimate.vehicle || v->noise_level() <= 0) {
         continue;
       }
-      const std::int32_t noise = v->noise_level();
-      if (noise <= 0) {
+      if (!sonar_noise_cancels(m.position, m.heading, ai.sonar.beam, estimate.position, v->position(),
+                               v->noise_level(), ctx.env.rules)) {
         continue;
-      }
-      const fx::Vec3 p = v->position();
-      const auto d = static_cast<std::int32_t>(
-          fx::approx_distance(p.x - estimate.position.x, p.z - estimate.position.z) / kUnitsPerYard);
-      if (d > noise * 800 / 100) {
-        const Angle10 b = fx::heading_from_delta(p.x - m.position.x, p.x - m.position.z);
-        const std::int32_t off = fold(fx::angle_sub(b, m.heading).tenths() - ai.sonar.beam);
-        if (off < -75 || off > 75 || origin_range < d) {
-          continue;
-        }
       }
       strength = 0;
       break;

@@ -53,8 +53,10 @@ struct GameRunnerServices {
   // tick); empty to run the frame at once (a headless run whose clock
   // moves when frames are shown).
   std::function<void()> wait_tick;
-  // The improvements beyond the original the missions run with.
+  // The improvements beyond the original the missions run with, those of
+  // EXTENDED.CFG over them with `extended_config` (game/extended_config.h).
   Features features{};
+  bool extended_config = false;
 };
 
 class GameRunner final : public MissionRunner {

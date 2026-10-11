@@ -28,6 +28,16 @@ namespace sh {
 
 class PlayerSub;
 
+// `player_update_aa_guns`'s elevation (0x5ea5d) to a target `dy` above the
+// guns and (`dx`, `dz`) away: over |dx| alone (|dz| when `dx` is 0) as the
+// original, over the horizontal range with `rules.fix_obvious_errors` (not
+// in the original).
+Angle10 aa_gun_elevation(std::int32_t dx, std::int32_t dy, std::int32_t dz, const MissionRules& rules);
+// Returns whether the AA guns fire at the elevation `aim`: above 1.9
+// degrees, read unsigned as the original (a target below wraps high and is
+// fired at), signed with `rules.fix_obvious_errors` (not in the original).
+bool aa_guns_fire_at(Angle10 aim, const MissionRules& rules);
+
 // The boat's AA guns: manned from the 1MC menu, they fire at the nearest
 // aircraft seen.
 struct AaGuns {

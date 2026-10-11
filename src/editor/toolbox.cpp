@@ -1013,6 +1013,11 @@ void Toolbox::vessel_class(Vessel& v) {
   } else {
     cls = -1;
   }
+  // SE marks the scenario modified even on CANCEL; not with the editor's
+  // corrections (not in the original).
+  if (cls == -1 && env_.features.editor_fixes) {
+    return;
+  }
   scenario_.modified = true;
   if (cls == -1) {
     return;

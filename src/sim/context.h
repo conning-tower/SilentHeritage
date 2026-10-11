@@ -41,8 +41,12 @@ struct MapExtent {
 //
 // A rule added here adds its saved field to `kMissionRuleFields`.
 struct MissionRules {
-  // The corrections of the original's plain rule errors, on by default in
-  // the extended variant (pending; no rule reads it yet).
+  // The corrections of the original's plain errors, changing the rules and
+  // the simulation: the Mark 14 fix dates, the fog lifting on fog days, the
+  // enemy subs' depth over the bottom, the AA guns' elevation, the strafing
+  // aircraft's bearing, the ships' route pruning, harbour crews and
+  // alert-route patrols, the career's patrol start edges, equipment and
+  // boats, the encounter dates and the ID book's tabs.
   bool fix_obvious_errors = false;
   // The sound man calls a ship's screws (#41, #42) and resets the time
   // compression only when the ship has not been heard for 3 minutes since
@@ -50,6 +54,18 @@ struct MissionRules {
   // every frame a called ship is heard restarts its report timer. Detection
   // and the random draws are unchanged.
   bool quiet_sonar_reacquire = false;
+  // The REALISM choice KEEN ESCORT SONAR: the escorts' sonar is not deafened
+  // by depth-charge blasts and drops its contacts as the original does,
+  // for a higher realism rating. Without it, with `fix_obvious_errors`,
+  // blasts deafen the escorts and their contacts are cancelled by the
+  // noises near them.
+  bool keen_escort_sonar = false;
+
+  // Returns the rules of a new extended game: the corrections on.
+  static constexpr MissionRules extended() { return {.fix_obvious_errors = true}; }
+  // Returns whether depth-charge blasts deafen the escorts' sonar, and the
+  // noises near an escort's estimate cancel it by the true geometry.
+  constexpr bool escorts_deafened() const { return fix_obvious_errors && !keen_escort_sonar; }
 
   friend bool operator==(const MissionRules&, const MissionRules&) = default;
 };
@@ -61,9 +77,10 @@ struct MissionRuleField {
 };
 
 // The saved fields of `MissionRules`; keys must stay as they are once saved.
-inline const std::array<MissionRuleField, 2> kMissionRuleFields{{
+inline const std::array<MissionRuleField, 3> kMissionRuleFields{{
     {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
     {"quiet_sonar_reacquire", &MissionRules::quiet_sonar_reacquire},
+    {"keen_escort_sonar", &MissionRules::keen_escort_sonar},
 }};
 
 // Scenario conditions and player options.

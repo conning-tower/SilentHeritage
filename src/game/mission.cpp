@@ -202,6 +202,7 @@ void Mission::build(const Install& install, MissionSetup& setup, const MissionSt
   // the previous boat's position, then scen_instantiate_units (0x67400).
   ephemeris_ = Ephemeris::load(install);
   sky_ = std::make_unique<Sky>(ephemeris_, world_, random, conditions_.options, h.fog, fog_density);
+  sky_->set_rules(&conditions_.rules);
   sky_->set_observer(setup.previous_player_x, setup.previous_player_z);
   if (h.hour == -1) {
     // clock_init_time_of_day (0x7df1d): a generated mission starts at its

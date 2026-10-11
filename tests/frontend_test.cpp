@@ -16,10 +16,12 @@
 #include <vector>
 
 #include "assets/exe_image.h"
+#include "assets/game_exe.h"
 #include "core/error.h"
 #include "core/install.h"
 #include "game/frontend.h"
 #include "game/frontend_best.h"
+#include "game/extended_config.h"
 #include "game/mission_rules.h"
 #include "game/options_realism.h"
 #include "game/saves_options.h"
@@ -315,6 +317,10 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
 // Screen positions of the buttons used below (dialog position + control).
 constexpr ScriptedHost::Step kSingleMission = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 130 + 17};
 constexpr ScriptedHost::Step kExitToDos = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 330 + 17};
+// The extended main menu: the buttons from y 110, OPTIONS above EXIT TO DOS.
+constexpr ScriptedHost::Step kSingleMissionExt = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 110 + 17};
+constexpr ScriptedHost::Step kOptionsExt = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 310 + 17};
+constexpr ScriptedHost::Step kExitToDosExt = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 350 + 17};
 constexpr ScriptedHost::Step kHistoric = ScriptedHost::Step{0, 69 + 38 + 90, 59 + 125 + 17};
 constexpr ScriptedHost::Step kConvoy = ScriptedHost::Step{0, 69 + 261 + 90, 59 + 125 + 17};
 constexpr ScriptedHost::Step kMainMenu = ScriptedHost::Step{0, 69 + 38 + 90, 59 + 299 + 17};
@@ -429,11 +435,11 @@ TEST_CASE("With last_boat, the SUB CLASS screen selects the class last chosen", 
   CHECK(run(true, true) == std::vector<std::string>{"GATO", "S CLASS"});
 }
 
-TEST_CASE("New single missions take their rules from EXTENDED.CFG only with extended_rules", "[frontend][rules]") {
+TEST_CASE("New single missions take their rules from EXTENDED.CFG only with extended_config", "[frontend][rules]") {
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
-  const auto rules_of_mission = [&](bool extended_rules) {
+  const auto rules_of_mission = [&](bool extended_config) {
     const TempDir dir;
     const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
     const std::string_view config = "rule.fix_obvious_errors = 1\n";
@@ -441,16 +447,150 @@ TEST_CASE("New single missions take their rules from EXTENDED.CFG only with exte
                         {reinterpret_cast<const std::uint8_t*>(config.data()), config.size()}));
     ScriptedHost host;
     FrontEnd front_end(
-        {.install = install, .paths = paths, .exe = exe, .saves = saves, .extended_rules = extended_rules}, host,
+        {.install = install, .paths = paths, .exe = exe, .saves = saves, .extended_config = extended_config}, host,
         host, 1234);
     front_end.set_play_intro(false);
-    host.script = {kSingleMission, kHistoric, kBegin, kMainMenu, kExitToDos};
+    host.script = {extended_config ? kSingleMissionExt : kSingleMission, kHistoric, kBegin, kMainMenu,
+                   extended_config ? kExitToDosExt : kExitToDos};
     front_end.run();
     REQUIRE(host.requests.size() == 1);
     return host.requests.front().rules;
   };
   CHECK(rules_of_mission(false) == MissionRules{});
   CHECK(rules_of_mission(true).fix_obvious_errors);
+}
+
+TEST_CASE("Extended: REALISM's KEEN ESCORT SONAR rates 10 % higher and is kept in EXTENDED.CFG",
+          "[frontend][rules]") {
+  // The factor of the rating.
+  CHECK(realism_rating(0x61a8, false) == realism_rating(0x61a8));
+  CHECK(realism_rating_percent(realism_rating(0x61a8, true)) == 110);
+  CHECK(realism_rating_percent(realism_rating(0x61ac, true)) == 126);
+
+  SH_REQUIRE_GAME_DATA(install);
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  // The historical list's REALISM, the new check box under the toggles (the
+  // REALISM dialog at (52, 10)), OK, then BEGIN.
+  const ScriptedHost::Step realism = ScriptedHost::click(69 + 185 + 60, 19 + 395 + 17);
+  const ScriptedHost::Step keen_box = ScriptedHost::click(52 + 28 + 12, 10 + 165 + 5 * 30 + 12);
+  const ScriptedHost::Step ok = ScriptedHost::click(52 + 367 + 60, 10 + 415 + 17);
+  for (const bool extended : {false, true}) {
+    const TempDir dir;
+    const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+    ScriptedHost host;
+    FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .extended_config = extended},
+                       host, host, 1234);
+    front_end.set_play_intro(false);
+    host.script = {extended ? kSingleMissionExt : kSingleMission, kHistoric, realism};
+    if (extended) {
+      host.script.push_back(keen_box);
+    }
+    host.script.insert(host.script.end(), {ok, kBegin, kMainMenu, extended ? kExitToDosExt : kExitToDos});
+    front_end.run();
+    CHECK(host.script.empty());
+    REQUIRE(host.requests.size() == 1);
+    const MissionRules& rules = host.requests.front().rules;
+    // REALISM.SAV keeps the original's format.
+    CHECK(read_bytes(dir.path() / "REALISM.SAV") == RealismFile::to_bytes(host.requests.front().options));
+    if (extended) {
+      CHECK(rules.keen_escort_sonar);
+      CHECK(rules.fix_obvious_errors);
+      CHECK(load_mission_rules(saves) == rules);
+    } else {
+      CHECK(rules == MissionRules{});
+      CHECK_FALSE(std::filesystem::exists(dir.path() / "EXTENDED.CFG"));
+    }
+  }
+
+  // The mission results count it.
+  MissionOutcome o;
+  o.end_code = 0x11;
+  o.difficulty = 1000;
+  PatrolLogEntry e;
+  e.type = 12;
+  e.tonnage = 10000;
+  o.patrol_log = {e};
+  const MissionResults plain = compute_mission_results(o, 0x61a8);
+  o.rules.keen_escort_sonar = true;
+  const MissionResults keen = compute_mission_results(o, 0x61a8);
+  CHECK(plain.realism_pct == 100);
+  CHECK(keen.realism_pct == 110);
+  CHECK(keen.score == plain.score * 110 / 100);
+}
+
+TEST_CASE("Encounter days come from the month table by year with the rules' corrections", "[frontend][rules]") {
+  SH_REQUIRE_GAME_EXE();
+  const ExeImage& exe = game_exe();
+  const MissionRules fixed = MissionRules::extended();
+  // February 1944 (a leap year) and 1943, April, December.
+  CHECK(encounter_month_days(exe, 1, 14, fixed) == 29);
+  CHECK(encounter_month_days(exe, 1, 13, fixed) == 28);
+  CHECK(encounter_month_days(exe, 3, 13, fixed) == 30);
+  CHECK(encounter_month_days(exe, 11, 12, fixed) == 31);
+  // The original reads [month][year]: entry 1 * 12 + 14 for February 1944.
+  CHECK(encounter_month_days(exe, 1, 14, MissionRules{}) == exe.u8(0x10e46c + 26));
+  CHECK(encounter_month_days(exe, 1, 14, MissionRules{}) == 31);
+}
+
+TEST_CASE("Extended: the main menu's OPTIONS page keeps the interface in EXTENDED.CFG", "[frontend][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  const TempDir dir;
+  const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+  ScriptedHost host;
+  FrontEnd front_end({.install = install,
+                      .paths = paths,
+                      .exe = exe,
+                      .saves = saves,
+                      .features = Features::extended(),
+                      .extended_config = true},
+                     host, host, 1234);
+  front_end.set_play_intro(false);
+  // OPTIONS (the buttons from y 110, OPTIONS sixth), CREW MESSAGE LOG off
+  // (second, right column of the page at (52, 10)), OK; EXIT TO DOS last.
+  host.script = {kOptionsExt, ScriptedHost::click(52 + 271 + 12, 10 + 125 + 12),
+                 ScriptedHost::click(52 + 367 + 60, 10 + 415 + 17), kExitToDosExt};
+  front_end.run();
+  CHECK(host.script.empty());
+  Features expected = Features::extended();
+  expected.crew_log = false;
+  CHECK(load_features(saves, Features::extended()) == expected);
+}
+
+TEST_CASE("Extended: the last boat chosen is remembered across sessions", "[frontend][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  const int row_height = exe.u16(0x10c37e);
+  const ScriptedHost::Step gato_row =
+      ScriptedHost::click(69 + 0x174 + 20, 39 + 0x7f + 1 + 6 * row_height + row_height / 2);
+  const TempDir dir;
+  const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+  const ScriptedHost::Step exit = kExitToDosExt;
+  const ScriptedHost::Step single = kSingleMissionExt;
+  for (int session = 0; session < 2; ++session) {
+    ScriptedHost host;
+    FrontEnd front_end({.install = install,
+                        .paths = paths,
+                        .exe = exe,
+                        .saves = saves,
+                        .features = Features::extended(),
+                        .extended_config = true},
+                       host, host, 1234);
+    front_end.set_play_intro(false);
+    if (session == 0) {
+      host.script = {single, kConvoy, kBegin, gato_row, kSubSelect, kMainMenu, exit};
+    } else {
+      host.script = {single, kConvoy, kBegin, kSubSelect, kMainMenu, exit};
+    }
+    front_end.run();
+    CHECK(host.script.empty());
+    REQUIRE(host.requests.size() == 1);
+    CHECK(host.requests.front().generator.sub_class == "GATO");
+  }
+  CHECK(load_last_boat(saves) == "GATO");
 }
 
 TEST_CASE("Alt-Q asks EXIT TO DOS? and YES ends the game", "[frontend]") {

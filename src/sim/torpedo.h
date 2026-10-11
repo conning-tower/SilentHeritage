@@ -49,8 +49,10 @@ struct TorpedoFixDates {
 };
 const TorpedoFixDates& torpedo_fix_dates();
 
-// Returns whether `clock` is still before the fix `date`.
-bool before_fix(const GameClock& clock, const FaultDate& date);
+// Returns whether `clock` is still before the fix `date`: before the month
+// preceding it, as the original; before its day with
+// `rules.fix_obvious_errors` (not in the original).
+bool before_fix(const GameClock& clock, const FaultDate& date, const MissionRules& rules = {});
 
 class TorpedoVehicle : public Vehicle {
   friend class StateIo;  // The state files (game/vehicle_state.h).

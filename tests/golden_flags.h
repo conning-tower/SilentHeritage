@@ -32,6 +32,9 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
     {"precise_dials", &Features::precise_dials, true},
     // Reads the boat for the touch panel only.
     {"panel_status", &Features::panel_status, true},
+    // The scenario editor only.
+    {"editor_no_size_limit", &Features::editor_no_size_limit, true},
+    {"editor_fixes", &Features::editor_fixes, true},
 };
 // Every improvement must be listed above (`Features` holds only flags).
 static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool));

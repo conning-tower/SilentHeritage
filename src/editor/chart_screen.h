@@ -25,6 +25,7 @@
 #include "assets/fnt.h"
 #include "assets/pal.h"
 #include "assets/shp.h"
+#include "core/features.h"
 #include "core/install.h"
 #include "editor/options.h"
 #include "editor/scenario.h"
@@ -91,6 +92,8 @@ struct ChartScreenEnv {
   const Font& menu_font;  // MENU_S.FNT (0xa5058)
   const Shp& sbchart;     // SBCHART.SHP (0xa505c)
   const Shp& cursors;     // SBCURSOR.SHP
+  // The improvements beyond the original the editor runs with.
+  Features features{};
 };
 
 // The calls into the other parts of the editor; all optional.

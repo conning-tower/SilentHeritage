@@ -1,6 +1,7 @@
 #include "sim/torpedo.h"
 
 #include <cstdlib>
+#include <tuple>
 
 #include "assets/exe_tables.h"
 #include "assets/game_exe.h"
@@ -42,7 +43,11 @@ const TorpedoFixDates& torpedo_fix_dates() {
   return dates;
 }
 
-bool before_fix(const GameClock& clock, const FaultDate& date) {
+bool before_fix(const GameClock& clock, const FaultDate& date, const MissionRules& rules) {
+  if (rules.fix_obvious_errors) {
+    // Not in the original: until the fix's day.
+    return std::tuple(clock.year(), clock.month(), clock.day()) < std::tuple(date.year, date.month, date.day);
+  }
   return clock.year() < date.year || (clock.year() == date.year && clock.month() < date.month - 1);
 }
 
@@ -76,14 +81,15 @@ void TorpedoVehicle::init(SimContext& ctx) {
   run_fraction_ = 0;
 
   const bool faulty = (ctx.env.options & combat_option::kDudTorpedoes) != 0 && weapon_.id == kMark14Id;
-  if (faulty && before_fix(ctx.clock, torpedo_fix_dates().deep_running)) {
+  if (faulty && before_fix(ctx.clock, torpedo_fix_dates().deep_running, ctx.env.rules)) {
     set_depth_ft_ += ctx.random.random_int(10);
   }
   premature_timer_ = -1;
   sighted_ = false;
   const PlayerCombat* combat = ctx.sim != nullptr ? ctx.sim->player_combat() : nullptr;
   if (faulty && combat != nullptr &&
-      before_fix(ctx.clock, torpedo_fix_dates().magnetic_exploder_off.at(static_cast<std::size_t>(combat->command)))) {
+      before_fix(ctx.clock, torpedo_fix_dates().magnetic_exploder_off.at(static_cast<std::size_t>(combat->command)),
+                 ctx.env.rules)) {
     if (ctx.random.random_int(100) < 20) {
       premature_timer_ = ctx.random.random_int(60) << 16;
     }
@@ -134,7 +140,7 @@ bool TorpedoVehicle::check_arming(SimContext& ctx, std::int32_t dt) {
         }
         explodes = false;
       } else if (player && duds) {
-        if (weapon_.id == kMark14Id && before_fix(ctx.clock, torpedo_fix_dates().contact_exploder)) {
+        if (weapon_.id == kMark14Id && before_fix(ctx.clock, torpedo_fix_dates().contact_exploder, ctx.env.rules)) {
           // The contact exploder fails more the squarer the hit.
           std::int32_t angle = fx::angle_sub(fx::angle_add(motion_.heading, Angle10(1800)), hit->heading()).tenths();
           if (angle > 1800) {

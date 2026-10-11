@@ -45,6 +45,9 @@ class CareerFlow {
   SubCommand home_command() const;
   // `career_save` (0x18e52) of the career in memory.
   void save();
+  // Returns the career's rules, the original's when it has none (not in
+  // the original).
+  MissionRules rules() const;
   // `new_submarine_screen` (0x7131c) with `carsub_assign_new_boat`: -1 when
   // a boat was assigned and accepted.
   int new_submarine(bool offer);
@@ -57,6 +60,10 @@ class CareerFlow {
   // `career_base_loop` (0x1b556): returns career_code::kLeaveCareer when
   // the career is left or over, 0 after a retirement.
   int base_loop();
+  // Sets the rules of the career just loaded: ROSTER<n>.EXT's, or the
+  // extended defaults without it, with `CareerUi::extended_config` (not in
+  // the original).
+  void adopt_rules();
   // The START A CAREER branch: the new career set up and saved; returns
   // the NEW SUBMARINE result (-1 to go to the base).
   int start_career();

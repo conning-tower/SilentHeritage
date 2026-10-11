@@ -570,6 +570,58 @@ TEST_CASE("Toolbox add tools: ship or sub, aircraft, airstrike with SELECT A CIT
   CHECK(chart.shown_panel() == EditorPanel::kToolbox);
 }
 
+TEST_CASE("Extended: cancelling SELECT SHIP TYPE leaves the scenario unmodified", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool fixes : {false, true}) {
+    Features features;
+    features.editor_fixes = fixes;
+    ChartRig rig(install, {}, features);
+    Vessel& v = add_selected(rig, ship_class(rig.data, ShipType::kDestroyer), open_water(rig));
+    const std::string before = v.class_name();
+    rig.scenario.modified = false;
+    rig.fake.ship_choice = -1;
+    rig.click_panel(108 + 50, 150 + kCycleDy);
+    REQUIRE(!rig.fake.opened_with.empty());
+    CHECK(v.class_name() == before);
+    // SE marks it modified anyway.
+    CHECK(rig.scenario.modified == !fixes);
+    // A class chosen marks it in both.
+    rig.fake.ship_choice = static_cast<std::int32_t>(ship_class(rig.data, ShipType::kSubmarine));
+    rig.click_panel(108 + 50, 150 + kCycleDy);
+    CHECK(rig.scenario.modified);
+  }
+}
+
+TEST_CASE("Extended: no memory budget, no gauge, never too large", "[editor][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool unlimited : {false, true}) {
+    Features features;
+    features.editor_no_size_limit = unlimited;
+    ChartRig rig(install, {}, features);
+    add_selected(rig, ship_class(rig.data, ShipType::kDestroyer), open_water(rig));
+    rig.scenario.header.required_memory = rig.scenario.memory_budget() + 1;
+    CHECK(rig.scenario.too_large() == !unlimited);
+    // The gauge's bar at (119, 44) of the toolbox, in colour 0x4b past
+    // 100 %; absent without a budget.
+    rig.chart->redraw_toolbox();
+    rig.frames(2);
+    const ui::Dialog* d = rig.chart->panel_dialog();
+    REQUIRE(d != nullptr);
+    int bar = 0;
+    for (int y = 44 + 4; y < 44 + 13; ++y) {
+      for (int x = 119 + 2; x < 193 - 1; ++x) {
+        const std::uint8_t c = rig.screen.at(d->x() + x, d->y() + y);
+        bar += c == 0x4b ? 1 : 0;
+      }
+    }
+    if (unlimited) {
+      CHECK(bar == 0);
+    } else {
+      CHECK(bar > 100);
+    }
+  }
+}
+
 TEST_CASE("Toolbox panels render like the original's", "[editor]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install, "SCEN/HIST01.SCN");

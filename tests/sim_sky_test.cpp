@@ -228,6 +228,40 @@ TEST_CASE("A fog day draws its schedule and drifts by the minute", "[sky]") {
   CHECK(fog > 0);
 }
 
+TEST_CASE("With the rules' corrections the fog stays lifted until its return time", "[sky][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  const std::unique_ptr<Mission> mission = load_hist01(install, tables);
+  const Ephemeris ephemeris = Ephemeris::load(install);
+  // The same fog day for both rule sets: the original's fog comes back
+  // while clearing, the corrected one stays at 0 without a draw.
+  for (const bool fixed : {false, true}) {
+    WatcomRandom random(77);
+    Sky sky(ephemeris, mission->world(), random, 0, 1, 70);
+    const MissionRules rules = fixed ? MissionRules::extended() : MissionRules{};
+    sky.set_rules(&rules);
+    const fx::Vec3 p = mission->player().position();
+    sky.set_observer(p.x, p.z);
+    GameClock clock = clock_at(1944, 2, 16, 16, 0);
+    sky.clock_init(clock);
+    sky.update_day(clock_at(1944, 2, 17, 13, 0));
+    REQUIRE(sky.fog_state() == FogState::kClearing);
+    GameClock afternoon = clock_at(1944, 2, 17, 13, 0);
+    const WatcomRandom before = random;
+    for (int minute = 0; minute < 10; ++minute) {
+      advance_minute(afternoon, sky);
+    }
+    if (fixed) {
+      CHECK(sky.fog_pct() == 0);
+      WatcomRandom a = random;
+      WatcomRandom b = before;
+      CHECK(a.rand() == b.rand());
+    } else {
+      CHECK(sky.fog_pct() > 0);
+    }
+  }
+}
+
 TEST_CASE("A generated mission starts at dawn, dusk or a random time", "[sky]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);

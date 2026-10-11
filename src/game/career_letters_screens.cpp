@@ -299,12 +299,17 @@ PatrolOrdersResult CareerLetters::patrol_orders(const CareerRecord& record, cons
   return static_cast<PatrolOrdersResult>(ui.run_menu_dialog(d));
 }
 
-bool CareerLetters::patrol_orders_realism(CareerRecord& record) {
-  // patrol_orders_realism (0x62fdc)
+bool CareerLetters::patrol_orders_realism(CareerRecord& record, std::optional<MissionRules>& rules) {
+  // patrol_orders_realism (0x62fdc); the career's rules give the KEEN ESCORT
+  // SONAR of the dialog, and take it back (not in the original).
+  ui_.realism_rules() = rules.value_or(MissionRules{});
   if (ui_.realism_menu(false, false) != ui::kResultAccept) {
     return false;
   }
   career_realism_from_options(ui_.options(), record);
+  if (rules) {
+    rules->keen_escort_sonar = ui_.realism_rules().keen_escort_sonar;
+  }
   return true;
 }
 

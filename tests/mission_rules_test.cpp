@@ -15,6 +15,7 @@
 #include "assets/dat_tables.h"
 #include "core/error.h"
 #include "game/mission.h"
+#include "game/extended_config.h"
 #include "game/mission_rules.h"
 #include "game/mission_save.h"
 #include "game/saves_options.h"
@@ -57,19 +58,28 @@ std::vector<std::uint8_t> section(const std::vector<std::pair<std::string_view, 
   return out.take();
 }
 
-MissionRules fixed() {
-  MissionRules r;
-  r.fix_obvious_errors = true;
+MissionRules fixed() { return MissionRules::extended(); }
+
+MissionRules keen() {
+  MissionRules r = MissionRules::extended();
+  r.keen_escort_sonar = true;
   return r;
 }
 
 TEST_CASE("Mission rules round-trip through their RULE section and EXTENDED.CFG lines", "[rules]") {
-  for (const MissionRules& rules : {MissionRules{}, fixed()}) {
+  for (const MissionRules& rules : {MissionRules{}, fixed(), keen()}) {
     CHECK(decode_mission_rules(encode_mission_rules(rules)) == rules);
     CHECK(parse_mission_rules_config(mission_rules_config(rules)) == rules);
+    CHECK(parse_mission_rules_config(mission_rules_config(rules), keen()) == rules);
   }
-  CHECK(encode_mission_rules(fixed()) == section({{"fix_obvious_errors", 1}, {"quiet_sonar_reacquire", 0}}));
-  CHECK(mission_rules_config(fixed()) == "rule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 0\n");
+  CHECK(encode_mission_rules(keen()) ==
+        section({{"fix_obvious_errors", 1}, {"quiet_sonar_reacquire", 0}, {"keen_escort_sonar", 1}}));
+  CHECK(mission_rules_config(fixed()) ==
+        "rule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 0\nrule.keen_escort_sonar = 0\n");
+  // The extended game's rules: the corrections, deafened escorts.
+  CHECK(fixed().escorts_deafened());
+  CHECK_FALSE(keen().escorts_deafened());
+  CHECK_FALSE(MissionRules{}.escorts_deafened());
 }
 
 TEST_CASE("Mission rules skip unknown keys and keep the defaults of missing ones", "[rules]") {
@@ -86,14 +96,24 @@ TEST_CASE("Mission rules skip unknown keys and keep the defaults of missing ones
   CHECK(parse_mission_rules_config("rule.fix_obvious_errors = yes\n") == MissionRules{});
   CHECK(parse_mission_rules_config("rule.fix_obvious_errors = 1x") == MissionRules{});
   CHECK(parse_mission_rules_config("") == MissionRules{});
+  // Missing fields keep the given defaults.
+  CHECK(parse_mission_rules_config("rule.keen_escort_sonar = 1\n", MissionRules::extended()) == keen());
 }
 
-TEST_CASE("EXTENDED.CFG gives the rules of the save directory, the original's without one", "[rules]") {
+TEST_CASE("EXTENDED.CFG gives the rules of the save directory, the extended defaults without one", "[rules]") {
   const TempDir dir;
   const SaveDir saves(dir.path());
+  CHECK(load_mission_rules(saves) == MissionRules::extended());
+  REQUIRE(saves.write(kExtendedConfigName, as_bytes(mission_rules_config(MissionRules{}))));
   CHECK(load_mission_rules(saves) == MissionRules{});
-  REQUIRE(saves.write(kExtendedConfigName, as_bytes(mission_rules_config(fixed()))));
-  CHECK(load_mission_rules(saves) == fixed());
+  // Saving the rules keeps the file's other settings.
+  REQUIRE(saves.write(kExtendedConfigName, as_bytes("ui.wide_screen = 1\nrule.fix_obvious_errors = 0\n")));
+  REQUIRE(save_mission_rules(saves, keen()));
+  CHECK(load_mission_rules(saves) == keen());
+  const std::optional<std::vector<std::uint8_t>> text = saves.read(kExtendedConfigName);
+  REQUIRE(text);
+  CHECK(std::string(text->begin(), text->end()) ==
+        "ui.wide_screen = 1\nrule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 0\nrule.keen_escort_sonar = 1\n");
 }
 
 // Returns a historical mission run for a while with `rules`.
@@ -125,18 +145,20 @@ TEST_CASE("A mission keeps its rules, and its save carries them only when they a
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> original = played(install, tables, {});
-  const std::unique_ptr<Mission> fixing = played(install, tables, fixed());
+  // Rules that change nothing in the simulation (the realism choice alone
+  // counts only in the rating), so that both missions run alike.
+  const MissionRules marked{.keen_escort_sonar = true};
+  const std::unique_ptr<Mission> fixing = played(install, tables, marked);
   CHECK(original->sim().conditions().rules == MissionRules{});
-  CHECK(fixing->sim().conditions().rules == fixed());
+  CHECK(fixing->sim().conditions().rules == marked);
 
   const MissionSaveFile original_save = capture_mission_save(install, *original, 0, "Rules", {});
   const MissionSaveFile fixing_save = capture_mission_save(install, *fixing, 0, "Rules", {});
   CHECK(original_save.state.rules_extension.empty());
-  CHECK(fixing_save.state.rules_extension == encode_mission_rules(fixed()));
+  CHECK(fixing_save.state.rules_extension == encode_mission_rules(marked));
 
   // The original's rules write the files as before; other rules only
-  // append their section (no rule reads the field yet, so both missions ran
-  // alike).
+  // append their section.
   const std::vector<std::uint8_t> original_file = original_save.serialize();
   const std::vector<std::uint8_t> fixing_file = fixing_save.serialize();
   MissionSaveFile stripped = fixing_save;
@@ -150,13 +172,41 @@ TEST_CASE("A mission keeps its rules, and its save carries them only when they a
   appended.insert(appended.end(), rule.data().begin(), rule.data().end());
   CHECK(fixing_file == appended);
 
-  // A restored mission takes the rules of its save, not of its set-up: the
-  // original's when the save has no RULE section.
-  CHECK(restored(install, tables, fixing_file, {})->sim().conditions().rules == fixed());
-  CHECK(restored(install, tables, original_file, fixed())->sim().conditions().rules == MissionRules{});
+  // A restored mission takes the rules of its save, not of its set-up; a
+  // save without a RULE section (the original's, a faithful build's) keeps
+  // those of its set-up.
+  CHECK(restored(install, tables, fixing_file, {})->sim().conditions().rules == marked);
+  CHECK(restored(install, tables, original_file, keen())->sim().conditions().rules == keen());
+  CHECK(restored(install, tables, original_file, {})->sim().conditions().rules == MissionRules{});
   const std::unique_ptr<Mission> back = restored(install, tables, fixing_file, {});
   CHECK(capture_mission_save(install, *back, 0, "Rules", {}).state.rules_extension ==
-        encode_mission_rules(fixed()));
+        encode_mission_rules(marked));
+}
+
+TEST_CASE("EXTENDED.CFG keeps its sections apart and survives unknown lines", "[rules][extended]") {
+  const TempDir dir;
+  const SaveDir saves(dir.path());
+  CHECK(load_features(saves, Features::extended()) == Features::extended());
+  CHECK_FALSE(load_last_boat(saves));
+  REQUIRE(saves.write(kExtendedConfigName, as_bytes("# a comment\nui.crew_log = 0\nui.someday = 1\nui.chart_tools = x\n")));
+  Features f = load_features(saves, Features::extended());
+  CHECK_FALSE(f.crew_log);
+  CHECK(f.chart_tools);  // a bad value keeps the default
+  f.wide_screen = false;
+  REQUIRE(save_features(saves, f));
+  REQUIRE(save_last_boat(saves, "S CLASS"));
+  REQUIRE(save_mission_rules(saves, keen()));
+  CHECK(load_features(saves, Features::extended()) == f);
+  CHECK(load_last_boat(saves) == "S CLASS");
+  CHECK(load_mission_rules(saves) == keen());
+  REQUIRE(save_last_boat(saves, "GATO"));
+  CHECK(load_last_boat(saves) == "GATO");
+  // The comment and the unknown key stay.
+  const std::string text = read_config(saves);
+  CHECK(text.starts_with("# a comment\n"));
+  CHECK(text.find("ui.someday = 1") == std::string::npos);  // the ui. section is rewritten whole
+  CHECK(parse_config(text).at("ui.crew_log") == "0");
+  CHECK(parse_config(text).at("state.last_boat") == "GATO");
 }
 
 }  // namespace

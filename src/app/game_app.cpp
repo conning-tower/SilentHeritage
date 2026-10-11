@@ -146,7 +146,8 @@ class GameApp final : public FrontendHost, public EditorRunner {
                  .sound = &sound_.layer(),
                  .sound_lock = sound_.lock(),
                  .wait_tick = headless_ ? std::function<void()>() : [] { Display::delay_ms(1); },
-                 .features = options.features},
+                 .features = options.features,
+                 .extended_config = options.extended_config},
                 *this),
         pending_(options.keys.begin(), options.keys.end()) {
     if (resume) {
@@ -311,7 +312,8 @@ class GameApp final : public FrontendHost, public EditorRunner {
   // Runs the scenario editor on this host; `started_by_game` false for
   // `--editor`.
   EditorExit run_scenario_editor(bool started_by_game) {
-    editor::Editor editor({.install = install_, .paths = paths_, .saves = saves_, .custom = custom_}, *this,
+    editor::Editor editor(
+        {.install = install_, .paths = paths_, .saves = saves_, .custom = custom_, .features = options_.features}, *this,
                           started_by_game, [] { return static_cast<std::int32_t>(std::time(nullptr)); });
     return editor.run();
   }
@@ -462,7 +464,7 @@ int run_game(const GameAppOptions& options, const Install& install) {
   GameApp app(options, install, paths, exe, saves, custom, resume);
   FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .custom = &custom,
                       .features = options.features,
-                      .extended_rules = options.extended_rules},
+                      .extended_config = options.extended_config},
                      app, app.runner(), static_cast<std::uint32_t>(std::time(nullptr)));
   app.set_front_end(front_end);
   front_end.set_play_intro(options.play_intro);

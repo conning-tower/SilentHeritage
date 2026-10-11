@@ -89,10 +89,12 @@ struct PlayerStart {
 // `start_edges` flags, non-zero = open), walked in a spiral until clear
 // and repeated until the terrain there is 0x500 below the surface, facing
 // the map's centre. Throws `DataError` when no edge can be used (the
-// original loops forever).
+// original loops forever). The original marks a tried south edge as the
+// north one and the reverse; `rules.fix_obvious_errors` marks each its own
+// (not in the original).
 PlayerStart career_player_start(const ZoneData& zone, std::string_view home_port,
                                 const std::array<std::int32_t, 4>& open_edges, const World& world,
-                                const SeaFloor& floor, WatcomRandom& random);
+                                const SeaFloor& floor, WatcomRandom& random, const MissionRules& rules = {});
 
 // What `wp_resolve_return_fuel` (0x98279) leaves.
 struct ReturnFuel {
@@ -226,8 +228,9 @@ struct PatrolRequest {
   GameOptions game_options;
   // The game's generator as the career leaves it.
   WatcomRandom random;
-  // The extended variant's rules of a new patrol (sim/context.h); a patrol
-  // resumed from the roster keeps those of its save.
+  // The extended variant's rules of the patrol (sim/context.h), the
+  // career's; a patrol resumed from the roster keeps those of its save when
+  // it has them.
   MissionRules rules;
 };
 

@@ -197,6 +197,10 @@ class ControlBar : public CommandBar {
   void menu_end_mission();       // cmd_abort_mission 0x48fa1
   void menu_game_options();      // cmd_game_options 0x4bba0
   void menu_detail_level();      // cmd_detail_level 0x4bb4b
+  // The EXTENDED OPTIONS page of the mission (not in the original): the
+  // interface improvements of `kFeatureOptions`, those that cannot change
+  // during a mission greyed; changes apply at once.
+  void menu_extended_options();
   // `ask_yes_no` (0x4c670): `done(true)` on YES.
   void ask_yes_no(std::string title, std::string line1, std::string line2, std::function<void(bool)> done);
   // `show_message_box` (0x4c38d): an OK box.
@@ -208,9 +212,15 @@ class ControlBar : public CommandBar {
   std::function<void()> on_options_changed;
   std::function<void()> on_detail_changed;
   std::function<void()> on_save;
+  // With the extended variant's settings (not in the original): GAME
+  // OPTIONS gains an EXTENDED button, and this is called with the
+  // improvements its page changed (`MissionUiState::features`).
+  std::function<void(const Features&)> on_features_changed;
 
  private:
   class SpriteButton;
+  // GAME OPTIONS' EXTENDED button was pressed (not in the original).
+  bool extended_requested_ = false;
   void build(const BarConfig& config);
   void redraw();                 // control_bar_redraw (0x48f37)
   void draw_message();           // control_bar_draw_message (0x49156)

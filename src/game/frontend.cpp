@@ -18,6 +18,7 @@
 #include "core/byte_reader.h"
 #include "core/install.h"
 #include "game/mission.h"
+#include "game/extended_config.h"
 #include "game/mission_rules.h"
 #include "game/options_realism.h"
 #include "game/resume.h"
@@ -74,6 +75,7 @@ constexpr int kCareer = 13;
 constexpr int kInterviews = 14;
 constexpr int kSubTour = 15;
 constexpr int kCredits = 16;
+constexpr int kOptions = 17;  // EXTENDED OPTIONS (not in the original)
 constexpr int kHistoric = 0x5a;
 constexpr int kConvoy = 0x5b;
 constexpr int kWarship = 0x5c;
@@ -88,6 +90,10 @@ constexpr int kMainMenu = 100;
 constexpr int kRealism = 0x50;
 constexpr int kNoScenario = 0x17;  // the list was empty (message shown)
 }  // namespace code
+
+// The main menu's button of the EXTENDED OPTIONS page (not in the
+// original).
+constexpr std::string_view kOptionsLabel = "OPTIONS";
 
 // The end codes `run_mission` reacts to (`0x11a890`).
 constexpr std::int32_t kEndAbort = 1;
@@ -211,8 +217,8 @@ FrontEnd::FrontEnd(const FrontendServices& services, FrontendHost& host, Mission
       host_(host),
       runner_(runner),
       custom_(services.custom),
-      features_(services.features),
-      extended_rules_(services.extended_rules),
+      extended_config_(services.extended_config),
+      features_(services.extended_config ? load_features(services.saves, services.features) : services.features),
       screen_(kScreenWidth, kScreenHeight),
       gui_res_(ui::GuiResources::load(install_)),
       menu_res_(ui::MenuResources::load(install_)),
@@ -338,6 +344,9 @@ void FrontEnd::front_end_loop(const ResumeSnapshot* resume) {
       case code::kCredits:
         show_credits();
         break;
+      case code::kOptions:
+        extended_options_screen();
+        break;
       default:
         break;
     }
@@ -367,8 +376,14 @@ int FrontEnd::main_menu_screen() {
       {0xfbd11, code::kCredits},
       {0xfbd19, code::kExitToDos},
   }};
-  int y = 130;
+  // With the extended settings, OPTIONS above EXIT TO DOS, the buttons
+  // moved up to make room (not in the original).
+  int y = extended_config_ ? 110 : 130;
   for (const auto& [label, result] : kButtons) {
+    if (result == code::kExitToDos && extended_config_) {
+      d.emplace<ui::Button>(35, y, 198, std::string(kOptionsLabel), returns(code::kOptions));
+      y += 40;
+    }
     auto& button = d.emplace<ui::Button>(35, y, 198, exe_string(label), returns(result));
     if (result == code::kExitToDos) {
       // Back leaves the game at once, like this button (the EXIT TO DOS?
@@ -669,6 +684,15 @@ void FrontEnd::encounter_mission_loop(int menu_code) {
   }
 }
 
+std::int32_t encounter_month_days(const ExeImage& exe, std::int32_t month, std::int32_t year,
+                                  const MissionRules& rules) {
+  // The table is laid out by [year][month]; the original reads it by
+  // [month][year] (with the rules' corrections, by [year][month]: not in the
+  // original).
+  const std::int32_t entry = rules.fix_obvious_errors ? year * 12 + month : month * 12 + year;
+  return exe.u8(addr::kMonthDays + static_cast<std::uint32_t>(entry));
+}
+
 bool FrontEnd::encounter_setup_mission(GeneratorParams& p) {
   // encounter_setup_mission (0xa1960)
   const EncounterSettings& s = encounter_;
@@ -689,9 +713,7 @@ bool FrontEnd::encounter_setup_mission(GeneratorParams& p) {
                       .crew = s.crew,
                       .special_mission = s.special_mission};
   options_ &= ~option::kModeMask;
-  // The day is drawn from the month's length, read from the table by
-  // [month][year] where it is laid out by [year][month] (an original bug).
-  const int days = exe_.u8(addr::kMonthDays + static_cast<std::uint32_t>(p.month * 12 + p.year));
+  const std::int32_t days = encounter_month_days(exe_, p.month, p.year, mission_rules());
   p.day = random_.random_int(days) + 1;
   if (p.year == WarWindow::kStartYear) {
     p.month = std::max(p.month, WarWindow::kStartMonth);
@@ -816,19 +838,21 @@ std::int32_t FrontEnd::run_mission(const MissionRequest& base) {
   std::uint32_t options = options_ & ~option::kModeMask;
   if (base.saved_mission < 0 && base.resume == nullptr) {
     RealismFile::load(saves_, options);
-    if (extended_rules_) {
-      request.rules = load_mission_rules(saves_);
-    }
   } else {
     options |= option::kModeSavedMission;
   }
   request.options = options;
   request.random = random_;
+  request.rules = mission_rules();
   const std::int32_t end = runner_.run(request);
   MissionOutcome outcome = runner_.outcome();
   outcome.end_code = end;
   results_ = mission_end_screens(outcome, options);
   return end;
+}
+
+MissionRules FrontEnd::mission_rules() const {
+  return extended_config_ ? load_mission_rules(saves_) : MissionRules{};
 }
 
 void FrontEnd::show_mission_loading() {

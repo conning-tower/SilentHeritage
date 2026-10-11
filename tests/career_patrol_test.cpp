@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <array>
 #include <string>
 
 #include "assets/patrol_zones.h"
@@ -174,6 +175,41 @@ TEST_CASE("a patrol from elsewhere starts in deep water near an open edge", "[ca
     CHECK((south || east));
     CHECK(start.heading ==
           fx::heading_from_delta(world.grid.width / 2 * cell - start.x, world.grid.height / 2 * cell - start.z));
+  }
+}
+
+TEST_CASE("With the rules' corrections a patrol starts only from the zone's open edges", "[career][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const std::vector<PatrolZone> zones = load_zones(install);
+  const World world = parse_world(install.read("DATA/WORLD-10.WLD"), "WORLD-10.WLD");
+  const WorldSeaFloor floor(world);
+  const std::int32_t cell = world.cell_size();
+  const std::int32_t width = world.grid.width * cell;
+  const std::int32_t height = world.grid.height * cell;
+  // The zones of WORLD-10 with some edge closed: a start must be near an
+  // open one with the corrections (the original may use the other row
+  // edge, which these zones and seeds do not show).
+  for (std::size_t z = 0; z < zones.size(); ++z) {
+    const PatrolZone& pz = zones[z];
+    if (pz.world != "WORLD-10.WLD" || std::ranges::all_of(pz.start_edges, [](std::int32_t e) { return e != 0; })) {
+      continue;
+    }
+    const ZoneData zone = ZoneData::load(install, pz);
+    for (std::uint32_t seed = 1; seed < 60; ++seed) {
+      {
+        WatcomRandom random(seed);
+        const MissionRules rules = MissionRules::extended();
+        const PlayerStart start = career_player_start(zone, "Nowhere", pz.start_edges, world, floor, random, rules);
+        // The edges: 0 south (the last row, low z), 1 north, 2 west, 3 east.
+        const std::array<bool, 4> near{start.z < height / 3, start.z > height * 2 / 3, start.x < width / 3,
+                                       start.x > width * 2 / 3};
+        bool open = false;
+        for (std::size_t e = 0; e < 4; ++e) {
+          open = open || (pz.start_edges[e] != 0 && near[e]);
+        }
+        CHECK(open);
+      }
+    }
   }
 }
 

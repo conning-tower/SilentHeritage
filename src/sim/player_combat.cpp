@@ -166,9 +166,7 @@ void PlayerCombat::update_aa_guns(SimContext& ctx, PlayerSub& sub, Fixed16 dt) {
   if (fx::approx_distance(t.x - own.x, t.z - own.z) > kAaRange) {
     return;
   }
-  // The original's elevation runs over |dx| alone (|dz| when dx is 0).
-  const std::int32_t across = fx::abs(t.x == own.x ? t.z - own.z : t.x - own.x);
-  const Angle10 elevation = fx::heading_from_delta(t.y - gun_y, across);
+  const Angle10 elevation = aa_gun_elevation(t.x - own.x, t.y - gun_y, t.z - own.z, ctx.env.rules);
   const std::int32_t error = ((ctx.env.options & 0xf) >> 2) + 1;
   const std::int32_t e_down = ctx.random.random_int(error);
   const std::int32_t e_up = ctx.random.random_int(error);
@@ -176,11 +174,24 @@ void PlayerCombat::update_aa_guns(SimContext& ctx, PlayerSub& sub, Fixed16 dt) {
   const std::int32_t h_left = ctx.random.random_int(error);
   const std::int32_t h_right = ctx.random.random_int(error);
   const Angle10 aim_heading = fx::angle_sub(fx::angle_add(bearing, Angle10(h_right)), Angle10(h_left));
-  // Unsigned like the original's: a target below the gun wraps to a high
-  // elevation and is fired at too.
-  if (aim_elevation.tenths() > 19 && ctx.sim != nullptr) {
+  if (aa_guns_fire_at(aim_elevation, ctx.env.rules) && ctx.sim != nullptr) {
     ctx.sim->add(std::make_unique<Shell>(fx::Vec3{own.x, gun_y, own.z}, aim_heading, aim_elevation, 4000, 0, &sub));
   }
+}
+
+Angle10 aa_gun_elevation(std::int32_t dx, std::int32_t dy, std::int32_t dz, const MissionRules& rules) {
+  // The original's elevation runs over |dx| alone (|dz| when dx is 0); over
+  // the horizontal range with the rules' corrections (not in the original).
+  const std::int32_t across = rules.fix_obvious_errors ? static_cast<std::int32_t>(fx::approx_distance(dx, dz))
+                                                       : fx::abs(dx == 0 ? dz : dx);
+  return fx::heading_from_delta(dy, across);
+}
+
+bool aa_guns_fire_at(Angle10 aim, const MissionRules& rules) {
+  // Unsigned like the original's: a target below the gun wraps to a high
+  // elevation and is fired at too; signed with the rules' corrections.
+  const std::int32_t tenths = aim.tenths();
+  return (rules.fix_obvious_errors && tenths > 1800 ? tenths - 3600 : tenths) > 19;
 }
 
 bool PlayerCombat::take_damage(SimContext& ctx, PlayerSub& sub, DamageKind kind, std::int32_t distance,

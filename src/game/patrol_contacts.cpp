@@ -105,9 +105,52 @@ WorldPoint at_of(const ContactGroup& g) { return {g.position.x, g.position.z}; }
 
 }  // namespace
 
+void draw_route_group_kind(ContactGroup& g, const PatrolZone& zone, std::size_t month,
+                           const std::array<std::uint8_t, 4>& warship_mix, std::int32_t& air_pct, WatcomRandom& random,
+                           const MissionRules& rules) {
+  // The per-kind part of convoy_build_on_route (0x2e4c9).
+  switch (g.route_kind) {
+    case RouteGroupKind::kConvoy: {
+      g.size = random_weighted_index(zone.convoy_size_pct[month], random);
+      const std::int32_t base = g.fast_or_intercept ? 15 : 10;
+      g.speed = (base + 1 - random.random_int(3)) << 16;
+      break;
+    }
+    case RouteGroupKind::kTaskForce:
+      g.warship_type = random_weighted_index(warship_mix, random);
+      air_pct = std::min(air_pct + (g.warship_type == 1 ? 100 : 20), 100);
+      g.speed = (random.random_int(10) + 18) << 16;
+      break;
+    case RouteGroupKind::kPatrol:
+      g.size = random_weighted_index(zone.convoy_size_pct[month], random);
+      g.speed = 12 << 16;
+      // The original falls through into the submarines' case, which draws
+      // the size and speed again; not with the rules' corrections (not in
+      // the original).
+      if (rules.fix_obvious_errors) {
+        break;
+      }
+      [[fallthrough]];
+    case RouteGroupKind::kSubmarines:
+      g.coastal_or_submerged = false;
+      g.fast_or_intercept = random.random_int(100) <= g.crew * 25;
+      g.size = random.random_int(3) + 1;
+      if (g.fast_or_intercept) {
+        g.coastal_or_submerged = random.random_int(100) < 26;
+      }
+      if (g.fast_or_intercept && g.size > 2) {
+        g.size = 2;
+      }
+      g.speed = (random.random_int(5) + 10) << 16;
+      break;
+  }
+}
+
 ContactGroups::ContactGroups(const GameTables& tables, ZoneData& zone, const World& world, ContactSpawner& spawner,
-                             bool limit_classes)
-    : tables_(tables), zone_(zone), world_(world), spawner_(spawner), limit_classes_(limit_classes) {}
+                             bool limit_classes, const MissionRules* rules)
+    : tables_(tables), zone_(zone), world_(world), spawner_(spawner), limit_classes_(limit_classes), rules_(rules) {}
+
+bool ContactGroups::fixes() const { return rules_ != nullptr && rules_->fix_obvious_errors; }
 
 void ContactGroups::init(const GameClock& clock, WatcomRandom& random) {
   // contacts_init (0x2d9fd)
@@ -454,37 +497,7 @@ bool ContactGroups::build_on_route(ContactGroup& g, std::size_t route, bool back
   g.escort = random_weighted_index(zone_.zone.escort_pct[m], random);
   g.crew = random_weighted_index(zone_.zone.crew_pct[m], random);
   g.coastal_or_submerged = (state.flags & ConvoyRoute::kCoastal) != 0;
-  switch (g.route_kind) {
-    case RouteGroupKind::kConvoy: {
-      g.size = random_weighted_index(zone_.zone.convoy_size_pct[m], random);
-      const std::int32_t base = g.fast_or_intercept ? 15 : 10;
-      g.speed = (base + 1 - random.random_int(3)) << 16;
-      break;
-    }
-    case RouteGroupKind::kTaskForce:
-      g.warship_type = random_weighted_index(warship_mix_, random);
-      air_pct = std::min(air_pct + (g.warship_type == 1 ? 100 : 20), 100);
-      g.speed = (random.random_int(10) + 18) << 16;
-      break;
-    case RouteGroupKind::kPatrol:
-      g.size = random_weighted_index(zone_.zone.convoy_size_pct[m], random);
-      g.speed = 12 << 16;
-      // The original falls through into the submarines' case, which draws
-      // the size and speed again.
-      [[fallthrough]];
-    case RouteGroupKind::kSubmarines:
-      g.coastal_or_submerged = false;
-      g.fast_or_intercept = random.random_int(100) <= g.crew * 25;
-      g.size = random.random_int(3) + 1;
-      if (g.fast_or_intercept) {
-        g.coastal_or_submerged = random.random_int(100) < 26;
-      }
-      if (g.fast_or_intercept && g.size > 2) {
-        g.size = 2;
-      }
-      g.speed = (random.random_int(5) + 10) << 16;
-      break;
-  }
+  draw_route_group_kind(g, zone_.zone, m, warship_mix_, air_pct, random, rules_ != nullptr ? *rules_ : MissionRules{});
   g.aircraft = 0;
   if (g.route_kind != RouteGroupKind::kSubmarines && random.random_int(100) < air_pct) {
     g.aircraft = (air_pct + 24) / 25;
@@ -796,9 +809,11 @@ bool ContactGroups::try_materialize(ContactGroup& g, const GameClock& clock, con
       break;
     }
     case ContactGroupKind::kAnchored: {
-      // The crew table is indexed by the calendar month (an original bug).
-      params_.enemy =
-          random_weighted_index(zone_.zone.crew_pct[static_cast<std::size_t>(clock.month())], random);
+      // The crew table is indexed by the calendar month (an original bug),
+      // by the campaign month with the rules' corrections (not in the
+      // original).
+      const std::size_t crew_month = fixes() ? month_index(clock) : static_cast<std::size_t>(clock.month());
+      params_.enemy = random_weighted_index(zone_.zone.crew_pct[crew_month], random);
       random.srand(g.seed);
       params_.escort = g.guard_size;
       params_.convoy_size = g.anchored_size;

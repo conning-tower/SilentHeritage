@@ -26,4 +26,10 @@ std::int32_t player_noise_level(const PlayerSub& player);
 // after 3 minutes (`ship_hydrophone_check`, the ship's slot +0x58).
 void ship_hydrophone_check(Ship& ship, SimContext& ctx);
 
+// Returns whether a noise `noise` at `p` cancels a ship's sonar estimate at
+// `estimate` (`ai_ship_sonar_search` 0x705f4): the ship at `ship` heading
+// `heading`, its beam `beam` (tenths off the bow).
+bool sonar_noise_cancels(const fx::Vec3& ship, Angle10 heading, std::int32_t beam, const fx::Vec3& estimate,
+                         const fx::Vec3& p, std::int32_t noise, const MissionRules& rules);
+
 }  // namespace sh

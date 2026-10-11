@@ -5,6 +5,7 @@
 #include "assets/exe_image.h"
 #include "core/byte_reader.h"
 #include "core/install.h"
+#include "game/extended_config.h"
 #include "game/frontend.h"
 #include "gfx/sprite.h"
 #include "gfx/text.h"
@@ -206,6 +207,9 @@ bool FrontEnd::subsel_screen(std::string& class_name, const SubClassFilter& filt
   // 0x732e3: the first class selected, then the fade-in. With
   // `Features::last_boat`, the class last chosen when the filter kept it.
   int initial = 0;
+  if (features_.last_boat && extended_config_ && subsel_last_class_.empty()) {
+    subsel_last_class_ = load_last_boat(saves_).value_or(std::string());
+  }
   if (features_.last_boat) {
     const auto last = std::ranges::find(classes, subsel_last_class_, &SubClass::name);
     if (last != classes.end()) {
@@ -235,6 +239,9 @@ bool FrontEnd::subsel_screen(std::string& class_name, const SubClassFilter& filt
     return false;
   }
   class_name = classes[static_cast<std::size_t>(list->selection)]->name;
+  if (features_.last_boat && extended_config_ && subsel_last_class_ != class_name) {
+    save_last_boat(saves_, class_name);
+  }
   subsel_last_class_ = class_name;
   return true;
 }

@@ -5,8 +5,10 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "game/command_bar.h"
+#include "game/extended_config.h"
 #include "game/stations/cabin.h"
 #include "game/stations/chart.h"
 #include "game/stations/conn.h"
@@ -394,6 +396,44 @@ TEST_CASE("The station keys switch between the control-room stations", "[station
   rig.settle();
   CHECK(dynamic_cast<ConnStation*>(open()) != nullptr);
   CHECK(rig.screen->stations().current() == StationId::kConn);
+}
+
+TEST_CASE("Extended: GAME OPTIONS' EXTENDED page switches the interface at once", "[stations][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool extended : {false, true}) {
+    ControlRig rig(install);
+    rig.frames(2);
+    rig.settle();
+    std::vector<Features> saved;
+    if (extended) {
+      rig.screen->bar().on_features_changed = [&saved](const Features& f) { saved.push_back(f); };
+    }
+    Features& features = rig.screen->env().ui.features;
+    // Alt-O, then the EXTENDED button beside SAVE (the dialog at (0x9d, 0x1c)).
+    rig.key(0x1800);
+    REQUIRE_FALSE(rig.screen->in_play());
+    rig.click(0x9d + 0xab + 60, 0x1c + 0x171 + 12);
+    if (!extended) {
+      // The original's dialog: nothing there.
+      CHECK_FALSE(rig.screen->in_play());
+      CHECK(features == Features{});
+      continue;
+    }
+    // The page (rows 0x17 apart from 0x32): WIDE SCREEN greyed, CREW
+    // MESSAGE LOG switched on at once.
+    const int h = 0x50 + static_cast<int>(kFeatureOptions.size()) * 0x17;
+    const int y0 = (kScreenHeight - h) / 2;
+    rig.click(0x9d + 0x36 + 8, y0 + 0x32 + 8);
+    CHECK_FALSE(features.wide_screen);
+    rig.click(0x9d + 0x36 + 8, y0 + 0x32 + 0x17 + 8);
+    CHECK(features.crew_log);
+    CHECK(saved.empty());
+    rig.key(0x011b);
+    rig.frames(2);
+    CHECK(rig.screen->in_play());
+    REQUIRE(saved.size() == 1);
+    CHECK(saved[0].crew_log);
+  }
 }
 
 }  // namespace sh

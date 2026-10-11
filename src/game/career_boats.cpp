@@ -1,6 +1,7 @@
 #include "game/career_boats.h"
 
 #include <cstdlib>
+#include <vector>
 
 #include "assets/exe_image.h"
 #include "assets/game_exe.h"
@@ -53,6 +54,28 @@ std::int32_t career_month_index(const CareerRecord& record) {
   return month_index_abs(record.month, record.year + kCalendarBaseYear);
 }
 
+// Returns CARSUB.DAT's two-digit year (43) as a full year (not in the
+// original).
+std::int32_t carsub_full_year(std::uint32_t year) {
+  return static_cast<std::int32_t>(year < 100 ? 1900 + year : year);
+}
+
+// Returns the CARSUB indices of the boats of `c` commissioned by campaign
+// month `now`, or all of the class's boats when none is (not in the
+// original).
+std::vector<std::int32_t> boats_in_service(const GameTables& tables, const CareerBoatClass& c, std::int32_t now) {
+  std::vector<std::int32_t> boats;
+  std::vector<std::int32_t> all;
+  for (std::int32_t b = c.first_boat; b <= c.last_boat; ++b) {
+    const CarsubBoat& boat = tables.carsub[static_cast<std::size_t>(b)];
+    all.push_back(b);
+    if (month_index_abs(static_cast<std::int32_t>(boat.avail_month), carsub_full_year(boat.avail_year)) <= now) {
+      boats.push_back(b);
+    }
+  }
+  return boats.empty() ? all : boats;
+}
+
 bool delivery_due(const EquipmentDelivery& e, bool supplied, const CareerRecord& record,
                   const CareerSummary& summary) {
   std::int32_t due = month_index_abs(e.month, e.year + kCalendarBaseYear);
@@ -103,7 +126,7 @@ std::vector<CareerBoatClass> career_boat_classes(const GameTables& tables) {
 }
 
 bool assign_new_boat(CareerRecord& record, const CareerSummary& summary, SubCommand home_command,
-                     const GameTables& tables, WatcomRandom& random) {
+                     const GameTables& tables, WatcomRandom& random, const MissionRules& rules) {
   // carsub_assign_new_boat (0x1e124)
   const bool upgrade = record.patrols >= 1;
   // The class index is a signed char.
@@ -157,8 +180,15 @@ bool assign_new_boat(CareerRecord& record, const CareerSummary& summary, SubComm
         ++in_service;
       }
     }
-    random.random_int(in_service);
-    const std::int32_t pick = c.first_boat + random.random_int(c.last_boat + 1 - c.first_boat);
+    std::int32_t pick = 0;
+    if (rules.fix_obvious_errors) {
+      // Not in the original: a boat in service at the date.
+      const std::vector<std::int32_t> boats = boats_in_service(tables, c, now);
+      pick = boats.at(static_cast<std::size_t>(random.random_int(static_cast<std::int32_t>(boats.size()))));
+    } else {
+      random.random_int(in_service);
+      pick = c.first_boat + random.random_int(c.last_boat + 1 - c.first_boat);
+    }
     const CarsubBoat& boat = tables.carsub[static_cast<std::size_t>(pick)];
     // "(SS-<hull>) <name>", from the parts 0xf1a50 and 0xf1a81.
     const ExeImage& exe = game_exe();
@@ -167,6 +197,14 @@ bool assign_new_boat(CareerRecord& record, const CareerSummary& summary, SubComm
     if (name != record.boat) {
       record.boat = name.substr(0, 29);
       return true;
+    }
+    if (rules.fix_obvious_errors) {
+      // Not in the original: another draw in the same class, unless the
+      // boat is the only one it can give.
+      if (boats_in_service(tables, c, now).size() < 2) {
+        return true;
+      }
+      continue;
     }
     // The same boat again: the original goes on with the table's first
     // class (its index variable then holds 0).
@@ -219,7 +257,7 @@ std::array<std::string, 3> new_career_command_names(const NewCareerChoice& choic
 }
 
 Career career_init_new(const NewCareerChoice& choice, std::uint32_t options, WatcomRandom& random,
-                       std::int32_t stale_letter) {
+                       std::int32_t stale_letter, const MissionRules& rules) {
   // career_init_new (0x5ae56)
   Career career;
   CareerRecord& r = career.record;
@@ -245,7 +283,7 @@ Career career_init_new(const NewCareerChoice& choice, std::uint32_t options, Wat
   s.patrols_since_transfer = 0;
   s.transfer_offered = 0;
   s.same_zone_repeats = 0;
-  r.equipment = equipment_for_new_career(r, s, stale_letter);
+  r.equipment = equipment_for_new_career(r, s, stale_letter, rules);
   return career;
 }
 
@@ -303,7 +341,7 @@ std::int32_t deliver_next_equipment(CareerRecord& record, const CareerSummary& s
 }
 
 std::uint32_t equipment_for_new_career(const CareerRecord& record, const CareerSummary& summary,
-                                       std::int32_t stale_letter) {
+                                       std::int32_t stale_letter, const MissionRules& rules) {
   // 0x5b990: the supply flag of record `stale_letter` for every record; the
   // flag read past the table (index 7) is -10.
   const auto& table = equipment_deliveries();
@@ -311,7 +349,7 @@ std::uint32_t equipment_for_new_career(const CareerRecord& record, const CareerS
                         table[static_cast<std::size_t>(stale_letter)].supplied;
   std::uint32_t bits = record.equipment;
   for (const EquipmentDelivery& e : table) {
-    if (delivery_due(e, supplied, record, summary)) {
+    if (delivery_due(e, rules.fix_obvious_errors ? e.supplied : supplied, record, summary)) {
       bits |= e.bit;
     }
   }
