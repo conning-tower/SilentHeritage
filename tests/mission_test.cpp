@@ -38,7 +38,7 @@ double distance(fx::Vec3 a, fx::Vec3 b) { return static_cast<double>(fx::approx_
 
 }  // namespace
 
-TEST_CASE("The class adapters pick the motion fields of the DAT records", "[mission]") {
+TEST_CASE("The class adapters pick the motion fields of the DAT records", "[mission][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
 
@@ -88,7 +88,7 @@ TEST_CASE("The class adapters pick the motion fields of the DAT records", "[miss
 }
 
 TEST_CASE("The world sea floor samples the grid", "[mission]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::string path = "DATA/WORLD-8.WLD";
   const World world = parse_world(install.read(path), path);
   const WorldSeaFloor floor(world);
@@ -118,7 +118,7 @@ TEST_CASE("The world sea floor samples the grid", "[mission]") {
 }
 
 TEST_CASE("Every shipped scenario instantiates", "[mission]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   std::vector<std::string> files = install.list("SCEN", ".SCN");
   for (const std::string& f : install.list("CUSTOM", ".SCN")) {
@@ -139,7 +139,7 @@ TEST_CASE("Every shipped scenario instantiates", "[mission]") {
 }
 
 TEST_CASE("With the rules' corrections a ship is left out in water shallower than 1.5 drafts", "[mission][rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   // No shipped scenario has a ship in such water: the same units either way.
   for (const std::string& file : {std::string("SCEN/HIST15.SCN"), std::string("CUSTOM/SITDUCK.SCN")}) {
@@ -180,7 +180,7 @@ TEST_CASE("With the rules' corrections a ship is left out in water shallower tha
   }
 }
 
-TEST_CASE("HIST01 instantiates the scenario's units", "[mission]") {
+TEST_CASE("HIST01 instantiates the scenario's units", "[mission][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
@@ -285,7 +285,7 @@ TEST_CASE("HIST01 instantiates the scenario's units", "[mission]") {
   CHECK(mission->environment_file() == "env-12.env");
 }
 
-TEST_CASE("HIST01 draws from the generator in the original order", "[mission]") {
+TEST_CASE("HIST01 draws from the generator in the original order", "[mission][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup setup;
@@ -308,7 +308,7 @@ TEST_CASE("HIST01 draws from the generator in the original order", "[mission]") 
   CHECK(first.reaction_rolls().preserved_timer_1dc == Fixed16::from_int((r.random_int(10) + 2) * 60));
 }
 
-TEST_CASE("HIST57 instantiates its enemy submarine and aircraft", "[mission]") {
+TEST_CASE("HIST57 instantiates its enemy submarine and aircraft", "[mission][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup a;
@@ -343,7 +343,7 @@ TEST_CASE("HIST57 instantiates its enemy submarine and aircraft", "[mission]") {
   }
 }
 
-TEST_CASE("A headless minute moves the ships at their speeds", "[mission]") {
+TEST_CASE("A headless minute moves the ships at their speeds", "[mission][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = HeadlessRunner::load(install, tables, "SCEN/HIST01.SCN");
@@ -495,7 +495,7 @@ TEST_CASE("The station update is throttled at high compression", "[mission]") {
 }
 
 TEST_CASE("The mission loop switches stations and pumps events in order", "[mission]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", {});
   Recorder log;
