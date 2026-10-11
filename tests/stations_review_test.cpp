@@ -37,7 +37,7 @@ struct AttackRig {
 
 }  // namespace
 
-TEST_CASE("The deck gun's bar button switches guns after the bar returns", "[simreview][stations]") {
+TEST_CASE("The deck gun's bar button switches guns after the bar returns", "[simreview][stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   AttackRig r(install, "SCEN/HIST60.SCN");
   MissionScreen& screen = r.screen();
@@ -60,7 +60,7 @@ TEST_CASE("The deck gun's bar button switches guns after the bar returns", "[sim
 }
 
 TEST_CASE("The deck gun station repaints its panel on a full redraw", "[simreview][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   AttackRig r(install, "SCEN/HIST60.SCN");
   MissionScreen& screen = r.screen();
   screen.install(StationId::kDeckGun, std::make_unique<DeckGunStation>(r.services));
@@ -93,7 +93,7 @@ TEST_CASE("The deck gun station repaints its panel on a full redraw", "[simrevie
 }
 
 TEST_CASE("Lowering the periscope at its station animates it on the conn", "[simreview][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   AttackRig r(install, "SCEN/HIST01.SCN");
   MissionScreen& screen = r.screen();
   screen.install(StationId::kScope, std::make_unique<ScopeStation>(r.services));
