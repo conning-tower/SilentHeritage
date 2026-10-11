@@ -13,7 +13,7 @@ namespace sh {
 using namespace fx;
 
 TEST_CASE("The trigonometry tables are SH.EXE's", "[fixedmath]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ExeImage exe = ExeImage::load(install);
   // The installed tables are SH.EXE's, and the formula tables of the runs
   // without SH_DATA equal them.
