@@ -60,6 +60,19 @@ enum class CursorId : std::uint8_t {
   kRadioLog = 39,
 };
 
+// A finger on a touch screen, in screen pixels (not in the original).
+struct Touch {
+  std::int64_t id = 0;
+  int x = 0;
+  int y = 0;
+};
+
+// How the pointer reaches the screen's edges, which scroll the charts (not
+// in the original, whose edge band is `kBand`): held inside the picture
+// (fullscreen), so the edge rows and columns themselves are reached; or a
+// touch screen, whose pointer never scrolls a chart at an edge.
+enum class PointerEdges : std::uint8_t { kBand, kExact, kNone };
+
 // The mouse: position, buttons, event generation and the cursor.
 class Mouse {
  public:
@@ -84,6 +97,16 @@ class Mouse {
   int x() const { return x_; }
   int y() const { return y_; }
   std::uint8_t buttons() const { return buttons_; }
+
+  // The fingers on a touch screen, in the order they touched (not in the
+  // original: the first one is also the left button). `touch` adds or
+  // moves finger `id`, `lift` removes it.
+  void touch(std::int64_t id, int x, int y);
+  void lift(std::int64_t id);
+  const std::vector<Touch>& touches() const { return touches_; }
+  // Set by the host from the window's state (`kBand` by default).
+  void set_edges(PointerEdges edges) { edges_ = edges; }
+  PointerEdges edges() const { return edges_; }
 
   // `mouse_freeze_motion` / `mouse_unfreeze_motion` (counter 0x1248c0).
   void freeze_motion() { ++frozen_; }
@@ -129,6 +152,8 @@ class Mouse {
   int x_ = 0;
   int y_ = 0;
   std::uint8_t buttons_ = 0;
+  std::vector<Touch> touches_;
+  PointerEdges edges_ = PointerEdges::kBand;
   int frozen_ = 0;
   const Shp* sprites_ = nullptr;
   std::size_t frame_ = 0;

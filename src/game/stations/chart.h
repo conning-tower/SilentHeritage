@@ -5,10 +5,12 @@
 // nav panel) or the waypoint plotting controls. Pressing Z / X or the zoom
 // buttons opens the zoom box, a magnifier the next click zooms to.
 //
-// With `Features::chart_tools` (not in the original; chart_extended.cpp):
-// the CHART TOOLS panel and its annotations (chart_tools.h), the wheel
-// zoom, and dragging the map to scroll it. A click on the map then acts
-// on the release, so that a press that moves becomes a drag.
+// Not in the original (chart_extended.cpp): in every build a finger
+// dragging the map scrolls it, a tap acting on its release. With
+// `Features::chart_tools`: the CHART TOOLS panel and its annotations
+// (chart_tools.h), the continuous wheel and pinch zoom, the full command
+// bar's panels, and the mouse dragging the map too (its clicks then act on
+// the release).
 #pragma once
 
 #include <array>
@@ -138,8 +140,9 @@ class ChartStation : public Station, private PanelSuspender {
   const std::optional<std::array<geom::WorldXZ, 2>>& ruler() const { return ruler_; }
   // The line being drawn with the line tool, if any.
   const std::optional<ChartAnnotation>& draft() const { return draft_; }
-  // Zooms by `notches` doubling (halving when negative) steps about
-  // viewport pixel (`x`, `y`), which keeps its chart position (the wheel).
+  // Zooms continuously by `notches` of the wheel (four double the zoom,
+  // negative zooms out) about viewport pixel (`x`, `y`), which keeps its
+  // chart position.
   void wheel_zoom(std::int32_t x, std::int32_t y, int notches);
 
  private:
@@ -166,28 +169,54 @@ class ChartStation : public Station, private PanelSuspender {
   // Adds the zoom, centre and follow buttons of the panels, `dx` pixels
   // right of their place.
   void add_zoom_buttons(ui::Dialog& d, int dx);
-  void add_tools_button(ui::Dialog& d);
+  // Whether the chart shows the whole command bar (the extended chart):
+  // MAP CONTROLS and NAVIGATION then have no clock, time compression or
+  // CONN, and TOOLS takes CONN's place.
+  bool full_bar() const { return env_.ui.features.chart_tools; }
+  // MAP CONTROLS with the full bar.
+  std::unique_ptr<ui::Dialog> make_bar_map_panel();
+  // Moves the panels' shared place left so that a panel `width` wide stays
+  // on the map.
+  void keep_panel_on_map(int width);
+  // Adds the TOOLS button in `r`, a `w` x `h` plate, and the toolbox's
+  // buttons that leave it for MAP CONTROLS or NAVIGATION at (`x`, `y`).
+  void add_tools_button(ui::Dialog& d, ui::Rect r, int w, int h);
+  void add_panel_switch(ui::Dialog& d, int x, int y, ChartPanel panel);
   std::string tools_prompt() const;
   // Returns whether `event` was the extended chart's: the wheel, the
   // middle button on the map, or Esc and a right click in the toolbox.
   bool tools_event(const ui::Event& event);
-  // A press of the left button on the map at viewport pixel (`x`, `y`).
-  void tools_press(std::int32_t x, std::int32_t y);
-  // Every frame: the pointer's click or drag, the eraser's
-  // highlight and the line tool's rubber band.
-  void tools_update();
+  // A press of the left button on the map at viewport pixel (`x`, `y`) in
+  // the extended chart, or of a finger in any (not in the original): it
+  // clicks on the release unless it moves and scrolls the map.
+  void press_map(std::int32_t x, std::int32_t y);
+  // Every frame while the extended chart or a finger press needs it: the
+  // pointer's click or drag, the pinch, the eraser's highlight and the
+  // line tool's rubber band.
+  void update_map_pointer();
   void tools_click(std::int32_t x, std::int32_t y);
-  void tools_drag(ChartPointer::Step step, std::int32_t x, std::int32_t y);
+  // Sets `zoom` keeping the chart point under viewport pixel (`x`, `y`),
+  // or centred on the boat when following it.
+  void zoom_about(std::int32_t x, std::int32_t y, std::int32_t zoom);
+  // Two fingers on a touch screen zoom and scroll the map; returns whether
+  // they do (the pointer then does nothing else).
+  bool pinch();
+  // A drag on the map: the tool's, else the scroll.
+  void drag_map(ChartPointer::Step step, std::int32_t x, std::int32_t y);
   void finish_line();
   void ask_note(geom::WorldXZ at);
   // Draws the annotations under the overlays / the ruler and the drawing in
   // progress over them.
   void draw_annotations();
   void draw_tool_overlays();
-  void add_scale_controls(ui::Dialog& d, int line_y, int text_y);
+  // The scale controls, from x 7 to `right`.
+  void add_scale_controls(ui::Dialog& d, int line_y, int text_y, int right = 0x120);
   // Draws the panels' scale bar at `y`: CHART.SHP's, or with
   // `Features::chart_tools` the nautical one (`chart_nautical_scale`).
-  void draw_scale_bar(const Viewport& gfx, int y) const;
+  void draw_scale_bar(const Viewport& gfx, int y, int right = 0x120) const;
+  // The longest scale bar of controls ending at `right` (256 pixels in the
+  // original's panels).
+  static int scale_bar_length(int right) { return right - 0x20; }
   void repaint_panel();
   void view_update();       // chart_view_update (0x2a875)
   void redraw_map();        // chart_view_redraw_if_dirty (0x2abce)
@@ -329,6 +358,14 @@ class ChartStation : public Station, private PanelSuspender {
   // The view's centre when a drag began (the drag scroll).
   std::array<std::int32_t, 2> drag_centre_{};
   bool panning_ = false;
+  // The pinch under way: the fingers' distance and the zoom when it began,
+  // and the chart point under their middle.
+  struct Pinch {
+    double distance = 0;
+    std::int32_t zoom = 0;
+    std::array<std::int32_t, 2> anchor{};
+  };
+  std::optional<Pinch> pinch_;
 
  public:
   // The panel and the panel positions of the state files (0x118a8c, then

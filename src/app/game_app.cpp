@@ -285,6 +285,14 @@ class GameApp final : public FrontendHost, public EditorRunner {
     while (const std::optional<InputEvent> e = display_.poll()) {
       feed(gui, *e);
     }
+    // The charts' edge scrolling: only the very edges when the pointer is
+    // held in the fullscreen picture, none on touch screens (not in the
+    // original).
+#ifdef SDL_PLATFORM_ANDROID
+    gui.mouse().set_edges(ui::PointerEdges::kNone);
+#else
+    gui.mouse().set_edges(display_.fullscreen() ? ui::PointerEdges::kExact : ui::PointerEdges::kBand);
+#endif
     if (!headless_) {
       keep_sound_output();
     }
@@ -411,6 +419,14 @@ class GameApp final : public FrontendHost, public EditorRunner {
         gui.mouse().update(e.x, e.y, buttons_, bios_shift_state(mods_));
         break;
       }
+      case EventType::kFingerDown:
+      case EventType::kFingerMove:
+        // The charts' finger scrolling and the extended chart's pinch.
+        gui.mouse().touch(e.finger, e.x, e.y);
+        break;
+      case EventType::kFingerUp:
+        gui.mouse().lift(e.finger);
+        break;
       case EventType::kMouseWheel:
         // The original had no wheel; the precise dials and the extended
         // chart take it.

@@ -70,6 +70,21 @@ void Mouse::post_wheel(int notches, std::uint8_t shift) {
   events_->post(e);
 }
 
+void Mouse::touch(std::int64_t id, int x, int y) {
+  for (Touch& t : touches_) {
+    if (t.id == id) {
+      t.x = x;
+      t.y = y;
+      return;
+    }
+  }
+  touches_.push_back({id, x, y});
+}
+
+void Mouse::lift(std::int64_t id) {
+  std::erase_if(touches_, [id](const Touch& t) { return t.id == id; });
+}
+
 void Mouse::set_cursor(const Shp& sprites, std::size_t frame) {
   sprites_ = &sprites;
   frame_ = frame;

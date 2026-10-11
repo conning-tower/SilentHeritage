@@ -130,10 +130,10 @@ void draw_chart_ruler(const Viewport& vp, const ChartView& view, geom::WorldXZ f
 // Draws mark `symbol` centred on (x, y) of `vp`.
 void draw_chart_symbol(const Viewport& vp, int x, int y, ChartSymbol symbol, std::uint8_t colour);
 
-// The scale bar of the extended chart's panels: the longest round range
-// (1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 times a power of ten) that the
-// original's 256-pixel bar holds (176000 / zoom yards), in nautical miles
-// from 10, else in yards.
+// The scale bar of the extended chart's panels at `zoom` (16.16): the
+// longest round range (1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6 or 8 times a power of
+// ten) that `max_length` pixels hold (the original's 256-pixel bar spans
+// 176000 / zoom yards), in nautical miles from 10, else in yards.
 struct ChartScale {
   int length = 0;      // pixels
   int value = 0;       // the number at its end: nautical miles, or tens of yards
@@ -141,7 +141,11 @@ struct ChartScale {
 
   bool operator==(const ChartScale&) const = default;
 };
-ChartScale chart_nautical_scale(std::int32_t zoom_int);
+ChartScale chart_nautical_scale(std::int32_t zoom, int max_length = 256);
+
+// Returns `zoom` (16.16) times `factor`, kept within the chart's 1x to
+// `kChartMaxZoom` (the wheel's and the pinch's continuous zoom).
+std::int32_t chart_scaled_zoom(std::int32_t zoom, double factor);
 // Draws a scale bar `length` pixels long at (x, y) of `vp` as the original's
 // CHART.SHP bar is drawn: four blocks of five divisions in the panel's two
 // blues, ticks above.
@@ -187,8 +191,10 @@ inline constexpr int kChartToolButtonW = 21;
 inline constexpr int kChartToolButtonH = 20;
 // The size of the symbol buttons and ink swatches.
 inline constexpr int kChartSmallButton = 16;
-// The width of the MAP CONTROLS button that opens the toolbox.
+// The width of the toolbox's engraving, and of the button that opens the
+// toolbox in a large button's slot.
 inline constexpr int kChartToolsButtonW = 42;
+inline constexpr int kChartToolsWideButtonW = 72;
 
 // Draws the button of `tool` at (x, y) of `vp`: a grey plate with the tool
 // engraved, sunk when `down`.
@@ -198,8 +204,8 @@ void draw_chart_undo_button(const Viewport& vp, int x, int y, bool down);
 void draw_chart_symbol_button(const Viewport& vp, int x, int y, ChartSymbol symbol, bool down);
 // Draws an ink swatch, framed when `selected`.
 void draw_chart_ink_swatch(const Viewport& vp, int x, int y, std::uint8_t colour, bool selected);
-// Draws the MAP CONTROLS button that opens the toolbox (dividers and a
-// pencil).
-void draw_chart_tools_button(const Viewport& vp, int x, int y, bool down);
+// Draws the button that opens the toolbox, `w` x `h` (dividers and a
+// pencil in the middle).
+void draw_chart_tools_button(const Viewport& vp, int x, int y, int w, int h, bool down);
 
 }  // namespace sh

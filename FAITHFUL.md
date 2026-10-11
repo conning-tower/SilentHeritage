@@ -16,7 +16,9 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
   fullscreen, which keeps the mouse inside the picture.
 - **Keyboard:** keys follow your keyboard layout (AZERTY, QWERTZ, BÉPO...),
   so each command is on the key that types its letter.
-- **Chart:** edge scrolling reacts to a wider band along the screen's edges.
+- **Chart:** in a window, edge scrolling reacts to a wider band along the
+  screen's edges; in fullscreen, where the mouse cannot leave the picture,
+  it reacts only at the very edge.
 
 ## Android
 
@@ -27,6 +29,8 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
   relative to the screen when the window changes (folding or unfolding a
   phone, a resize), always stays inside it, and has its right size from the
   start; `--no-orders-button` hides it.
+- **Chart:** dragging the map with a finger scrolls it, and the pointer no
+  longer scrolls it at the screen's edges.
 - **Back:** goes back one screen in the menus and quits from the main menu.
   During a mission and in the scenario editor it acts as Esc.
 - **Text entry:** the system keyboard opens for names and descriptions.

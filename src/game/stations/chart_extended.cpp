@@ -1,6 +1,7 @@
-// The extended chart (not in the original; `Features::chart_tools`): the
-// CHART TOOLS panel and its annotations, the wheel zoom and the drag
-// scroll, as `ChartStation` members (chart.h).
+// The chart's additions (not in the original), as `ChartStation` members
+// (chart.h): with `Features::chart_tools` the CHART TOOLS panel and its
+// annotations, the zooms, the full bar's panels; in every build the drag
+// scroll of a finger.
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -26,13 +27,11 @@ constexpr ui::CursorId kDragCursor = ui::CursorId::kMove;
 constexpr ui::CursorId kToolCursor = ui::CursorId::kCross;
 
 // The original's strings the toolbox reuses.
-constexpr std::uint32_t kExitText = 0xf1b05;    // the plotting panel's EXIT
-constexpr std::uint32_t kClearText = 0xf1b0a;   // and CLEAR
+constexpr std::uint32_t kClearText = 0xf1b0a;   // the plotting panel's CLEAR
 constexpr std::uint32_t kCancelText = 0xf32c7;  // the name dialogs' Cancel
 constexpr std::uint32_t kAcceptText = 0xf32ce;  // and Accept
 
-// The TOOLS button in the empty slot of MAP CONTROLS' top row.
-constexpr int kToolsButtonX = 0x79;
+// The panels' first button row.
 constexpr int kButtonRowY = 0x2b;
 
 // The CHART TOOLS panel: the tools row, UNDO, the zoom group moved right,
@@ -45,6 +44,13 @@ constexpr int kSmallRowY = 0x46;
 constexpr int kInkX = 0xb;
 constexpr int kSymbolX = 0x54;
 constexpr int kSmallPitch = 17;
+constexpr int kClearX = 0xd2;
+constexpr int kClearW = 0x4a;
+constexpr int kSwitchX = 0xe;
+constexpr int kSwitchY = 0x5c;
+
+// The wheel's continuous zoom: four notches double it.
+constexpr double kNotchesPerDoubling = 4;
 
 // The pencil keeps a point every few pixels of the pointer's path.
 constexpr int kStrokeStep = 3;
@@ -105,21 +111,17 @@ class ChartStation::DrawnButton : public ui::Control {
 
 // --- The panels ----------------------------------------------------------------
 
-void ChartStation::add_tools_button(ui::Dialog& d) {
-  d.emplace<ui::OwnerDraw>([](const Viewport& gfx, ui::OwnerDraw&) {
-    ui::gui_fill_rect(gfx, kToolsButtonX - 1, kButtonRowY - 1, kChartToolsButtonW + 2, kChartToolButtonH + 2, 0);
-  });
+void ChartStation::add_tools_button(ui::Dialog& d, ui::Rect r, int w, int h) {
   d.emplace<DrawnButton>(
-      *this,
-      ui::Rect{kToolsButtonX, kButtonRowY, kToolsButtonX + kChartToolsButtonW - 1, kButtonRowY + kChartToolButtonH - 1},
-      [](const Viewport& vp, int x, int y, bool down) { draw_chart_tools_button(vp, x, y, down); }, nullptr,
+      *this, r, [w, h](const Viewport& vp, int x, int y, bool down) { draw_chart_tools_button(vp, x, y, w, h, down); },
+      nullptr,
       [this] { start_annotating(); });
 }
 
 std::unique_ptr<ui::Dialog> ChartStation::make_tools_panel() {
   // In the plotting panel's place, with its drag strip and zoom group.
   constexpr int kToolsPanelW = 0x129;
-  constexpr int kToolsPanelH = 0x78;
+  constexpr int kToolsPanelH = 0x90;
   auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kToolsPanelW, kToolsPanelH,
                                         ui::kDialogFramed, &env_.screen());
   d->emplace<ui::OwnerDraw>([](const Viewport& gfx, ui::OwnerDraw&) {
@@ -131,6 +133,7 @@ std::unique_ptr<ui::Dialog> ChartStation::make_tools_panel() {
     ui::gui_fill_rect(gfx, kInkX - 1, kSmallRowY - 1, static_cast<int>(kChartInkCount) * kSmallPitch + 1, small_h, 0);
     ui::gui_fill_rect(gfx, kSymbolX - 1, kSmallRowY - 1, static_cast<int>(kChartSymbolCount) * kSmallPitch + 1,
                       small_h, 0);
+    ui::gui_fill_rect(gfx, kSwitchX - 1, kSwitchY - 1, 0x49 * 2 + 1, 0x17, 0);
   });
   d->emplace<ui::TitleBar>(std::string("CHART TOOLS"));
   for (std::size_t i = 0; i < kChartToolCount; ++i) {
@@ -166,18 +169,17 @@ std::unique_ptr<ui::Dialog> ChartStation::make_tools_panel() {
         [this, symbol] { return symbol_ == symbol; }, [this, symbol] { select_symbol(symbol); });
   }
   add_zoom_buttons(*d, kZoomDx);
-  d->emplace<ui::Button>(0xa2, kSmallRowY, 0x3a, std::string(env_.exe.c_string(kExitText)), [this](int) {
-    exit_annotating();
-    return ui::kResultAccept;
-  });
-  d->emplace<ui::Button>(0xe2, kSmallRowY, 0x3a, std::string(env_.exe.c_string(kClearText)), [this](int) {
+  // The way to the other panels (EXIT is MAP CONTROLS).
+  add_panel_switch(*d, kSwitchX, kSwitchY, ChartPanel::kMap);
+  add_panel_switch(*d, kSwitchX + 0x49, kSwitchY, ChartPanel::kNavigation);
+  d->emplace<ui::Button>(kClearX, kSmallRowY, kClearW, std::string(env_.exe.c_string(kClearText)), [this](int) {
     clear_annotations();
     return ui::kResultAccept;
   });
   for (int k = 0; k < 4; ++k) {
-    d->emplace<ui::Line>(7, 0x5d + k, 0x120, 0x5d + k, k < 2 ? 3 : 2);
+    d->emplace<ui::Line>(7, 0x75 + k, 0x120, 0x75 + k, k < 2 ? 3 : 2);
   }
-  auto& prompt = d->emplace<ui::TextField>(8, 0x66, 0x11f, 0x70, [this] { return tools_prompt(); },
+  auto& prompt = d->emplace<ui::TextField>(8, 0x7e, 0x11f, 0x88, [this] { return tools_prompt(); },
                                            ui::FontSlot::kCustom, TextAlign::kCentre);
   prompt.use_colours = true;
   prompt.fill = 6;
@@ -277,10 +279,10 @@ void ChartStation::restore_annotations(std::vector<ChartAnnotation> items) {
 }
 
 void ChartStation::wheel_zoom(std::int32_t x, std::int32_t y, int notches) {
-  std::int32_t zoom = view_.zoom();
-  for (int i = 0; i < std::abs(notches); ++i) {
-    zoom = notches > 0 ? std::min(zoom * 2, kChartMaxZoom << 16) : std::max(zoom / 2, 0x10000);
-  }
+  zoom_about(x, y, chart_scaled_zoom(view_.zoom(), std::exp2(notches / kNotchesPerDoubling)));
+}
+
+void ChartStation::zoom_about(std::int32_t x, std::int32_t y, std::int32_t zoom) {
   if (zoom == view_.zoom()) {
     return;
   }
@@ -292,12 +294,48 @@ void ChartStation::wheel_zoom(std::int32_t x, std::int32_t y, int notches) {
     view_.set_zoom(zoom);
     view_.set_center(c[0], c[1]);
   } else {
-    const std::array<std::int32_t, 2> before = view_.screen_to_chart(x, y);
+    const std::array<std::int32_t, 2> before = view_.screen_to_chart(view_.x0() + x, view_.y0() + y);
     view_.set_zoom(zoom);
-    const std::array<std::int32_t, 2> after = view_.screen_to_chart(x, y);
+    const std::array<std::int32_t, 2> after = view_.screen_to_chart(view_.x0() + x, view_.y0() + y);
     view_.set_center(view_.center_x() + before[0] - after[0], view_.center_y() + before[1] - after[1]);
   }
   dirty_ = true;
+}
+
+bool ChartStation::pinch() {
+  const std::vector<ui::Touch>& touches = env_.gui.mouse().touches();
+  if (touches.size() < 2 || zoom_box_.is_open()) {
+    pinch_.reset();
+    return false;
+  }
+  // The first two fingers: their middle keeps its chart point, their
+  // distance scales the zoom.
+  const double mx = (touches[0].x + touches[1].x) / 2.0 - view_.x0();
+  const double my = (touches[0].y + touches[1].y) / 2.0 - view_.y0();
+  const double distance = std::max(std::hypot(touches[1].x - touches[0].x, touches[1].y - touches[0].y), 1.0);
+  const int x = static_cast<int>(std::lround(mx));
+  const int y = static_cast<int>(std::lround(my));
+  if (!pinch_) {
+    // The finger that pressed first is no click or drag.
+    pointer_.cancel();
+    if (panning_) {
+      panning_ = false;
+    }
+    if (env_.options.chart_follow_sub != 0) {
+      toggle_follow();
+    }
+    pinch_ = Pinch{.distance = distance, .zoom = view_.zoom(),
+                   .anchor = view_.screen_to_chart(view_.x0() + x, view_.y0() + y)};
+    return true;
+  }
+  const std::int32_t cx = view_.center_x();
+  const std::int32_t cy = view_.center_y();
+  const std::int32_t zoom = view_.zoom();
+  view_.set_zoom(chart_scaled_zoom(pinch_->zoom, distance / pinch_->distance));
+  const std::array<std::int32_t, 2> under = view_.screen_to_chart(view_.x0() + x, view_.y0() + y);
+  view_.set_center(view_.center_x() + pinch_->anchor[0] - under[0], view_.center_y() + pinch_->anchor[1] - under[1]);
+  dirty_ = dirty_ || view_.zoom() != zoom || view_.center_x() != cx || view_.center_y() != cy;
+  return true;
 }
 
 // --- The pointer ---------------------------------------------------------------
@@ -336,12 +374,15 @@ bool ChartStation::tools_event(const ui::Event& event) {
   return false;
 }
 
-void ChartStation::tools_press(std::int32_t x, std::int32_t y) { pointer_.press(x, y, ui::kButtonLeft); }
+void ChartStation::press_map(std::int32_t x, std::int32_t y) { pointer_.press(x, y, ui::kButtonLeft); }
 
-void ChartStation::tools_update() {
+void ChartStation::update_map_pointer() {
   ui::Mouse& mouse = env_.gui.mouse();
   if (zoom_box_.is_open()) {
     pointer_.cancel();
+    return;
+  }
+  if (env_.ui.features.chart_tools && pinch()) {
     return;
   }
   const int x = mouse.x() - view_.x0();
@@ -353,7 +394,7 @@ void ChartStation::tools_update() {
     // The original's press, on the release.
     click(pointer_.start_x(), pointer_.start_y());
   } else if (step != ChartPointer::Step::kNone) {
-    tools_drag(step, x, y);
+    drag_map(step, x, y);
   }
   if (click_mode_ == ChartClickMode::kAnnotate) {
     int highlight = -1;
@@ -375,7 +416,7 @@ void ChartStation::tools_update() {
   tools_mouse_ = {x, y};
 }
 
-void ChartStation::tools_drag(ChartPointer::Step step, std::int32_t x, std::int32_t y) {
+void ChartStation::drag_map(ChartPointer::Step step, std::int32_t x, std::int32_t y) {
   if (step == ChartPointer::Step::kDragBegin) {
     panning_ = pointer_.button() != ui::kButtonLeft || click_mode_ != ChartClickMode::kAnnotate || !drag_tool(tool_);
     if (panning_) {

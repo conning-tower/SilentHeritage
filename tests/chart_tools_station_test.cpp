@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <deque>
 #include <memory>
@@ -25,13 +26,22 @@ namespace {
 using test::ControlRig;
 using Kind = ChartAnnotation::Kind;
 
-// The MAP CONTROLS panel's default place, its TOOLS button and the toolbox's
-// buttons (panel coordinates).
+// The MAP CONTROLS panel's default place, its TOOLS button (in the
+// original's time compression slot), the toolbox's buttons, NAVIGATION's
+// TOOLS (in CONN's place) and the bar's buttons, right to left from CONN
+// (screen coordinates).
 constexpr int kPanelX = 0x16;
 constexpr int kPanelY = 300;
-constexpr std::array<int, 2> kToolsButton{kPanelX + 0x79 + 20, kPanelY + 0x2b + 10};
-constexpr std::array<int, 2> kExitButton{kPanelX + 0xa2 + 20, kPanelY + 0x46 + 6};
-constexpr std::array<int, 2> kClearButton{kPanelX + 0xe2 + 20, kPanelY + 0x46 + 6};
+constexpr std::array<int, 2> kToolsButton{kPanelX + 0x42 + 36, kPanelY + 0x45 + 10};
+constexpr std::array<int, 2> kMapControlsSwitch{kPanelX + 0xe + 36, kPanelY + 0x5c + 10};
+constexpr std::array<int, 2> kNavigationSwitch{kPanelX + 0xe + 0x49 + 36, kPanelY + 0x5c + 10};
+constexpr std::array<int, 2> kClearButton{kPanelX + 0xd2 + 37, kPanelY + 0x46 + 6};
+constexpr std::array<int, 2> kNavToolsButton{0x16 + 0xb3 + 36, 0x59 + 0x146 + 10};
+constexpr std::array<int, 2> kBarConn{640 - 0x48 / 2, 0x1cb + 10};
+constexpr std::array<int, 2> kBarCompression{640 - 0x49 - 0x48 / 2, 0x1cb + 10};
+// The original's time compression button and its empty top slot.
+constexpr std::array<int, 2> kOriginalCompression{kPanelX + 0x42 + 36, kPanelY + 0x45 + 10};
+constexpr std::array<int, 2> kOriginalEmptySlot{kPanelX + 0x79 + 20, kPanelY + 0x2b + 10};
 constexpr std::array<int, 2> kUndoButton{kPanelX + 0xa7 + 10, kPanelY + 0x2b + 10};
 std::array<int, 2> tool_button(ChartTool tool) {
   return {kPanelX + 0xb + static_cast<int>(tool) * 22 + 10, kPanelY + 0x2b + 10};
@@ -139,7 +149,7 @@ TEST_CASE("TOOLS opens the chart toolbox and Esc, a right click or EXIT close it
   rig.click(kToolsButton[0], kToolsButton[1]);
   rig.frames(2);
   REQUIRE(chart.panel() == ChartPanel::kTools);
-  rig.click(kExitButton[0], kExitButton[1]);
+  rig.click(kMapControlsSwitch[0], kMapControlsSwitch[1]);
   rig.frames(2);
   CHECK(chart.panel() == ChartPanel::kMap);
   CHECK(chart.click_mode() == ChartClickMode::kSelectTarget);
@@ -193,28 +203,33 @@ TEST_CASE("Dragging the chart scrolls it and stops following the boat", "[chartt
   CHECK(rig.mission().player().route().count == 1);
 }
 
-TEST_CASE("The wheel zooms about the pointer", "[charttools]") {
+TEST_CASE("The wheel zooms continuously about the pointer", "[charttools]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.gui.mouse().update(400, 150, 0, 0);
   rig.frames(1);
   const std::array<std::int32_t, 2> before = chart.view().screen_to_chart(400, 150);
+  const auto kept = [&] {
+    const std::array<std::int32_t, 2> after = chart.view().screen_to_chart(400, 150);
+    CHECK(std::abs(after[0] - before[0]) <= chart.view().step());
+    CHECK(std::abs(after[1] - before[1]) <= chart.view().step());
+  };
+  // A notch: a quarter of a doubling.
   rig.gui.mouse().post_wheel(1, 0);
   rig.frames(2);
-  CHECK(chart.view().zoom() == 2 << 16);
-  std::array<std::int32_t, 2> after = chart.view().screen_to_chart(400, 150);
-  CHECK(std::abs(after[0] - before[0]) <= chart.view().step());
-  CHECK(std::abs(after[1] - before[1]) <= chart.view().step());
-  rig.gui.mouse().post_wheel(2, 0);
+  CHECK(chart.view().zoom() == chart_scaled_zoom(1 << 16, std::exp2(0.25)));
+  kept();
+  rig.gui.mouse().post_wheel(3, 0);
   rig.frames(2);
-  CHECK(chart.view().zoom() == 8 << 16);
-  after = chart.view().screen_to_chart(400, 150);
-  CHECK(std::abs(after[0] - before[0]) <= chart.view().step());
-  rig.gui.mouse().post_wheel(-3, 0);
+  CHECK(std::abs(chart.view().zoom() - (2 << 16)) <= 1);
+  kept();
+  rig.gui.mouse().post_wheel(6, 0);
   rig.frames(2);
-  CHECK(chart.view().zoom() == 1 << 16);
-  rig.gui.mouse().post_wheel(-1, 0);
+  CHECK(std::abs(chart.view().zoom() - static_cast<std::int32_t>(std::lround(std::exp2(2.5) * 65536))) <= 2);
+  kept();
+  rig.save("charttools_wheel");
+  rig.gui.mouse().post_wheel(-20, 0);
   rig.frames(2);
   CHECK(chart.view().zoom() == 1 << 16);
   // Not over the panel.
@@ -223,7 +238,7 @@ TEST_CASE("The wheel zooms about the pointer", "[charttools]") {
   rig.gui.mouse().post_wheel(1, 0);
   rig.frames(2);
   CHECK(chart.view().zoom() == 1 << 16);
-  // The zoom box grows and shrinks with it.
+  // The zoom box grows and shrinks by doubling with it.
   rig.gui.mouse().update(400, 150, 0, 0);
   rig.frames(1);
   rig.key(0x2c5a);  // Z
@@ -235,6 +250,88 @@ TEST_CASE("The wheel zooms about the pointer", "[charttools]") {
   rig.frames(2);
   CHECK(chart.zoom_box() == 4);
   CHECK(chart.view().zoom() == 1 << 16);
+}
+
+TEST_CASE("Two fingers pinch the chart about their middle", "[charttools]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.screen->env().options.chart_follow_sub = 1;
+  ui::Mouse& mouse = rig.gui.mouse();
+  const std::array<std::int32_t, 2> anchor = chart.view().screen_to_chart(333, 157);
+  // The first finger is also the left button.
+  mouse.touch(1, 303, 157);
+  mouse.update(303, 157, ui::kButtonLeft, 0);
+  mouse.touch(2, 363, 157);
+  rig.frames(1);
+  for (int i = 1; i <= 10; ++i) {
+    // Apart to 4 times their distance, their middle moving 40 pixels down.
+    const int half = 30 + 9 * i;
+    mouse.touch(1, 333 - half, 157 + 4 * i);
+    mouse.update(333 - half, 157 + 4 * i, ui::kButtonLeft, 0);
+    mouse.touch(2, 333 + half, 157 + 4 * i);
+    rig.frames(1);
+  }
+  CHECK(std::abs(chart.view().zoom() - (4 << 16)) <= 1);
+  const std::array<std::int32_t, 2> under = chart.view().screen_to_chart(333, 197);
+  CHECK(std::abs(under[0] - anchor[0]) <= chart.view().step());
+  CHECK(std::abs(under[1] - anchor[1]) <= chart.view().step());
+  CHECK(rig.screen->env().options.chart_follow_sub == 0);
+  // Lifting the fingers neither clicks nor drags.
+  mouse.lift(2);
+  rig.frames(1);
+  mouse.lift(1);
+  mouse.update(333 - 120, 197, 0, 0);
+  rig.frames(2);
+  CHECK(std::abs(chart.view().zoom() - (4 << 16)) <= 1);
+  CHECK(rig.mission().player_combat().tdc.target() == nullptr);
+}
+
+TEST_CASE("The extended chart shows the command bar and links its panels", "[charttools]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.save("charttools_bar");
+  // MAP CONTROLS: TOOLS where the time compression was; then the toolbox's
+  // NAVIGATION, NAVIGATION's TOOLS, the toolbox's MAP CONTROLS.
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kTools);
+  rig.click(kNavigationSwitch[0], kNavigationSwitch[1]);
+  rig.frames(2);
+  CHECK(chart.panel() == ChartPanel::kNavigation);
+  CHECK(chart.click_mode() == ChartClickMode::kSelectTarget);
+  rig.save("charttools_nav");
+  rig.click(kNavToolsButton[0], kNavToolsButton[1]);
+  rig.frames(2);
+  CHECK(chart.panel() == ChartPanel::kTools);
+  CHECK(chart.click_mode() == ChartClickMode::kAnnotate);
+  rig.click(kMapControlsSwitch[0], kMapControlsSwitch[1]);
+  rig.frames(2);
+  CHECK(chart.panel() == ChartPanel::kMap);
+  // The bar's time compression and CONN.
+  rig.click(kBarCompression[0], kBarCompression[1]);
+  rig.frames(5);
+  CHECK(rig.screen->env().modals.modal_active());
+  rig.key(ui::kKeyEsc);
+  rig.frames(5);
+  CHECK_FALSE(rig.screen->env().modals.modal_active());
+  rig.click(kBarConn[0], kBarConn[1]);
+  rig.frames(5);
+  CHECK(rig.screen->stations().current() == StationId::kConn);
+}
+
+TEST_CASE("The narrower MAP CONTROLS keeps the shared panels on the map", "[charttools]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  // MAP CONTROLS (0xe0 wide) dragged to the right edge; the toolbox, wider,
+  // opens moved left so that it stays on the map.
+  drag(rig, {kPanelX + 0x70, kPanelY + 0x10}, {kPanelX + 0x70 + 400, kPanelY + 0x10});
+  CHECK(chart.panel_position()[0] == 640 - 0xe0);
+  chart.start_annotating();
+  rig.frames(2);
+  CHECK(chart.panel_position()[0] == 640 - 0x129);
 }
 
 TEST_CASE("The chart tools draw, erase and undo", "[charttools]") {
@@ -462,9 +559,10 @@ TEST_CASE("The extended chart's scale is in nautical miles", "[charttools]") {
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.save("charttools_scale_1x");
-  // The bar: 80 nm at 1x, drawn up to its length.
-  const ChartScale s = chart_nautical_scale(chart.view().zoom_int());
-  CHECK(s == ChartScale{.length = 236, .value = 80, .yards = false});
+  // The bar of the narrower MAP CONTROLS: 60 nm at 1x, drawn up to its
+  // length.
+  const ChartScale s = chart_nautical_scale(chart.view().zoom(), 0xb7);
+  CHECK(s == ChartScale{.length = 177, .value = 60, .yards = false});
   const int bar_x = kPanelX + 0x12;
   const int bar_y = kPanelY + 0x6f + 5;
   CHECK(rig.screen_image.at(bar_x + s.length, bar_y) == 2);
@@ -485,7 +583,7 @@ TEST_CASE("The nautical bar is drawn as CHART.SHP's at full length", "[charttool
 
 // --- With the switch off ---------------------------------------------------------
 
-TEST_CASE("The original chart ignores the wheel, drags and the TOOLS spot", "[charttools]") {
+TEST_CASE("The original chart ignores the wheel and mouse drags", "[charttools]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig scripted(install);
   ControlRig plain(install);
@@ -493,12 +591,13 @@ TEST_CASE("The original chart ignores the wheel, drags and the TOOLS spot", "[ch
   open_chart(plain, false);
   const std::int32_t zoom = chart.view().zoom();
   const std::int32_t cx = chart.view().center_x();
-  // The wheel, a drag from (300, 200) and a click where TOOLS would be...
+  // The wheel, a drag from (300, 200) and a click in MAP CONTROLS' empty
+  // slot...
   scripted.gui.mouse().update(400, 150, 0, 0);
   scripted.gui.mouse().post_wheel(2, 0);
   scripted.frames(2);
   drag(scripted, {300, 200}, {340, 230});
-  scripted.click(kToolsButton[0], kToolsButton[1]);
+  scripted.click(kOriginalEmptySlot[0], kOriginalEmptySlot[1]);
   // ... and the same pointer path, a click instead of the drag.
   plain.gui.mouse().update(400, 150, 0, 0);
   plain.frames(2);
@@ -512,7 +611,7 @@ TEST_CASE("The original chart ignores the wheel, drags and the TOOLS spot", "[ch
   }
   plain.gui.mouse().update(340, 230, 0, 0);
   plain.frames(1);
-  plain.click(kToolsButton[0], kToolsButton[1]);
+  plain.click(kOriginalEmptySlot[0], kOriginalEmptySlot[1]);
   CHECK(chart.view().zoom() == zoom);
   CHECK(chart.view().center_x() == cx);
   CHECK(chart.panel() == ChartPanel::kMap);
@@ -543,6 +642,97 @@ TEST_CASE("The original chart keeps its panel and scale", "[charttools]") {
   Image8 expected = rig.screen_image;
   draw_sprite_clipped(Viewport::full(expected), bar, kPanelX + 0x12, kPanelY + 0x6f);
   CHECK(screen_bytes(rig) == std::vector<std::uint8_t>(expected.pixels().begin(), expected.pixels().end()));
+}
+
+TEST_CASE("The original chart keeps its clock, time compression and CONN", "[charttools]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, false);
+  rig.click(kOriginalCompression[0], kOriginalCompression[1]);
+  rig.frames(5);
+  CHECK(rig.screen->env().modals.modal_active());
+  rig.key(ui::kKeyEsc);
+  rig.frames(5);
+  CHECK(chart.panel() == ChartPanel::kMap);
+  CHECK(chart.panel_position()[0] == kPanelX);
+}
+
+// --- Touch screens, in every build -------------------------------------------------
+
+namespace {
+
+// Drags a finger (also the left button) from `from` to `to`.
+void finger_drag(ControlRig& rig, std::array<int, 2> from, std::array<int, 2> to) {
+  ui::Mouse& mouse = rig.gui.mouse();
+  mouse.touch(7, from[0], from[1]);
+  mouse.update(from[0], from[1], 0, 0);
+  rig.frames(1);
+  mouse.update(from[0], from[1], ui::kButtonLeft, 0);
+  rig.frames(1);
+  for (int i = 1; i <= 4; ++i) {
+    const int x = from[0] + (to[0] - from[0]) * i / 4;
+    const int y = from[1] + (to[1] - from[1]) * i / 4;
+    mouse.touch(7, x, y);
+    mouse.update(x, y, ui::kButtonLeft, 0);
+    rig.frames(1);
+  }
+  mouse.update(to[0], to[1], 0, 0);
+  mouse.lift(7);
+  rig.frames(1);
+}
+
+}  // namespace
+
+TEST_CASE("A finger drags the original chart and taps on the release", "[charttools]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ControlRig touched(install);
+  ControlRig moused(install);
+  ChartStation& chart = open_chart(touched, false);
+  open_chart(moused, false);
+  const fx::Vec3 sub = touched.mission().player().position();
+  look(chart, sub.x, sub.z, 8);
+  touched.frames(2);
+  moused.frames(2);
+  const geom::WorldXZ grabbed = world_at(chart, 300, 200);
+  finger_drag(touched, {300, 200}, {340, 230});
+  const ChartPoint p = chart.view().world_to_screen(grabbed.x, grabbed.z);
+  CHECK(std::abs(p.x - 340) <= 1);
+  CHECK(std::abs(p.y - 230) <= 1);
+  // The mouse's drag is the original's: nothing; the simulation is the
+  // same either way.
+  drag(moused, {300, 200}, {340, 230});
+  moused.frames(2);
+  touched.frames(2);
+  CHECK((sim_bytes(touched) == sim_bytes(moused)));
+  // Two fingers do not zoom the original chart.
+  const std::int32_t zoom = chart.view().zoom();
+  touched.gui.mouse().touch(1, 300, 200);
+  touched.gui.mouse().touch(2, 340, 200);
+  touched.frames(1);
+  touched.gui.mouse().touch(2, 400, 200);
+  touched.frames(1);
+  touched.gui.mouse().lift(1);
+  touched.gui.mouse().lift(2);
+  touched.frames(1);
+  CHECK(chart.view().zoom() == zoom);
+
+  // A tap on a ship selects it when the finger leaves.
+  REQUIRE(!touched.mission().ships().empty());
+  Ship* ship = touched.mission().ships().front();
+  look(chart, ship->position().x, ship->position().z, 64);
+  touched.frames(2);
+  const ChartPoint s = chart.view().world_to_screen(ship->position().x, ship->position().z);
+  ui::Mouse& mouse = touched.gui.mouse();
+  mouse.touch(7, s.x, s.y);
+  mouse.update(s.x, s.y, 0, 0);
+  touched.frames(1);
+  mouse.update(s.x, s.y, ui::kButtonLeft, 0);
+  touched.frames(1);
+  CHECK(touched.mission().player_combat().tdc.target() == nullptr);
+  mouse.update(s.x, s.y, 0, 0);
+  mouse.lift(7);
+  touched.frames(1);
+  CHECK(touched.mission().player_combat().tdc.target() == ship);
 }
 
 }  // namespace sh

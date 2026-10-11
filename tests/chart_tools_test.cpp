@@ -5,6 +5,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <array>
+#include <cmath>
 #include <cstdint>
 #include <optional>
 #include <set>
@@ -70,12 +71,13 @@ struct Rig {
   Image8 screen{kViewW, kViewH, 0};
   Font font = block_font();
 
-  // Centres the view on world point `at` at `zoom` (whole), placed at 1x
-  // (`world_to_chart` goes through the 16.16 screen position).
-  void look(geom::WorldXZ at, std::int32_t zoom) {
+  // Centres the view on world point `at` at `zoom` (whole, or 16.16 with
+  // `fixed`), placed at 1x (`world_to_chart` goes through the 16.16 screen
+  // position).
+  void look(geom::WorldXZ at, std::int32_t zoom, bool fixed = false) {
     view.set_zoom(0x10000);
     const std::array<std::int32_t, 2> c = view.world_to_chart(at.x, at.z);
-    view.set_zoom(zoom << 16);
+    view.set_zoom(fixed ? zoom : zoom << 16);
     view.set_center(c[0], c[1]);
   }
   Viewport vp() { return Viewport::full(screen); }
@@ -275,9 +277,10 @@ TEST_CASE("Annotations stay on their world points at every zoom", "[charttools]"
   const geom::WorldXZ m = middle(rig.world);
   ChartAnnotations a;
   a.add(mark(m));
-  for (std::int32_t zoom : {1, 8, 256}) {
+  // Whole zooms and the continuous zoom's (16.16).
+  for (std::int32_t zoom : {0x10000, 0x13000, 0x80000, 0x6c000, 0x1000000, 0x0d34567}) {
     INFO("zoom " << zoom);
-    rig.look(m, zoom);
+    rig.look(m, zoom, true);
     rig.draw(a);
     const std::array<int, 2> p = rig.at(m);
     CHECK(rig.pixel(p) == kInks[ChartInk::kRed]);
@@ -422,13 +425,25 @@ TEST_CASE("The eraser's annotation is framed", "[charttools]") {
 namespace sh {
 
 TEST_CASE("The nautical scale shows round ranges", "[charttools]") {
-  CHECK(chart_nautical_scale(1) == ChartScale{.length = 236, .value = 80, .yards = false});
-  CHECK(chart_nautical_scale(2) == ChartScale{.length = 236, .value = 40, .yards = false});
-  CHECK(chart_nautical_scale(8) == ChartScale{.length = 236, .value = 10, .yards = false});
+  CHECK(chart_nautical_scale(1 << 16) == ChartScale{.length = 236, .value = 80, .yards = false});
+  CHECK(chart_nautical_scale(2 << 16) == ChartScale{.length = 236, .value = 40, .yards = false});
+  CHECK(chart_nautical_scale(8 << 16) == ChartScale{.length = 236, .value = 10, .yards = false});
   // Below 10 nautical miles, in tens of yards.
-  CHECK(chart_nautical_scale(16) == ChartScale{.length = 233, .value = 1000, .yards = true});
-  CHECK(chart_nautical_scale(128) == ChartScale{.length = 223, .value = 120, .yards = true});
-  CHECK(chart_nautical_scale(kChartMaxZoom) == ChartScale{.length = 238, .value = 8, .yards = true});
+  CHECK(chart_nautical_scale(16 << 16) == ChartScale{.length = 233, .value = 1000, .yards = true});
+  CHECK(chart_nautical_scale(128 << 16) == ChartScale{.length = 223, .value = 120, .yards = true});
+  CHECK(chart_nautical_scale(kChartMaxZoom << 16) == ChartScale{.length = 238, .value = 8, .yards = true});
+  // Between the powers of two (the continuous zooms): 1.5x holds 57.9 nm.
+  CHECK(chart_nautical_scale(0x18000) == ChartScale{.length = 221, .value = 50, .yards = false});
+  // A shorter bar (MAP CONTROLS with the full bar): 183 pixels hold 62 nm.
+  CHECK(chart_nautical_scale(1 << 16, 183) == ChartScale{.length = 177, .value = 60, .yards = false});
+}
+
+TEST_CASE("The continuous zoom stays within the chart's", "[charttools]") {
+  CHECK(chart_scaled_zoom(0x10000, 2.0) == 0x20000);
+  CHECK(chart_scaled_zoom(0x20000, 0.5) == 0x10000);
+  CHECK(chart_scaled_zoom(0x10000, 0.5) == 0x10000);
+  CHECK(chart_scaled_zoom(0x10000, std::exp2(0.25)) == 77936);
+  CHECK(chart_scaled_zoom(kChartMaxZoom << 16, 1.5) == kChartMaxZoom << 16);
 }
 
 TEST_CASE("The scale bar has four blocks of five divisions", "[charttools]") {

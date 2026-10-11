@@ -59,7 +59,10 @@ constexpr int kViewY1 = 0x1ca;
 constexpr int kMapPanelW = 0x129;
 constexpr int kMapPanelH = 0x81;
 constexpr int kPlotPanelH = 0x86;
-constexpr int kToolsPanelH = 0x78;  // not in the original
+// Not in the original: the toolbox, and MAP CONTROLS with the full
+// command bar.
+constexpr int kToolsPanelH = 0x90;
+constexpr int kBarMapPanelW = 0xe0;
 constexpr int kNavPanelW = 0x10b;
 constexpr int kNavPanelH = 0x167;
 
@@ -319,7 +322,7 @@ ChartStation::ChartStation(StationEnv& env)
     s.redraw = [this] { repaint_panel_dialog(); };
     return s;
   };
-  panels_.add(slot(&panel_pos_, kMapPanelW, kMapPanelH, [this] { open_map_panel(); }));
+  panels_.add(slot(&panel_pos_, full_bar() ? kBarMapPanelW : kMapPanelW, kMapPanelH, [this] { open_map_panel(); }));
   ChartPanelSlot nav = slot(&nav_pos_, kNavPanelW, kNavPanelH, [this] { open_nav_panel(); });
   nav.update = [this] { nav_panel_->update(env_.ui.redraw); };
   panels_.add(std::move(nav));
@@ -359,7 +362,13 @@ void ChartStation::build_palette() {
 void ChartStation::open() {
   // chart_screen (0x20979) and chart_view_init (0x2a5c8)
   ++env_.ui.pause;
-  env_.bar.open({{}, {}, false, false, true});
+  if (full_bar()) {
+    // The whole bar, as at the other stations (not in the original).
+    env_.bar.open({{BarButton{kConnButton, kConnButton + 1, [this] { env_.bar.select_station(StationId::kConn); }}},
+                   {}, true, true, true});
+  } else {
+    env_.bar.open({{}, {}, false, false, true});
+  }
   Image8& screen = env_.screen();
   ui::gui_fill_rect(Viewport::full(screen), 0, 0, screen.width(), screen.height(), 0);
   nav_background_ = Image8(kNavPanelW, kNavPanelH, 0);
@@ -389,8 +398,10 @@ void ChartStation::open() {
             zoom_box_.free_magnifier(env_.screen());
             zoom_box_.close();
             panels_.deactivate();
-          } else if (env_.ui.features.chart_tools) {
-            tools_press(x, y);
+          } else if (env_.ui.features.chart_tools || !env_.gui.mouse().touches().empty()) {
+            // A finger in every build (not in the original): a drag
+            // scrolls, a tap clicks on the release.
+            press_map(x, y);
           } else {
             click(x, y);
           }
@@ -533,10 +544,12 @@ void ChartStation::view_update() {
   // chart_view_edge_scroll (0x2aa58): not while the view is held or
   // follows the boat (0x118a98).
   if (!view_held() && env_.options.chart_follow_sub == 0) {
-    chart_edge_scroll(view_, env_.gui.mouse(), panels_.hovered(), dirty_);
+    // Over the extended chart's full bar, only the screen's last row.
+    chart_edge_scroll(view_, env_.gui.mouse(), panels_.hovered(), dirty_,
+                      full_bar() ? view_.y1() + 1 : kScreenHeight);
   }
-  if (env_.ui.features.chart_tools) {
-    tools_update();
+  if (env_.ui.features.chart_tools || pointer_.active()) {
+    update_map_pointer();
   }
   if (dirty_) {
     redraw_map();
@@ -2072,6 +2085,9 @@ void ChartStation::open_map_panel() {
 }
 
 void ChartStation::open_plot_panel() {
+  if (full_bar()) {
+    keep_panel_on_map(kMapPanelW);
+  }
   dirty_ = true;
   compression_control_ = nullptr;
   clock_control_ = nullptr;
@@ -2093,24 +2109,36 @@ void ChartStation::open_nav_panel() {
   frame.w = kNavPanelW;
   frame.h = kNavPanelH;
   frame.background = &nav_background_;
-  frame.add_controls = [this](ui::Dialog& d) {
-    d.emplace<ui::OwnerDraw>([this](const Viewport& gfx, ui::OwnerDraw&) {
+  // The extended chart's bar has the clock and CONN; TOOLS takes CONN's
+  // place (not in the original).
+  const bool bar = full_bar();
+  frame.add_controls = [this, bar](ui::Dialog& d) {
+    d.emplace<ui::OwnerDraw>([this, bar](const Viewport& gfx, ui::OwnerDraw&) {
       // chart_draw_nav_panel_frame (0x216f9)
       ui::gui_fill_rect(gfx, 0x69, 0x145, 0x92, 0x17, 0);
       draw_sprite_clipped(gfx, chart_sprites_.frame(kNavPicture), 8, 0x28);
-      draw_sprite_clipped(gfx, env_.assets.global.frame(kClockBox), 0xe, 0x148);
+      if (!bar) {
+        draw_sprite_clipped(gfx, env_.assets.global.frame(kClockBox), 0xe, 0x148);
+      }
     });
     d.emplace<ui::TitleBar>(std::string(env_.exe.c_string(text::kNavigation)));
     d.emplace<ui::Line>(7, 0x13e, 0x104, 0x13e, 3);
     d.emplace<ui::Line>(7, 0x13f, 0x104, 0x13f, 3);
     d.emplace<ui::Line>(7, 0x140, 0x104, 0x140, 2);
     d.emplace<ui::Line>(7, 0x141, 0x104, 0x141, 2);
-    d.emplace<SpriteButton>(*this, ui::Rect{0xb3, 0x146, 0xfa, 0x15a}, env_.assets.global,
-                            [] { return kConnButton; }, kConnButton + 1,
-                            [this] { env_.bar.select_station(StationId::kConn); });
+    if (bar) {
+      add_tools_button(d, ui::Rect{0xb3, 0x146, 0xfa, 0x15a}, kChartToolsWideButtonW, 0x15);
+    } else {
+      d.emplace<SpriteButton>(*this, ui::Rect{0xb3, 0x146, 0xfa, 0x15a}, env_.assets.global,
+                              [] { return kConnButton; }, kConnButton + 1,
+                              [this] { env_.bar.select_station(StationId::kConn); });
+    }
     d.emplace<SpriteButton>(*this, ui::Rect{0x6a, 0x146, 0xb1, 0x15a}, env_.assets.global,
                             [] { return kMapControlsButton; }, kMapControlsButton + 1,
                             [this] { panels_.request(static_cast<int>(ChartPanel::kMap)); });
+    if (bar) {
+      return;
+    }
     auto& clock = d.emplace<ui::TextField>(0x10, 0x14a, 0x51, 0x158,
                                            [this] { return clock_text(env_.mission.sim().clock()); },
                                            ui::FontSlot::kCustom, TextAlign::kLeft);
@@ -2140,26 +2168,27 @@ void ChartStation::close_panel_dialogs() {
   force_overlays_ = true;
 }
 
-void ChartStation::draw_scale_bar(const Viewport& gfx, int y) const {
+void ChartStation::draw_scale_bar(const Viewport& gfx, int y, int right) const {
   if (env_.ui.features.chart_tools) {
-    draw_chart_scale_bar(gfx, 0x12, y, chart_nautical_scale(view_.zoom_int()).length);
+    draw_chart_scale_bar(gfx, 0x12, y, chart_nautical_scale(view_.zoom(), scale_bar_length(right)).length);
   } else {
     draw_sprite_clipped(gfx, chart_sprites_.frame(kScaleBar), 0x12, y);
   }
 }
 
-void ChartStation::add_scale_controls(ui::Dialog& d, int line_y, int text_y) {
+void ChartStation::add_scale_controls(ui::Dialog& d, int line_y, int text_y, int right) {
   // The scale bar: two dark and two light lines, "0", the value and unit.
-  d.emplace<ui::Line>(7, line_y, 0x120, line_y, 3);
-  d.emplace<ui::Line>(7, line_y + 1, 0x120, line_y + 1, 3);
-  d.emplace<ui::Line>(7, line_y + 2, 0x120, line_y + 2, 2);
-  d.emplace<ui::Line>(7, line_y + 3, 0x120, line_y + 3, 2);
+  d.emplace<ui::Line>(7, line_y, right, line_y, 3);
+  d.emplace<ui::Line>(7, line_y + 1, right, line_y + 1, 3);
+  d.emplace<ui::Line>(7, line_y + 2, right, line_y + 2, 2);
+  d.emplace<ui::Line>(7, line_y + 3, right, line_y + 3, 2);
   const Font* font1 = &env_.assets.font1;
+  const int length = scale_bar_length(right);
   d.emplace<ui::Label>(0x10, text_y, "0", ui::FontSlot::kCustom, false, font1);
-  auto& value = d.emplace<ui::TextField>(0x104, text_y, 0x120, text_y + 10,
-                                         [this] {
+  auto& value = d.emplace<ui::TextField>(right - 0x1c, text_y, right, text_y + 10,
+                                         [this, length] {
                                            if (env_.ui.features.chart_tools) {
-                                             return std::to_string(chart_nautical_scale(view_.zoom_int()).value);
+                                             return std::to_string(chart_nautical_scale(view_.zoom(), length).value);
                                            }
                                            return chart_scale_value(view_.zoom_int());
                                          },
@@ -2167,11 +2196,11 @@ void ChartStation::add_scale_controls(ui::Dialog& d, int line_y, int text_y) {
   value.use_colours = false;
   value.fill = 6;
   value.custom = font1;
-  auto& legend = d.emplace<ui::TextField>(0x3f, text_y, 0xe5, text_y + 10,
-                                          [this] {
+  auto& legend = d.emplace<ui::TextField>(0x3f, text_y, right - 0x3b, text_y + 10,
+                                          [this, length] {
                                             if (env_.ui.features.chart_tools) {
                                               // Nautical miles (not in the original).
-                                              return chart_nautical_scale(view_.zoom_int()).yards
+                                              return chart_nautical_scale(view_.zoom(), length).yards
                                                          ? std::string(env_.exe.c_string(text::kTenYards))
                                                          : std::string("NAUTICAL MILES");
                                             }
@@ -2185,6 +2214,9 @@ void ChartStation::add_scale_controls(ui::Dialog& d, int line_y, int text_y) {
 
 std::unique_ptr<ui::Dialog> ChartStation::make_map_panel() {
   // MAP CONTROLS (dialog 0x117b68, built by 0x1e47c).
+  if (full_bar()) {
+    return make_bar_map_panel();
+  }
   auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kMapPanelW, kMapPanelH, ui::kDialogFramed,
                                         &env_.screen());
   d->emplace<ui::OwnerDraw>([this](const Viewport& gfx, ui::OwnerDraw&) {
@@ -2223,9 +2255,6 @@ std::unique_ptr<ui::Dialog> ChartStation::make_map_panel() {
                            [this] { panels_.request(static_cast<int>(ChartPanel::kNavigation)); });
   d->emplace<SpriteButton>(*this, ui::Rect{0xe, 0x45, 0x41, 0x59}, chart_sprites_, [] { return kPlot; }, kPlot + 1,
                            [this] { start_plotting(); });
-  if (env_.ui.features.chart_tools) {
-    add_tools_button(*d);
-  }
   d->emplace<ui::Area>(-1, -1, -1, -1,
                        [this](ui::Dialog&, ui::Area& a, ui::Msg msg, int, const ui::Event&) {
                          // chart_cheat_toggle_move_sub (0x21d95), /SS305 only.
@@ -2307,7 +2336,48 @@ void ChartStation::add_zoom_buttons(ui::Dialog& d, int dx) {
   d.emplace<FollowButton>(*this, ui::Rect{0x108 + dx, 0x2b, 0x112 + dx, 0x3f});
 }
 
+void ChartStation::add_panel_switch(ui::Dialog& d, int x, int y, ChartPanel panel) {
+  const std::uint8_t frame = panel == ChartPanel::kMap ? kMapControlsButton : kNavigationButton;
+  d.emplace<SpriteButton>(*this, ui::Rect{x, y, x + 0x47, y + 0x14}, env_.assets.global, [frame] { return frame; },
+                          static_cast<std::uint8_t>(frame + 1), [this, panel] {
+                            exit_annotating();
+                            panels_.request(static_cast<int>(panel));
+                          });
+}
+
+std::unique_ptr<ui::Dialog> ChartStation::make_bar_map_panel() {
+  // MAP CONTROLS with the full command bar (not in the original): the bar
+  // has the clock, the time compression and CONN, so the panel keeps one
+  // row of large buttons, the small ones right-justified above it.
+  constexpr int kRowEnd = 0xd3;
+  constexpr int kZoomDx = kRowEnd - 0x113;
+  constexpr int kScaleRight = kBarMapPanelW - 9;
+  auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kBarMapPanelW, kMapPanelH,
+                                        ui::kDialogFramed, &env_.screen());
+  d->emplace<ui::OwnerDraw>([this](const Viewport& gfx, ui::OwnerDraw&) {
+    ui::gui_fill_rect(gfx, 0xba + kZoomDx, 0x2a, 0x5a, 0x17, 0);
+    ui::gui_fill_rect(gfx, 0xd, 0x44, kRowEnd - 0xd + 1, 0x17, 0);
+    draw_scale_bar(gfx, 0x6f, kScaleRight);
+  });
+  d->emplace<ui::TitleBar>(std::string(env_.exe.c_string(text::kMapControls)));
+  add_scale_controls(*d, 0x5e, 99, kScaleRight);
+  add_zoom_buttons(*d, kZoomDx);
+  d->emplace<SpriteButton>(*this, ui::Rect{0xe, 0x45, 0x41, 0x59}, chart_sprites_, [] { return kPlot; }, kPlot + 1,
+                           [this] { start_plotting(); });
+  add_tools_button(*d, ui::Rect{0x42, 0x45, 0x89, 0x59}, kChartToolsWideButtonW, 0x15);
+  d->emplace<SpriteButton>(*this, ui::Rect{0x8b, 0x45, 0xd2, 0x59}, env_.assets.global,
+                           [] { return kNavigationButton; }, kNavigationButton + 1,
+                           [this] { panels_.request(static_cast<int>(ChartPanel::kNavigation)); });
+  return d;
+}
+
+void ChartStation::keep_panel_on_map(int width) {
+  // The panels sharing MAP CONTROLS' place are wider than it.
+  panel_pos_.x = std::min(panel_pos_.x, view_.x1() + 1 - width);
+}
+
 void ChartStation::open_tools_panel() {
+  keep_panel_on_map(kMapPanelW);
   dirty_ = true;
   compression_control_ = nullptr;
   clock_control_ = nullptr;

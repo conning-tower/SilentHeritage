@@ -343,6 +343,18 @@ std::optional<InputEvent> Display::poll() {
         out.y = static_cast<int>(e.button.y);
         out.button = to_button(e.button.button);
         return out;
+      case SDL_EVENT_FINGER_DOWN:
+      case SDL_EVENT_FINGER_MOTION:
+      case SDL_EVENT_FINGER_UP:
+      case SDL_EVENT_FINGER_CANCELED:
+        // In render coordinates (SDL_ConvertEventToRenderCoordinates).
+        out.type = e.type == SDL_EVENT_FINGER_DOWN     ? EventType::kFingerDown
+                   : e.type == SDL_EVENT_FINGER_MOTION ? EventType::kFingerMove
+                                                       : EventType::kFingerUp;
+        out.x = static_cast<int>(e.tfinger.x);
+        out.y = static_cast<int>(e.tfinger.y);
+        out.finger = static_cast<std::int64_t>(e.tfinger.fingerID);
+        return out;
       case SDL_EVENT_MOUSE_WHEEL:
         out.type = EventType::kMouseWheel;
         // Whole notches (a touchpad's fractions accumulated by SDL), away

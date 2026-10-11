@@ -31,6 +31,11 @@ enum class EventType : std::uint8_t {
   // lifecycle events reach only a `LifecycleWatch`.)
   kFocusLost,
   kFocusGained,
+  // A finger touched, moved on or left a touch screen: `finger`, at (x, y).
+  // The first finger also arrives as the left mouse button.
+  kFingerDown,
+  kFingerMove,
+  kFingerUp,
 };
 
 enum class MouseButton : std::uint8_t { kNone, kLeft, kRight, kMiddle };
@@ -59,6 +64,7 @@ struct InputEvent {
   int y = 0;
   MouseButton button = MouseButton::kNone;
   int wheel = 0;
+  std::int64_t finger = 0;
 };
 
 // How the 640x480 picture is scaled to the window.

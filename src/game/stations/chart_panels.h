@@ -223,15 +223,20 @@ struct ChartEdges {
 };
 
 // Returns the edges the pointer at (`x`, `y`) scrolls toward: within
-// `kChartEdgeScrollMargin` of them, or of 1 (the original's) with the
-// pointer `over_panel`.
-ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel);
+// `kChartEdgeScrollMargin` of them, or of 1 with the pointer `over_panel`
+// (the original's). Not in the original: with `edges` kExact (fullscreen),
+// or from row `bar_top` down (the extended chart's full command bar), only
+// the edge rows and columns themselves; with kNone (touch screens), none.
+ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdges edges = ui::PointerEdges::kBand,
+                                   int bar_top = kScreenHeight);
 
 // `chart_view_edge_scroll`: the pointer on a screen edge (see
 // `chart_edge_scroll_edges`) scrolls the view by 50 / zoom chart pixels;
 // when `dirty` (set by a scroll that moved the view) the pointer is moved
 // back 30 pixels.
-void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty);
+// The zones follow the mouse's `edges` and `bar_top`.
+void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty,
+                       int bar_top = kScreenHeight);
 
 // Returns the top-left corner of a `w` x `h` info box for the pointer at
 // (`x`, `y`) (`chart_show_info_popup` 0x21a0c, SE `sbchart_place_info_popup`

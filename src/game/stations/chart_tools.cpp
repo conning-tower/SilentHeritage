@@ -526,11 +526,16 @@ std::string chart_range_text(double yards) {
   return std::to_string(tenths / 10) + "." + std::to_string(tenths % 10) + " NM";
 }
 
-ChartScale chart_nautical_scale(std::int32_t zoom_int) {
+std::int32_t chart_scaled_zoom(std::int32_t zoom, double factor) {
+  const double z = std::clamp(zoom * factor, 65536.0, static_cast<double>(kChartMaxZoom) * 65536.0);
+  return static_cast<std::int32_t>(std::lround(z));
+}
+
+ChartScale chart_nautical_scale(std::int32_t zoom, int max_length) {
   constexpr std::array<double, 10> kRound{1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8};
   constexpr double kBarYards = 176000;
   constexpr int kBarLength = 256;
-  const double yards = kBarYards / std::max(zoom_int, 1);
+  const double yards = kBarYards * max_length / kBarLength / (std::max(zoom, 0x10000) / 65536.0);
   const bool in_yards = yards < 10 * kYardsPerMile;
   const double span = in_yards ? yards : yards / kYardsPerMile;
   const double power = std::pow(10.0, std::floor(std::log10(span)));
@@ -541,7 +546,7 @@ ChartScale chart_nautical_scale(std::int32_t zoom_int) {
     }
   }
   const long rounded = std::lround(best);
-  return {.length = static_cast<int>(std::lround(kBarLength * best / span)),
+  return {.length = static_cast<int>(std::lround(max_length * best / span)),
           .value = static_cast<int>(in_yards ? rounded / 10 : rounded),
           .yards = in_yards};
 }
@@ -735,10 +740,10 @@ void draw_chart_ink_swatch(const Viewport& vp, int x, int y, std::uint8_t colour
   }
 }
 
-void draw_chart_tools_button(const Viewport& vp, int x, int y, bool down) {
-  draw_plate(vp, x, y, kChartToolsButtonW, kChartToolButtonH, down);
-  const int ox = x + (down ? 1 : 0);
-  const int oy = y + (down ? 1 : 0);
+void draw_chart_tools_button(const Viewport& vp, int x, int y, int w, int h, bool down) {
+  draw_plate(vp, x, y, w, h, down);
+  const int ox = x + (w - kChartToolsButtonW) / 2 + (down ? 1 : 0);
+  const int oy = y + (h - kChartToolButtonH) / 2 + (down ? 1 : 0);
   // The dividers over a pencil.
   engrave(vp, ox, oy,
           {{11, 3, 13, 3}, {12, 2, 12, 5}, {11, 5, 7, 16}, {13, 5, 17, 16}, {9, 11, 15, 11}, {22, 13, 33, 5},

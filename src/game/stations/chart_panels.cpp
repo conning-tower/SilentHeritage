@@ -336,8 +336,12 @@ void ChartRubberBand::erase() {
 
 // --- Edge scrolling -------------------------------------------------------------
 
-ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel) {
-  const int margin = over_panel ? 1 : kChartEdgeScrollMargin;
+ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdges edges, int bar_top) {
+  if (edges == ui::PointerEdges::kNone) {
+    return {};
+  }
+  const bool exact = over_panel || edges == ui::PointerEdges::kExact || y >= bar_top;
+  const int margin = exact ? 1 : kChartEdgeScrollMargin;
   return ChartEdges{
       .left = x < margin,
       .right = x > kScreenWidth - 1 - margin,
@@ -346,12 +350,12 @@ ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel) {
   };
 }
 
-void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty) {
+void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty, int bar_top) {
   // chart_view_edge_scroll (0x2aa58): the pointer on a screen edge scrolls
   // 50 / zoom chart pixels and is moved back 30 pixels.
   int x = mouse.x();
   int y = mouse.y();
-  const ChartEdges e = chart_edge_scroll_edges(x, y, over_panel);
+  const ChartEdges e = chart_edge_scroll_edges(x, y, over_panel, mouse.edges(), bar_top);
   if (!e.any()) {
     return;
   }
