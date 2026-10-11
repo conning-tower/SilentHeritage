@@ -33,7 +33,7 @@ std::unique_ptr<Mission> sitduck(const Install& install, const GameTables& table
 
 }  // namespace
 
-TEST_CASE("SITDUCK: without limited visibility the battleship is called at once", "[sitduck]") {
+TEST_CASE("SITDUCK: without limited visibility the battleship is called at once", "[sitduck][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = sitduck(install, tables, 0);
@@ -50,7 +50,7 @@ TEST_CASE("SITDUCK: without limited visibility the battleship is called at once"
   CHECK(contacts.front().sighting_range_yd == 21140);
 }
 
-TEST_CASE("SITDUCK: with limited visibility nothing is in sight at the start", "[sitduck]") {
+TEST_CASE("SITDUCK: with limited visibility nothing is in sight at the start", "[sitduck][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   std::unique_ptr<Mission> mission = sitduck(install, tables, sensor_option::kLimitedVisibility);
