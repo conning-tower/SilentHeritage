@@ -80,7 +80,7 @@ TEST_CASE("Repair times follow severity and crew", "[damage]") {
 }
 
 TEST_CASE("Hits burn a ship at half strength and sink it at a twentieth", "[damage]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Boat b(tables, 0);
   const ShipClass& cls = *tables.find_ship("LFREIGHT");
@@ -129,7 +129,7 @@ TEST_CASE("Hits burn a ship at half strength and sink it at a twentieth", "[dama
 }
 
 TEST_CASE("Other attackers' hits count once and add to the damage", "[damage]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Boat b(tables, 0);
   const ShipClass& cls = *tables.find_ship("FUSO");
@@ -146,7 +146,7 @@ TEST_CASE("Other attackers' hits count once and add to the damage", "[damage]") 
 }
 
 TEST_CASE("Depth charge damage falls off with distance", "[damage]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   {
     Boat b(tables, 200);
@@ -182,7 +182,7 @@ TEST_CASE("Depth charge damage falls off with distance", "[damage]") {
 }
 
 TEST_CASE("Severity grows as the margin shrinks", "[damage]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   // Expert combat level (bits 2-3 = 2): the severity is not reduced.
   // Margin 30: severity 100, four hits on systems.
@@ -199,7 +199,7 @@ TEST_CASE("Severity grows as the margin shrinks", "[damage]") {
   CHECK(b.combat.damage.damage_pct() > 0);
 }
 
-TEST_CASE("Below the crush depth the boat implodes", "[damage]") {
+TEST_CASE("Below the crush depth the boat implodes", "[damage][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   Boat b(tables, 520);
@@ -217,7 +217,7 @@ TEST_CASE("Below the crush depth the boat implodes", "[damage]") {
 }
 
 TEST_CASE("Gunfire and strafing miss a submerged boat", "[damage]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   Boat b(tables, 100);
   SimContext ctx = b.sim.context();
