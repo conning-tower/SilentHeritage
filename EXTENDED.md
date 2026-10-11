@@ -28,8 +28,7 @@ kept with it.
 ## Rules
 
 - **Sonar reports:** a ship the sound man has already reported is reported
-  again only after 3 minutes unheard. Escorts fading in and out no longer
-  reset the time compression every minute while you are hunted.
+  again, and the time compression reset, only after 3 minutes unheard.
 - **Undeafened escorts:** a new REALISM item that gives the escorts the
   original's sharp sonar, which their own depth charges do not deafen, for
   a 10 % higher realism rating.
