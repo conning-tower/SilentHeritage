@@ -39,7 +39,7 @@ TEST_CASE("Service periods include both ends by month", "[editor][select]") {
 }
 
 TEST_CASE("The SELECT lists keep the classes in service with Limit by date", "[editor][select]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const EditorData& data = test::editor_data(install);
   const Font small = Font::load(install, "ART/GUI_S.FNT");
   EditorOptions limited;
@@ -106,7 +106,7 @@ TEST_CASE("The SELECT lists keep the classes in service with Limit by date", "[e
   }
 }
 
-TEST_CASE("SELECT SUB NAME lists the boats of a class", "[editor][select]") {
+TEST_CASE("SELECT SUB NAME lists the boats of a class", "[editor][select][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const EditorData& data = test::editor_data(install);
   const std::size_t gato = *data.find_sub("GATO");
@@ -121,7 +121,7 @@ TEST_CASE("SELECT SUB NAME lists the boats of a class", "[editor][select]") {
   CHECK(sub_name_list(data, gato, list.rows.back()).current == static_cast<std::int32_t>(list.rows.size()) - 1);
 }
 
-TEST_CASE("The class sheets show the tables' figures", "[editor][select]") {
+TEST_CASE("The class sheets show the tables' figures", "[editor][select][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const EditorData& data = test::editor_data(install);
   const Font font1 = Font::load(install, "ART/FONT1.FNT");
