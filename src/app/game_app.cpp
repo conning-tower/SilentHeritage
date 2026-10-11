@@ -443,6 +443,10 @@ int run_game(const GameAppOptions& options, const Install& install) {
   // watch: the resume snapshot written) blocks until it is resumed, with
   // the audio paused; the process may be killed meanwhile.
   SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "1");
+  // Android: the system's ordinary audio path instead of the low-latency
+  // one, whose stream the system drops more often (calls, screen off,
+  // folding) and which the game's 22 kHz mix does not need.
+  SDL_SetHint(SDL_HINT_ANDROID_LOW_LATENCY_AUDIO, "0");
   // load_shpath_ini (0x50985), then init_video / init_sound
   // (`sound_apply_options` runs in the front end once GOPTION.SAV is
   // read), load_cursors / load_gui_fonts (in the front end) and
