@@ -136,7 +136,7 @@ struct Fixture {
 ScriptedHost::Step button(int dx, int dy, int x, int y, int w) { return ScriptedHost::click(dx + x + w / 2, dy + y + 17); }
 
 TEST_CASE("CAREER MENU returns the code of its buttons", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   const auto at = [](int y) { return button(0x159, 0x4b, 0x23, y, 0xc6); };
   f.host.script = {at(0xaa)};
@@ -148,7 +148,7 @@ TEST_CASE("CAREER MENU returns the code of its buttons", "[career]") {
 }
 
 TEST_CASE("BASE MENU lays out its optional buttons and confirms a retirement", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   Career career;
   career.record.name = "Mathias";
@@ -184,7 +184,7 @@ TEST_CASE("BASE MENU lays out its optional buttons and confirms a retirement", "
 }
 
 TEST_CASE("START A CAREER takes a trimmed name and a date in the war", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   const auto at = [](int x, int y, int w) { return button(0x122, 0x73, x, y, w); };
   SECTION("CANCEL") {
@@ -217,7 +217,7 @@ TEST_CASE("START A CAREER takes a trimmed name and a date in the war", "[career]
   }
 }
 
-TEST_CASE("The roster lists the shipped career and SELECT returns its row", "[career]") {
+TEST_CASE("The roster lists the shipped career and SELECT returns its row", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   const std::optional<RosterFile> roster = load_roster(f.saves, 0);
@@ -249,7 +249,7 @@ TEST_CASE("The roster lists the shipped career and SELECT returns its row", "[ca
   CHECK(roster_select_screen(f.ui, retired, selection, false) == ui::kResultCancel);
 }
 
-TEST_CASE("VIEW CAREER shows the shipped career's values", "[career]") {
+TEST_CASE("VIEW CAREER shows the shipped career's values", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   const std::optional<RosterFile> roster = load_roster(f.saves, 0);
@@ -267,7 +267,7 @@ TEST_CASE("VIEW CAREER shows the shipped career's values", "[career]") {
   CHECK(fields[9] == "2090");
 }
 
-TEST_CASE("The career flow continues the shipped career up to the base and back", "[career]") {
+TEST_CASE("The career flow continues the shipped career up to the base and back", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   const GameTables tables = GameTables::load(install);
@@ -298,7 +298,7 @@ TEST_CASE("The career flow continues the shipped career up to the base and back"
 namespace sh {
 namespace {
 
-TEST_CASE("A career patrol updates the career from its results", "[career]") {
+TEST_CASE("A career patrol updates the career from its results", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   const GameTables tables = GameTables::load(install);
@@ -396,7 +396,7 @@ TEST_CASE("A career patrol takes the extended rules, and its port time their del
   }
 }
 
-TEST_CASE("Back takes each career menu's way back", "[career][back]") {
+TEST_CASE("Back takes each career menu's way back", "[career][back][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   const GameTables tables = GameTables::load(install);
