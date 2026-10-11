@@ -121,7 +121,7 @@ ScnShip ship_record(const EditorData& data, std::string_view cls, std::int32_t x
 
 }  // namespace
 
-TEST_CASE("Shipped version-7 scenarios load into objects and save byte-identical", "[editor][scenario]") {
+TEST_CASE("Shipped version-7 scenarios load into objects and save byte-identical", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   int version7 = 0;
@@ -142,7 +142,7 @@ TEST_CASE("Shipped version-7 scenarios load into objects and save byte-identical
   CHECK(version7 == 31);
 }
 
-TEST_CASE("The memory estimate matches the shipped required_memory", "[editor][scenario]") {
+TEST_CASE("The memory estimate matches the shipped required_memory", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   std::vector<std::string> one_low;
@@ -176,7 +176,7 @@ TEST_CASE("The memory estimate matches the shipped required_memory", "[editor][s
   CHECK(one_low == expected);
 }
 
-TEST_CASE("Older scenarios are re-saved as the original editor saves them", "[editor][scenario]") {
+TEST_CASE("Older scenarios are re-saved as the original editor saves them", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   int older = 0;
@@ -208,7 +208,7 @@ TEST_CASE("Older scenarios are re-saved as the original editor saves them", "[ed
   CHECK(older == 30);
 }
 
-TEST_CASE("A loaded file's records are regrouped in the reader's order", "[editor][scenario]") {
+TEST_CASE("A loaded file's records are regrouped in the reader's order", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   ScnFile scn = read_scn_file(install.read("SCEN/HIST57.SCN"), "HIST57.SCN");
@@ -228,7 +228,7 @@ TEST_CASE("A loaded file's records are regrouped in the reader's order", "[edito
   CHECK(saved.required_memory == estimate(session.data, scn) - 1);
 }
 
-TEST_CASE("File / New gives SE's default scenario", "[editor][scenario]") {
+TEST_CASE("File / New gives SE's default scenario", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   Scenario& s = session.scenario;
@@ -278,7 +278,7 @@ TEST_CASE("File / New gives SE's default scenario", "[editor][scenario]") {
 TEST_CASE("New and an older file leave no stale password bytes", "[editor][scenario]") {
   // Regression test for the original bug "Password storage" (SE zeroed
   // the first byte only, so the old password's bytes were saved).
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   Scenario& s = session.scenario;
   s.header.password = encode_scn_password("Secret", sh::test::se_password_key(install));
@@ -302,7 +302,7 @@ TEST_CASE("SE's home view is centred on the declared map size", "[editor][scenar
   // 0xa4e24, the declared chart size (1200 wide, one less than the rows)
   // less one: x 599, not 600 (a regression after the game's chart width
   // fix).
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   const World& world = session.scenario.world().world();
   REQUIRE(world.chart.width == 1201);
@@ -318,7 +318,7 @@ TEST_CASE("SE's home view is centred on the declared map size", "[editor][scenar
   CHECK(view.center_y() == home[1]);
 }
 
-TEST_CASE("Adding and removing objects updates the records and the estimate", "[editor][scenario]") {
+TEST_CASE("Adding and removing objects updates the records and the estimate", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   Scenario& s = session.scenario;
@@ -376,7 +376,7 @@ TEST_CASE("Adding and removing objects updates the records and the estimate", "[
 TEST_CASE("A loaded enemy sub releases both models on removal", "[editor][scenario]") {
   // Regression test for the original bug "Enemy-sub model names" (SE kept
   // the first model's reference).
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   Scenario& s = session.scenario;
   REQUIRE(s.load(read_scn_file(install.read("SCEN/HIST58.SCN"), "HIST58.SCN")));
@@ -393,7 +393,7 @@ TEST_CASE("A loaded enemy sub releases both models on removal", "[editor][scenar
 }
 
 TEST_CASE("Changing a vessel between ship and sub classes keeps the shared fields", "[editor][scenario]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   Scenario& s = session.scenario;
   const EditorData& data = session.data;
@@ -442,7 +442,7 @@ TEST_CASE("Changing a vessel between ship and sub classes keeps the shared field
   CHECK(s.model_cache().references("JAPSUB.SHP") == 0);
 }
 
-TEST_CASE("Convoy operations follow SE's rules", "[editor][scenario]") {
+TEST_CASE("Convoy operations follow SE's rules", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   Scenario& s = session.scenario;
@@ -550,7 +550,7 @@ TEST_CASE("Courses take 24 points with a loop or stop terminator", "[editor][sce
 }
 
 TEST_CASE("Moving objects follows the depth and margin rules", "[editor][scenario]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   Scenario& s = session.scenario;
   const EditorData& data = session.data;
@@ -570,7 +570,7 @@ TEST_CASE("Moving objects follows the depth and margin rules", "[editor][scenari
   CHECK(v.ship.x == to.x);
 }
 
-TEST_CASE("The info texts of each object class", "[editor][scenario]") {
+TEST_CASE("The info texts of each object class", "[editor][scenario][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   Scenario& s = session.scenario;
@@ -653,7 +653,7 @@ TEST_CASE("The info texts of each object class", "[editor][scenario]") {
 }
 
 TEST_CASE("Visibility from the player uses the periscope eye and the radar fit", "[editor][scenario]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   Scenario& s = session.scenario;
   const WorldPoint p = {s.player().rec.x, s.player().rec.y};
@@ -689,7 +689,7 @@ TEST_CASE("Date helpers of the war period", "[editor][scenario]") {
 }
 
 TEST_CASE("A refused or unreadable load leaves a new scenario", "[editor][scenario]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   Scenario& s = session.scenario;
   const ScnFile hist = read_scn_file(install.read("SCEN/HIST60.SCN"), "HIST60.SCN");
