@@ -309,7 +309,7 @@ TEST_CASE("command panel: the button's place is saved and restored", "[cmdpanel]
   CHECK(fallback.button_rect().y == defaults.button_rect().y);
 }
 
-TEST_CASE("command icons: the tube buttons are TBTTDC.SHP's, every design is drawn", "[cmdpanel]") {
+TEST_CASE("command icons: the tube buttons are TBTTDC.SHP's, every design is drawn", "[cmdpanel][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const sh::ShPaths paths = sh::ShPaths::load(install);
   const sh::CommandIconArt art(install, paths);
@@ -495,7 +495,7 @@ TEST_CASE("command panel: the display gives it the window's size before any touc
 }
 
 TEST_CASE("command panel: shown only while the mission is in play", "[cmdpanel]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   sh::test::ControlRig rig(install);
   rig.frames(1);
   // The opening fade holds the game.
@@ -548,7 +548,7 @@ void write_pam(const char* path, const sh::RgbaImage& sheet) {
 
 // Writes the contact sheets of the icon designs to $SH_ICON_SHEET and of
 // the floating button's to $SH_BUTTON_SHEET (PAM files); run explicitly.
-TEST_CASE("command icons: contact sheet", "[.cmdpanel_sheet]") {
+TEST_CASE("command icons: contact sheet", "[.cmdpanel_sheet][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const char* icons = std::getenv("SH_ICON_SHEET");
   const char* buttons = std::getenv("SH_BUTTON_SHEET");
@@ -563,7 +563,7 @@ TEST_CASE("command icons: contact sheet", "[.cmdpanel_sheet]") {
 // in windows the size of the Pixel Fold's cover (2520x1080) and inner
 // (2208x1840) screens at its 2.625 scale, to $SH_PANEL_OUT-<w>x<h>.bmp;
 // run explicitly.
-TEST_CASE("command panel: window screenshots", "[.cmdpanel_window]") {
+TEST_CASE("command panel: window screenshots", "[.cmdpanel_window][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const char* frame_path = std::getenv("SH_PANEL_FRAME");
   const char* out_prefix = std::getenv("SH_PANEL_OUT");
