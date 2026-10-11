@@ -126,7 +126,7 @@ TEST_CASE("A missing option file is written with the defaults", "[frontend]") {
   CHECK(read_bytes(dir.path() / "GDETAIL.SAV") == DetailOptions{}.to_bytes());
 }
 
-TEST_CASE("The shipped option files read back byte for byte", "[frontend]") {
+TEST_CASE("The shipped option files read back byte for byte", "[frontend][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
@@ -209,7 +209,7 @@ TEST_CASE("Encounter dates stay within the war", "[frontend]") {
 
 // --- Scenario lists -----------------------------------------------------------
 
-TEST_CASE("The historical and custom scenario lists", "[frontend]") {
+TEST_CASE("The historical and custom scenario lists", "[frontend][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
   const std::vector<ScenarioListEntry> hist = scan_scenarios(install, paths, GameDir::kScen, "HIST???.SCN", false);
@@ -345,7 +345,7 @@ constexpr ScriptedHost::Step kBegin = ScriptedHost::Step{0, 69 + 335 + 60, 19 + 
 constexpr ScriptedHost::Step kSubSelect = ScriptedHost::Step{0, 69 + 0x158 + 60, 39 + 0x15c + 12};
 constexpr ScriptedHost::Step kCrewCycle = ScriptedHost::Step{0, 69 + 37 + 100, 19 + 243 + 16};
 
-TEST_CASE("The menus lead to a historical mission request", "[frontend]") {
+TEST_CASE("The menus lead to a historical mission request", "[frontend][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
@@ -367,7 +367,7 @@ TEST_CASE("The menus lead to a historical mission request", "[frontend]") {
   CHECK(r.game_options.speech_volume == 101);
 }
 
-TEST_CASE("The menus lead to a convoy encounter request", "[frontend]") {
+TEST_CASE("The menus lead to a convoy encounter request", "[frontend][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
@@ -407,7 +407,7 @@ TEST_CASE("The menus lead to a convoy encounter request", "[frontend]") {
   CHECK(g.sub_class == "S CLASS");
 }
 
-TEST_CASE("With last_boat, the SUB CLASS screen selects the class last chosen", "[frontend]") {
+TEST_CASE("With last_boat, the SUB CLASS screen selects the class last chosen", "[frontend][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -453,7 +453,7 @@ TEST_CASE("With last_boat, the SUB CLASS screen selects the class last chosen", 
 }
 
 TEST_CASE("New single missions take their rules from EXTENDED.CFG only with extended_config", "[frontend][rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
   const auto rules_of_mission = [&](bool extended_config) {
@@ -506,7 +506,7 @@ TEST_CASE("Extended: REALISM's UNDEAFENED ESCORTS and DETECTABLE RADAR rate and 
   CHECK(percent(apply_realism_preset(0, RealismPreset::kNovice) & ~3u, with(false, false)) == 7);
   CHECK(percent(apply_realism_preset(0, RealismPreset::kIntermediate) & ~3u, with(false, true)) == 50);
 
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
   // The historical list's REALISM, the new check box under the toggles (the
@@ -559,7 +559,7 @@ TEST_CASE("Extended: REALISM's UNDEAFENED ESCORTS and DETECTABLE RADAR rate and 
   CHECK(keen.score == plain.score * 110 / 100);
 }
 
-TEST_CASE("Encounter days come from the month table by year with the rules' corrections", "[frontend][rules]") {
+TEST_CASE("Encounter days come from the month table by year with the rules' corrections", "[frontend][rules][content]") {
   SH_REQUIRE_GAME_EXE();
   const ExeImage& exe = game_exe();
   const MissionRules fixed = MissionRules::extended();
@@ -574,7 +574,7 @@ TEST_CASE("Encounter days come from the month table by year with the rules' corr
 }
 
 TEST_CASE("Extended: the main menu's OPTIONS page keeps the interface in EXTENDED.CFG", "[frontend][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
   const TempDir dir;
@@ -704,7 +704,7 @@ TEST_CASE("Extended: OPTIONS greys FULLSCREEN on Android and SMOOTHING with --sh
   CHECK(host.applied_display.empty());
 }
 
-TEST_CASE("Extended: the last boat chosen is remembered across sessions", "[frontend][extended]") {
+TEST_CASE("Extended: the last boat chosen is remembered across sessions", "[frontend][extended][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -739,7 +739,7 @@ TEST_CASE("Extended: the last boat chosen is remembered across sessions", "[fron
 }
 
 TEST_CASE("Alt-Q asks EXIT TO DOS? and YES ends the game", "[frontend]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -779,7 +779,7 @@ constexpr ScriptedHost::Step kBuildCustom = ScriptedHost::Step{0, 69 + 38 + 90, 
 constexpr ScriptedHost::Step kRealismOk = ScriptedHost::Step{0, 52 + 367 + 60, 10 + 415 + 12};
 
 TEST_CASE("BUILD CUSTOM MISSION plays the scenario the editor ran, then deletes it", "[frontend]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -826,7 +826,7 @@ TEST_CASE("BUILD CUSTOM MISSION plays the scenario the editor ran, then deletes 
 }
 
 TEST_CASE("The custom list shows the player's scenarios over the install's", "[frontend]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
   const SaveDir custom(dir.path(), &install, paths.dir(GameDir::kCustom));
@@ -888,7 +888,7 @@ struct PopupHarness {
 };
 
 TEST_CASE("Popup menus select items by keys and the mouse", "[frontend]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   PopupHarness h(install);
   std::vector<std::string> ran;
   bool toggled = false;
@@ -982,7 +982,7 @@ constexpr ScriptedHost::Step kNovice = ScriptedHost::Step{0, 52 + 27 + 60, 10 + 
 // DOS, without its box). The screen shown at each step (its hotspots)
 // shows that each Back went back to the screen before.
 TEST_CASE("Back walks the single-mission screens back one at a time and quits on the main menu", "[frontend][back]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -1013,7 +1013,7 @@ TEST_CASE("Back walks the single-mission screens back one at a time and quits on
   CHECK(host.requests[0].scenario_path == "SCEN\\HIST01.SCN");
 }
 
-TEST_CASE("Back cancels REALISM and closes CONTINUE MISSION, BEST MISSIONS and the encounters", "[frontend][back]") {
+TEST_CASE("Back cancels REALISM and closes CONTINUE MISSION, BEST MISSIONS and the encounters", "[frontend][back][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
@@ -1048,7 +1048,7 @@ TEST_CASE("Back cancels REALISM and closes CONTINUE MISSION, BEST MISSIONS and t
 }
 
 TEST_CASE("Back leaves INTERVIEWS, SUB TOUR, the credits and the career menu", "[frontend][back]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -1070,7 +1070,7 @@ TEST_CASE("Back leaves INTERVIEWS, SUB TOUR, the credits and the career menu", "
   }
 }
 
-TEST_CASE("Back closes the mission results, the commander's name entry and BEST MISSIONS", "[frontend][back]") {
+TEST_CASE("Back closes the mission results, the commander's name entry and BEST MISSIONS", "[frontend][back][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
@@ -1102,7 +1102,7 @@ TEST_CASE("Back closes the mission results, the commander's name entry and BEST 
 }
 
 TEST_CASE("The default menu hooks place the popup items", "[frontend]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ui::GuiResources resources = ui::GuiResources::load(install);
   ui::DefaultMenuHooks hooks(resources);
   CHECK(hooks.popup_height(4) == 4 * 24 + 14);
