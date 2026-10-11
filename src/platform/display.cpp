@@ -345,7 +345,9 @@ std::optional<InputEvent> Display::poll() {
         return out;
       case SDL_EVENT_MOUSE_WHEEL:
         out.type = EventType::kMouseWheel;
-        out.wheel = static_cast<int>(e.wheel.y);
+        // Whole notches (a touchpad's fractions accumulated by SDL), away
+        // from the user positive.
+        out.wheel = e.wheel.direction == SDL_MOUSEWHEEL_FLIPPED ? -e.wheel.integer_y : e.wheel.integer_y;
         return out;
       default:
         break;

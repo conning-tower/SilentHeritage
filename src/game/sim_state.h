@@ -125,6 +125,10 @@ struct SimStateFile {
   // The extended variant's crew log (section "CLOG", `CrewLog::serialize`;
   // not in the original), empty without `Features::crew_log`.
   std::vector<std::uint8_t> crew_log_extension;
+  // The extended chart's annotations (section "CHRT",
+  // `ChartAnnotations::encode`; not in the original), empty when there are
+  // none.
+  std::vector<std::uint8_t> chart_extension;
 
   // Parses the lists at `in` of a file of `version` (`sim_read_state`),
   // then the extension when it follows; with `log_only`, stops after the

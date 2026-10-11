@@ -13,6 +13,14 @@ kept with it.
 
 - **Crew log:** click the message strip at the bottom of the screen, or press
   L, to read the mission's last 100 crew messages with their game times.
+- **Chart tools:** the TOOLS button of the chart's MAP CONTROLS opens a
+  toolbox to draw on the map (pencil, lines labelled with range and bearing,
+  range circles, marks, notes, a ruler, an eraser and undo), and the
+  drawings follow the map at every zoom and are kept with saved missions.
+- **Chart scrolling and zoom:** drag the chart with the mouse or a finger
+  to scroll it, and zoom with the mouse wheel about the pointer.
+- **Nautical chart scale:** the chart's scale bar reads in nautical miles,
+  and in yards close in.
 - **Boat choice:** the encounters' SUB CLASS screen starts on the class you
   chose last, if it is in service at the date, even after a restart.
 - **Extended options:** the main menu's OPTIONS page, and the EXTENDED

@@ -24,6 +24,8 @@ sh_add_module(sh_game
     stations/chart.cpp
     stations/chart_view.cpp
     stations/chart_panels.cpp
+    stations/chart_tools.cpp
+    stations/chart_extended.cpp
     stations/chart_reports.cpp
     stations/gauges.cpp
     stations/nav_panel.cpp

@@ -26,6 +26,8 @@ Angle10 radians16_to_tenths(std::int32_t radians);
 struct WorldXZ {
   std::int32_t x = 0;
   std::int32_t z = 0;
+
+  bool operator==(const WorldXZ&) const = default;
 };
 
 // Returns the true bearing from `from` to `to`, as the original computes it.

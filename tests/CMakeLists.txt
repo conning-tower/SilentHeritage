@@ -81,6 +81,9 @@ add_executable(sh_tests
   stations_control_test.cpp
   crew_log_test.cpp
   stations_control_chart_test.cpp
+  # The extended chart: annotation tools, wheel zoom, drag scroll.
+  chart_tools_test.cpp
+  chart_tools_station_test.cpp
   chart_groups_test.cpp
   chart_weapons_test.cpp
   # User-reported chart regressions.

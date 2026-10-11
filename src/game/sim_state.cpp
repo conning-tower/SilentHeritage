@@ -62,6 +62,7 @@ constexpr std::uint32_t kSimSection = 0x204d4953;  // "SIM "
 constexpr std::uint32_t kUiSection = 0x20204955;   // "UI  "
 constexpr std::uint32_t kRuleSection = 0x454c5552;  // "RULE"
 constexpr std::uint32_t kCrewLogSection = 0x474f4c43;  // "CLOG"
+constexpr std::uint32_t kChartSection = 0x54524843;  // "CHRT"
 
 std::vector<StateRange> group_ranges(ContactGroupKind kind) {
   std::vector<StateRange> r(kGroupBaseRanges.begin(), kGroupBaseRanges.end());
@@ -393,6 +394,8 @@ SimStateFile SimStateFile::parse(ByteReader& in, std::int32_t version, bool log_
         f.rules_extension.assign(data.begin(), data.end());
       } else if (tag == kCrewLogSection) {
         f.crew_log_extension.assign(data.begin(), data.end());
+      } else if (tag == kChartSection) {
+        f.chart_extension.assign(data.begin(), data.end());
       }
     }
   }
@@ -467,7 +470,7 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     write_ranges(out, v.image, vehicle_state_layout(v.cls).ranges);
   }
   if (!sim_extension.empty() || !ui_extension.empty() || !rules_extension.empty() ||
-      !crew_log_extension.empty()) {
+      !crew_log_extension.empty() || !chart_extension.empty()) {
     out.bytes(kExtensionMagic);
     out.u32(kExtensionVersion);
     write_section(out, kSimSection, sim_extension);
@@ -479,6 +482,10 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     }
     if (!crew_log_extension.empty()) {
       write_section(out, kCrewLogSection, crew_log_extension);
+    }
+    // Nor without annotations.
+    if (!chart_extension.empty()) {
+      write_section(out, kChartSection, chart_extension);
     }
   }
   return out.take();
@@ -959,6 +966,9 @@ SimStateFile StateIo::capture(Mission& mission, const SimStateParts& parts, cons
       ui.chart_x = chart->view().center_x();
       ui.chart_z = chart->view().center_y();
       ui.chart_zoom = chart->view().zoom();
+      if (!chart->annotations().empty()) {
+        f.chart_extension = chart->annotations().encode();
+      }
     }
     if (screen->cabin_ != nullptr) {
       ui.log_page = screen->cabin_->log_page_;
@@ -1276,6 +1286,10 @@ void StateIo::restore_session(const SimStateFile& f, const SessionStateParts& se
       chart->view().set_zoom(u.chart_zoom);
       chart->view().set_center(u.chart_x, u.chart_z);
       chart->restore_panels({static_cast<ChartPanel>(u.chart_panel), u.chart_panel_xy});
+    }
+    if (chart != nullptr && screen->ui_.features.chart_tools) {
+      chart->restore_annotations(f.chart_extension.empty() ? std::vector<ChartAnnotation>{}
+                                                           : ChartAnnotations::decode(f.chart_extension));
     }
     if (u.station >= 0 && static_cast<std::size_t>(u.station) < kStationCount) {
       screen->stations_.select(static_cast<StationId>(u.station));

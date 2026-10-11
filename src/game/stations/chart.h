@@ -4,6 +4,11 @@
 // MAP CONTROLS (zoom, centre, follow, clock, scale), NAVIGATION (the shared
 // nav panel) or the waypoint plotting controls. Pressing Z / X or the zoom
 // buttons opens the zoom box, a magnifier the next click zooms to.
+//
+// With `Features::chart_tools` (not in the original; chart_extended.cpp):
+// the CHART TOOLS panel and its annotations (chart_tools.h), the wheel
+// zoom, and dragging the map to scroll it. A click on the map then acts
+// on the release, so that a press that moves becomes a drag.
 #pragma once
 
 #include <array>
@@ -17,6 +22,7 @@
 #include "game/station.h"
 #include "game/station_env.h"
 #include "game/stations/chart_panels.h"
+#include "game/stations/chart_tools.h"
 #include "game/stations/chart_view.h"
 #include "game/stations/nav_panel.h"
 #include "sim/tdc.h"
@@ -45,14 +51,16 @@ struct ShipClass;
 struct ShipSightingRecord;
 struct ShipSonar;
 
-// The chart's panels (0x118a8c), -1 none.
-enum class ChartPanel : std::int32_t { kNone = -1, kMap = 0, kNavigation = 1, kPlot = 2 };
+// The chart's panels (0x118a8c), -1 none; the toolbox is not in the
+// original (`Features::chart_tools`).
+enum class ChartPanel : std::int32_t { kNone = -1, kMap = 0, kNavigation = 1, kPlot = 2, kTools = 3 };
 
 // What a click on the map does (0x117950).
 enum class ChartClickMode : std::int32_t {
   kSelectTarget = 0,  // picks the TDC target under the pointer
   kPlot = 1,          // adds a waypoint
   kMoveSub = 2,       // the /SS305 cheat: moves the boat there
+  kAnnotate = 3,      // uses the toolbox's tool (not in the original)
 };
 
 // The scale value and unit of the MAP CONTROLS panel for `zoom_int`
@@ -111,9 +119,33 @@ class ChartStation : public Station, private PanelSuspender {
   // `chart_on_click` (0x210f0).
   void click(std::int32_t x, std::int32_t y);
 
+  // The annotation tools (not in the original; `Features::chart_tools`).
+  // Opens / closes the CHART TOOLS panel and its click mode.
+  void start_annotating();
+  void exit_annotating();
+  ChartTool tool() const { return tool_; }
+  void select_tool(ChartTool tool);
+  void select_ink(ChartInk ink);
+  void select_symbol(ChartSymbol symbol);
+  // UNDO: puts back the annotations before their last change.
+  void undo_annotation();
+  // CLEAR: erases every annotation once the player confirms.
+  void clear_annotations();
+  const ChartAnnotations& annotations() const { return annotations_; }
+  // Replaces the annotations (a restored save).
+  void restore_annotations(std::vector<ChartAnnotation> items);
+  // The ruler shown (from, to), if any.
+  const std::optional<std::array<geom::WorldXZ, 2>>& ruler() const { return ruler_; }
+  // The line being drawn with the line tool, if any.
+  const std::optional<ChartAnnotation>& draft() const { return draft_; }
+  // Zooms by `notches` doubling (halving when negative) steps about
+  // viewport pixel (`x`, `y`), which keeps its chart position (the wheel).
+  void wheel_zoom(std::int32_t x, std::int32_t y, int notches);
+
  private:
   class SpriteButton;
   class FollowButton;
+  class DrawnButton;
   // PanelSuspender
   void suspend_panels() override;  // chart_suspend_panels (0x21643)
   void resume_panels() override;   // chart_resume_panels (0x21662)
@@ -128,7 +160,34 @@ class ChartStation : public Station, private PanelSuspender {
   void panel_hover(bool over);  // chart_on_panel_hover (0x212cf)
   std::unique_ptr<ui::Dialog> make_map_panel();
   std::unique_ptr<ui::Dialog> make_plot_panel();
+  // The extended chart (not in the original; chart_extended.cpp).
+  void open_tools_panel();
+  std::unique_ptr<ui::Dialog> make_tools_panel();
+  // Adds the zoom, centre and follow buttons of the panels, `dx` pixels
+  // right of their place.
+  void add_zoom_buttons(ui::Dialog& d, int dx);
+  void add_tools_button(ui::Dialog& d);
+  std::string tools_prompt() const;
+  // Returns whether `event` was the extended chart's: the wheel, the
+  // middle button on the map, or Esc and a right click in the toolbox.
+  bool tools_event(const ui::Event& event);
+  // A press of the left button on the map at viewport pixel (`x`, `y`).
+  void tools_press(std::int32_t x, std::int32_t y);
+  // Every frame: the pointer's click or drag, the eraser's
+  // highlight and the line tool's rubber band.
+  void tools_update();
+  void tools_click(std::int32_t x, std::int32_t y);
+  void tools_drag(ChartPointer::Step step, std::int32_t x, std::int32_t y);
+  void finish_line();
+  void ask_note(geom::WorldXZ at);
+  // Draws the annotations under the overlays / the ruler and the drawing in
+  // progress over them.
+  void draw_annotations();
+  void draw_tool_overlays();
   void add_scale_controls(ui::Dialog& d, int line_y, int text_y);
+  // Draws the panels' scale bar at `y`: CHART.SHP's, or with
+  // `Features::chart_tools` the nautical one (`chart_nautical_scale`).
+  void draw_scale_bar(const Viewport& gfx, int y) const;
   void repaint_panel();
   void view_update();       // chart_view_update (0x2a875)
   void redraw_map();        // chart_view_redraw_if_dirty (0x2abce)
@@ -253,6 +312,23 @@ class ChartStation : public Station, private PanelSuspender {
   ui::Control* compression_control_ = nullptr;
   ui::Control* clock_control_ = nullptr;
   ui::Control* prompt_control_ = nullptr;
+  // The extended chart (not in the original).
+  ChartAnnotations annotations_;
+  ChartInks inks_;
+  ChartTool tool_ = ChartTool::kPencil;
+  ChartInk ink_ = ChartInk::kBlack;
+  ChartSymbol symbol_ = ChartSymbol::kCross;
+  std::optional<std::array<geom::WorldXZ, 2>> ruler_;
+  // The stroke, line or circle being drawn.
+  std::optional<ChartAnnotation> draft_;
+  // The annotation under the eraser, -1 none.
+  int highlight_ = -1;
+  ChartPointer pointer_;
+  // The pointer position the overlays were last drawn for.
+  std::array<int, 2> tools_mouse_{-1, -1};
+  // The view's centre when a drag began (the drag scroll).
+  std::array<std::int32_t, 2> drag_centre_{};
+  bool panning_ = false;
 
  public:
   // The panel and the panel positions of the state files (0x118a8c, then
