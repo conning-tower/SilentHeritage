@@ -114,7 +114,6 @@ TEST_CASE("The render list is ordered far to near, ties in insertion order", "[v
 }
 
 TEST_CASE("Aspect frames follow the 0x10ff54 table and mirror past the sprite's views", "[view]") {
-  SH_REQUIRE_GAME_EXE();
   const ViewCamera cam = make_view_camera(Angle10(0), 0, 0, 0, Fixed16::from_int(1), 640);
   auto frame_for = [&](std::int32_t heading, std::int32_t x, std::int32_t z) {
     RenderObject o = object_at(x, 0, z);
@@ -186,7 +185,7 @@ TEST_CASE("Polygons fill inclusive spans clipped to the viewport", "[view]") {
   CHECK(out.at(3, 3) == 104);
 }
 
-TEST_CASE("The night palette darkens the world ranges to the ENV ambient minimum", "[view]") {
+TEST_CASE("The night palette darkens the world ranges to the ENV ambient minimum", "[view][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Environment env = parse_environment(install.read("DATA/ENV-01.ENV"), "ENV-01");
   REQUIRE(env.ambient_minimum_pct() == 24);
@@ -292,7 +291,7 @@ TEST_CASE("The sea drifts faster in rough seas", "[view]") {
   CHECK(sea_drift_step(2, 7) == 15 * 0xdd3 * 7 / 100);
 }
 
-TEST_CASE("A bridge view of Southern Japan renders like the original", "[view]") {
+TEST_CASE("A bridge view of Southern Japan renders like the original", "[view][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const WorldViewAssets assets =
       WorldViewAssets::load(install, "DATA/ENV-01.ENV", SeaState::kCalm, "DATA/WORLD-1.WLD", "DATA/WORLD-1.OBS");
@@ -382,7 +381,7 @@ TEST_CASE("A bridge view of Southern Japan renders like the original", "[view]")
   CHECK(changed > 500);
 }
 
-TEST_CASE("A night periscope view shows the moon and the stars", "[view]") {
+TEST_CASE("A night periscope view shows the moon and the stars", "[view][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const WorldViewAssets assets =
       WorldViewAssets::load(install, "DATA/ENV-02.ENV", SeaState::kModerate, "DATA/WORLD-1.WLD", "DATA/WORLD-1.OBS");
