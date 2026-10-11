@@ -138,6 +138,48 @@ TEST_CASE("Every shipped scenario instantiates", "[mission]") {
   }
 }
 
+TEST_CASE("With the rules' corrections a ship is left out in water shallower than 1.5 drafts", "[mission][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  // No shipped scenario has a ship in such water: the same units either way.
+  for (const std::string& file : {std::string("SCEN/HIST15.SCN"), std::string("CUSTOM/SITDUCK.SCN")}) {
+    MissionSetup setup;
+    setup.rules = MissionRules::extended();
+    const std::unique_ptr<Mission> mission = Mission::load(install, tables, file, setup);
+    CHECK(mission->skipped_ships() == 0);
+  }
+  // A FUSO (28 ft draft) put in 4 to 41 ft of water: kept by the original,
+  // which only refuses 3 ft or less, left out with the corrections (42 ft).
+  for (const bool fixed : {false, true}) {
+    MissionSetup setup;
+    setup.rules = fixed ? MissionRules::extended() : MissionRules{};
+    const std::unique_ptr<Mission> mission = Mission::load(install, tables, "SCEN/HIST01.SCN", setup);
+    const SeaFloor& floor = mission->floor();
+    const fx::Vec3 p = mission->player().position();
+    std::optional<std::pair<std::int32_t, std::int32_t>> shallow;
+    // Along a line from the boat until the first such water (a coast).
+    for (std::int32_t d = 0; d <= 0x4000000 && !shallow; d += 256) {
+      for (const auto& [dx, dz] : {std::pair{d, 0}, std::pair{-d, 0}, std::pair{0, d}, std::pair{0, -d}}) {
+        const std::int32_t h = floor.height_at(p.x + dx, p.z + dz);
+        if (!shallow && h < -4 * kUnitsPerFoot && h > -41 * kUnitsPerFoot) {
+          shallow = std::pair{p.x + dx, p.z + dz};
+        }
+      }
+    }
+    REQUIRE(shallow);
+    Scenario units;
+    ShipRecord fuso;
+    fuso.ship_class = "FUSO";
+    fuso.x = shallow->first;
+    fuso.y = shallow->second;
+    units.ships.push_back(fuso);
+    const std::int32_t before = mission->skipped_ships();
+    const std::vector<Vehicle*> added = mission->add_units(units);
+    CHECK(added.size() == (fixed ? 0u : 1u));
+    CHECK(mission->skipped_ships() == before + (fixed ? 1 : 0));
+  }
+}
+
 TEST_CASE("HIST01 instantiates the scenario's units", "[mission]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);

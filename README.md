@@ -111,8 +111,9 @@ packaging.
 ## Documentation
 
 `docs/` describes the original game's file formats (`formats.md`), its data
-tables, simulation objects and behaviour (`structures.md`), and the scenario
-editor (`editor-*.md`). Code comments often cite the address and name of the
+tables, simulation objects and behaviour (`structures.md`), the scenario
+editor (`editor-*.md`), and the dates of the boats' equipment
+(`equipment.md`). Code comments often cite the address and name of the
 original function being reimplemented, e.g. `draw_sprite_clipped (0xaaa9c)`:
 addresses in the relocated `SH.EXE` (or `SE.EXE` when noted).
 

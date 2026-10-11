@@ -668,9 +668,12 @@ void Mission::spawn_ship(const ShipRecord& record) {
   if (ship_class == nullptr) {
     throw DataError("SHIPS.DAT: no class " + record.ship_class);
   }
-  // Left out in water shallower than 1.5 drafts (feet against world units,
-  // as the original).
-  if (static_cast<std::int32_t>(ship_class->draft_ft) * -3 / 2 < floor_.height_at(record.x, record.y)) {
+  // Left out in water shallower than 1.5 drafts: the original compares feet
+  // with world units (16 to the foot), so it only refuses about 3 ft of
+  // water or less; in world units with the rules' corrections (not in the
+  // original).
+  const std::int32_t unit = conditions_.rules.fix_obvious_errors ? kUnitsPerFoot : 1;
+  if (static_cast<std::int32_t>(ship_class->draft_ft) * -3 / 2 * unit < floor_.height_at(record.x, record.y)) {
     ++skipped_ships_;
     return;
   }

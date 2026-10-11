@@ -236,7 +236,7 @@ PlayerStart career_player_start(const ZoneData& zone, std::string_view home_port
 
 ReturnFuel resolve_return_fuel(std::int32_t end_code, std::int32_t fuel, std::int32_t transit_fuel,
                                std::int32_t return_hours, std::int32_t x, std::int32_t z, const ZoneData& zone,
-                               WatcomRandom& random) {
+                               WatcomRandom& random, const MissionRules& rules) {
   // wp_resolve_return_fuel (0x98279)
   ReturnFuel out{end_code, fuel, return_hours};
   if (end_code != patrol_end::kReturn && end_code != patrol_end::kAbortPatrol) {
@@ -268,10 +268,14 @@ ReturnFuel resolve_return_fuel(std::int32_t end_code, std::int32_t fuel, std::in
   if (fuel < transit_fuel) {
     const std::int32_t reserve = transit_fuel - transit_fuel / 3;
     if (fuel <= reserve) {
-      // The original's chance of reaching a friendly port divides 0 and
-      // always fails: off an Allied base the boat is interned.
+      // The original's test of the fuel left against the reserve divides
+      // the fuel it has just emptied (0): off an Allied base the boat is
+      // always interned. With the rules' corrections (not in the original)
+      // the fuel is read first, and the boat is interned only at 20 % of
+      // the reserve or less, else towed.
+      const bool interned = !allied && (!rules.fix_obvious_errors || fuel * 100 / reserve <= 20);
       out.fuel = 0;
-      out.end_code = allied ? patrol_end::kTowed : patrol_end::kInterned;
+      out.end_code = interned ? patrol_end::kInterned : patrol_end::kTowed;
       return out;
     }
     out.return_hours += (200 - (fuel - reserve) * 200 / (transit_fuel - reserve)) * return_hours / 100;
@@ -597,7 +601,8 @@ PatrolEnd Patrol::finish(Mission& mission) {
   groups_.reset();
   const PlayerSub& player = mission.player();
   const ReturnFuel f = resolve_return_fuel(mission.end_code(), player.fuel(), plan_.transit_fuel, plan_.return_hours,
-                                           player.position().x, player.position().z, zone_, mission.sim().random());
+                                           player.position().x, player.position().z, zone_, mission.sim().random(),
+                                           mission.sim().conditions().rules);
   mission.set_end_code(f.end_code);
   return {f.end_code, f.fuel, f.return_hours};
 }

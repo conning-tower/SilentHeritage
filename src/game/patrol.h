@@ -108,10 +108,13 @@ struct ReturnFuel {
 // With fuel for the trip home it is spent (the tank then holds 1..50);
 // short of it the return takes longer, up to 3 times as long; too short or
 // on 0x12, the boat is towed home (8, 7 on 0x12) when the nearest base is
-// Allied, else interned (6).
+// Allied, else interned (6). The original interns it off a non-Allied base
+// whenever it has 2/3 of the transit fuel or less; with
+// `rules.fix_obvious_errors` (not in the original), only at 20 % of that
+// reserve or less (about 13 % of the transit fuel), else it is towed.
 ReturnFuel resolve_return_fuel(std::int32_t end_code, std::int32_t fuel, std::int32_t transit_fuel,
                                std::int32_t return_hours, std::int32_t x, std::int32_t z, const ZoneData& zone,
-                               WatcomRandom& random);
+                               WatcomRandom& random, const MissionRules& rules = {});
 
 // Returns whether `wp_patrol_tick` posts the fuel report (#0x1c): the
 // fuel dropped to or below a multiple of 10 % (110 % down to 0 %) of the

@@ -31,7 +31,7 @@ std::uint32_t cycle_sailing_model(std::uint32_t options) {
   return (options & ~option::kSailingModelMask) | model << 4;
 }
 
-std::int32_t realism_rating(std::uint32_t options, bool keen_escort_sonar) {
+std::int32_t realism_rating(std::uint32_t options, const MissionRules& rules) {
   // The factors of the manual (pp. 6-9) as 16.16 constants.
   std::int32_t r = 0x12666 - (3 - combat_level(options)) * 0x2666;
   r -= fx::mul(r, (2 - sailing_model(options)) * 0x199a);
@@ -57,10 +57,21 @@ std::int32_t realism_rating(std::uint32_t options, bool keen_escort_sonar) {
       r = fx::mul(r, f.factor);
     }
   }
-  if (keen_escort_sonar) {
-    r = fx::mul(r, kKeenEscortSonarFactor);
+  if (rules.extended_realism) {
+    if (rules.keen_escort_sonar) {
+      r = fx::mul(r, kUndeafenedEscortsFactor);
+    }
+    if (!rules.detectable_radar) {
+      r = fx::mul(r, kNoDetectableRadarFactor);
+    }
   }
   return r;
+}
+
+MissionRules apply_realism_preset_rules(MissionRules rules, RealismPreset preset) {
+  rules.keen_escort_sonar = false;
+  rules.detectable_radar = preset != RealismPreset::kNovice;
+  return rules;
 }
 
 std::int32_t realism_rating_percent(std::int32_t rating) {

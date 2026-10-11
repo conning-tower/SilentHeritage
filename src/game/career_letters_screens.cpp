@@ -300,8 +300,8 @@ PatrolOrdersResult CareerLetters::patrol_orders(const CareerRecord& record, cons
 }
 
 bool CareerLetters::patrol_orders_realism(CareerRecord& record, std::optional<MissionRules>& rules) {
-  // patrol_orders_realism (0x62fdc); the career's rules give the KEEN ESCORT
-  // SONAR of the dialog, and take it back (not in the original).
+  // patrol_orders_realism (0x62fdc); the career's rules give the dialog's
+  // extended items, and take them back (not in the original).
   ui_.realism_rules() = rules.value_or(MissionRules{});
   if (ui_.realism_menu(false, false) != ui::kResultAccept) {
     return false;
@@ -309,6 +309,7 @@ bool CareerLetters::patrol_orders_realism(CareerRecord& record, std::optional<Mi
   career_realism_from_options(ui_.options(), record);
   if (rules) {
     rules->keen_escort_sonar = ui_.realism_rules().keen_escort_sonar;
+    rules->detectable_radar = ui_.realism_rules().detectable_radar;
   }
   return true;
 }

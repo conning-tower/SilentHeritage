@@ -107,6 +107,23 @@ TEST_CASE("the return fuel decides the end of a patrol", "[career]") {
   CHECK(f.end_code == patrol_end::kInterned);
 }
 
+TEST_CASE("With the rules' corrections a boat low on fuel is interned only nearly empty", "[career][rules]") {
+  const ZoneData zone = two_bases();
+  const MissionRules fixed = MissionRules::extended();
+  WatcomRandom random(7);
+  // Near the Japanese base, the reserve 2000 - 666 = 1334: 1000 is 74 % of
+  // it, 260 19 %.
+  for (const std::int32_t fuel : {1000, 270, 260, 150}) {
+    const ReturnFuel original = resolve_return_fuel(5, fuel, 2000, 100, 0x2000000, 0, zone, random);
+    const ReturnFuel corrected = resolve_return_fuel(5, fuel, 2000, 100, 0x2000000, 0, zone, random, fixed);
+    CHECK(original.end_code == patrol_end::kInterned);
+    CHECK(corrected.end_code == (fuel * 100 / 1334 <= 20 ? patrol_end::kInterned : patrol_end::kTowed));
+    CHECK(corrected.fuel == 0);
+  }
+  // Near the Allied base: towed for both.
+  CHECK(resolve_return_fuel(5, 260, 2000, 100, 0, 0, zone, random, fixed).end_code == patrol_end::kTowed);
+}
+
 TEST_CASE("the patrol scenario comes from the career", "[career]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);

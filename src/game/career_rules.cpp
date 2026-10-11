@@ -345,9 +345,16 @@ PatrolBookkeeping apply_patrol_results(Career& career, PatrolAssignment& a, Miss
   r.month = res.month;
   r.year = res.year;
   // The realism rating is computed here and overwritten (an original bug):
-  // the test is on the ships sunk besides sampans.
+  // the test is on the ships sunk besides sampans, 2 or more counting
+  // whatever the realism. With the rules' corrections (not in the
+  // original), each real ship counts half at no realism and whole at 100 %:
+  // ships x (100 + realism %) >= 400, so 4 ships below 34 %, 3 below 100 %,
+  // 2 from 100 %.
   std::int32_t real_ships = res.ships_sunk - res.sampans_sunk;
-  if (real_ships < 2) {
+  const bool counted = career.rules.value_or(MissionRules{}).fix_obvious_errors
+                           ? real_ships * (100 + res.realism_pct) >= 400
+                           : real_ships >= 2;
+  if (!counted) {
     r.puc_streak = 0;
   } else {
     ++r.high_realism_patrols;

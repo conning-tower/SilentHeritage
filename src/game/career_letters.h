@@ -147,8 +147,8 @@ class CareerLetters {
   // `patrol_orders_realism` (0x62fdc): the REALISM dialog over the options
   // word; on OK the career's values are updated and true returned (the
   // original then saves the career). The career's `rules`, when it has
-  // some, give and take the dialog's KEEN ESCORT SONAR (not in the
-  // original).
+  // some, give and take the dialog's extended items (UNDEAFENED ESCORTS,
+  // DETECTABLE RADAR; not in the original).
   bool patrol_orders_realism(CareerRecord& record, std::optional<MissionRules>& rules);
 
   // `patrol_results_screen` (0x639d8).

@@ -231,9 +231,9 @@ class FrontEnd {
   // the REALISM dialog over the options word, loaded from REALISM.SAV first
   // and saved after OK when `load_and_save`; `cancel_disabled` greys
   // CANCEL. Returns the dialog result (-1 OK, -2 cancel). With
-  // `extended_config`, the dialog also edits the KEEN ESCORT SONAR of
-  // `realism_rules` (not in the original), loaded from and saved to
-  // EXTENDED.CFG with REALISM.SAV.
+  // `extended_config`, the dialog also edits the extended items of
+  // `realism_rules` (UNDEAFENED ESCORTS, DETECTABLE RADAR; not in the
+  // original), loaded from and saved to EXTENDED.CFG with REALISM.SAV.
   int realism_menu(bool load_and_save, bool cancel_disabled);
   MissionRules& realism_rules() { return realism_rules_; }
 
@@ -402,8 +402,8 @@ class FrontEnd {
 
   GameOptions game_options_;
   std::uint32_t options_ = 0;  // 0x11a85c
-  // The rules the REALISM dialog edits with the options word: its KEEN
-  // ESCORT SONAR (not in the original).
+  // The rules the REALISM dialog edits with the options word: its extended
+  // items (not in the original).
   MissionRules realism_rules_;
   EncounterSettings encounter_;
   // The scenario list position kept across the REALISM dialog (0x18a654

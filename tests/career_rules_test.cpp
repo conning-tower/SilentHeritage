@@ -248,6 +248,41 @@ TEST_CASE("career patrol bookkeeping", "[career]") {
   CHECK((e.record.day == 15 && e.record.month == 7 && e.record.year == 15));
 }
 
+TEST_CASE("With the rules' corrections a patrol counts for the unit awards by ships and realism",
+          "[career][rules]") {
+  // ships x (100 + realism %) >= 400: 4 ships below 34 %, 3 below 100 %, 2
+  // from 100 %; the original counts 2 or more ships whatever the realism.
+  struct Case {
+    std::int32_t ships;
+    std::int32_t realism_pct;
+    bool fixed_counts;
+  };
+  for (const Case& k : {Case{2, 100, true}, Case{2, 99, false}, Case{3, 34, true}, Case{3, 33, false},
+                        Case{4, 8, true}, Case{1, 126, false}}) {
+    for (const bool fixed : {false, true}) {
+      Career c;
+      c.record.day = 1;
+      c.record.month = 2;
+      c.record.year = 13;
+      if (fixed) {
+        c.rules = MissionRules::extended();
+      }
+      MissionResults res;
+      res.day = 20;
+      res.month = 3;
+      res.year = 13;
+      res.ships_sunk = k.ships;
+      res.realism_pct = k.realism_pct;
+      PatrolAssignment a;
+      WatcomRandom random(42);
+      apply_patrol_results(c, a, res, random);
+      const bool counts = fixed ? k.fixed_counts : k.ships >= 2;
+      CHECK(c.record.high_realism_patrols == (counts ? 1 : 0));
+      CHECK(c.record.nuc_streak == (counts ? 1 : 0));
+    }
+  }
+}
+
 TEST_CASE("career awards", "[career]") {
   MissionResults res;
   Career c;

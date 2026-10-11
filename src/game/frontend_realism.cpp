@@ -28,9 +28,10 @@ constexpr std::uint32_t kSailingModels = 0x1109e8;  // char*[3]
 // The check box labels, in the order of `kRealismToggles`.
 constexpr std::array<std::uint32_t, 10> kToggleLabels{0xfbdfe, 0xfbe0b, 0xfbe1b, 0xfbe28, 0xfbe3b,
                                                       0xfbe49, 0xfbe5b, 0xfbe6e, 0xfbe7e, 0xfbe8f};
-// The extended variant's check box after the original's (not in the
-// original); the rows then come closer to make room for it.
-constexpr std::string_view kKeenSonarLabel = "KEEN ESCORT SONAR";
+// The extended variant's check boxes after the original's (not in the
+// original); the rows then come closer to make room for them.
+constexpr std::string_view kUndeafenedLabel = "UNDEAFENED ESCORTS";
+constexpr std::string_view kDetectableRadarLabel = "DETECTABLE RADAR";
 constexpr int kRowSpacing = 36;
 constexpr int kExtendedRowSpacing = 30;
 
@@ -42,9 +43,9 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
     RealismFile::load(saves_, options_);
     realism_rules_ = mission_rules();
   }
-  const bool keen_choice = extended_config_;
-  const auto rate = [this, keen_choice] {
-    return realism_rating(options_, keen_choice && realism_rules_.keen_escort_sonar);
+  const bool extended_items = extended_config_;
+  const auto rate = [this, extended_items] {
+    return realism_rating(options_, extended_items ? realism_rules_ : MissionRules{});
   };
   std::int32_t rating = rate();  // 0x18723c
   load_screen_pcx(exe_string(kMenuPcx));
@@ -65,9 +66,12 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
       {382, 0xfbdf7, RealismPreset::kExpert},
   }};
   for (const auto& [x, label, preset] : kPresets) {
-    d.emplace<ui::Button>(x, 125, 121, exe_string(label), [&d, &rating_dirty, this, preset](int) {
+    d.emplace<ui::Button>(x, 125, 121, exe_string(label), [&d, &rating_dirty, this, preset, extended_items](int) {
       rating_dirty = true;
       options_ = apply_realism_preset(options_, preset);
+      if (extended_items) {
+        realism_rules_ = apply_realism_preset_rules(realism_rules_, preset);
+      }
       d.invalidate();
       return 0;
     });
@@ -75,7 +79,7 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
   for (std::size_t i = 0; i < std::size(kRealismToggles); ++i) {
     const RealismToggle toggle = kRealismToggles[i];
     const int x = i % 2 == 0 ? 28 : 271;
-    const int y = 165 + static_cast<int>(i / 2) * (keen_choice ? kExtendedRowSpacing : kRowSpacing);
+    const int y = 165 + static_cast<int>(i / 2) * (extended_items ? kExtendedRowSpacing : kRowSpacing);
     d.emplace<ui::CheckBox>(x, y, exe_string(kToggleLabels[i]), [this, toggle, &rating_dirty](bool flip) {
       if (flip) {
         options_ ^= toggle.bit;
@@ -84,15 +88,19 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
       return toggle.checked(options_);
     });
   }
-  if (keen_choice) {
+  if (extended_items) {
     const int y = 165 + static_cast<int>(std::size(kRealismToggles) / 2) * kExtendedRowSpacing;
-    d.emplace<ui::CheckBox>(28, y, std::string(kKeenSonarLabel), [this, &rating_dirty](bool flip) {
-      if (flip) {
-        realism_rules_.keen_escort_sonar = !realism_rules_.keen_escort_sonar;
-        rating_dirty = true;
-      }
-      return realism_rules_.keen_escort_sonar;
-    });
+    const auto item = [this, &rating_dirty](bool MissionRules::* member) {
+      return [this, &rating_dirty, member](bool flip) {
+        if (flip) {
+          realism_rules_.*member = !(realism_rules_.*member);
+          rating_dirty = true;
+        }
+        return realism_rules_.*member;
+      };
+    };
+    d.emplace<ui::CheckBox>(28, y, std::string(kUndeafenedLabel), item(&MissionRules::keen_escort_sonar));
+    d.emplace<ui::CheckBox>(271, y, std::string(kDetectableRadarLabel), item(&MissionRules::detectable_radar));
   }
   d.emplace<ui::Label>(180, 425, exe_string(kRatingLabel), ui::FontSlot::kFont1, false);
   auto& rating_field = d.emplace<ui::TextField>(
@@ -134,7 +142,7 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
   const int result = run_menu_dialog(d);
   if (result == ui::kResultAccept && load_and_save) {
     RealismFile::save(saves_, options_);
-    if (keen_choice) {
+    if (extended_items) {
       save_mission_rules(saves_, realism_rules_);
     }
   }

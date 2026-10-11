@@ -54,17 +54,29 @@ struct MissionRules {
   // every frame a called ship is heard restarts its report timer. Detection
   // and the random draws are unchanged.
   bool quiet_sonar_reacquire = false;
-  // The REALISM choice KEEN ESCORT SONAR: the escorts' sonar is not deafened
-  // by depth-charge blasts and drops its contacts as the original does,
-  // for a higher realism rating. Without it, with `fix_obvious_errors`,
-  // blasts deafen the escorts and their contacts are cancelled by the
-  // noises near them.
+  // The REALISM choice UNDEAFENED ESCORTS: the escorts' sonar is not
+  // deafened by depth-charge blasts and drops its contacts as the original
+  // does, for a higher realism rating. Without it, with
+  // `fix_obvious_errors`, blasts deafen the escorts and their contacts are
+  // cancelled by the noises near them.
   bool keen_escort_sonar = false;
+  // The REALISM choice DETECTABLE RADAR: the escorts carry radar detectors
+  // (behaviour: sim/radar). Off, the realism rating is lower.
+  bool detectable_radar = false;
+  // The realism rating counts the extended REALISM items above
+  // (game/options_realism.h); false for the original's rating.
+  bool extended_realism = false;
 
   // Returns the rules of a new extended game (the extended variant's
   // defaults, where EXTENDED.CFG or a career's rules do not set them): the
-  // corrections and the quiet sonar reacquisition on.
-  static constexpr MissionRules extended() { return {.fix_obvious_errors = true, .quiet_sonar_reacquire = true}; }
+  // corrections, the quiet sonar reacquisition, the extended realism with
+  // DETECTABLE RADAR (as at EXPERT).
+  static constexpr MissionRules extended() {
+    return {.fix_obvious_errors = true,
+            .quiet_sonar_reacquire = true,
+            .detectable_radar = true,
+            .extended_realism = true};
+  }
   // Returns whether depth-charge blasts deafen the escorts' sonar, and the
   // noises near an escort's estimate cancel it by the true geometry.
   constexpr bool escorts_deafened() const { return fix_obvious_errors && !keen_escort_sonar; }
@@ -79,10 +91,12 @@ struct MissionRuleField {
 };
 
 // The saved fields of `MissionRules`; keys must stay as they are once saved.
-inline const std::array<MissionRuleField, 3> kMissionRuleFields{{
+inline const std::array<MissionRuleField, 5> kMissionRuleFields{{
     {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
     {"quiet_sonar_reacquire", &MissionRules::quiet_sonar_reacquire},
     {"keen_escort_sonar", &MissionRules::keen_escort_sonar},
+    {"detectable_radar", &MissionRules::detectable_radar},
+    {"extended_realism", &MissionRules::extended_realism},
 }};
 
 // Scenario conditions and player options.

@@ -460,12 +460,34 @@ TEST_CASE("New single missions take their rules from EXTENDED.CFG only with exte
   CHECK(rules_of_mission(true).fix_obvious_errors);
 }
 
-TEST_CASE("Extended: REALISM's KEEN ESCORT SONAR rates 10 % higher and is kept in EXTENDED.CFG",
+TEST_CASE("Extended: REALISM's UNDEAFENED ESCORTS and DETECTABLE RADAR rate and are kept in EXTENDED.CFG",
           "[frontend][rules]") {
-  // The factor of the rating.
-  CHECK(realism_rating(0x61a8, false) == realism_rating(0x61a8));
-  CHECK(realism_rating_percent(realism_rating(0x61a8, true)) == 110);
-  CHECK(realism_rating_percent(realism_rating(0x61ac, true)) == 126);
+  const auto percent = [](std::uint32_t options, const MissionRules& rules) {
+    return realism_rating_percent(realism_rating(options, rules));
+  };
+  const auto with = [](bool undeafened, bool radar) {
+    MissionRules r = MissionRules::extended();
+    r.keen_escort_sonar = undeafened;
+    r.detectable_radar = radar;
+    return r;
+  };
+  // Without the extended realism the original's rating, whatever the items.
+  CHECK(realism_rating(0x61a8, MissionRules{.keen_escort_sonar = true}) == realism_rating(0x61a8));
+  // EXPERT with DETECTABLE RADAR on and UNDEAFENED ESCORTS off: 100 %.
+  CHECK(realism_rating(0x61a8, with(false, true)) == 0x10000);
+  CHECK(percent(0x61a8, with(true, true)) == 110);
+  CHECK(percent(0x61a8, with(false, false)) == 95);
+  // Every item at its hardest: 115 % x 1.10.
+  CHECK(percent(0x61ac, with(true, true)) == 126);
+  // The presets: NOVICE without DETECTABLE RADAR, the others with it.
+  for (const RealismPreset preset : {RealismPreset::kNovice, RealismPreset::kIntermediate, RealismPreset::kExpert}) {
+    const MissionRules r = apply_realism_preset_rules(with(true, false), preset);
+    CHECK_FALSE(r.keen_escort_sonar);
+    CHECK(r.detectable_radar == (preset != RealismPreset::kNovice));
+  }
+  // NOVICE 8 % x 0.95 (without DETECTABLE RADAR): 7 %.
+  CHECK(percent(apply_realism_preset(0, RealismPreset::kNovice) & ~3u, with(false, false)) == 7);
+  CHECK(percent(apply_realism_preset(0, RealismPreset::kIntermediate) & ~3u, with(false, true)) == 50);
 
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
@@ -511,6 +533,7 @@ TEST_CASE("Extended: REALISM's KEEN ESCORT SONAR rates 10 % higher and is kept i
   e.type = 12;
   e.tonnage = 10000;
   o.patrol_log = {e};
+  o.rules = MissionRules::extended();
   const MissionResults plain = compute_mission_results(o, 0x61a8);
   o.rules.keen_escort_sonar = true;
   const MissionResults keen = compute_mission_results(o, 0x61a8);

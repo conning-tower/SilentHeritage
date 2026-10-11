@@ -138,7 +138,7 @@ MissionResults compute_mission_results(const MissionOutcome& o, std::uint32_t op
     }
   }
 
-  const std::int32_t rating = realism_rating(options, o.rules.keen_escort_sonar);
+  const std::int32_t rating = realism_rating(options, o.rules);
   r.realism_pct = realism_rating_percent(rating);
   if (single_mission) {
     score -= score / 2 * (1000 - o.difficulty) / 1000;
