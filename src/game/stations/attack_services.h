@@ -15,6 +15,7 @@
 #include "assets/fnt.h"
 #include "assets/pal.h"
 #include "assets/shp.h"
+#include "core/features.h"
 #include "core/fixed.h"
 #include "core/image.h"
 #include "game/station.h"
@@ -69,6 +70,9 @@ class StationPanel {
   // `full_redraw`: the screen was redrawn under the panel (0x11a898).
   virtual void update(bool full_redraw) = 0;
   virtual void close() = 0;
+  // Whether a drag of the extended variant takes the events
+  // (`Station::capturing`).
+  virtual bool capturing() const { return false; }
 };
 
 // The calls the stations make into the mission screen.
@@ -214,6 +218,9 @@ class AttackServices {
   Fixed16 zoom = Fixed16::from_int(1);             // 0x11ac3b
   LowerPanel lower_panel = LowerPanel::kNav;       // 0x11bcd8
   TdcSubPanel tdc_panel = TdcSubPanel::kSolution;  // 0x1282b8
+  // The improvements beyond the original the stations run with (not in
+  // the original; the mission's `MissionUiState::features`).
+  Features features{};
 
  private:
   const Install& install_;

@@ -60,6 +60,16 @@ void Mouse::post_back(std::uint8_t shift) {
   events_->post(e);
 }
 
+void Mouse::post_wheel(int notches, std::uint8_t shift) {
+  Event e;
+  e.shift = shift;
+  e.buttons = buttons_;
+  e.x = x_;
+  e.y = y_;
+  e.wheel = notches;
+  events_->post(e);
+}
+
 void Mouse::set_cursor(const Shp& sprites, std::size_t frame) {
   sprites_ = &sprites;
   frame_ = frame;

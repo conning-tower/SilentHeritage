@@ -81,6 +81,7 @@ class GaugesStation : public Station {
   void update() override;  // gauges_station_update (0x39e8a)
   void close() override;   // gauges_station_close (0x39e40)
   bool rig_red_redraw() const override { return true; }
+  bool capturing() const override { return panel_ && panel_->capturing(); }
 
   NavPanel* panel() { return panel_.get(); }
   const DiveRecorder& dive_recorder() const { return recorder_; }

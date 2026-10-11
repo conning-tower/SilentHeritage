@@ -14,6 +14,7 @@
 #include "game/station.h"
 #include "game/stations/attack_services.h"
 #include "game/stations/tdc.h"
+#include "game/stations/view_drag.h"
 #include "ui/dialog.h"
 
 namespace sh {
@@ -37,6 +38,9 @@ class ScopeStation final : public Station {
   void close() override;
   bool expensive() const override { return true; }
   bool shows_world() const override { return true; }
+  bool capturing() const override {
+    return (drag_ && drag_->dragging()) || (panel_ && panel_->capturing()) || (tdc_ && tdc_->capturing());
+  }
   bool rig_red_redraw() const override { return true; }
 
   // Switches the lower panel (`scope_set_mode`, 0x6dad7); a `tdc_panel`
@@ -75,6 +79,8 @@ class ScopeStation final : public Station {
   std::unique_ptr<ui::Dialog> mode_dialog_;  // 0x126aec: the TDC mode's keys and button
   std::unique_ptr<StationPanel> panel_;      // the nav panel or the ID book
   std::unique_ptr<TdcPanels> tdc_;
+  // The drag of the view (extended `drag_rotate`), while open.
+  std::unique_ptr<ViewDrag> drag_;
   int view_x_ = 0xdb;     // 0x12662c
   int view_y_ = 0x77;     // 0x126630
   int dialog_y_ = 0x183;  // 0x126894

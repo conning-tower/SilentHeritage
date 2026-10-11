@@ -15,6 +15,7 @@
 #include "game/station.h"
 #include "game/stations/attack_services.h"
 #include "game/stations/tdc.h"
+#include "game/stations/view_drag.h"
 #include "ui/dialog.h"
 
 namespace sh {
@@ -56,6 +57,9 @@ class TbtStation final : public Station {
   // tbt_close (0x77b2f)
   void close() override;
   bool expensive() const override { return true; }
+  bool capturing() const override {
+    return (drag_ && drag_->dragging()) || (panel_ && panel_->capturing()) || (tdc_ && tdc_->capturing());
+  }
   bool outdoors() const override { return true; }
   bool shows_world() const override { return true; }
 
@@ -92,6 +96,8 @@ class TbtStation final : public Station {
   std::unique_ptr<ui::Dialog> mode_dialog_;  // 0x128ad0, the TDC mode's
   std::unique_ptr<StationPanel> panel_;
   std::unique_ptr<TdcPanels> tdc_;
+  // The drag of the view (extended `drag_rotate`), while open.
+  std::unique_ptr<ViewDrag> drag_;
   std::uint32_t render_mark_ = 0;
   std::uint32_t render_delay_ = 0;
   std::uint32_t plate_mark_ = 0;

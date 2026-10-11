@@ -114,6 +114,9 @@ struct Event {
   // a dialog with a back control activates it (`Dialog::set_back`), any
   // other code takes it as Esc.
   bool back = false;
+  // The notches of a wheel event, up positive (no such event in the
+  // original: posted by `Mouse::post_wheel` with no flags).
+  int wheel = 0;
 
   bool is_key() const { return (flags & kEventKey) != 0; }
 };

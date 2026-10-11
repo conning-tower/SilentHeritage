@@ -29,6 +29,7 @@
 #include "gfx/text.h"
 #include "gfx/viewport.h"
 #include "ui/controls.h"
+#include "ui/dial_scrub.h"
 #include "ui/dialog.h"
 
 namespace sh {
@@ -209,15 +210,31 @@ class NavPanel : public StationPanel {
   // a new course ("HELMnnnn.RAW").
   void update(bool full_redraw) override;
   void close() override;  // gauges_panel_close
+  bool capturing() const override { return scrub_ && scrub_->capturing(); }
 
   // The dialog while open (the chart moves it), else null.
   ui::Dialog* dialog() { return dialog_.get(); }
   const NavTemplate& layout() const { return layout_; }
   // The depth ordered on the dial (0x11c67c), -1 none.
   std::int32_t dial_ordered_depth() const { return ordered_depth_; }
+  // The precise setting of the compass, helm and depth dials (extended
+  // `precise_dials`), null when off.
+  const ui::DialScrubber* scrubber() const { return scrub_.get(); }
 
  private:
   class DialControl;
+  // The original presses of the compass, helm and depth dials at `e`;
+  // each returns whether the order changed.
+  bool click_compass(const ui::Event& e);
+  bool click_rudder(const ui::Event& e);
+  bool click_depth(const ui::Event& e);
+  // Registers the dials with `scrub_` (screen rectangles kept by
+  // `place_scrub_targets`, the chart moving the panel).
+  void add_scrub_targets();
+  void place_scrub_targets();
+  // Draws the readout of `text` in `out` inside `rect` (dialog
+  // coordinates), on the side away from the press.
+  void draw_readout(const Viewport& out, const ui::Rect& rect, const std::string& text);
   void draw_compass(const Viewport& out);
   void draw_telegraph(const Viewport& out);
   void draw_rudder(const Viewport& out);
@@ -242,6 +259,11 @@ class NavPanel : public StationPanel {
   std::int32_t last_speed_ = 0, last_log_ = -1, last_ordered_ = -2, last_depth_ = -1, last_pitch_ = -1;
   bool last_course_mode_ = false;
   std::int32_t engage_count_ = 0;
+  // Extended `precise_dials`: the scrubber, its dials' indices (compass,
+  // helm, depth) and the ghosts' colour.
+  std::unique_ptr<ui::DialScrubber> scrub_;
+  std::array<std::size_t, 3> scrub_index_{};
+  std::uint8_t ghost_ = 0;
 };
 
 // Returns the panel of `site` (the site's control template and sprites);

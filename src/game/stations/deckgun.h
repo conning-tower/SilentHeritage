@@ -16,6 +16,7 @@
 #include "core/image.h"
 #include "game/station.h"
 #include "game/stations/attack_services.h"
+#include "game/stations/view_drag.h"
 #include "gfx/text.h"
 #include "ui/dialog.h"
 #include "ui/event.h"
@@ -40,6 +41,7 @@ class DeckGunStation final : public Station {
   bool expensive() const override { return true; }
   bool outdoors() const override { return true; }
   bool shows_world() const override { return true; }
+  bool capturing() const override { return drag_ && drag_->dragging(); }
 
   // The control actions, also bound to the station's keys.
   // Trains the selected mount by `step` (1..50) tenths left (`sign` < 0) or
@@ -72,10 +74,14 @@ class DeckGunStation final : public Station {
   void draw_zoom_indicator();
   void draw_elevation_dial();
   void advance_timers();
+  // The hooks of the extended drag: train across, elevation offset up.
+  ViewDrag::Hooks drag_hooks();
 
   AttackServices& services_;
   std::unique_ptr<ui::Dialog> dialog_;
   std::unique_ptr<Controls> controls_;
+  // The drag of the sight (extended `drag_rotate`), while open.
+  std::unique_ptr<ViewDrag> drag_;
   Image8 background_;           // DECKGUN.PCX (screen 0x11a574)
   VgaPalette pcx_palette_{};    // 0x11be50, dimmed by the palette hook
   Shp sprites_;                 // DECKGUN.SHP (0x11bd44)

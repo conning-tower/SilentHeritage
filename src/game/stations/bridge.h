@@ -11,6 +11,7 @@
 #include "assets/shp.h"
 #include "game/station.h"
 #include "game/stations/attack_services.h"
+#include "game/stations/view_drag.h"
 #include "ui/dialog.h"
 
 namespace sh {
@@ -47,6 +48,9 @@ class BridgeStation final : public Station {
   bool expensive() const override { return true; }
   bool outdoors() const override { return true; }
   bool shows_world() const override { return true; }
+  bool capturing() const override {
+    return (drag_ && drag_->dragging()) || (nav_panel_ && nav_panel_->capturing());
+  }
 
  private:
   void render_view();
@@ -60,6 +64,8 @@ class BridgeStation final : public Station {
   std::unique_ptr<ui::Dialog> dialog_;  // 0x116694
   std::unique_ptr<StationPanel> nav_panel_;
   Image8 scratch_;                  // 0x11626c, the transformed deck frame
+  // The drag of the view (extended `drag_rotate`), while open.
+  std::unique_ptr<ViewDrag> drag_;
   std::uint32_t render_mark_ = 0;   // ticks of the last render (counter 0x129bd4)
   std::int32_t tape_bearing_ = -1;  // 0x116274
 };

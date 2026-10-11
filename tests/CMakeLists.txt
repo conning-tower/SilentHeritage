@@ -109,6 +109,9 @@ add_executable(sh_tests
   resume_test.cpp
   # The floating command button of touch screens and its icons.
   command_panel_test.cpp
+  # The extended variant's controls: view drags, precise dials.
+  controls_gesture_test.cpp
+  controls_stations_test.cpp
   # Modern conveniences: the chart's wider edge scroll, Alt+Enter fullscreen.
   chart_edge_scroll_test.cpp
   display_fullscreen_test.cpp

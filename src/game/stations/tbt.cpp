@@ -127,6 +127,14 @@ void TbtStation::open() {
       [this](bool on) { on ? s_.set_cursor(ui::CursorId::kMark) : s_.set_default_cursor(); });
   add_hotkey(*dialog_, 0xff54, [this] { show_tdc_panel(); });
   dialog_->open();
+  if (s_.features.drag_rotate) {
+    // The view and the train areas.
+    drag_ = std::make_unique<ViewDrag>(view_bearing_hooks(s_, &s_.zoom, [this] { return dialog_.get(); }));
+    drag_->set_regions({{kViewX, kViewY, kViewX + kViewW - 1, kViewY + kViewBottom - kViewTop},
+                        {0, 0x21, 0x57, 0x10b},
+                        {0x260, 0x21, 0x27f, 0x7a},
+                        {0x236, 0x7b, 0x27f, 0x10b}});
+  }
   load_overlays();
 
   render_mark_ = s_.gui().ticks();
@@ -220,6 +228,9 @@ void TbtStation::apply_mode_change() {
 }
 
 void TbtStation::event(const ui::Event& event) {
+  if (drag_ && drag_->event(event, s_.gui().ticks())) {
+    return;
+  }
   // tbt_panel_event (0x780dd), then the TBT's controls.
   switch (s_.lower_panel) {
     case LowerPanel::kNav:
@@ -285,6 +296,9 @@ void TbtStation::update() {
       }
       break;
   }
+  if (drag_) {
+    drag_->update(s_.gui().ticks());
+  }
   pick_target();
   const std::int32_t bearing = mission.player_combat().view_bearing.normalized().tenths();
   if (first_frame() || s_.gui().ticks() - render_mark_ > 5 + render_delay_ || dial_bearing_ != bearing) {
@@ -305,6 +319,7 @@ void TbtStation::close() {
   // tbt_close (0x77b2f)
   pending_.reset();
   unload_overlays();
+  drag_.reset();
   dialog_->close();
   dialog_.reset();
   tbt_.reset();

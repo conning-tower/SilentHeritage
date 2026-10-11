@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <functional>
 #include <string>
 
@@ -439,6 +440,14 @@ void DeckGunStation::open() {
   sprites_ = Shp::load(services_.install(), "ART/DECKGUN.SHP");
   digits_ = Font::load(services_.install(), "ART/DIGITS3.FNT");
   dialog_->open();
+  if (services_.features.drag_rotate) {
+    // The sight, the train areas and the elevation areas.
+    drag_ = std::make_unique<ViewDrag>(drag_hooks());
+    drag_->set_regions({{kViewX, kViewY, kViewX + 200, kViewY + 199},
+                        {0, 0x121, 0x57, 0x1ca},
+                        {0x23b, 0x121, 0x27f, 0x1ca},
+                        {0x247, 0x5b, 0x27f, 0x111}});
+  }
   last_tick_ = services_.gui().ticks();
   fire_ticks_ = 0;
   zoom_ticks_ = 0;
@@ -463,12 +472,18 @@ void DeckGunStation::open() {
   services_.host().fade_out();
 }
 
-void DeckGunStation::event(const ui::Event& event) { dialog_->handle_event(event); }
+void DeckGunStation::event(const ui::Event& event) {
+  if (drag_ && drag_->event(event, services_.gui().ticks())) {
+    return;
+  }
+  dialog_->handle_event(event);
+}
 
 void DeckGunStation::process() { dialog_->process(); }
 
 void DeckGunStation::close() {
   // deckgun_close (0x36f34)
+  drag_.reset();
   dialog_->close();
 }
 
@@ -499,6 +514,50 @@ void DeckGunStation::elevate(std::int32_t step, int sign) {
   if (fx::angle_add(m.elevation_offset, m.elevation).tenths() > kMaxElevation) {
     m.elevation_offset = fx::angle_sub(Angle10(sign > 0 ? kMaxElevation : 0), m.elevation);
   }
+}
+
+ViewDrag::Hooks DeckGunStation::drag_hooks() {
+  // Not in the original: the train and the elevation offset from their
+  // values at the press, within the tower stops (`clamp_train_step`) and
+  // the elevation limits of `elevate`, the bearing follow stopped.
+  struct Start {
+    std::int32_t mount = 0;
+    std::int32_t train = 0;
+    std::int32_t offset = 0;  // signed tenths
+  };
+  auto start = std::make_shared<Start>();
+  ViewDrag::Hooks h;
+  h.tenths_per_px = [this] { return view_tenths_per_pixel(services_.zoom); };
+  h.capture = [this, start] {
+    DeckGun& gun = services_.mission().player_combat().deck_gun;
+    const DeckGun::Mount& m = gun.mount(gun.selected());
+    start->mount = gun.selected();
+    start->train = m.train.normalized().tenths();
+    start->offset = fx::angle_diff(m.elevation_offset, Angle10(0));
+  };
+  h.turn = [this, start](double across, double up) {
+    DeckGun& gun = services_.mission().player_combat().deck_gun;
+    if (gun.selected() != start->mount) {
+      return;
+    }
+    DeckGun::Mount& m = gun.mount(start->mount);
+    const auto a = static_cast<std::int32_t>(std::lround(across));
+    m.train = Angle10(clamp_train_step(start->mount, start->train, a));
+    gun.toggle_bearing_follow(true);
+    const std::int32_t elevation = fx::angle_diff(m.elevation, Angle10(0));
+    const std::int32_t offset = std::clamp(start->offset + static_cast<std::int32_t>(std::lround(up)), -elevation,
+                                           kMaxElevation - elevation);
+    m.elevation_offset = Angle10(offset).normalized();
+  };
+  h.release_dialog = [this] { release_dialog_press(*dialog_); };
+  h.cursor = [this](bool on) {
+    on ? services_.set_cursor(ui::CursorId::kMove) : services_.set_default_cursor();
+  };
+  h.up_tenths_per_px = 0.5;
+  h.inertia = false;
+  // The crew's fire disables the aiming controls, the drag with them.
+  h.enabled = [this] { return services_.mission().player_combat().deck_gun.manual(); };
+  return h;
 }
 
 void DeckGunStation::cycle_zoom() {
@@ -687,6 +746,9 @@ void DeckGunStation::update() {
     select_gun(mount);
   }
   advance_timers();
+  if (drag_) {
+    drag_->update(services_.gui().ticks());
+  }
   const bool shade = services_.advance_world();
   if (services_.redraw_requested()) {
     dialog_->invalidate();

@@ -8,6 +8,9 @@ sh_add_module(sh_ui
     dialog.cpp
     controls.cpp
     dial_control.cpp
+    # The extended variant's drags and precise dials.
+    drag_gesture.cpp
+    dial_scrub.cpp
     # Skins and their drawing primitives.
     draw.cpp
     skin.cpp

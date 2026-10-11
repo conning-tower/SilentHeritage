@@ -15,6 +15,14 @@ kept with it.
   L, to read the mission's last 100 crew messages with their game times.
 - **Boat choice:** the encounters' SUB CLASS screen starts on the class you
   chose last, when it is in service at the date.
+- **Turning the views:** drag the view of the bridge, periscope, TBT or deck
+  gun to turn it; the sea follows the pointer or finger, and a quick flick
+  keeps it turning for a moment. Holding the arrows still works.
+- **Precise dials:** press a dial (ordered course, rudder, depth, the TDC's
+  knobs and counters) and drag sideways. An amber ghost needle and a readout
+  show the new value, given when you let go. Drag farther above or below
+  the dial, or hold Shift, for finer steps; the right button or Esc
+  cancels; the mouse wheel steps the value. A plain click works as before.
 
 ## Rules
 

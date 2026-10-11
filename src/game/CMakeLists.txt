@@ -35,6 +35,8 @@ sh_add_module(sh_game
     world_view_adapter.cpp
     stations/attack_services.cpp
     stations/tdc.cpp
+    # The extended variant's view drag (not in the original).
+    stations/view_drag.cpp
     stations/deckgun.cpp
     stations/radar.cpp
     stations/bridge.cpp

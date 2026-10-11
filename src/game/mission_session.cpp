@@ -41,6 +41,7 @@ MissionSession::MissionSession(MissionScreenSetup setup, std::unique_ptr<Mission
   world_->options() = world_view_options(detail_);
   services_ = std::make_unique<AttackServices>(install, screen.mission(), env.gui, env.palette, env.stations,
                                                screen.attack_host(), *world_, env.assets.cursors);
+  services_->features = env.ui.features;
   screen.install(StationId::kBridge, std::make_unique<BridgeStation>(*services_));
   screen.install(StationId::kScope, std::make_unique<ScopeStation>(*services_));
   screen.install(StationId::kTbt, std::make_unique<TbtStation>(*services_));

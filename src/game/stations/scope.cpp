@@ -96,6 +96,9 @@ void ScopeStation::open() {
   view_x_ = kViewX;
   view_y_ = kViewY;
   dialog_y_ = kDialogY;
+  if (s_.features.drag_rotate) {
+    drag_ = std::make_unique<ViewDrag>(view_bearing_hooks(s_, &s_.zoom, [this] { return dialog_.get(); }));
+  }
   open_main_dialog();
   load_overlays(false);
   tape_bearing_ = -1;
@@ -130,6 +133,12 @@ void ScopeStation::open_main_dialog() {
   add_hotkey(*dialog_, 0x3920, [this] { mark_target(); });
   add_hotkey(*dialog_, 0xff54, [this] { toggle_tdc_view(); });
   dialog_->open();
+  if (drag_) {
+    // The view and the two handles.
+    drag_->set_regions({{view_x_, view_y_, view_x_ + kViewW - 1, view_y_ + kViewH - 1},
+                        {0, dialog_y_, 0x76, dialog_y_ + 0x40},
+                        {0x22a, dialog_y_, 0x27f, dialog_y_ + 0x40}});
+  }
 }
 
 void ScopeStation::load_overlays(bool redraw) {
@@ -241,6 +250,9 @@ void ScopeStation::apply_mode_change() {
 }
 
 void ScopeStation::event(const ui::Event& event) {
+  if (drag_ && drag_->event(event, s_.gui().ticks())) {
+    return;
+  }
   // scope_mode_event (0x6d97a), then the handles.
   switch (s_.lower_panel) {
     case LowerPanel::kNav:
@@ -310,6 +322,9 @@ void ScopeStation::update() {
       }
       break;
   }
+  if (drag_) {
+    drag_->update(s_.gui().ticks());
+  }
   pick_target();
   const std::int32_t bearing = mission.player_combat().view_bearing.normalized().tenths();
   if (first_frame() || s_.gui().ticks() - render_mark_ > 5 + render_delay_ || tape_bearing_ != bearing) {
@@ -329,6 +344,7 @@ void ScopeStation::close() {
   // scope_station_close (0x6d26e)
   pending_.reset();
   leave_mode();
+  drag_.reset();
   dialog_->close();
   dialog_.reset();
   scope_.reset();

@@ -25,12 +25,24 @@ struct Features {
   // The SUB CLASS screen of the encounters selects the class last chosen
   // when it is in service at the date, instead of the first.
   bool last_boat = false;
+  // The bridge, periscope, TBT and deck gun views turn by dragging them
+  // (the sea follows the pointer), with inertia after a fast release.
+  bool drag_rotate = false;
+  // The settable dials (ordered course, helm and depth; the TDC's knobs,
+  // counters and torpedo depth) take a pending value by a horizontal drag
+  // or the wheel, shown as an amber ghost and given on release.
+  bool precise_dials = false;
 
   // Returns the original game's set: no improvement.
   static constexpr Features faithful() { return {}; }
   // Returns every improvement.
   static constexpr Features extended() {
-    return {.wide_screen = true, .crew_log = true, .chart_tools = true, .last_boat = true};
+    return {.wide_screen = true,
+            .crew_log = true,
+            .chart_tools = true,
+            .last_boat = true,
+            .drag_rotate = true,
+            .precise_dials = true};
   }
   // Returns the set of this build's variant.
   static constexpr Features for_build() { return edition::kExtended ? extended() : faithful(); }

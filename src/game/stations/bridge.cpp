@@ -95,6 +95,10 @@ void BridgeStation::open() {
       *dialog_, 0x140, 0, 0x27f, 199, 0x342e, [this](std::int32_t step) { turn(step, 1); },
       [this](bool on) { on ? s_.set_cursor(ui::CursorId::kRotateRightFast) : s_.set_default_cursor(); });
   dialog_->open();
+  if (s_.features.drag_rotate) {
+    drag_ = std::make_unique<ViewDrag>(view_bearing_hooks(s_, nullptr, [this] { return dialog_.get(); }));
+    drag_->set_regions({{0, 0, kBridgeViewWidth - 1, kViewRows - 1}});
+  }
 
   // bridge_load_nav (0x17a29): the menu 0x11667c (conn, TBT, deck gun),
   // BRDGNAV.SHP under the view and the nav panel.
@@ -116,6 +120,9 @@ void BridgeStation::open() {
 }
 
 void BridgeStation::event(const ui::Event& event) {
+  if (drag_ && drag_->event(event, s_.gui().ticks())) {
+    return;
+  }
   if (nav_panel_) {
     nav_panel_->event(event);
   }
@@ -141,6 +148,9 @@ void BridgeStation::update() {
   }
   if (nav_panel_) {
     nav_panel_->update(s_.redraw_requested());
+  }
+  if (drag_) {
+    drag_->update(s_.gui().ticks());
   }
   const std::int32_t bearing = mission.player_combat().view_bearing.normalized().tenths();
   if (first_frame() || s_.gui().ticks() - render_mark_ > 5 || tape_bearing_ != bearing) {
@@ -168,6 +178,7 @@ void BridgeStation::close() {
     nav_panel_.reset();
   }
   nav_.reset();
+  drag_.reset();
   dialog_->close();
   dialog_.reset();
   deck_.reset();

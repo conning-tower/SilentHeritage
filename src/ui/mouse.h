@@ -77,6 +77,9 @@ class Mouse {
   void post_key(std::uint16_t bios_word, std::uint8_t shift);
   // Posts Android's Back: the Esc key event marked `Event::back`.
   void post_back(std::uint8_t shift);
+  // Posts a wheel event of `notches` (up positive) at the pointer, with no
+  // flags (not in the original, whose dialogs ignore it).
+  void post_wheel(int notches, std::uint8_t shift);
 
   int x() const { return x_; }
   int y() const { return y_; }

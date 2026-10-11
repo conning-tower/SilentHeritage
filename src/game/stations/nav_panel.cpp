@@ -395,6 +395,16 @@ void draw_needle_dial(const Viewport& out, const Image8& background, const Needl
   });
 }
 
+namespace {
+
+// Returns the part `r` (in `out`'s coordinates) of `out`, with its origin
+// at the rectangle's corner.
+Viewport clip_to(const Viewport& out, const ui::Rect& r) {
+  return Viewport{out.bitmap, out.x0 + r.x0, out.y0 + r.y0, out.x0 + r.x1, out.y0 + r.y1};
+}
+
+}  // namespace
+
 // --- The panel --------------------------------------------------------------
 
 // The dial controls (an area of the control vtable 0x101afc whose message
@@ -486,16 +496,7 @@ void NavPanel::open() {
   controls_[0] = &dialog_->emplace<DialControl>(
       t.compass.rect, true, env_, [this](ui::Dialog& d, ui::Msg msg, const ui::Event& e, bool pressed) {
         if (msg == ui::Msg::kPress) {
-          if (pressed) {
-            return false;
-          }
-          PlayerSub& p = env_.mission.player();
-          p.stop_following_route();
-          const std::int32_t course =
-              dial_angle(e.x, e.y, layout_.compass.cx + d.x(), layout_.compass.cy + d.y());
-          const bool changed = course != p.motion().ordered_heading.tenths();
-          p.set_course(Angle10(course));
-          if (!changed) {
+          if (pressed || !click_compass(e)) {
             return false;
           }
         } else if (msg != ui::Msg::kPaint) {
@@ -536,16 +537,7 @@ void NavPanel::open() {
   controls_[2] = &dialog_->emplace<DialControl>(
       t.rudder.rect, true, env_, [this](ui::Dialog& d, ui::Msg msg, const ui::Event& e, bool) {
         if (msg == ui::Msg::kPress) {
-          const std::optional<std::int32_t> step = rudder_step_at(e.x - layout_.rudder.rect.x0 - d.x());
-          if (!step) {
-            return false;
-          }
-          // Leaves course mode and the route whether or not the step changes.
-          PlayerSub& p = env_.mission.player();
-          p.stop_following_route();
-          const bool changed = *step != p.helm();
-          p.set_helm(*step);
-          if (!changed) {
+          if (!click_rudder(e)) {
             return false;
           }
         } else if (msg != ui::Msg::kPaint) {
@@ -569,15 +561,9 @@ void NavPanel::open() {
   controls_[4] = &dialog_->emplace<DialControl>(
       t.depth.rect, true, env_, [this](ui::Dialog& d, ui::Msg msg, const ui::Event& e, bool pressed) {
         if (msg == ui::Msg::kPress) {
-          if (pressed) {
+          if (pressed || !click_depth(e)) {
             return false;
           }
-          const std::int32_t v = needle_value_at(
-              layout_.depth, dial_angle(e.x, e.y, layout_.depth.cx + d.x(), layout_.depth.cy + d.y()));
-          if (v == ordered_depth_) {
-            return false;
-          }
-          ordered_depth_ = v;
         } else if (msg != ui::Msg::kPaint) {
           return false;
         }
@@ -635,13 +621,127 @@ void NavPanel::open() {
   last_depth_ = player.depth_ft();
   last_pitch_ = m.pitch.tenths();
   dialog_->open();
+  if (env_.ui.features.precise_dials) {
+    add_scrub_targets();
+  }
 }
 
-void NavPanel::event(const ui::Event& event) { dialog_->handle_event(event); }
+bool NavPanel::click_compass(const ui::Event& e) {
+  PlayerSub& p = env_.mission.player();
+  p.stop_following_route();
+  const std::int32_t course =
+      dial_angle(e.x, e.y, layout_.compass.cx + dialog_->x(), layout_.compass.cy + dialog_->y());
+  const bool changed = course != p.motion().ordered_heading.tenths();
+  p.set_course(Angle10(course));
+  return changed;
+}
 
-void NavPanel::process() { dialog_->process(); }
+bool NavPanel::click_rudder(const ui::Event& e) {
+  const std::optional<std::int32_t> step = rudder_step_at(e.x - layout_.rudder.rect.x0 - dialog_->x());
+  if (!step) {
+    return false;
+  }
+  // Leaves course mode and the route whether or not the step changes.
+  PlayerSub& p = env_.mission.player();
+  p.stop_following_route();
+  const bool changed = *step != p.helm();
+  p.set_helm(*step);
+  return changed;
+}
+
+bool NavPanel::click_depth(const ui::Event& e) {
+  const std::int32_t v = needle_value_at(
+      layout_.depth, dial_angle(e.x, e.y, layout_.depth.cx + dialog_->x(), layout_.depth.cy + dialog_->y()));
+  if (v == ordered_depth_) {
+    return false;
+  }
+  ordered_depth_ = v;
+  return true;
+}
+
+void NavPanel::add_scrub_targets() {
+  // Not in the original: the precise dials (extended `precise_dials`).
+  scrub_ = std::make_unique<ui::DialScrubber>();
+  ghost_ = ui::ghost_colour(env_.palette);
+  const auto dirty = [this](std::size_t control) {
+    return [this, control] {
+      if (controls_[control] != nullptr) {
+        controls_[control]->dirty = true;
+      }
+    };
+  };
+  // The compass: the ordered course, 1 degree steps.
+  scrub_index_[0] = scrub_->add({
+      .rect = {},
+      .scale = {.units_per_px = 2.5, .min = 0, .max = 3599, .wrap = true, .snap = 10},
+      .current = [this] { return env_.mission.player().motion().ordered_heading.normalized().tenths(); },
+      .commit =
+          [this](std::int32_t v) {
+            PlayerSub& p = env_.mission.player();
+            p.stop_following_route();
+            p.set_course(Angle10(v));
+          },
+      .tap = [this](const ui::Event& e) { click_compass(e); },
+      .changed = dirty(0),
+      .enabled = {},
+  });
+  // The helm: its 15 steps.
+  scrub_index_[1] = scrub_->add({
+      .rect = {},
+      .scale = {.units_per_px = 1.0 / 12, .min = -7, .max = 7, .wrap = false, .snap = 1},
+      .current = [this] { return std::clamp(env_.mission.player().helm(), -7, 7); },
+      .commit =
+          [this](std::int32_t v) {
+            PlayerSub& p = env_.mission.player();
+            p.stop_following_route();
+            p.set_helm(v);
+          },
+      .tap = [this](const ui::Event& e) { click_rudder(e); },
+      .changed = dirty(2),
+      .enabled = {},
+  });
+  // The depth: from the order, or the depth when none, by feet.
+  scrub_index_[2] = scrub_->add({
+      .rect = {},
+      .scale = {.units_per_px = 0.5, .min = 0, .max = layout_.depth.max, .wrap = false, .snap = 1},
+      .current = [this] { return ordered_depth_ >= 0 ? ordered_depth_ : std::min(shown_depth_, layout_.depth.max); },
+      .commit = [this](std::int32_t v) { ordered_depth_ = v; },
+      .tap = [this](const ui::Event& e) { click_depth(e); },
+      .changed = dirty(4),
+      .enabled = {},
+  });
+  place_scrub_targets();
+}
+
+void NavPanel::place_scrub_targets() {
+  // The dials' rectangles on the screen: the chart moves the panel.
+  const auto on_screen = [this](const ui::Rect& r) {
+    return ui::Rect{r.x0 + dialog_->x(), r.y0 + dialog_->y(), r.x1 + dialog_->x(), r.y1 + dialog_->y()};
+  };
+  scrub_->set_rect(scrub_index_[0], on_screen(layout_.compass.rect));
+  scrub_->set_rect(scrub_index_[1], on_screen(layout_.rudder.rect));
+  scrub_->set_rect(scrub_index_[2], on_screen(layout_.depth.rect));
+}
+
+void NavPanel::event(const ui::Event& event) {
+  if (scrub_) {
+    place_scrub_targets();
+    if (scrub_->event(event, env_.gui.ticks())) {
+      return;
+    }
+  }
+  dialog_->handle_event(event);
+}
+
+void NavPanel::process() {
+  if (scrub_) {
+    scrub_->process(env_.gui.ticks());
+  }
+  dialog_->process();
+}
 
 void NavPanel::close() {
+  scrub_.reset();
   dialog_->close();
   dialog_.reset();
   controls_.fill(nullptr);
@@ -735,6 +835,12 @@ void NavPanel::draw_compass(const Viewport& out) {
     draw_rotated(vp, sprites_, c.ordered_frame, c.cx - c.rect.x0, c.cy - c.rect.y0, m.ordered_heading.tenths());
     draw_rotated(vp, sprites_, c.card_frame, c.cx - c.rect.x0, c.cy - c.rect.y0, heading);
   });
+  if (const std::optional<std::int32_t> v = scrub_ ? scrub_->pending(scrub_index_[0]) : std::nullopt) {
+    const Viewport vp = clip_to(out, c.rect);
+    ui::draw_ghost_sprite(vp, sprites_.frame(static_cast<std::size_t>(c.ordered_frame)), c.cx - c.rect.x0,
+                          c.cy - c.rect.y0, *v, ghost_);
+    draw_readout(out, c.rect, "COURSE " + padded(*v / 10, 3));
+  }
 }
 
 void NavPanel::draw_telegraph(const Viewport& out) {
@@ -748,6 +854,7 @@ void NavPanel::draw_telegraph(const Viewport& out) {
 void NavPanel::draw_rudder(const Viewport& out) {
   // rudder_dial_draw (0x4a708): the selected zone's three colours swapped.
   const RudderDial& r = layout_.rudder;
+  const std::optional<std::int32_t> pending = scrub_ ? scrub_->pending(scrub_index_[1]) : std::nullopt;
   const std::int32_t helm = std::clamp(env_.mission.player().helm(), -7, 7);
   const auto zone = rudder_zones()[static_cast<std::size_t>(helm + 7)];
   compose(out, background_, r.rect, [&](const Viewport& vp) {
@@ -766,6 +873,17 @@ void NavPanel::draw_rudder(const Viewport& out) {
       }
     }
   });
+  if (pending) {
+    // Not in the original: the pending step's zone outlined.
+    const auto z = rudder_zones()[static_cast<std::size_t>(*pending + 7)];
+    const Viewport vp = clip_to(out, r.rect);
+    const int x1 = z[0] + z[1] - 1;
+    const int y1 = rect_h(r.rect) - 1;
+    ui::draw_line(vp, z[0], 0, x1, 0, ghost_);
+    ui::draw_line(vp, z[0], y1, x1, y1, ghost_);
+    ui::draw_line(vp, z[0], 0, z[0], y1, ghost_);
+    ui::draw_line(vp, x1, 0, x1, y1, ghost_);
+  }
 }
 
 void NavPanel::draw_speed(const Viewport& out) {
@@ -778,6 +896,22 @@ void NavPanel::draw_depth(const Viewport& out) {
   // The ordered depth's needle shows only when one is ordered.
   draw_needle_dial(out, background_, layout_.depth, sprites_, env_.assets.digits, layout_.digit_colours, shown_depth_,
                    ordered_depth_ >= 0 ? std::optional<std::int32_t>(ordered_depth_) : std::nullopt, shown_depth_);
+  if (const std::optional<std::int32_t> v = scrub_ ? scrub_->pending(scrub_index_[2]) : std::nullopt) {
+    const NeedleDial& d = layout_.depth;
+    ui::draw_ghost_sprite(clip_to(out, d.rect), sprites_.frame(static_cast<std::size_t>(d.marker_frame)),
+                          d.cx - d.rect.x0, d.cy - d.rect.y0, needle_angle(d, *v), ghost_);
+    draw_readout(out, d.rect, "ORDER " + std::to_string(*v) + " FT");
+  }
+}
+
+void NavPanel::draw_readout(const Viewport& out, const ui::Rect& rect, const std::string& text) {
+  // Away from the press: at the top for a press in the lower half.
+  const Viewport vp = clip_to(out, rect);
+  const int h = env_.assets.msg.height() + 4;
+  const bool top = scrub_->press_y() - out.y0 > (rect.y0 + rect.y1) / 2;
+  const int y = top ? 3 : rect_h(rect) - h - 3;
+  const std::uint8_t back = ui::nearest_colour(env_.palette, 16, 16, 16);
+  ui::draw_readout(vp, rect_w(rect) / 2, y, env_.assets.msg, text, ghost_, back);
 }
 
 void NavPanel::draw_engage(const Viewport& out, bool pressed) {

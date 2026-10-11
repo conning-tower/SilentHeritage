@@ -372,6 +372,10 @@ class GameApp final : public FrontendHost, public EditorRunner {
         break;
       }
       case EventType::kMouseWheel:
+        // The original had no wheel; the precise dials take it.
+        if (options_.features.precise_dials && e.wheel != 0) {
+          gui.mouse().post_wheel(e.wheel, bios_shift_state(mods_));
+        }
         break;
     }
   }

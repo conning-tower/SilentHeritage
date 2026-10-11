@@ -37,6 +37,9 @@ class TdcPanels {
   void update();
   // Closes the dialogs and frees the sprites.
   void close();
+  // Whether a dial's pending value takes the events (extended
+  // `precise_dials`).
+  bool capturing() const;
 
  private:
   struct Impl;
@@ -56,6 +59,7 @@ class TdcStation final : public Station {
   void update() override;
   void close() override;
   bool rig_red_redraw() const override { return true; }
+  bool capturing() const override { return panels_ && panels_->capturing(); }
 
  private:
   AttackServices& services_;

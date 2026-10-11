@@ -26,6 +26,10 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
     {"chart_tools", &Features::chart_tools, true},
     // The front end's SUB CLASS screen only (golden_game_test.cpp).
     {"last_boat", &Features::last_boat, true},
+    // Pointer gestures only (drags, the wheel): the scripts' keys play the
+    // game as before.
+    {"drag_rotate", &Features::drag_rotate, true},
+    {"precise_dials", &Features::precise_dials, true},
 };
 // Every improvement must be listed above (`Features` holds only flags).
 static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool));

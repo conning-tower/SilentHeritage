@@ -17,6 +17,7 @@
 #include "gfx/text.h"
 #include "sim/geometry.h"
 #include "ui/controls.h"
+#include "ui/dial_scrub.h"
 #include "ui/draw.h"
 
 namespace sh {
@@ -271,6 +272,22 @@ struct TdcPanelContext {
   Image8 scratch;
   // The spread dial's value (0x129b78: spread x 3600 / 400).
   std::int32_t spread_dial = 0;
+  // Extended `precise_dials` (not in the original): the scrubber of the
+  // panels' dials (null when off), the ghosts' colours and the readouts'
+  // font (MSG.FNT).
+  ui::DialScrubber* scrub = nullptr;
+  std::uint8_t ghost = 0;
+  std::uint8_t ghost_back = 0;
+  std::optional<Font> readout_font;
+
+  // Draws the readout `text` into `vp` (a dial's box buffer of height
+  // `h`), on the side away from the press at screen row `press_y`
+  // (`box_y` the box's screen row).
+  void draw_readout(const Viewport& vp, int w, int h, int box_y, const std::string& text) const {
+    const int plate = readout_font->height() + 4;
+    const bool top = scrub->press_y() > box_y + h / 2;
+    ui::draw_readout(vp, w / 2, top ? 2 : h - plate - 2, *readout_font, text, ghost, ghost_back);
+  }
 
   Mission& mission() { return services.mission(); }
   Tdc& tdc() { return services.mission().player_combat().tdc; }
@@ -473,15 +490,33 @@ class KnobDial final : public PanelControl {
         set_(std::move(set)),
         underlay_(std::move(underlay)) {}
 
+  // The original press at `event`: the value at the pointer's angle.
+  // Returns whether it changed.
+  bool press_at(ui::Dialog& dialog, const ui::Event& event) {
+    const std::int32_t a = pointer_angle(dialog, def_.cx, def_.cy, event);
+    if (a == value_()) {
+      return false;
+    }
+    set_(a);
+    return true;
+  }
+  std::int32_t value() const { return value_(); }
+  void set(std::int32_t v) { set_(v); }
+  const KnobDef& def() const { return def_; }
+  // Shows the pending value of the scrubber's dial `index` with a
+  // readout of `name` (extended `precise_dials`).
+  void set_scrub(std::size_t index, std::string name) {
+    scrub_ = index;
+    name_ = std::move(name);
+  }
+
  protected:
   bool message(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event& event) override {
     if (msg == ui::Msg::kPress) {
       if (pressed) {
         return false;
       }
-      const std::int32_t a = pointer_angle(dialog, def_.cx, def_.cy, event);
-      if (a != value_()) {
-        set_(a);
+      if (press_at(dialog, event)) {
         draw(dialog);
       }
       return true;
@@ -512,6 +547,13 @@ class KnobDial final : public PanelControl {
     if (def_.cap_frame != -1) {
       ctx_.draw_frame(vp, def_.cap_frame, x, y);
     }
+    if (const std::optional<std::int32_t> v = scrub_ && ctx_.scrub ? ctx_.scrub->pending(*scrub_) : std::nullopt) {
+      // Not in the original: the pending value's ghost needle and readout.
+      const int radius = std::min(buf.width(), buf.height()) / 2 - 6;
+      ui::draw_ghost_needle(vp, x, y, *v, 8, radius, ctx_.ghost);
+      const std::int32_t shown = def_.digits > 0 ? *v : *v / 10;
+      ctx_.draw_readout(vp, buf.width(), buf.height(), dialog.y() + b.y0, name_ + " " + padded_number(shown, 3));
+    }
     ctx_.present(dialog, buf, b);
   }
 
@@ -519,6 +561,8 @@ class KnobDial final : public PanelControl {
   Getter value_;
   std::function<void(std::int32_t)> set_;
   Getter underlay_;
+  std::optional<std::size_t> scrub_;
+  std::string name_;
 };
 
 // A digit counter (`digit_counter_proc`, 0x4ac23): a click on a digit
@@ -529,37 +573,61 @@ class DigitCounter final : public PanelControl {
                std::function<void(std::int32_t)> set)
       : PanelControl(ctx, def.box, ui::CursorId::kUp), def_(def), value_(std::move(value)), set_(std::move(set)) {}
 
+  // The original press at `event`: the digit under the pointer counts up.
+  void press_at(ui::Dialog& dialog, const ui::Event& event) {
+    const int cell = (box_.x1 - box_.x0 + 1) / def_.digits;
+    int index = 0;
+    for (int edge = cell; index < def_.digits && edge <= event.x - box_.x0 - dialog.x(); edge += cell) {
+      ++index;
+    }
+    std::int32_t power = 1;
+    for (int i = 0; i < def_.digits - 1 - index; ++i) {
+      power *= 10;
+    }
+    std::int32_t value = value_();
+    std::int32_t digit = value / power;
+    if (digit > 9) {
+      digit %= 10;
+    }
+    std::int32_t next = digit + 1;
+    if (next > 9) {
+      next = 0;
+    }
+    value += (next - digit) * power;
+    ctx_.click_sound();
+    set_(value);
+  }
+  std::int32_t value() const { return value_(); }
+  void set(std::int32_t v) { set_(v); }
+  const CounterDef& def() const { return def_; }
+  // Shows the pending value of the scrubber's dial `index` in its digits
+  // (extended `precise_dials`).
+  void set_scrub(std::size_t index) { scrub_ = index; }
+
  protected:
   bool message(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event& event) override {
     if (msg == ui::Msg::kPress) {
       if (pressed) {
         return false;
       }
-      const int cell = (box_.x1 - box_.x0 + 1) / def_.digits;
-      int index = 0;
-      for (int edge = cell; index < def_.digits && edge <= event.x - box_.x0 - dialog.x(); edge += cell) {
-        ++index;
-      }
-      std::int32_t power = 1;
-      for (int i = 0; i < def_.digits - 1 - index; ++i) {
-        power *= 10;
-      }
-      std::int32_t value = value_();
-      std::int32_t digit = value / power;
-      if (digit > 9) {
-        digit %= 10;
-      }
-      std::int32_t next = digit + 1;
-      if (next > 9) {
-        next = 0;
-      }
-      value += (next - digit) * power;
-      ctx_.click_sound();
-      set_(value);
+      press_at(dialog, event);
     } else if (msg != ui::Msg::kPaint) {
       return false;
     }
-    draw_padded_number(dialog.gfx(), def_.text_x, def_.text_y, value_(), def_.digits, ctx_.big_digits, ctx_.colours);
+    if (const std::optional<std::int32_t> v = scrub_ && ctx_.scrub ? ctx_.scrub->pending(*scrub_) : std::nullopt) {
+      // Not in the original: the pending value, dark digits on amber cells.
+      GlyphColourTable amber = ctx_.colours;
+      for (int i = 0xc0; i <= 0xcb; ++i) {
+        amber[static_cast<std::size_t>(i)] = ctx_.ghost;
+      }
+      for (int i = 0xe0; i <= 0xef; ++i) {
+        amber[static_cast<std::size_t>(i)] = ctx_.ghost_back;
+      }
+      draw_padded_number(dialog.gfx(), def_.text_x, def_.text_y, *v, def_.digits, ctx_.big_digits, amber);
+    } else {
+      draw_padded_number(dialog.gfx(), def_.text_x, def_.text_y, value_(), def_.digits, ctx_.big_digits,
+                         ctx_.colours);
+    }
     dialog.add_dirty({box_.x0, box_.y0, box_.x1, box_.y1});
     return true;
   }
@@ -568,6 +636,7 @@ class DigitCounter final : public PanelControl {
   CounterDef def_;
   std::function<std::int32_t()> value_;
   std::function<void(std::int32_t)> set_;
+  std::optional<std::size_t> scrub_;
 };
 
 // The solution quality tape (`linear_tape_proc` 0x4ae08 -> `linear_tape_draw`, 0x4ae45):
@@ -630,21 +699,37 @@ class NeedleDial final : public PanelControl {
              std::function<void(std::int32_t)> set)
       : PanelControl(ctx, def.box, ui::CursorId::kSet), def_(def), value_(std::move(value)), set_(std::move(set)) {}
 
+  // The original press at `event`: the value at the pointer's angle along
+  // the arc. Returns whether it changed.
+  bool press_at(ui::Dialog& dialog, const ui::Event& event) {
+    const std::int32_t a = pointer_angle(dialog, def_.cx, def_.cy, event);
+    std::int32_t v = fx::angle_sub(Angle10(a), Angle10(def_.arc_start * 10)).tenths() * 100 / (arc() * 100 / def_.max);
+    if (v > def_.max) {
+      v = a < 1800 ? def_.max : 0;
+    }
+    if (v == value_()) {
+      return false;
+    }
+    set_(v);
+    return true;
+  }
+  std::int32_t value() const { return value_(); }
+  void set(std::int32_t v) { set_(v); }
+  const NeedleDef& def() const { return def_; }
+  // Shows the pending value of the scrubber's dial `index` with a readout
+  // of `name` (extended `precise_dials`).
+  void set_scrub(std::size_t index, std::string name) {
+    scrub_ = index;
+    name_ = std::move(name);
+  }
+
  protected:
   bool message(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event& event) override {
     if (msg == ui::Msg::kPress) {
       if (pressed) {
         return false;
       }
-      const std::int32_t a = pointer_angle(dialog, def_.cx, def_.cy, event);
-      const std::int32_t arc =
-          fx::angle_add(fx::angle_sub(Angle10(def_.arc_end * 10), Angle10(def_.arc_start * 10)), Angle10(10)).tenths();
-      std::int32_t v = fx::angle_sub(Angle10(a), Angle10(def_.arc_start * 10)).tenths() * 100 / (arc * 100 / def_.max);
-      if (v > def_.max) {
-        v = a < 1800 ? def_.max : 0;
-      }
-      if (v != value_()) {
-        set_(v);
+      if (press_at(dialog, event)) {
         draw(dialog);
       }
       return true;
@@ -657,6 +742,16 @@ class NeedleDial final : public PanelControl {
   }
 
  private:
+  // The arc's span in tenths, plus 1 degree.
+  std::int32_t arc() const {
+    return fx::angle_add(fx::angle_sub(Angle10(def_.arc_end * 10), Angle10(def_.arc_start * 10)), Angle10(10))
+        .tenths();
+  }
+  std::int32_t angle_of(std::int32_t value) const {
+    const std::int32_t scale = arc() * 100 / def_.max;
+    return fx::angle_add(Angle10(value * scale / 100), Angle10(def_.arc_start * 10)).tenths();
+  }
+
   void draw(ui::Dialog& dialog) {
     const Box& b = def_.box;
     Image8 buf = ctx_.box_buffer(b, dialog.y());
@@ -666,17 +761,20 @@ class NeedleDial final : public PanelControl {
       draw_padded_number(vp, def_.digits_x - b.x0, def_.digits_y - b.y0, v, std::abs(def_.digits), ctx_.digits,
                          ctx_.colours);
     }
-    const std::int32_t arc =
-        fx::angle_add(fx::angle_sub(Angle10(def_.arc_end * 10), Angle10(def_.arc_start * 10)), Angle10(10)).tenths();
-    const std::int32_t scale = arc * 100 / def_.max;
     const int x = def_.cx - b.x0;
     const int y = def_.cy - b.y0;
     // The ordered-value marker, then the needle: both the depth here.
-    const std::int32_t angle = fx::angle_add(Angle10(value_() * scale / 100), Angle10(def_.arc_start * 10)).tenths();
+    const std::int32_t angle = angle_of(value_());
     ctx_.draw_rotated(vp, def_.marker_frame, x, y, angle);
     ctx_.draw_rotated(vp, def_.needle_frame, x, y, angle);
     if (def_.cap_frame != -1) {
       ctx_.draw_frame(vp, def_.cap_frame, x, y);
+    }
+    if (const std::optional<std::int32_t> v = scrub_ && ctx_.scrub ? ctx_.scrub->pending(*scrub_) : std::nullopt) {
+      // Not in the original: the pending value's ghost needle and readout.
+      const int radius = std::min(buf.width(), buf.height()) / 2 - 6;
+      ui::draw_ghost_needle(vp, x, y, angle_of(*v), 8, radius, ctx_.ghost);
+      ctx_.draw_readout(vp, buf.width(), buf.height(), dialog.y() + b.y0, name_ + " " + std::to_string(*v) + " FT");
     }
     ctx_.present(dialog, buf, b);
   }
@@ -684,6 +782,8 @@ class NeedleDial final : public PanelControl {
   NeedleDef def_;
   std::function<std::int32_t()> value_;
   std::function<void(std::int32_t)> set_;
+  std::optional<std::size_t> scrub_;
+  std::string name_;
 };
 
 // The torpedo run-time dial (`tdc_run_timer_handler` /
@@ -746,7 +846,7 @@ constexpr std::uint32_t kTypeLabelDy = 0x10fa54;
 
 struct TdcPanels::Impl {
   explicit Impl(AttackServices& services, TdcPanelSite site)
-      : ctx{services, site, layout_of(site), {}, {}, {}, colours_of(site), {}, {}, 0} {}
+      : ctx{services, site, layout_of(site), {}, {}, {}, colours_of(site), {}, {}, 0, nullptr, 0, 0, std::nullopt} {}
 
   TdcPanelContext ctx;
   std::optional<Shp> background;  // SCOPTDC<n>.SHP / TBTTDC<n>.SHP
@@ -791,6 +891,79 @@ struct TdcPanels::Impl {
   void open_solution_panel();
   void open_gyro_panel();
   void open_torpedo_panel();
+
+  // Extended `precise_dials` (not in the original): the dials' scrubber
+  // (null when off) and the registration of the dials of dialog `d`.
+  std::unique_ptr<ui::DialScrubber> scrub;
+  static ui::Rect on_screen(const Box& b, const ui::Dialog& d) {
+    return {b.x0 + d.x(), b.y0 + d.y(), b.x1 + d.x(), b.y1 + d.y()};
+  }
+  // An angle knob, `snap` tenths a step.
+  void scrub_knob(KnobDial& k, ui::Dialog& d, std::string name, std::int32_t snap) {
+    if (!scrub) {
+      return;
+    }
+    const std::size_t i = scrub->add({
+        .rect = on_screen(k.def().box, d),
+        .scale = {.units_per_px = 2.5, .min = 0, .max = 3599, .wrap = true, .snap = snap},
+        .current = [&k] { return Angle10(k.value()).normalized().tenths(); },
+        .commit = [&k](std::int32_t v) { k.set(v); },
+        .tap =
+            [&k, &d](const ui::Event& e) {
+              if (k.press_at(d, e)) {
+                k.dirty = true;
+              }
+            },
+        .changed = [&k] { k.dirty = true; },
+        .enabled = [&k] { return !k.is_disabled(0); },
+    });
+    k.set_scrub(i, std::move(name));
+  }
+  // A counter: `units_per_px` and `snap`, up to its digits' maximum.
+  void scrub_counter(DigitCounter& c, ui::Dialog& d, double units_per_px, std::int32_t snap) {
+    if (!scrub) {
+      return;
+    }
+    std::int32_t max = 1;
+    for (int i = 0; i < c.def().digits; ++i) {
+      max *= 10;
+    }
+    const std::size_t i = scrub->add({
+        .rect = on_screen(c.def().box, d),
+        .scale = {.units_per_px = units_per_px, .min = 0, .max = max - 1, .wrap = false, .snap = snap},
+        .current = [&c] { return c.value(); },
+        .commit = [&c](std::int32_t v) { c.set(v); },
+        .tap =
+            [&c, &d](const ui::Event& e) {
+              c.press_at(d, e);
+              c.dirty = true;
+            },
+        .changed = [&c] { c.dirty = true; },
+        .enabled = [&c] { return !c.is_disabled(0); },
+    });
+    c.set_scrub(i);
+  }
+  // The torpedo depth, by feet.
+  void scrub_needle(NeedleDial& n, ui::Dialog& d, std::string name) {
+    if (!scrub) {
+      return;
+    }
+    const std::size_t i = scrub->add({
+        .rect = on_screen(n.def().box, d),
+        .scale = {.units_per_px = 0.25, .min = 0, .max = n.def().max, .wrap = false, .snap = 1},
+        .current = [&n] { return n.value(); },
+        .commit = [&n](std::int32_t v) { n.set(v); },
+        .tap =
+            [&n, &d](const ui::Event& e) {
+              if (n.press_at(d, e)) {
+                n.dirty = true;
+              }
+            },
+        .changed = [&n] { n.dirty = true; },
+        .enabled = {},
+    });
+    n.set_scrub(i, std::move(name));
+  }
 };
 
 void TdcPanels::Impl::open_tube_panel() {
@@ -858,6 +1031,10 @@ void TdcPanels::Impl::open_solution_panel() {
         static_cast<PanelControl*>(&speed), static_cast<PanelControl*>(&track)}) {
     c->set_disabled_when(manual_off);
   }
+  scrub_knob(bearing, *solution, "BEARING", 10);
+  scrub_knob(course, *solution, "COURSE", 10);
+  scrub_counter(range, *solution, 10, 10);
+  scrub_counter(speed, *solution, 0.25, 1);
   watch(bearing, [&tdc] { return tdc.bearing().tenths(); });
   watch(course, [this, &tdc] { return tdc.course().tenths() * 4000 + ctx.mission().player().heading().tenths(); });
   watch(range, [&tdc] { return tdc.range_yd(); });
@@ -884,6 +1061,9 @@ void TdcPanels::Impl::open_gyro_panel() {
       ctx, l.spread, [this] { return ctx.spread_dial; }, [this](std::int32_t v) { ctx.spread_dial = v; });
   bow.set_disabled_when(manual_off);
   stern.set_disabled_when(manual_off);
+  scrub_knob(bow, *gyro, "GYRO FWD", 10);
+  scrub_knob(stern, *gyro, "GYRO AFT", 10);
+  scrub_knob(spread, *gyro, "OFFSET", 9);
   watch(bow, [&tdc] { return tdc.gyro(Tdc::kBow).tenths(); });
   watch(stern, [&tdc] { return tdc.gyro(Tdc::kStern).tenths(); });
   watch(spread, [this] { return ctx.spread_dial; });
@@ -912,6 +1092,7 @@ void TdcPanels::Impl::open_torpedo_panel() {
     return tdc.type_index();
   });
   run_timer = &torpedo->emplace<RunTimer>(ctx, l.run_timer);
+  scrub_needle(depth, *torpedo, "DEPTH");
   watch(depth, [&tdc] { return tdc.depth_ft(); });
   watch(speed, [&tdc] { return tdc.speed_setting(); });
   watch(type, [&tdc] { return tdc.type_index(); });
@@ -965,6 +1146,14 @@ void TdcPanels::open() {
   }
   ctx.background = screen;
   p.watched.clear();
+  if (ctx.services.features.precise_dials) {
+    // Not in the original: the precise dials.
+    p.scrub = std::make_unique<ui::DialScrubber>();
+    ctx.scrub = p.scrub.get();
+    ctx.ghost = ui::ghost_colour(ctx.services.palette());
+    ctx.ghost_back = ui::nearest_colour(ctx.services.palette(), 16, 16, 16);
+    ctx.readout_font = Font::load(install, "ART/MSG.FNT");
+  }
   p.open_tube_panel();
   if (ctx.site == TdcPanelSite::kTdc) {
     p.open_solution_panel();
@@ -986,6 +1175,9 @@ void TdcPanels::open() {
 }
 
 void TdcPanels::event(const ui::Event& event) {
+  if (impl_->scrub && impl_->scrub->event(event, impl_->ctx.services.gui().ticks())) {
+    return;
+  }
   for (auto* d : {impl_->tube.get(), impl_->solution.get(), impl_->gyro.get(), impl_->torpedo.get()}) {
     if (d != nullptr) {
       d->handle_event(event);
@@ -994,6 +1186,9 @@ void TdcPanels::event(const ui::Event& event) {
 }
 
 void TdcPanels::process() {
+  if (impl_->scrub) {
+    impl_->scrub->process(impl_->ctx.services.gui().ticks());
+  }
   for (auto* d : {impl_->tube.get(), impl_->solution.get(), impl_->gyro.get(), impl_->torpedo.get()}) {
     if (d != nullptr) {
       d->process();
@@ -1042,7 +1237,11 @@ void TdcPanels::update() {
   }
 }
 
+bool TdcPanels::capturing() const { return impl_->scrub && impl_->scrub->capturing(); }
+
 void TdcPanels::close() {
+  impl_->scrub.reset();
+  impl_->ctx.scrub = nullptr;
   for (auto* d : {&impl_->tube, &impl_->solution, &impl_->gyro, &impl_->torpedo}) {
     if (*d != nullptr) {
       (*d)->close();

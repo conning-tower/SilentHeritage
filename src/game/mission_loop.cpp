@@ -88,7 +88,9 @@ void MissionLoop::pump_events() {
   while (true) {
     if (const std::optional<ui::Event> event = hooks_.input.get()) {
       last_event_flags_ = event->flags;
-      hooks_.command_bar.event(*event);
+      if (!open_->capturing()) {
+        hooks_.command_bar.event(*event);
+      }
       open_->event(*event);
     }
     hooks_.command_bar.process();

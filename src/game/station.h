@@ -65,6 +65,10 @@ class Station {
   // Slot +0x20: must be reopened when rig for red toggles (TDC, radar,
   // scope, gauges, conn, some cabin pages).
   virtual bool rig_red_redraw() const { return false; }
+  // Not in the original: a drag of the extended variant takes the events
+  // (a view drag, a dial's pending value), so the command bar must not see
+  // them (its Escape and right button).
+  virtual bool capturing() const { return false; }
 
   // The first-frame flag (+4): set when opened, cleared by the first update.
   bool first_frame() const { return first_frame_; }
