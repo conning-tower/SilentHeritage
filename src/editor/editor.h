@@ -81,6 +81,9 @@ struct EditorServices {
   const SaveDir& custom;
   // The improvements beyond the original the editor runs with.
   Features features{};
+  // The extended variant's torpedo choices (not in the original;
+  // `EditorData::load`).
+  bool extended_torpedoes = false;
 };
 
 class Editor {

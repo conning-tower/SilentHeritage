@@ -253,7 +253,9 @@ void Mission::build(const Install& install, MissionSetup& setup, const MissionSt
   // where the boat starts.
   air_sorties_.reset(sighting_reference_range(player_->position(), player_->sub().bridge_height_ft));
 
-  torpedo_types_ = tdc_upgrade_mark18_by_date(torpedoes_, *player_class_, tables_, h.year, h.month);
+  torpedo_types_ =
+      tdc_upgrade_mark18_by_date(torpedoes_, *player_class_, tables_, h.year, h.month, conditions_.rules);
+  start_torpedo_types_ = carried_torpedo_types(torpedoes_, *player_class_);
   combat_->tdc.set_type_index(torpedo_types_.selected);
   combat_->sensing = [this](const Vehicle& target) { return sense(target); };
   for (std::size_t i = 0; i < static_cast<std::size_t>(combat_->tubes.count()); ++i) {

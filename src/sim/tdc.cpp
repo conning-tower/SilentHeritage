@@ -149,6 +149,9 @@ void Tdc::reset() {
   spread_ = 0;
   set_target_position(0, 0);
   tracked_.fill(nullptr);
+  bearing_only_ = false;
+  no_intercept_ = false;
+  sonar_source_ = nullptr;
 }
 
 void Tdc::set_mode(Mode mode) {
@@ -255,10 +258,36 @@ void Tdc::cycle_type(const std::array<TorpedoChoice, 3>& choices) {
   } while (!choices[static_cast<std::size_t>(type_index_)].available);
 }
 
+void Tdc::cycle_sonar_source(std::span<const HeardScrews> heard) {
+  auto it = std::ranges::find(heard, sonar_source_, &HeardScrews::vehicle);
+  if (sonar_source_ == nullptr || it == heard.end()) {
+    sonar_source_ = heard.empty() ? nullptr : heard.front().vehicle;
+  } else {
+    ++it;
+    sonar_source_ = it == heard.end() ? nullptr : it->vehicle;
+  }
+}
+
+void Tdc::follow_sonar(std::span<const HeardScrews> heard) {
+  if (sonar_source_ == nullptr) {
+    return;
+  }
+  const auto it = std::ranges::find(heard, sonar_source_, &HeardScrews::vehicle);
+  if (it != heard.end()) {
+    bearing_ = it->bearing;
+  }
+}
+
+void Tdc::aim_on_bearing(Angle10 bearing) {
+  gyro_[kBow] = bearing;
+  gyro_[kStern] = fx::angle_add(bearing, Angle10(1800));
+}
+
 std::int32_t Tdc::update(std::int32_t frame_ticks, std::int32_t compression, const OwnBoat& own,
                          const GameTables& tables, const std::array<TorpedoChoice, 3>& choices,
                          const TargetSensingFn& sensing) {
   // tdc_sim_update (0x7b394)
+  bearing_only_ = choices.at(static_cast<std::size_t>(type_index_)).weapon_id == kMark27Id;
   if (target_ != nullptr) {
     const TargetSensing s = sensing ? sensing(*target_) : TargetSensing{};
     if (target_->sinking() || ((own.options & 0x80) != 0 && !s.spotted) || s.visual_height < 1) {
@@ -307,6 +336,12 @@ std::int32_t Tdc::update(std::int32_t frame_ticks, std::int32_t compression, con
     return -1;
   }
   if (mode_ == Mode::kManual) {
+    if (bearing_only_) {
+      // The Mark 27 (not in the original): the gyros along the bearing.
+      aim_on_bearing(bearing_);
+      run_time_ = {};
+      return -1;
+    }
     advance_solution(dt, own, tables, choices);
     if (!tracking_) {
       return -1;
@@ -315,10 +350,17 @@ std::int32_t Tdc::update(std::int32_t frame_ticks, std::int32_t compression, con
     speed_tenths_ = 0;
     range_yd_ = 0;
     course_ = Angle10(0);
-    bearing_ = Angle10(0);
+    if (!bearing_only_ || target_ != nullptr) {
+      bearing_ = Angle10(0);
+    }
     gyro_ = {};
     tracking_ = false;
     if (target_ == nullptr) {
+      if (bearing_only_) {
+        aim_on_bearing(bearing_);
+        run_time_ = {};
+        return -1;
+      }
       quality_ = 0;
       solution_ticks_ = 0;
       return -1;
@@ -393,6 +435,8 @@ void Tdc::update_tube_solutions(const OwnBoat& own, const GameTables& tables,
                                 const std::array<TorpedoChoice, 3>& choices) {
   // tdc_update_tube_solutions (0x7b622)
   const Torpedo& w = selected_weapon(tables, choices, type_index_);
+  bearing_only_ = w.id == kMark27Id;
+  no_intercept_ = false;
   const std::size_t s = setting_for(w, speed_setting_);
   std::int32_t offset = (own.length_ft / 2 + static_cast<std::int32_t>(w.length_ft)) * kUnitsPerFoot;
   const std::int32_t speed = speed_kts(w, s) << 16;
@@ -423,8 +467,15 @@ void Tdc::update_tube_solutions(const OwnBoat& own, const GameTables& tables,
     const Angle10 brg = fx::heading_from_delta(tx - l.x, tz - l.z);
     // Lead: asin(Vt sin(bearing - course) / Vtorpedo).
     const fx::SinCos aob = angle_sincos(Angle10(-angle_sub(course_, brg).tenths()));
-    const std::int32_t lead = fx::fixed_asin(fx::div(fx::mul(speed_.raw(), aob.sin), speed));
+    const std::int32_t ratio = fx::div(fx::mul(speed_.raw(), aob.sin), speed);
+    const std::int32_t lead = fx::fixed_asin(ratio);
     Angle10 gyro = angle_sub(angle_sub(brg, own.motion.heading), Angle10(lead));
+    if (bearing_only_ && fx::abs(ratio) > fx::kOne) {
+      // No intercept (fixed_asin then gives no lead): the Mark 27 points
+      // at the target's bearing and homes from its enable point.
+      no_intercept_ = true;
+      gyro = bearing_;
+    }
     if (tube == kStern) {
       gyro = fx::angle_add(gyro, Angle10(1800));
     }
@@ -508,6 +559,9 @@ std::optional<std::int32_t> Tdc::shortest_run_timer() const {
 void Tdc::forget(const Vehicle& removed) {
   if (target_ == &removed) {
     target_ = nullptr;
+  }
+  if (sonar_source_ == &removed) {
+    sonar_source_ = nullptr;
   }
   // A torpedo untracks itself as it goes (torpedo_check_arming); this only
   // keeps the slots from outliving it otherwise.

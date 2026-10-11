@@ -54,6 +54,25 @@ const TorpedoFixDates& torpedo_fix_dates();
 // `rules.fix_obvious_errors` (not in the original).
 bool before_fix(const GameClock& clock, const FaultDate& date, const MissionRules& rules = {});
 
+// The passive homing of the extended variant's Mark 27 (not in the
+// original): it runs its gyro course to the enable point, then listens
+// every half second for the loudest screws in its acquisition cone and
+// steers for them at its homing depth.
+struct TorpedoHoming {
+  static constexpr std::int32_t kEnableYards = 400;
+  static constexpr std::int32_t kRangeYards = 1000;
+  static constexpr std::int32_t kConeTenths = 300;       // +-30 deg off its heading
+  static constexpr std::int32_t kListenInterval = 0x8000;  // 0.5 s (16.16)
+  static constexpr std::int32_t kMinKnots = 6;           // stopped screws are silent
+  static constexpr std::int32_t kLauncherSafe = 120;     // s: its own boat ignored
+  static constexpr std::int32_t kDepthFt = 15;
+
+  Vehicle* target = nullptr;
+  std::int32_t listen_timer = 0;  // 16.16 s to the next listen.
+  std::int32_t run_time = 0;      // 16.16 s since launch.
+  bool enabled = false;
+};
+
 class TorpedoVehicle : public Vehicle {
   friend class StateIo;  // The state files (game/vehicle_state.h).
  public:
@@ -113,6 +132,9 @@ class TorpedoVehicle : public Vehicle {
   std::int32_t run_yards() const;
   // Leaves a wake (steam and oxygen torpedoes; not electric ones).
   bool has_wake() const { return weapon_.propulsion != TorpedoPropulsion::kElectric; }
+  // The Mark 27's homing (not in the original), or null for the others.
+  TorpedoHoming* homing() { return homing_ ? &*homing_ : nullptr; }
+  const TorpedoHoming* homing() const { return homing_ ? &*homing_ : nullptr; }
 
  private:
   // torpedo_check_arming (0x8587b): returns true once the torpedo is spent.
@@ -120,6 +142,8 @@ class TorpedoVehicle : public Vehicle {
   // torpedo_motion_update (0x8c292)
   void move(SimContext& ctx, std::int32_t dt);
   bool fired_by_player() const;
+  // The Mark 27's listen and steering (not in the original).
+  void home(SimContext& ctx, std::int32_t dt);
 
   const Torpedo& weapon_;           // +0xe8
   Vehicle* launcher_;               // +0x24c
@@ -132,6 +156,7 @@ class TorpedoVehicle : public Vehicle {
   std::int32_t run_fraction_ = 0;   // +0x248
   std::int32_t premature_timer_ = -1;  // +0xd0
   bool sighted_ = false;            // +0xd4
+  std::optional<TorpedoHoming> homing_;
 };
 
 }  // namespace sh

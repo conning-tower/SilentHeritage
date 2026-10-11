@@ -322,6 +322,12 @@ struct Torpedo {
   std::array<std::uint8_t, kSize> raw{};
 };
 
+// The extended variant's Mark 27 "Cutie" (not in the original or in
+// WEAPONS.DAT, whose id 5 is free): its id and short name
+// (game/torpedo_load.h adds its record).
+inline constexpr std::uint32_t kMark27Id = 5;
+inline constexpr std::string_view kMark27Name = "MARK27";
+
 // A WEAPONS.DAT gun (IJN deck and AA guns), 64 bytes.
 struct Gun {
   static constexpr std::size_t kSize = 0x40;

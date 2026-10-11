@@ -273,6 +273,10 @@ class Mission {
   TorpedoLoad& torpedoes() { return torpedoes_; }
   const TorpedoLoad& torpedoes() const { return torpedoes_; }
   const TorpedoTypes& torpedo_types() const { return torpedo_types_; }
+  // The torpedo types carried at the start of the mission (WEAPONS.DAT
+  // ids, increasing; not in the original): the status page's boxes of the
+  // extended variant.
+  const std::vector<std::uint32_t>& start_torpedo_types() const { return start_torpedo_types_; }
 
   // Scenario state.
   // The difficulty rating `0x125ff0` (0..1000, shown / 10).
@@ -383,6 +387,7 @@ class Mission {
   std::int32_t skipped_ships_ = 0;
   TorpedoLoad torpedoes_;
   TorpedoTypes torpedo_types_;
+  std::vector<std::uint32_t> start_torpedo_types_;
   std::vector<FrameTask*> frame_tasks_;
   std::uint32_t restore_seed_ = 0;
   std::int32_t difficulty_rating_ = 0;

@@ -1,6 +1,10 @@
 #include "editor/loadout.h"
 
+#include <algorithm>
+#include <vector>
+
 #include "editor/objects.h"
+#include "game/torpedo_load.h"
 
 namespace sh::editor {
 
@@ -201,9 +205,35 @@ std::int32_t TorpedoForm::cycle_tube(std::size_t tube, bool advance) {
     if (choice == 0) {
       break;
     }
-    advance = unavailable(static_cast<std::size_t>(choice));
+    advance = unavailable(static_cast<std::size_t>(choice)) ||
+              adds_fourth_type(static_cast<std::size_t>(choice), static_cast<std::int32_t>(tube), -1);
   }
   return choice;
+}
+
+bool TorpedoForm::adds_fourth_type(std::size_t choice, std::int32_t except_tube, std::int32_t except_row) const {
+  if (!choices_.extended) {
+    return false;
+  }
+  std::vector<std::size_t> used;
+  const auto use = [&used](std::size_t c) {
+    if (std::ranges::find(used, c) == used.end()) {
+      used.push_back(c);
+    }
+  };
+  const auto tubes = static_cast<std::int32_t>(std::min<std::size_t>(
+      static_cast<std::size_t>(bow_tubes() + stern_tubes()), tubes_.size()));
+  for (std::int32_t t = 0; t < tubes; ++t) {
+    if (t != except_tube && tubes_[static_cast<std::size_t>(t)] > 0) {
+      use(static_cast<std::size_t>(tubes_[static_cast<std::size_t>(t)]));
+    }
+  }
+  for (std::size_t c = 1; c < choices_.count; ++c) {
+    if (static_cast<std::int32_t>(c) != except_row && !unavailable(c) && aft_[c] + forward_[c] > 0) {
+      use(c);
+    }
+  }
+  return std::ranges::find(used, choice) == used.end() && used.size() >= kMaxTorpedoTypes;
 }
 
 std::int32_t TorpedoForm::cycle_reload(bool aft, std::size_t choice, bool tens, bool advance) {
@@ -219,7 +249,9 @@ std::int32_t TorpedoForm::cycle_reload(bool aft, std::size_t choice, bool tens, 
       digit = next(digit, 10);
       count = count / 10 * 10 + digit;
     }
-    advance = over_capacity(aft);
+    advance = over_capacity(aft) ||
+              (count > 0 && (aft ? forward_ : aft_)[choice] == 0 &&
+               adds_fourth_type(choice, -1, static_cast<std::int32_t>(choice)));
   }
   return digit;
 }

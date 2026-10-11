@@ -49,12 +49,18 @@ class CrewMessages {
   explicit CrewMessages(const ExeImage& exe);
 
   const std::vector<CrewMessage>& all() const { return messages_; }
-  // Returns the first message with `id` (as `crew_message` searches), or
-  // nullptr if there is none (the original then says nothing).
+  // Returns the first message with `id` (as `crew_message` searches), then
+  // the extended variant's, or nullptr if there is none (the original then
+  // says nothing).
   const CrewMessage* find(std::uint8_t id) const;
 
  private:
   std::vector<CrewMessage> messages_;
 };
+
+// The extended variant's crew messages (not in the original), with ids
+// from 0x80, past the original's (0..76): 0x80 "No firing solution, sir!"
+// (the TDC has only a bearing for a straight-running torpedo).
+const std::vector<CrewMessage>& extended_crew_messages();
 
 }  // namespace sh

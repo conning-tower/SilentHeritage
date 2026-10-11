@@ -234,6 +234,10 @@ bool EnvironmentDialog::run() {
 constexpr int kMaxBowTubes = 6;
 constexpr int kMaxSternTubes = 4;
 constexpr int kMaxReloadRows = 3;
+// The extended variant's list (not in the original): up to five rows,
+// packed, the dialog taller by a row each past three.
+constexpr int kMaxExtendedReloadRows = 5;
+constexpr int kReloadRowHeight = 22;
 constexpr std::array<int, 6> kTubeNumberY{80, 101, 123, 145, 167, 189};
 constexpr std::uint32_t kTubeNumbers = 0x91269;  // "1", "2", .. "10", 2 bytes apart
 
@@ -304,18 +308,28 @@ bool cmd_torpedoes(EditorUi& ui, Scenario& scenario, const EditorOptions& option
     const Torpedo* t = form.torpedo(c);
     choices.push_back(t == nullptr ? std::string() : t->long_name);
   }
-  ui::Dialog d(ui.gui(), 100, 80, 419, 350, kDialogFlags);
+  const bool extended = scenario.data().torpedo_choices.extended;
+  const std::size_t max_rows = static_cast<std::size_t>(extended ? kMaxExtendedReloadRows : kMaxReloadRows);
+  int grow = 0;
+  if (extended) {
+    int rows = 0;
+    for (std::size_t c = 1; c < form.choice_count() && c <= max_rows; ++c) {
+      rows += form.unavailable(c) ? 0 : 1;
+    }
+    grow = std::max(0, rows - kMaxReloadRows) * kReloadRowHeight;
+  }
+  ui::Dialog d(ui.gui(), 100, 80 - grow / 2, 419, 350 + grow, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x90789), ui::return_cancel);
-  d.emplace<ui::GroupBox>(14, 46, 207, 300);
-  d.emplace<ui::GroupBox>(211, 46, 404, 300);
+  d.emplace<ui::GroupBox>(14, 46, 207, 300 + grow);
+  d.emplace<ui::GroupBox>(211, 46, 404, 300 + grow);
   font1_label(ui, d, 100, 57, 0x90793);
   font1_label(ui, d, 278, 57, 0x90797);
   font1_label(ui, d, 72, 214, 0x9079f);
   font1_label(ui, d, 268, 214, 0x907a8);
   font1_field(ui, d, 127, 214, 147, 223, [&form] { return std::to_string(form.capacity(true)); }, TextAlign::kLeft);
   font1_field(ui, d, 324, 214, 344, 223, [&form] { return std::to_string(form.capacity(false)); }, TextAlign::kLeft);
-  d.emplace<ui::Button>(14, 311, kButtonWidth, ui.str(0x907b1), ui::return_cancel);
-  d.emplace<ui::Button>(302, 311, kButtonWidth, ui.str(0x907b8), ui::return_accept);
+  d.emplace<ui::Button>(14, 311 + grow, kButtonWidth, ui.str(0x907b1), ui::return_cancel);
+  d.emplace<ui::Button>(302, 311 + grow, kButtonWidth, ui.str(0x907b8), ui::return_accept);
   // torpedoes_add_controls (0x297aa): tubes numbered over both columns.
   const SeExe& se = ui.se();
   const int bow = std::min(form.bow_tubes(), kMaxBowTubes);
@@ -332,11 +346,13 @@ bool cmd_torpedoes(EditorUi& ui, Scenario& scenario, const EditorOptions& option
                 kTubeNumberY[static_cast<std::size_t>(row)] + 9, [number] { return number; }, TextAlign::kRight);
   }
   const std::vector<std::string> digits = ui.strings(kDigits, 10);
-  for (std::size_t c = 1; c < form.choice_count() && c <= kMaxReloadRows; ++c) {
+  int packed = 0;
+  for (std::size_t c = 1; c < form.choice_count() && c <= max_rows; ++c) {
     if (form.unavailable(c)) {
       continue;
     }
-    const int y = 229 + static_cast<int>(c - 1) * 22;
+    const int row = extended ? packed++ : static_cast<int>(c - 1);
+    const int y = 229 + row * kReloadRowHeight;
     for (const bool aft : {true, false}) {
       const int x = aft ? 154 : 352;
       d.emplace<ui::Label>(aft ? 27 : 225, y + 4, choices[c]);

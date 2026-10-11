@@ -14,6 +14,7 @@ add_executable(sh_editor_tests
   environment_test.cpp
   loadout_test.cpp
   dialogs_settings_test.cpp
+  torpedo_choices_test.cpp
   class_sheets_test.cpp
   dialogs_select_test.cpp
   dialogs_file_test.cpp

@@ -445,7 +445,7 @@ std::unique_ptr<Mission> restore_mission(const Install& install, const GameTable
   if (sub == nullptr) {
     throw DataError("SUBS.DAT: no class " + h.class_name + " (saved mission)");
   }
-  fill_torpedo_load(sh, *sub, tables, setup.random);
+  fill_torpedo_load(sh, *sub, tables, setup.random, setup.rules);
   // The boat where the state lists put it (scen_instantiate_units(-1)
   // spawns it before they are read).
   const StateImage& p = save.state.player;

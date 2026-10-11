@@ -43,6 +43,13 @@ kept with it.
 - **Detectable radar:** a new REALISM item, on at EXPERT, that gives the
   escorts radar detectors; turning it off lowers the realism rating by 5 %.
 
+- **Mixed Mark 18s:** from August 1944 the Mark 18-2 replaces the Mark 18-1
+  over three months, and a boat carries at most three torpedo types, its
+  oldest type giving way to its newest.
+- **Mark 27 "Cutie":** from mid-1944 boats can carry two homing torpedoes,
+  fired on a sonar bearing, that home on the loudest screws ahead after 400
+  yards, your own boat included after two minutes.
+
 ## Fixes of the original's bugs
 
 - **Mark 14 faults:** with dud torpedoes on, each fault lasts until its
@@ -106,3 +113,5 @@ kept with it.
   the right torpedo type.
 - **Torpedo dates:** with "Limit by date: Equipment", the Mark 18 torpedo
   is available from October 1943, its date in the game, instead of November.
+- **Torpedo choices:** TORPEDOES offers the Mark 18-2 and the Mark 27, and
+  refuses a fourth torpedo type.

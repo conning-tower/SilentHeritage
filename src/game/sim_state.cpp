@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdlib>
 #include <span>
 #include <string_view>
 #include <unordered_map>
@@ -1081,6 +1082,10 @@ SimStateFile StateIo::capture(Mission& mission, const SimStateParts& parts, cons
         out.x_flag(g->report_created_);
       }
     }
+    // The extended variant's Mark 27: the TDC's sonar source.
+    if (mission.conditions_.rules.mark27) {
+      out.x_ref(mission.combat_->tdc.sonar_source_);
+    }
   }
   f.sim_extension = ext.take();
   if (mission.conditions_.rules != MissionRules{}) {
@@ -1227,10 +1232,30 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
         }
       }
     }
+    if (rules.mark27 && !ext_reader.at_end()) {
+      in.x_ref(mission.combat_->tdc.sonar_source_);
+    }
     links.resolve(sim.vehicles_);
     if (!ext_reader.at_end()) {
       ext_reader.fail("state extension longer than expected");
     }
+  }
+  // The types carried now stand for those of the start (not in the
+  // original: the extended variant's status page).
+  {
+    TorpedoLoad load;
+    const TorpedoTubes& tubes = mission.combat_->tubes;
+    for (std::size_t t = 0; t < static_cast<std::size_t>(tubes.count()); ++t) {
+      load.tubes[t] = std::abs(tubes.content(t));
+    }
+    for (auto [rack, saved] : {std::pair{&tubes.bow_rack(), &load.bow_racks},
+                               std::pair{&tubes.stern_rack(), &load.stern_racks}}) {
+      for (std::size_t i = 0; i < rack->size() && i < saved->size(); ++i) {
+        const std::int32_t slot = (*rack)[i];
+        (*saved)[i] = slot < 0 ? std::abs(slot) >> 8 : slot;
+      }
+    }
+    mission.start_torpedo_types_ = carried_torpedo_types(load, *mission.player_class_);
   }
   // The light and fog the sensors read, from the restored sky.
   mission.sky_light_.on_sky_changed();

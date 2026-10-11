@@ -7,6 +7,7 @@
 
 #include "core/error.h"
 #include "core/fixed_math.h"
+#include "game/torpedo_load.h"
 #include "assets/exe_tables.h"
 #include "sim/clock.h"
 #include "sim/geometry.h"
@@ -964,7 +965,8 @@ void ScenarioGenerator::build_aircraft(WorldPoint at, std::int32_t count, std::i
 
 // ------------------------------------------------------- torpedo load
 
-void fill_torpedo_load(ScenarioHeader& header, const SubClass& sub, const GameTables& tables, WatcomRandom& random) {
+void fill_torpedo_load(ScenarioHeader& header, const SubClass& sub, const GameTables& tables, WatcomRandom& random,
+                       const MissionRules& rules, SubCommand command) {
   // scen_fill_torpedo_load (0x69a67)
   const auto find = [&](std::string_view name) -> const Torpedo& {
     const Torpedo* t = tables.find_torpedo(name);
@@ -992,6 +994,15 @@ void fill_torpedo_load(ScenarioHeader& header, const SubClass& sub, const GameTa
       } else if (roll < pct + 30) {
         // Meant to be the MARK18-2: both table entries read "MARK18-1".
         types[1] = static_cast<std::int32_t>(find("MARK18-1").id);
+        if (rules.mixed_mark18) {
+          // The extended variant's real 18-2, once in service.
+          const Torpedo& mk18_2 = find("MARK18-2");
+          const auto mk18_2_year = static_cast<std::int32_t>(mk18_2.year) - kScenarioYearBase;
+          const auto mk18_2_month = static_cast<std::int32_t>(mk18_2.month) - 1;
+          if (header.year > mk18_2_year || (header.year == mk18_2_year && header.month >= mk18_2_month)) {
+            types[1] = static_cast<std::int32_t>(mk18_2.id);
+          }
+        }
         mixed = 1;
       }
     }
@@ -1005,20 +1016,31 @@ void fill_torpedo_load(ScenarioHeader& header, const SubClass& sub, const GameTa
   }
   const auto bow = static_cast<std::int32_t>(sub.bow_reloads);
   const auto stern = static_cast<std::int32_t>(sub.stern_reloads);
+  std::size_t entries = 1;
   if (mixed == 0) {
     header.reloads[0] = {types[0], stern, bow};
-    header.reloads[1].type = -1;
-    return;
+  } else {
+    std::int32_t fwd = std::clamp(bow / 2 + random.random_int(bow / 2) - bow / 4, 0, bow);
+    std::int32_t aft = stern / 2 + random.random_int(stern / 2) - stern / 4;
+    aft = std::clamp(aft, 0, stern);
+    for (std::size_t i = 0; i < 2; ++i) {
+      header.reloads[i] = {types[i], aft, fwd};
+      fwd = bow - fwd;
+      aft = stern - aft;
+    }
+    entries = 2;
   }
-  std::int32_t fwd = std::clamp(bow / 2 + random.random_int(bow / 2) - bow / 4, 0, bow);
-  std::int32_t aft = stern / 2 + random.random_int(stern / 2) - stern / 4;
-  aft = std::clamp(aft, 0, stern);
-  for (std::size_t i = 0; i < 2; ++i) {
-    header.reloads[i] = {types[i], aft, fwd};
-    fwd = bow - fwd;
-    aft = stern - aft;
+  const Torpedo* mk27 = tables.find_torpedo(kMark27Name);
+  if (rules.mark27 && mk27 != nullptr && sub.modern_torpedoes && stern >= kMark27Rack &&
+      mark27_in_service(header.year, header.month, command)) {
+    // The extended variant's Mark 27 take two stern rack places from the
+    // entry with the most.
+    TorpedoReload& most = entries == 2 && header.reloads[1].aft > header.reloads[0].aft ? header.reloads[1]
+                                                                                       : header.reloads[0];
+    most.aft -= kMark27Rack;
+    header.reloads[entries++] = {static_cast<std::int32_t>(mk27->id), kMark27Rack, 0};
   }
-  header.reloads[2].type = -1;
+  header.reloads[entries].type = -1;
 }
 
 std::vector<const SubClass*> sub_classes_in_service(const GameTables& tables, std::int32_t month, std::int32_t year) {
@@ -1452,7 +1474,7 @@ std::string pick_sub_name(const GameTables& tables, const SubClass& sub, std::in
 
 GeneratedMission generate_single_mission(const Install& install, const GameTables& tables, MissionType type,
                                          const GeneratorParams& params_in, std::uint32_t options,
-                                         WatcomRandom& random) {
+                                         WatcomRandom& random, const MissionRules& rules) {
   // scengen_build_single_mission (0x68453)
   if (type != MissionType::kConvoy && type != MissionType::kWarship && type != MissionType::kPatrol &&
       type != MissionType::kEnemySub && type != MissionType::kSpecial) {
@@ -1518,7 +1540,7 @@ GeneratedMission generate_single_mission(const Install& install, const GameTable
         break;
     }
     if (built) {
-      fill_torpedo_load(h, *sub, tables, random);
+      fill_torpedo_load(h, *sub, tables, random, rules);
       return std::move(mission.result());
     }
   }

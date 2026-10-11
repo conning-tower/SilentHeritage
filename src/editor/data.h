@@ -53,8 +53,12 @@ struct TorpedoChoices {
   // The list size 0xa50b0: "EMPTY" plus every American torpedo that is not
   // id 4, leading or not; also the size of the per-torpedo reload counts.
   std::size_t count = 1;
+  // The extended variant's list (not in the original): every American
+  // torpedo, the MARK18-2 and the MARK27 included, with a reload row each.
+  bool extended = false;
 
-  static TorpedoChoices from_weapons(const std::vector<Torpedo>& weapons);
+  // Returns the original's list, or with `extended` the extended variant's.
+  static TorpedoChoices from_weapons(const std::vector<Torpedo>& weapons, bool extended = false);
 };
 
 // The tables loaded once at start-up.
@@ -67,8 +71,10 @@ struct EditorData {
   // SUN.DAT / EARTH.DAT (`load_ephemeris`): the ENVIRONMENT sky.
   Ephemeris ephemeris;
 
-  // Throws `DataError` if a file is missing or malformed.
-  static EditorData load(const Install& install);
+  // Throws `DataError` if a file is missing or malformed. With
+  // `extended_torpedoes` (not in the original) the tables get the Mark 27
+  // (game/torpedo_load.h) and TORPEDOES lists every American torpedo.
+  static EditorData load(const Install& install, bool extended_torpedoes = false);
 
   // Return the index of the class whose record name (+0) is `name`
   // (case-insensitive, first match), as the editor's linear searches do.

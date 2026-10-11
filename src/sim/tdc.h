@@ -13,6 +13,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -88,6 +89,15 @@ struct SolutionEstimate {
 // range `sighting_range_yd` (`tdc_estimate_solution`, 0x7bd2e).
 SolutionEstimate tdc_estimate_solution(const TargetState& target, std::int32_t sighting_range_yd,
                                        std::int32_t offset_x, std::int32_t offset_z, const OwnBoat& own);
+
+// A ship the sonar hears with high-speed screws (the escorts): its bearing
+// relative to the own heading and its loudness (not in the original; the
+// Mark 27's bearing source).
+struct HeardScrews {
+  const Vehicle* vehicle = nullptr;
+  Angle10 bearing;
+  std::int32_t loudness = 0;
+};
 
 class Tdc {
   friend class StateIo;  // The state files (game/vehicle_state.h).
@@ -179,6 +189,28 @@ class Tdc {
   // Drops the target and the tracked torpedo that are `removed`.
   void forget(const Vehicle& removed);
 
+  // The extended variant's Mark 27 (not in the original): while it is the
+  // selected type the solution is bearing-only. With a target locked in
+  // auto mode the gyros lead it at the Mark 27's 12 kn, or point at its
+  // bearing when no intercept exists; otherwise they point along the
+  // solution bearing, which follows the sonar source when one is set
+  // (else the manual dial, or stays in auto mode).
+  bool bearing_only() const { return bearing_only_; }
+  // The lead has no solution (the target outruns the torpedo's speed
+  // across the line of sight): the gyros point at the target's bearing.
+  bool no_intercept() const { return no_intercept_; }
+  // The ship whose screws the bearing follows, or null.
+  const Vehicle* sonar_source() const { return sonar_source_; }
+  // The TRACK button while bearing-only: from no source to the loudest
+  // ship of `heard` (loudest first), then each next one, then none.
+  void cycle_sonar_source(std::span<const HeardScrews> heard);
+  // Sets the solution bearing to the sonar source's in `heard`, when it is
+  // set and heard (the bearing stays when it falls silent).
+  void follow_sonar(std::span<const HeardScrews> heard);
+  // Points the bow and stern gyros along relative `bearing` (fire_tube's
+  // Mark 27 in auto mode without a lock).
+  void aim_on_bearing(Angle10 bearing);
+
   // State.
   Mode mode() const { return mode_; }
   Vehicle* target() const { return target_; }
@@ -248,6 +280,10 @@ class Tdc {
   std::array<std::int32_t, 2> run_time_{};  // 0x129a90
   std::array<std::int32_t, kTrackedTorpedoes> countdown_{};  // 0x129a98
   std::array<const TorpedoVehicle*, kTrackedTorpedoes> tracked_{};  // 0x129b08
+  // The extended variant's Mark 27 state.
+  bool bearing_only_ = false;
+  bool no_intercept_ = false;
+  const Vehicle* sonar_source_ = nullptr;
 };
 
 }  // namespace sh

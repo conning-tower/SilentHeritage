@@ -545,6 +545,15 @@ void StateIo::bind(Io& io, TorpedoVehicle& v) {
   if constexpr (!Io::kReading) {
     io.string(0x250 + 4, 10, v.weapon_.short_name);
   }
+  if (v.homing_) {
+    // The extended variant's Mark 27 homing (not in the original; no
+    // other torpedo has it).
+    TorpedoHoming& h = *v.homing_;
+    io.x_ref(h.target);
+    io.x_i32(h.listen_timer);
+    io.x_i32(h.run_time);
+    io.x_flag(h.enabled);
+  }
 }
 
 template <class Io>

@@ -66,16 +66,25 @@ struct MissionRules {
   // The realism rating counts the extended REALISM items above
   // (game/options_realism.h); false for the original's rating.
   bool extended_realism = false;
+  // The Mark 18-1 and 18-2 carried together: the 18-1 replaced gradually
+  // from the 18-2's date, and generated loads mixing the real 18-2; a boat
+  // then carries three types at most (game/torpedo_load.h).
+  bool mixed_mark18 = false;
+  // The Mark 27 "Cutie" passive homing torpedo from mid-1944
+  // (sim/torpedo.h, game/torpedo_load.h).
+  bool mark27 = false;
 
   // Returns the rules of a new extended game (the extended variant's
   // defaults, where EXTENDED.CFG or a career's rules do not set them): the
   // corrections, the quiet sonar reacquisition, the extended realism with
-  // DETECTABLE RADAR (as at EXPERT).
+  // DETECTABLE RADAR (as at EXPERT), the mixed Mark 18s and the Mark 27.
   static constexpr MissionRules extended() {
     return {.fix_obvious_errors = true,
             .quiet_sonar_reacquire = true,
             .detectable_radar = true,
-            .extended_realism = true};
+            .extended_realism = true,
+            .mixed_mark18 = true,
+            .mark27 = true};
   }
   // Returns whether depth-charge blasts deafen the escorts' sonar, and the
   // noises near an escort's estimate cancel it by the true geometry.
@@ -91,12 +100,14 @@ struct MissionRuleField {
 };
 
 // The saved fields of `MissionRules`; keys must stay as they are once saved.
-inline const std::array<MissionRuleField, 5> kMissionRuleFields{{
+inline const std::array<MissionRuleField, 7> kMissionRuleFields{{
     {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
     {"quiet_sonar_reacquire", &MissionRules::quiet_sonar_reacquire},
     {"keen_escort_sonar", &MissionRules::keen_escort_sonar},
     {"detectable_radar", &MissionRules::detectable_radar},
     {"extended_realism", &MissionRules::extended_realism},
+    {"mixed_mark18", &MissionRules::mixed_mark18},
+    {"mark27", &MissionRules::mark27},
 }};
 
 // Scenario conditions and player options.

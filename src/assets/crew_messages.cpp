@@ -47,7 +47,19 @@ const CrewMessage* CrewMessages::find(std::uint8_t id) const {
       return &m;
     }
   }
+  for (const CrewMessage& m : extended_crew_messages()) {
+    if (m.id == id) {
+      return &m;
+    }
+  }
   return nullptr;
+}
+
+const std::vector<CrewMessage>& extended_crew_messages() {
+  static const std::vector<CrewMessage> messages{
+      {0x80, CrewSpeaker::kExecutiveOfficer, "Executive Officer", "", "No firing solution, sir!"},
+  };
+  return messages;
 }
 
 }  // namespace sh

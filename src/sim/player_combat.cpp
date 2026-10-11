@@ -4,12 +4,15 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "assets/exe_tables.h"
 #include "assets/game_exe.h"
+#include "sim/ai_ship.h"
 #include "sim/geometry.h"
 #include "sim/player_sub.h"
 #include "sim/sensors.h"
+#include "sim/ship.h"
 #include "sim/shell.h"
 #include "sim/simulation.h"
 #include "sim/torpedo.h"
@@ -26,6 +29,27 @@ const std::array<std::string, 10>& fire_speech() {
 }
 // The "tube not loaded" report.
 constexpr const char* kNotLoadedSpeech = "WO0022.RAW";
+
+// Returns the ships whose high-speed screws the sonar hears, loudest
+// (noise over range) first.
+std::vector<HeardScrews> heard_screws(const SimContext& ctx, const PlayerSub& sub) {
+  std::vector<HeardScrews> out;
+  if (ctx.sim == nullptr) {
+    return out;
+  }
+  for (const std::unique_ptr<Vehicle>& v : ctx.sim->vehicles()) {
+    const auto* ship = dynamic_cast<const Ship*>(v.get());
+    if (ship == nullptr || ship->removed() || !ship->ai().heard.heard ||
+        ship->ai().heard.screw != ScrewSound::kHighSpeed) {
+      continue;
+    }
+    const fx::Vec3 d = ship->position() - sub.position();
+    const auto yards = static_cast<std::int32_t>(fx::approx_distance(d.x, d.z) / kUnitsPerYard);
+    out.push_back({ship, ship->ai().heard.bearing, ship_noise_level(*ship) * 10000 / (yards + 100)});
+  }
+  std::ranges::stable_sort(out, std::ranges::greater{}, &HeardScrews::loudness);
+  return out;
+}
 
 }  // namespace
 
@@ -63,6 +87,8 @@ TorpedoVehicle* PlayerCombat::fire_tube(SimContext& ctx, PlayerSub& sub, std::si
   if (tdc.mode() == Tdc::Mode::kAuto &&
       static_cast<std::uint32_t>(content) != torpedo_types[static_cast<std::size_t>(tdc.type_index())].weapon_id) {
     // The TDC switches to the tube's torpedo type.
+    const std::int32_t knob = tdc.type_index();
+    const bool from_mark27 = torpedo_types[static_cast<std::size_t>(knob)].weapon_id == kMark27Id;
     std::int32_t index = 0;
     while (index < 3 && torpedo_types[static_cast<std::size_t>(index)].weapon_id != static_cast<std::uint32_t>(content)) {
       ++index;
@@ -71,6 +97,13 @@ TorpedoVehicle* PlayerCombat::fire_tube(SimContext& ctx, PlayerSub& sub, std::si
       tdc.set_type_index(index);
       if (tdc.target() != nullptr) {
         tdc.update_tube_solutions(own, *tables_, torpedo_types);
+      } else if (from_mark27) {
+        // A straight runner on a bearing alone (not in the original).
+        tdc.set_type_index(knob);
+        ctx.crew_message(kMsgNoSolution);
+        return nullptr;
+      } else if (static_cast<std::uint32_t>(content) == kMark27Id && !heard.empty()) {
+        tdc.aim_on_bearing(heard.front().bearing);
       }
     }
   }
@@ -201,6 +234,10 @@ bool PlayerCombat::take_damage(SimContext& ctx, PlayerSub& sub, DamageKind kind,
 
 void PlayerCombat::update_frame(SimContext& ctx, PlayerSub& sub) {
   const OwnBoat own = own_boat(sub, ctx);
+  if (std::ranges::any_of(torpedo_types, [](const TorpedoChoice& c) { return c.weapon_id == kMark27Id; })) {
+    heard = heard_screws(ctx, sub);
+    tdc.follow_sonar(heard);
+  }
   const std::int32_t follow = tdc.update(ctx.clock.frame_ticks(), ctx.clock.effective_compression(), own, *tables_,
                                          torpedo_types, sensing);
   if (follow >= 0) {

@@ -114,6 +114,12 @@ class TorpedoForm {
   // (tens 0..2, units 0..9) keeps cycling while the racks' total of the
   // available choices exceeds the capacity. Returns the digit shown.
   std::int32_t cycle_reload(bool aft, std::size_t choice, bool tens, bool advance);
+  // The extended variant's list (not in the original): whether choice
+  // `choice` would be a fourth type of the load, the tube `except_tube`
+  // and the reload row `except_row` (-1: none) left out. A load holds at
+  // most three types (game/torpedo_load.h); `cycle_tube` and
+  // `cycle_reload` skip such a choice or count.
+  bool adds_fourth_type(std::size_t choice, std::int32_t except_tube, std::int32_t except_row) const;
   // `reload_aft_over_capacity` / `reload_fwd_over_capacity`.
   bool over_capacity(bool aft) const;
 

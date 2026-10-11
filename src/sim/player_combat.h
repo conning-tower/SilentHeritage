@@ -13,6 +13,7 @@
 
 #include <array>
 #include <cstdint>
+#include <vector>
 
 #include "assets/dat_tables.h"
 #include "core/fixed.h"
@@ -53,6 +54,8 @@ class PlayerCombat {
   static constexpr std::int32_t kMsgNotLoaded = 0x16;     // #22
   static constexpr std::int32_t kMsgStillLoading = 0x19;  // #25 (arg minutes left).
   static constexpr std::int32_t kMsgTubeDamaged = 0x1b;   // #27
+  // Not in the original: no firing solution (assets/crew_messages.h).
+  static constexpr std::int32_t kMsgNoSolution = 0x80;
   static constexpr std::int32_t kSfxFire = 0x14;
   // The largest gyro angle off the tube axis (130 deg).
   static constexpr std::int32_t kGyroLimit = 1300;
@@ -63,7 +66,16 @@ class PlayerCombat {
   // Fires tube `tube` (0-based) at the TDC solution (`fire_tube`,
   // 0x7cd70): refuses an empty, loading or damaged tube or a gyro angle
   // over 130 deg; the torpedo leaves turned at most 10 deg and then turns
-  // to the gyro course plus the spread, and the tube starts reloading.
+  // to the gyro course plus the spread, and the tube starts reloading. In
+  // auto mode the TDC first switches to the tube's type (when its table
+  // lists it) and recomputes the gyros of a locked target.
+  //
+  // With the extended variant's Mark 27 (not in the original), in auto
+  // mode: a straight runner in a tube while the TDC is bearing-only and
+  // has no lock is not fired (crew message `kMsgNoSolution`; the TDC stays
+  // on the Mark 27); a Mark 27 in a tube without a lock is aimed at the
+  // loudest high-speed screws heard (else along the current gyros). In
+  // manual mode either fires on the set gyros.
   // Returns the torpedo, or null when not fired.
   TorpedoVehicle* fire_tube(SimContext& ctx, PlayerSub& sub, std::size_t tube);
 
@@ -98,6 +110,10 @@ class PlayerCombat {
   EffectFrames effects;
   // The sighting code's view of the targets (default: all in sight).
   TargetSensingFn sensing;
+  // The high-speed screws the sonar hears, loudest first, refreshed by
+  // `update_frame` while the type table lists the Mark 27 (not in the
+  // original).
+  std::vector<HeardScrews> heard;
   // The bearing the periscope and TBT look along (`0x11ac37`, relative).
   Angle10 view_bearing;
 

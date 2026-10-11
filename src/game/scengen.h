@@ -191,7 +191,14 @@ class ScenarioGenerator {
 // replaced by or mixed with the "MARK18-1" after its date (both string
 // table entries are "MARK18-1", so the intended Mark 18-2 mix never
 // happens). Throws `DataError` if a torpedo is missing from WEAPONS.DAT.
-void fill_torpedo_load(ScenarioHeader& header, const SubClass& sub, const GameTables& tables, WatcomRandom& random);
+//
+// The extended variant's rules (not in the original), with the same draws:
+// `rules.mixed_mark18` mixes the real Mark 18-2 once it is in service;
+// `rules.mark27` puts two Mark 27 in the stern racks (in place of two of
+// their torpedoes) of a boat with modern torpedoes once it is supplied to
+// `command`, when `tables` has its record (game/torpedo_load.h).
+void fill_torpedo_load(ScenarioHeader& header, const SubClass& sub, const GameTables& tables, WatcomRandom& random,
+                       const MissionRules& rules = {}, SubCommand command = SubCommand::kComSubPac);
 
 // Returns the SUBS.DAT classes the submarine selection offers on `month`
 // (0-based) of `year` (since 1930) (`encounter_sub_class_in_service`,
@@ -214,8 +221,9 @@ struct GeneratedMission {
 // word. Throws `DataError` when the type is not an encounter, a file or
 // class is missing, or no zone fits the date (a fatal error 0x82 in the
 // original).
+// `rules` are the extended variant's (`fill_torpedo_load`).
 GeneratedMission generate_single_mission(const Install& install, const GameTables& tables, MissionType type,
                                          const GeneratorParams& params, std::uint32_t options,
-                                         WatcomRandom& random);
+                                         WatcomRandom& random, const MissionRules& rules = {});
 
 }  // namespace sh

@@ -6,18 +6,30 @@
 
 #include "assets/dat_tables.h"
 #include "assets/scenario.h"
+#include "core/edition.h"
 #include "core/error.h"
 #include "game/extended_config.h"
 #include "game/mission.h"
 #include "game/mission_session.h"
 #include "game/scengen.h"
 #include "game/screen_shake.h"
+#include "game/torpedo_load.h"
 #include "game/stations/cabin.h"
 #include "ui/dialog.h"
 
 namespace sh {
 
 namespace {
+
+// Returns the game's tables, with the extended variant's Mark 27 record in
+// that build (only the `MissionRules::mark27` loads use it).
+std::unique_ptr<GameTables> load_tables(const Install& install) {
+  auto tables = std::make_unique<GameTables>(GameTables::load(install));
+  if (edition::kExtended) {
+    add_extended_torpedoes(*tables);
+  }
+  return tables;
+}
 
 // run_mission's end code for EXIT WITHOUT SAVING: back to the menu, no
 // results.
@@ -99,7 +111,7 @@ std::int32_t GameRunner::run(const MissionRequest& request) {
   const ResumingEnder resumed{*front_end_};
   outcome_ = MissionOutcome{};
   if (!tables_) {
-    tables_ = std::make_unique<GameTables>(GameTables::load(services_.install));
+    tables_ = load_tables(services_.install);
   }
   MissionSetup setup = setup_for(request.options, request.game_options, request.random, request.rules);
   if (request.resume != nullptr) {
@@ -146,7 +158,7 @@ std::int32_t GameRunner::run(const MissionRequest& request) {
   WatcomRandom random = request.random;
   const MissionStartDraws draws = MissionStartDraws::draw(random);
   GeneratedMission generated = generate_single_mission(services_.install, *tables_, request.type, request.generator,
-                                                       request.options, random);
+                                                       request.options, random, request.rules);
   setup.random = random;
   std::unique_ptr<Mission> mission =
       Mission::create(services_.install, *tables_, std::move(generated), draws, std::move(setup));
@@ -158,7 +170,7 @@ std::int32_t GameRunner::run_patrol(const PatrolRequest& request, PatrolResult& 
   const ResumingEnder resumed{*front_end_};
   outcome_ = MissionOutcome{};
   if (!tables_) {
-    tables_ = std::make_unique<GameTables>(GameTables::load(services_.install));
+    tables_ = load_tables(services_.install);
   }
   MissionSetup setup = setup_for(request.options, request.game_options, request.random, request.rules);
   Patrol patrol(services_.install, *tables_, *request.career, request.plan);

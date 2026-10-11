@@ -1,15 +1,19 @@
 #include "sim/torpedo.h"
 
 #include <cstdlib>
+#include <memory>
 #include <tuple>
 
 #include "assets/exe_tables.h"
 #include "assets/game_exe.h"
+#include "sim/ai_ship.h"
 #include "sim/effects.h"
 #include "sim/geometry.h"
 #include "sim/player_combat.h"
 #include "sim/player_sub.h"
+#include "sim/ship.h"
 #include "sim/simulation.h"
+#include "sim/sonar.h"
 #include "sim/weapon_math.h"
 
 namespace sh {

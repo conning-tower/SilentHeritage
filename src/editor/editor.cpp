@@ -199,7 +199,7 @@ EditorExit Editor::run() {
   // world and a new scenario.
   open_intro();
   options_ = EditorOptions::load(services_.saves);
-  data_.emplace(EditorData::load(install));
+  data_.emplace(EditorData::load(install, services_.extended_torpedoes));
   scenario_ = std::make_unique<Scenario>(install, *data_, options_, clock_);
   scenario_->set_size_limited(!services_.features.editor_no_size_limit);
   scenario_->set_corrected(services_.features.editor_fixes);

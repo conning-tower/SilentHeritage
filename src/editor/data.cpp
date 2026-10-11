@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <string>
 
+#include "game/torpedo_load.h"
+
 namespace sh::editor {
 namespace {
 
@@ -39,9 +41,19 @@ std::optional<std::uint32_t> ModelCatalog::size_of(std::string_view name) const 
   return find_entry(air_, name);
 }
 
-TorpedoChoices TorpedoChoices::from_weapons(const std::vector<Torpedo>& weapons) {
-  const auto listed = [](const Torpedo& t) { return t.nation == Nation::kUs && t.id != 4; };
+TorpedoChoices TorpedoChoices::from_weapons(const std::vector<Torpedo>& weapons, bool extended) {
   TorpedoChoices c;
+  if (extended) {
+    c.extended = true;
+    for (std::size_t i = 0; i < weapons.size(); ++i) {
+      if (weapons[i].nation == Nation::kUs) {
+        c.torpedoes.push_back(i);
+      }
+    }
+    c.count = 1 + c.torpedoes.size();
+    return c;
+  }
+  const auto listed = [](const Torpedo& t) { return t.nation == Nation::kUs && t.id != 4; };
   c.count = 1 + static_cast<std::size_t>(std::ranges::count_if(weapons, listed));
   for (std::size_t i = 0; i < weapons.size() && listed(weapons[i]); ++i) {
     c.torpedoes.push_back(i);
@@ -49,9 +61,12 @@ TorpedoChoices TorpedoChoices::from_weapons(const std::vector<Torpedo>& weapons)
   return c;
 }
 
-EditorData EditorData::load(const Install& install) {
+EditorData EditorData::load(const Install& install, bool extended_torpedoes) {
   GameTables tables = GameTables::load(install);
-  TorpedoChoices choices = TorpedoChoices::from_weapons(tables.weapons.torpedoes);
+  if (extended_torpedoes) {
+    add_extended_torpedoes(tables);
+  }
+  TorpedoChoices choices = TorpedoChoices::from_weapons(tables.weapons.torpedoes, extended_torpedoes);
   return EditorData{
       .tables = std::move(tables),
       .zones = parse_patrol_zones(install.read("DATA/PZ.DAT"), "DATA/PZ.DAT"),
