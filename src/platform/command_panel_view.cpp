@@ -180,6 +180,10 @@ void CommandPanelView::draw(const CommandPanel& panel) {
       draw_fitted(renderer_, down ? pressed_[i] : icons_[i], rects[i]);
     }
   }
+  if (!panel.button_shown()) {
+    SDL_SetRenderLogicalPresentation(renderer_, logical_w, logical_h, mode);
+    return;
+  }
   const float alpha = panel.is_open() || panel.dragging() ? 1.0f : kIdleAlpha;
   SDL_SetTextureAlphaModFloat(button_, alpha);
   draw_fitted(renderer_, button_, panel.button_rect());

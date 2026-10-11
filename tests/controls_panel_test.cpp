@@ -285,3 +285,37 @@ TEST_CASE("controls: live panel window screenshots", "[.controls_panel_window]")
 }
 
 }  // namespace sh
+
+namespace sh {
+
+TEST_CASE("controls: a hidden floating button takes no press, the panel opens above the bar", "[controls][cmdpanel]") {
+  CommandPanel panel;
+  panel.set_window(2400, 1080, 2.625f);
+  panel.set_button_shown(false);
+  const PanelRect b = panel.button_rect();
+  CHECK(!panel.press(cx(b), cy(b)).consumed);
+  panel.release(cx(b), cy(b));
+  CHECK(!panel.is_open());
+  // Opened above the bar's ORDERS button (bottom middle of the window).
+  const PanelRect anchor{1100, 1030, 160, 50};
+  panel.open_above(anchor);
+  REQUIRE(panel.is_open());
+  const PanelRect p = panel.panel_rect();
+  CHECK(p.y + p.h <= anchor.y);
+  CHECK(cx(p) == cx(anchor));
+  // Its icons work; a tap outside closes it.
+  const PanelRect t1 = panel.icon_rects()[static_cast<std::size_t>(PanelCommand::kFireTube1)];
+  panel.press(cx(t1), cy(t1));
+  CHECK(panel.release(cx(t1), cy(t1)).command == PanelCommand::kFireTube1);
+  panel.press(10, 10);
+  panel.release(10, 10);
+  CHECK(!panel.is_open());
+  // Shown again, the button opens it beside itself.
+  panel.set_button_shown(true);
+  panel.press(cx(b), cy(b));
+  panel.release(cx(b), cy(b));
+  REQUIRE(panel.is_open());
+  CHECK(panel.panel_rect().x + panel.panel_rect().w <= b.x);
+}
+
+}  // namespace sh

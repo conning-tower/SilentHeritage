@@ -391,6 +391,23 @@ void Display::set_command_panel(CommandPanel& panel, const CommandIcons& icons) 
   impl_->sync_panel_window();
 }
 
+void Display::open_command_panel_above(const ScreenRect& area) {
+  if (impl_->panel == nullptr) {
+    return;
+  }
+  impl_->sync_panel_window();
+  float x0 = 0;
+  float y0 = 0;
+  float x1 = 0;
+  float y1 = 0;
+  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(area.x), static_cast<float>(area.y), &x0, &y0);
+  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(area.x + area.w),
+                                static_cast<float>(area.y + area.h), &x1, &y1);
+  // Window points to output pixels.
+  const float density = SDL_GetWindowPixelDensity(impl_->window);
+  impl_->panel->open_above({x0 * density, y0 * density, (x1 - x0) * density, (y1 - y0) * density});
+}
+
 void Display::show_command_panel(bool shown) {
   if (impl_->panel != nullptr && !shown) {
     impl_->panel->close();

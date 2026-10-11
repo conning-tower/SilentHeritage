@@ -224,6 +224,9 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
                           .extended_config = services_.extended_config},
                          std::move(mission), services_.saves);
   MissionScreen& screen = session.screen();
+  if (host_.has_orders_panel()) {
+    screen.bar().on_orders = [this](const ui::Rect& button) { host_.open_orders_panel(button); };
+  }
   // The blocking loops of the in-game dialogs (the SAVE MISSION name
   // entry) show the mission's screen with its palette.
   const PumpRestorer front_end_pump{gui, gui.pump_function()};

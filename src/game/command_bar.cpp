@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "game/crew_log_view.h"
@@ -13,6 +14,7 @@
 #include "gfx/text.h"
 #include "sim/effects.h"
 #include "sim/geometry.h"
+#include "ui/dial_scrub.h"
 #include "ui/draw.h"
 
 namespace sh {
@@ -31,6 +33,10 @@ constexpr int kBarWidth = 0x280;
 constexpr int kBarHeight = 0x14;
 constexpr int kButtonWidth = 0x48;
 constexpr int kButtonStep = 0x49;
+// The extended bar (not in the original): its buttons take presses this
+// many pixels above the bar; the ORDERS button's label.
+constexpr int kTouchAbove = 8;
+constexpr std::string_view kOrdersLabel = "ORDERS";
 // The menus grey the palette to 70 % (`palette_grey_out(0x46, 0xff)`).
 constexpr std::int32_t kSfxClick = 2;
 constexpr std::int32_t kSfxDive = 8;
@@ -259,21 +265,36 @@ std::string format_crew_message(const CrewMessages& messages, const CrewMessageL
 // --- The bar --------------------------------------------------------------
 
 // The sprite buttons of the bar (`sprite_button_proc` 0x4922c,
-// `sprite_button_draw` 0x49291, `sprite_button_activate` 0x4939e).
+// `sprite_button_draw` 0x49291, `sprite_button_activate` 0x4939e). The
+// extended command bar's buttons (not in the original) may take presses
+// `above` pixels over the bar, be a labelled plate (ORDERS) or split the
+// time compression button into - | compression | +.
+namespace {
+struct BarButtonExtras {
+  int above = 0;
+  bool split = false;
+  std::string label;
+};
+}  // namespace
+
 class ControlBar::SpriteButton : public ui::Control {
  public:
-  SpriteButton(ControlBar& bar, int x0, int y0, int x1, int y1, BarButton button)
-      : bar_(bar), x0_(x0), y0_(y0), x1_(x1), y1_(y1), button_(std::move(button)) {}
+  using Extras = BarButtonExtras;
+  SpriteButton(ControlBar& bar, int x0, int y0, int x1, int y1, BarButton button, Extras extras = {})
+      : bar_(bar), x0_(x0), y0_(y0), x1_(x1), y1_(y1), button_(std::move(button)), extras_(std::move(extras)) {}
 
-  bool handle(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event&) override {
+  bool handle(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event& event) override {
     bool down = false;
     switch (msg) {
       case ui::Msg::kRegister:
-        ui::add_control_hotspot(dialog, *this, {x0_, y0_, x1_, y1_}, 0, 0, ui::kFocusNone);
+        ui::add_control_hotspot(dialog, *this, {x0_, y0_ - extras_.above, x1_, y1_}, 0, 0, ui::kFocusNone);
         return false;
       case ui::Msg::kPress:
         bar_.env_.sound.play_sfx(kSfxClick, 0x1e);
         down = true;
+        if (extras_.split) {
+          part_ = split_part(event.x - dialog.x() - x0_);
+        }
         break;
       case ui::Msg::kRelease:
       case ui::Msg::kPaint:
@@ -286,6 +307,11 @@ class ControlBar::SpriteButton : public ui::Control {
   }
 
   int activate(ui::Dialog&, int, const ui::Event&) override {
+    if (extras_.split && part_ != Part::kMiddle) {
+      bar_.run(part_ == Part::kMinus ? HA::kCompressionDown : HA::kCompressionUp);
+      dirty = true;
+      return 0;
+    }
     if (button_.action) {
       button_.action();
     }
@@ -293,11 +319,74 @@ class ControlBar::SpriteButton : public ui::Control {
   }
 
  private:
+  enum class Part : std::uint8_t { kMinus, kMiddle, kPlus };
+  // The - and + plates (x from the button's left) and the extra pixels
+  // around them that take presses (fingers miss small targets).
+  static constexpr int kMinusX = 2;
+  static constexpr int kPlusX = 52;
+  static constexpr int kPlateW = 18;
+  static constexpr int kSlack = 4;
+
+  static Part split_part(int x) {
+    if (x < kMinusX + kPlateW + kSlack) {
+      return Part::kMinus;
+    }
+    return x >= kPlusX - kSlack ? Part::kPlus : Part::kMiddle;
+  }
+
+  // Draws a raised plate over x0..x0 + w - 1 of the button's rows 3..16
+  // (pressed: sunk).
+  void plate(const Viewport& vp, int x0, int w, bool pressed) const {
+    const VgaPalette& pal = bar_.env_.palette;
+    const std::uint8_t dark = ui::nearest_colour(pal, 40, 40, 40);
+    const std::uint8_t face = ui::nearest_colour(pal, pressed ? 120 : 150, pressed ? 120 : 150, pressed ? 120 : 150);
+    const std::uint8_t light = ui::nearest_colour(pal, 215, 215, 215);
+    const int y0 = y0_ + 3;
+    const int y1 = y0_ + 16;
+    const int x1 = x0 + w - 1;
+    ui::fill_rect(vp, x0, y0, x1, y1, face);
+    ui::draw_line(vp, x0, y0, x1, y0, pressed ? dark : light);
+    ui::draw_line(vp, x0, y0, x0, y1, pressed ? dark : light);
+    ui::draw_line(vp, x0, y1, x1, y1, pressed ? light : dark);
+    ui::draw_line(vp, x1, y0, x1, y1, pressed ? light : dark);
+  }
+
+  void draw_split(const Viewport& vp, bool down) const {
+    const std::uint8_t dark = ui::nearest_colour(bar_.env_.palette, 40, 40, 40);
+    for (const Part p : {Part::kMinus, Part::kPlus}) {
+      const int x0 = x0_ + (p == Part::kMinus ? kMinusX : kPlusX);
+      const bool pressed = down && part_ == p;
+      plate(vp, x0, kPlateW, pressed);
+      const int o = pressed ? 1 : 0;
+      ui::fill_rect(vp, x0 + 4 + o, y0_ + 9 + o, x0 + 13 + o, y0_ + 10 + o, dark);
+      if (p == Part::kPlus) {
+        ui::fill_rect(vp, x0 + 8 + o, y0_ + 5 + o, x0 + 9 + o, y0_ + 14 + o, dark);
+      }
+    }
+  }
+
+  void draw_label(const Viewport& vp, bool down) const {
+    plate(vp, x0_ + 2, kButtonWidth - 4, down);
+    const Font& font = bar_.env_.assets.msg;
+    GlyphColourTable colours{};
+    colours.fill(ui::nearest_colour(bar_.env_.palette, 40, 40, 40));
+    colours[0] = 0xff;
+    colours[0xff] = 0xff;
+    const int o = down ? 1 : 0;
+    gui_draw_text(vp, x0_ + kButtonWidth / 2 - font.text_width(extras_.label) / 2 + o, y0_ + 5 + o, font,
+                  extras_.label, &colours);
+  }
+
   ui::Rect draw(ui::Dialog& dialog, bool down) {
-    const std::uint8_t f = down ? button_.pressed_frame : button_.frame;
+    const bool sprite_down = down && !extras_.split && extras_.label.empty();
+    const std::uint8_t f = sprite_down ? button_.pressed_frame : button_.frame;
     const SpriteFrame& frame = bar_.env_.assets.global.frame(f);
     draw_sprite_clipped(dialog.gfx(), frame, x0_, y0_);
     const ui::Rect r{x0_, y0_, x0_ + frame.width() - 1, y0_ + frame.height() - 1};
+    if (!extras_.label.empty()) {
+      draw_label(dialog.gfx(), down);
+      return r;
+    }
     if (f == kCompressionFrame || f == kCompressionPressedFrame) {
       // The effective compression, centred, glyph colour 7 drawn black.
       const std::int32_t compression = bar_.mission_clock_effective();
@@ -306,7 +395,7 @@ class ControlBar::SpriteButton : public ui::Control {
       const std::int32_t free = r.x1 - r.x0 + 1 - font.text_width(text) - 1;
       int x = x0_;
       int y = y0_;
-      if (down) {
+      if (down && (!extras_.split || part_ == Part::kMiddle)) {
         ++y;
         --x;
       }
@@ -315,12 +404,17 @@ class ControlBar::SpriteButton : public ui::Control {
       gui_draw_text(dialog.gfx(), x + 1 + free / 2, y + 5, font, text, &table);
       bar_.shown_compression_ = compression;
     }
+    if (extras_.split) {
+      draw_split(dialog.gfx(), down);
+    }
     return r;
   }
 
   ControlBar& bar_;
   int x0_, y0_, x1_, y1_;
   BarButton button_;
+  Extras extras_;
+  Part part_ = Part::kMiddle;
 };
 
 ControlBar::ControlBar(StationEnv& env) : env_(env), messages_(env.exe) {}
@@ -347,7 +441,8 @@ void ControlBar::flush_sim_events() {
 void ControlBar::open(const BarConfig& config) {
   // control_bar_open (0x48d02)
   config_ = config;
-  button_slots_ = static_cast<std::int32_t>(config.buttons.size()) + (config.time_compression ? 1 : 0);
+  button_slots_ = static_cast<std::int32_t>(config.buttons.size()) + (config.time_compression ? 1 : 0) +
+                  (orders_shown() ? 1 : 0);
   build(config);
   dialog_->open();
   open_ = true;
@@ -417,16 +512,29 @@ void ControlBar::build(const BarConfig& config) {
       dialog_->emplace<ui::Area>(-1, -1, -1, -1, nullptr, open_log, kCrewLogKey);
     }
   }
+  // The extended bar (not in the original): the buttons take presses a
+  // little above the bar, ORDERS sits left of the station buttons.
+  const Features& f = env_.ui.features;
+  const int above = f.orders_in_bar() ? kTouchAbove : 0;
   int x = kBarWidth - kButtonWidth;
   for (const BarButton& b : config.buttons) {
-    dialog_->emplace<SpriteButton>(*this, x, 0, x + kButtonWidth, 0x13, b);
+    dialog_->emplace<SpriteButton>(*this, x, 0, x + kButtonWidth, 0x13, b, SpriteButton::Extras{.above = above, .split = false, .label = {}});
+    x -= kButtonStep;
+  }
+  if (orders_shown()) {
+    dialog_->emplace<SpriteButton>(
+        *this, x, 0, x + kButtonWidth, 0x13,
+        BarButton{kCompressionFrame, kCompressionPressedFrame,
+                  [this, x] { on_orders({x, kBarY, x + kButtonWidth - 1, kBarY + kBarHeight - 1}); }},
+        SpriteButton::Extras{.above = above, .split = false, .label = std::string(kOrdersLabel)});
     x -= kButtonStep;
   }
   if (config.time_compression) {
     // control_bar_add_time_compression (0x49128)
     compression_button_ = &dialog_->emplace<SpriteButton>(
         *this, x, 0, x + kButtonWidth, 0x13,
-        BarButton{kCompressionFrame, kCompressionPressedFrame, [this] { menu_time_compression(); }});
+        BarButton{kCompressionFrame, kCompressionPressedFrame, [this] { menu_time_compression(); }},
+        SpriteButton::Extras{.above = above, .split = f.bar_time_buttons(), .label = {}});
   } else {
     compression_button_ = nullptr;
   }
@@ -1397,6 +1505,12 @@ void ControlBar::menu_extended_options() {
   env_.modals.run_modal(std::move(d), ModalFrame::kMenu, [this, changed, &features](int) {
     if (*changed && on_features_changed) {
       on_features_changed(features);
+    }
+    if (*changed && open_) {
+      // The bar's layout follows the command bar style at once.
+      const BarConfig config = config_;
+      close();
+      open(config);
     }
     after_menu();
   });

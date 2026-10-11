@@ -2,7 +2,7 @@
 // or `silent_hunter` after the edition, core/edition.h):
 //
 //   silent_heritage [--data <install dir> | --setup] [--nointro | --editor] [--save <dir>] [--sharp]
-//                   [--touch-panel] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]
+//                   [--touch-panel] [--no-orders-button] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]
 //   silent_heritage [--data <install dir> | --setup] --viewer [--open <path>] [--keys ...] [--screenshot ...]
 //
 // Without `--data` (or when it is not an install) the game files are those
@@ -20,6 +20,8 @@
 // (the original's sharp pixels) instead of the default bilinear smoothing.
 // `--touch-panel` shows the floating command button of touch screens
 // (always on under Android; platform/command_panel.h).
+// `--no-orders-button` hides that floating button (Android included, where
+// it is shown by default).
 // `--faithful` runs the extended variant without its improvements, as the
 // faithful variant (core/features.h).
 // `--keys` presses the given keys, one per frame: names up, down, left,
@@ -47,7 +49,7 @@ namespace sh {
 // The usage line's options, after the program's name.
 inline constexpr std::string_view kUsageOptions =
     "[--data <install dir> | --setup] "
-    "[--viewer [--open <category/item#frame>] | --nointro | --editor] [--save <dir>] [--sharp] [--touch-panel] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]";
+    "[--viewer [--open <category/item#frame>] | --nointro | --editor] [--save <dir>] [--sharp] [--touch-panel] [--no-orders-button] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]";
 
 struct CommandLine {
   std::optional<std::string> data_dir;
@@ -57,6 +59,7 @@ struct CommandLine {
   bool editor = false;
   Scaling scaling = Scaling::kSmooth;
   bool touch_panel = false;
+  bool no_orders_button = false;
   bool faithful = false;
   std::string save_dir;
   std::optional<std::string> open;

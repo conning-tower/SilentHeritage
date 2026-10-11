@@ -9,9 +9,23 @@
 // in its comment.
 #pragma once
 
+#include <cstdint>
+
 #include "core/edition.h"
 
 namespace sh {
+
+// The command bar's layouts (not in the original), one choice of the
+// options page.
+enum class CommandBarStyle : std::uint8_t {
+  kOriginal,       // the original bar alone ("ORIGINAL BAR")
+  // The original bar and the floating ORDERS button of touch screens, as in
+  // the faithful game ("FLOATING ORDERS").
+  kOrdersButton,
+  kBarOrders,      // the ORDERS button in the bar ("BAR WITH ORDERS")
+  // The ORDERS button in the bar, - and + around its time compression.
+  kBarOrdersTime,
+};
 
 struct Features {
   // Screens wider than 4:3: the chart and the 3D views fill the window's
@@ -35,6 +49,10 @@ struct Features {
   // The touch command panel shows the depth order in effect and each
   // tube's state.
   bool panel_status = false;
+  // The command bar's layout. In the bar layouts the ORDERS panel opens
+  // above the bar's ORDERS button and the bar's buttons take touches a
+  // little above it.
+  CommandBarStyle command_bar = CommandBarStyle::kOrdersButton;
   // The scenario editor without the memory budget of SE's 16 MB DOS
   // machine: no gauge, no SCENARIO IS TOO LARGE (the files keep their
   // estimate).
@@ -66,12 +84,22 @@ struct Features {
             .drag_rotate = true,
             .precise_dials = true,
             .panel_status = true,
+            .command_bar = CommandBarStyle::kBarOrdersTime,
             .editor_no_size_limit = true,
             .editor_fixes = true,
             .torpedo_types = true};
   }
   // Returns the set of this build's variant.
   static constexpr Features for_build() { return edition::kExtended ? extended() : faithful(); }
+
+  // Whether the ORDERS button is in the bar, and - and + around its time
+  // compression.
+  constexpr bool orders_in_bar() const {
+    return command_bar == CommandBarStyle::kBarOrders || command_bar == CommandBarStyle::kBarOrdersTime;
+  }
+  constexpr bool bar_time_buttons() const { return command_bar == CommandBarStyle::kBarOrdersTime; }
+  // Whether touch screens show the floating ORDERS button.
+  constexpr bool floating_orders() const { return command_bar == CommandBarStyle::kOrdersButton; }
 
   friend constexpr bool operator==(const Features&, const Features&) = default;
 };

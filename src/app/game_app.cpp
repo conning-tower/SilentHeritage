@@ -251,9 +251,14 @@ class GameApp final : public FrontendHost, public EditorRunner {
     if (command_panel_) {
       // Only over a mission in play, never over the menus.
       display_.show_command_panel(runner_.mission_in_play());
-      if (options_.features.panel_status) {
+      MissionSession* session = runner_.mission_in_play() ? runner_.session() : nullptr;
+      // The mission's improvements: the options can change them meanwhile.
+      const Features& features = session != nullptr ? session->screen().ui_state().features : options_.features;
+      // The floating button, unless hidden or in the command bar (not in
+      // the original).
+      command_panel_->set_button_shown(options_.orders_button && features.floating_orders());
+      if (features.panel_status) {
         // The live state, read from the mission (not in the original).
-        MissionSession* session = runner_.mission_in_play() ? runner_.session() : nullptr;
         std::optional<PanelStatus> status;
         if (session != nullptr) {
           const Mission& mission = session->screen().mission();
@@ -268,6 +273,8 @@ class GameApp final : public FrontendHost, public EditorRunner {
           }
         }
         command_panel_->set_status(std::move(status));
+      } else {
+        command_panel_->set_status(std::nullopt);
       }
     }
     if (!pending_.empty()) {
@@ -304,6 +311,11 @@ class GameApp final : public FrontendHost, public EditorRunner {
                              .effects_volume = o.effects_volume,
                              .speech_volume = o.speech_volume};
     sound_.with_layer([&](MelLayer& layer) { sh::apply_sound_options(layer, sound); });
+  }
+
+  bool has_orders_panel() const override { return command_panel_ != nullptr; }
+  void open_orders_panel(const ui::Rect& button) override {
+    display_.open_command_panel_above({button.x0, button.y0, button.x1 - button.x0 + 1, button.y1 - button.y0 + 1});
   }
 
   void report(std::string_view message) override {

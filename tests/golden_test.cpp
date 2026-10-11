@@ -217,5 +217,22 @@ TEST_CASE("Each improvement alone keeps the simulation of the golden traces", "[
   }
 }
 
+TEST_CASE("Each command bar layout keeps the simulation of the golden traces", "[golden][features]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GoldenGame game(install);
+  for (const CommandBarStyle style :
+       {CommandBarStyle::kOriginal, CommandBarStyle::kBarOrders, CommandBarStyle::kBarOrdersTime}) {
+    for (const GoldenScript& script : scripts()) {
+      DYNAMIC_SECTION(static_cast<int>(style) << " " << script.name) {
+        Features features;
+        features.command_bar = style;
+        GoldenTrace trace;
+        run_script(game, script, features, trace);
+        check_golden(script.name, trace, kSimKinds, install_header(install));
+      }
+    }
+  }
+}
+
 }  // namespace
 }  // namespace sh::test

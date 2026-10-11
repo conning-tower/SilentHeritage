@@ -108,6 +108,10 @@ CommandLine parse_command_line(std::span<const std::string_view> args) {
       o.touch_panel = true;
       continue;
     }
+    if (a == "--no-orders-button") {
+      o.no_orders_button = true;
+      continue;
+    }
     if (a == "--faithful") {
       o.faithful = true;
       continue;

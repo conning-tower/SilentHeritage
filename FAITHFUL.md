@@ -26,7 +26,7 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
   compression. The button can be dragged anywhere; it keeps its place
   relative to the screen when the window changes (folding or unfolding a
   phone, a resize), always stays inside it, and has its right size from the
-  start.
+  start; `--no-orders-button` hides it.
 - **Back:** goes back one screen in the menus and quits from the main menu.
   During a mission and in the scenario editor it acts as Esc.
 - **Text entry:** the system keyboard opens for names and descriptions.

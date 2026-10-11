@@ -35,6 +35,8 @@ kept with it.
 - **Torpedo types:** each torpedo type has its own picture, the Mark 18-1
   blue and the 18-2 orange; the status page shows the types you sailed with,
   and the touch ORDERS panel names each tube's type.
+- **Command bar:** the ORDERS button can sit in the bottom bar, with − and +
+  around the time compression, or float as in the original, or be hidden.
 
 ## Rules
 

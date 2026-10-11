@@ -52,7 +52,8 @@ asks again. Saves go to your per-user application folder, never into the
 install.
 
 Other options: `--editor` starts the scenario editor, `--viewer` opens an
-asset viewer, `--save DIR` changes where saves go. Alt+Enter toggles
+asset viewer, `--save DIR` changes where saves go, `--no-orders-button`
+hides the floating ORDERS button of touch screens. Alt+Enter toggles
 fullscreen.
 
 ## Android

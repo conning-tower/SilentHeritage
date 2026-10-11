@@ -216,12 +216,18 @@ class ControlBar : public CommandBar {
   // OPTIONS gains an EXTENDED button, and this is called with the
   // improvements its page changed (`MissionUiState::features`).
   std::function<void(const Features&)> on_features_changed;
+  // Not in the original: opens the touch command panel above the bar's
+  // ORDERS button (`Features::command_bar`), given its screen rectangle;
+  // without it the bar has no ORDERS button.
+  std::function<void(const ui::Rect&)> on_orders;
 
  private:
   class SpriteButton;
   // GAME OPTIONS' EXTENDED button was pressed (not in the original).
   bool extended_requested_ = false;
   void build(const BarConfig& config);
+  // Whether the bar shows the ORDERS button (not in the original).
+  bool orders_shown() const { return env_.ui.features.orders_in_bar() && on_orders != nullptr; }
   void redraw();                 // control_bar_redraw (0x48f37)
   void draw_message();           // control_bar_draw_message (0x49156)
   void after_menu();

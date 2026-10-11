@@ -30,6 +30,9 @@ struct GameAppOptions {
   // Shows the floating command button of touch screens
   // (platform/command_panel.h), its place kept in the save directory.
   bool touch_panel = false;
+  // Shows that panel's floating ORDERS button (`--no-orders-button` hides
+  // it; the extended command bar styles may hide it too).
+  bool orders_button = true;
   // The improvements beyond the original the game runs with.
   Features features = Features::for_build();
   // EXTENDED.CFG is read and written (`FrontendServices::extended_config`).

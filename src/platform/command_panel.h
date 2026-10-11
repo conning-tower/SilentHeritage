@@ -176,6 +176,14 @@ class CommandPanel {
   // Another mouse button's press or release: consumed over the widget.
   PanelInput other_button(float x, float y) const;
 
+  // Shows or hides the floating group (the panel itself can still open,
+  // from `open_above`); a hidden group takes no press.
+  void set_button_shown(bool shown);
+  bool button_shown() const { return button_shown_; }
+  // Opens the panel above `anchor` (window pixels; the command bar's
+  // ORDERS button), centred on it and kept in the window.
+  void open_above(PanelRect anchor);
+
   // Closes the panel and forgets a press in progress (its motion and
   // release then reach the game); returns whether anything changed.
   bool close();
@@ -237,6 +245,10 @@ class CommandPanel {
   // The group's part pressed: none for ORDERS, else "+" or "-".
   std::optional<PanelCommand> part_;
   std::optional<PanelStatus> status_;
+  bool button_shown_ = true;
+  // The rectangle the panel opens above (`open_above`), else beside the
+  // group.
+  std::optional<PanelRect> anchor_;
   // The longest reload time seen per tube while it reloads.
   std::array<std::int32_t, kPanelTubeCount> reload_total_{};
 };

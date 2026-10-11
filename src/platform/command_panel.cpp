@@ -132,6 +132,12 @@ PanelRect CommandPanel::panel_rect() const {
   const float w = (2 * kPaddingDp + kColumns * kIconDp + (kColumns - 1) * kGapDp) * s;
   const float h = (2 * kPaddingDp + 3 * kIconDp + 2 * kGapDp + kGroupGapDp) * s;
   const float m = kMarginDp * dp();
+  if (anchor_) {
+    // Above the anchor, centred on it.
+    const float ax = std::clamp(anchor_->x + anchor_->w / 2 - w / 2, 0.0f, std::max(0.0f, width_ - w));
+    const float ay = std::clamp(anchor_->y - m - h, 0.0f, std::max(0.0f, height_ - h));
+    return {ax, ay, w, h};
+  }
   const PanelRect b = group_rect();
   // Beside the group, on the side with more room, then kept in the window.
   float x = b.x + b.w / 2 > width_ / 2 ? b.x - m - w : b.x + b.w + m;
@@ -206,7 +212,7 @@ PanelInput CommandPanel::press(float x, float y) {
     return taken(false);
   }
   const PanelRect g = group_rect();
-  if (g.contains(x, y)) {
+  if (button_shown_ && g.contains(x, y)) {
     state_ = State::kButtonPress;
     press_x_ = x;
     press_y_ = y;
@@ -281,6 +287,7 @@ PanelInput CommandPanel::release(float x, float y) {
         out.command = part_;
       } else {
         open_ = !open_;
+        anchor_.reset();
       }
       out.redraw = true;
       break;
@@ -311,15 +318,32 @@ PanelInput CommandPanel::release(float x, float y) {
 }
 
 PanelInput CommandPanel::other_button(float x, float y) const {
-  const bool over = group_rect().contains(x, y) || (open_ && panel_rect().contains(x, y));
+  const bool over = (button_shown_ && group_rect().contains(x, y)) || (open_ && panel_rect().contains(x, y));
   PanelInput out = taken(false);
   out.consumed = over || state_ != State::kIdle;
   return out;
 }
 
+void CommandPanel::set_button_shown(bool shown) {
+  if (shown == button_shown_) {
+    return;
+  }
+  button_shown_ = shown;
+  if (state_ == State::kButtonPress || state_ == State::kDrag) {
+    state_ = State::kIdle;
+    part_.reset();
+  }
+}
+
+void CommandPanel::open_above(PanelRect anchor) {
+  anchor_ = anchor;
+  open_ = true;
+}
+
 bool CommandPanel::close() {
   const bool changed = open_ || state_ != State::kIdle;
   open_ = false;
+  anchor_.reset();
   state_ = State::kIdle;
   icon_.reset();
   icon_hover_ = false;

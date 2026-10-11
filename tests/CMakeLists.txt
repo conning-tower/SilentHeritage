@@ -150,6 +150,7 @@ add_executable(sh_tests
   controls_gesture_test.cpp
   controls_stations_test.cpp
   controls_panel_test.cpp
+  controls_bar_test.cpp
   # Modern conveniences: the chart's wider edge scroll, Alt+Enter fullscreen.
   chart_edge_scroll_test.cpp
   display_fullscreen_test.cpp

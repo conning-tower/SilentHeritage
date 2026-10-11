@@ -16,6 +16,7 @@ namespace sh {
 
 namespace ui {
 class Gui;
+struct Rect;
 }
 
 struct SmackerAudioFormat;
@@ -72,6 +73,11 @@ class FrontendHost {
   virtual void apply_sound_options(const GameOptions& options) = 0;
   // Tells the player about a part of the game not reimplemented yet.
   virtual void report(std::string_view message) = 0;
+  // Not in the original: whether the touch command panel exists, and opens
+  // it above `button` (screen coordinates), for the command bar's ORDERS
+  // button (`Features::command_bar`). None by default.
+  virtual bool has_orders_panel() const { return false; }
+  virtual void open_orders_panel(const ui::Rect& /*button*/) {}
 };
 
 // The mission layer, called where the original calls `mission_main_loop`

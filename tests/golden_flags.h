@@ -38,7 +38,8 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
     // The torpedo types' pictures, cards, tube marks and knob labels.
     {"torpedo_types", &Features::torpedo_types, true},
 };
-// Every improvement must be listed above (`Features` holds only flags).
-static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool));
+// Every improvement must be listed above (`Features` holds flags and the
+// one-byte `command_bar`, covered by its own golden case).
+static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool) + sizeof(CommandBarStyle));
 
 }  // namespace sh::test
