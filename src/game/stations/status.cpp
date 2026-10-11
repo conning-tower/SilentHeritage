@@ -4,10 +4,12 @@
 #include <format>
 #include <utility>
 
+#include "assets/pcx.h"
 #include "core/error.h"
 #include "core/fixed_math.h"
 #include "game/command_bar.h"
 #include "game/mission.h"
+#include "game/torpedo_art.h"
 #include "gfx/sprite.h"
 #include "ui/draw.h"
 
@@ -33,6 +35,14 @@ constexpr std::int32_t kCursorBusy = 0x1b;
 
 // The animation counter 0x129bd8 of `game_timer_tick`.
 constexpr std::size_t kAlertTimer = 6;
+
+// The torpedo page's type cards: their row, and (not in the original) the
+// strip saved under them with the frame of a highlighted card, and the
+// highlight colour (white in STATUSBG.PCX).
+constexpr int kCardsY = 0x158;
+constexpr int kCardsStripY = kCardsY - 2;
+constexpr int kCardsHeight = 104;
+constexpr std::uint8_t kHighlightColour = 240;
 
 // The compartment report panel (STATUS.SHP frame 1) at (461, 154).
 constexpr int kPanelX = 0x1cd;
@@ -349,6 +359,12 @@ void StatusStation::draw_screen() {
                     BarButton{kDamagePageFrame, kDamagePageFrame + 1, [this] { pending_page_ = 0; }}},
                    {}, true, true, true});
     sprites_ = Shp::load(env_.install, env_.paths.path(GameDir::kArt, "STATUST.SHP"));
+    if (env_.ui.features.torpedo_types) {
+      art_ = std::make_unique<TorpedoArt>(
+          sprites_, load_pcx(env_.install, env_.paths.path(GameDir::kArt, "STATUSBG.PCX")).palette);
+    } else {
+      art_.reset();
+    }
     drag_ = 0;
     drag_tube_ = -1;
     const TorpedoTubes& tubes = mission.player_combat().tubes;
@@ -362,25 +378,18 @@ void StatusStation::draw_screen() {
     draw_sprite_clipped(full, sprites_.frame(2), 6, 0x9a);
     draw_tubes(false);
     draw_racks(false);
-    // The boat's torpedo types, centred around x 320.
-    const auto& types = mission.player_combat().torpedo_types;
-    std::int32_t n = 0;
-    for (const TorpedoChoice& c : types) {
-      n += c.available ? 1 : 0;
-    }
-    const int w = sprites_.frame(0).width();
-    const std::int32_t half = n / 2;
-    int tx = (n & 1) != 0 ? 0x140 - w / 2 : 0x13d;
-    tx -= half * w;
-    if (half != 0) {
-      tx -= (half - 1) * 7;
-    }
-    for (const TorpedoChoice& c : types) {
-      if (c.available) {
-        draw_torpedo_info(tx, 0x158, c.weapon_id);
-        tx += w + 7;
+    // The boat's torpedo types: the available ones of the TDC's table; with
+    // the extended variant's pictures, only those carried at the start.
+    card_ids_.clear();
+    const std::vector<std::uint32_t>& start = mission.start_torpedo_types();
+    for (const TorpedoChoice& c : mission.player_combat().torpedo_types) {
+      if (c.available && (!art_ || std::ranges::find(start, c.weapon_id) != start.end())) {
+        card_ids_.push_back(c.weapon_id);
       }
     }
+    cards_background_ = grab(env_.screen(), 0, kCardsStripY, kScreenWidth, kCardsHeight);
+    highlighted_ = 0;
+    draw_cards();
     const SpriteFrame& drag = sprites_.frame(3);
     drag_background_ = Image8(drag.width(), drag.height());
   }
@@ -757,7 +766,8 @@ void StatusStation::draw_tubes(bool redraw) {
     draw_sprite_clipped(full, tube, 0x246, y);
     if (content != 0) {
       const std::size_t f = (tubes.timer(t) > 0 ? 0xd : 0xc) + 2 * static_cast<std::size_t>(std::abs(content)) - 2;
-      draw_sprite_clipped(full, sprites_.frame(f), 0x246, 0xa5 + 0x1d * i);
+      draw_torpedo(f, static_cast<std::uint32_t>(std::abs(content)), tubes.timer(t) > 0, 0x246, 0xa5 + 0x1d * i,
+                   false);
     }
     if (!redraw) {
       const Box b = frame_box(tube, 0x246, y);
@@ -772,7 +782,7 @@ void StatusStation::draw_tubes(bool redraw) {
     sprite_draw_transformed(full, tube, 0x38, y, scratch_, Angle10(0), -one, one, 0);
     if (content != 0) {
       const std::size_t f = (tubes.timer(t) > 0 ? 0xd : 0xc) + 2 * static_cast<std::size_t>(std::abs(content)) - 2;
-      sprite_draw_transformed(full, sprites_.frame(f), 0x38, 0xa5 + 0x1d * i, scratch_, Angle10(0), -one, one, 0);
+      draw_torpedo(f, static_cast<std::uint32_t>(std::abs(content)), tubes.timer(t) > 0, 0x38, 0xa5 + 0x1d * i, true);
     }
     if (!redraw) {
       // The original's rectangle: 4 pixels wider than the sprite.
@@ -799,6 +809,10 @@ void StatusStation::draw_racks(bool redraw) {
     }
     return 0xd + 2 * static_cast<std::size_t>(std::abs(slot) >> 8) - 2;
   };
+  // A torpedo's weapon id (in a slot being unloaded into: -(id << 8 | tube)).
+  const auto id_of = [](std::int32_t slot) {
+    return static_cast<std::uint32_t>(slot < 0 ? std::abs(slot) >> 8 : slot);
+  };
   {
     const auto& rack = tubes.bow_rack();
     std::int32_t half = (static_cast<std::int32_t>(rack.size()) + 1) / 2;
@@ -810,8 +824,13 @@ void StatusStation::draw_racks(bool redraw) {
         y = 0xa6;
         x -= 0x62;
       }
-      const SpriteFrame& f = sprites_.frame(frame_of(rack[static_cast<std::size_t>(i)]));
-      draw_sprite_clipped(full, f, x, y);
+      const std::int32_t slot = rack[static_cast<std::size_t>(i)];
+      const SpriteFrame& f = sprites_.frame(std::min(frame_of(slot), sprites_.frame_count() - 1));
+      if (slot == 0) {
+        draw_sprite_clipped(full, f, x, y);
+      } else {
+        draw_torpedo(frame_of(slot), id_of(slot), slot < 0, x, y, false);
+      }
       if (!redraw) {
         const Box b = frame_box(f, x, y);
         hotspots_.push_back({b.x0, b.y0 - 5, b.x1, b.y1 + 5, kBowRackHotspot, i});
@@ -829,8 +848,13 @@ void StatusStation::draw_racks(bool redraw) {
       y = 0xa6;
       x += 0x62;
     }
-    const SpriteFrame& f = sprites_.frame(frame_of(rack[static_cast<std::size_t>(i)]));
-    sprite_draw_transformed(full, f, x, y, scratch_, Angle10(0), -one, one, 0);
+    const std::int32_t slot = rack[static_cast<std::size_t>(i)];
+    const SpriteFrame& f = sprites_.frame(std::min(frame_of(slot), sprites_.frame_count() - 1));
+    if (slot == 0) {
+      sprite_draw_transformed(full, f, x, y, scratch_, Angle10(0), -one, one, 0);
+    } else {
+      draw_torpedo(frame_of(slot), id_of(slot), slot < 0, x, y, true);
+    }
     if (!redraw) {
       const int x0 = x + f.x0;
       const int y0 = y + f.y0;
@@ -839,11 +863,69 @@ void StatusStation::draw_racks(bool redraw) {
   }
 }
 
+void StatusStation::draw_cards() {
+  // The cards centred around x 320 (the original's torpedo page open).
+  const auto n = static_cast<std::int32_t>(card_ids_.size());
+  const int w = sprites_.frame(0).width();
+  const std::int32_t half = n / 2;
+  int tx = (n & 1) != 0 ? 0x140 - w / 2 : 0x13d;
+  tx -= half * w;
+  if (half != 0) {
+    tx -= (half - 1) * 7;
+  }
+  card_x_.clear();
+  for (const std::uint32_t id : card_ids_) {
+    card_x_.push_back(tx);
+    draw_torpedo_info(tx, kCardsY, id);
+    tx += w + 7;
+  }
+}
+
+void StatusStation::highlight_card(std::uint32_t id) {
+  // The card of the type being moved, framed (not in the original).
+  if (id == highlighted_) {
+    return;
+  }
+  erase_dragged();
+  drawn_x_ = drawn_y_ = -1;
+  put(Viewport::full(env_.screen()), cards_background_, 0, kCardsStripY);
+  draw_cards();
+  highlighted_ = id;
+  const auto it = std::ranges::find(card_ids_, id);
+  if (it == card_ids_.end()) {
+    return;
+  }
+  const int x = card_x_[static_cast<std::size_t>(it - card_ids_.begin())];
+  const int w = sprites_.frame(0).width();
+  const int h = sprites_.frame(0).height();
+  const Viewport full = Viewport::full(env_.screen());
+  for (int k = 1; k <= 2; ++k) {
+    ui::draw_line(full, x - k, kCardsY + 2 - k, x + w - 1 + k, kCardsY + 2 - k, kHighlightColour);
+    ui::draw_line(full, x - k, kCardsY + 1 + h + k, x + w - 1 + k, kCardsY + 1 + h + k, kHighlightColour);
+    ui::draw_line(full, x - k, kCardsY + 2 - k, x - k, kCardsY + 1 + h + k, kHighlightColour);
+    ui::draw_line(full, x + w - 1 + k, kCardsY + 2 - k, x + w - 1 + k, kCardsY + 1 + h + k, kHighlightColour);
+  }
+}
+
+void StatusStation::draw_torpedo(std::size_t frame, std::uint32_t id, bool moving, int x, int y, bool mirror) {
+  const Viewport full = Viewport::full(env_.screen());
+  if (art_ && id >= 1 && id <= TorpedoArt::kTypes) {
+    TorpedoArt::draw(full, art_->picture(id, moving), x, y, mirror, scratch_);
+  } else if (frame >= sprites_.frame_count()) {
+    return;
+  } else if (mirror) {
+    const Fixed16 one = Fixed16::from_int(1);
+    sprite_draw_transformed(full, sprites_.frame(frame), x, y, scratch_, Angle10(0), -one, one, 0);
+  } else {
+    draw_sprite_clipped(full, sprites_.frame(frame), x, y);
+  }
+}
+
 void StatusStation::draw_torpedo_info(int x, int y, std::uint32_t weapon_id) {
   // status_draw_torpedo_info (0x75922): the card of a torpedo type.
   const Viewport full = Viewport::full(env_.screen());
   draw_sprite_clipped(full, sprites_.frame(0), x, y + 2);
-  draw_sprite_clipped(full, sprites_.frame(2 * weapon_id + 0xa), x + 0x49, y + 8);
+  draw_torpedo(2 * weapon_id + 0xa, weapon_id, false, x + 0x49, y + 8, false);
   const Torpedo* t = env_.tables.find_torpedo_by_id(weapon_id);
   if (t == nullptr) {
     return;
@@ -898,7 +980,13 @@ void StatusStation::draw_dragged(bool force) {
   const int x = drawn_x_ - (drag_background_.width() - 1) / 2;
   const int y = drawn_y_ - (drag_background_.height() - 1) / 2;
   drag_background_ = grab(env_.screen(), x, y, drag_background_.width(), drag_background_.height());
-  draw_sprite_clipped(Viewport::full(env_.screen()), sprites_.frame(drag_ < 0 ? 0xb : 0xa), drawn_x_, drawn_y_);
+  if (art_ && static_cast<std::uint32_t>(std::abs(drag_)) <= TorpedoArt::kTypes) {
+    // The type's own picture (not in the original: its outline).
+    TorpedoArt::draw(Viewport::full(env_.screen()), art_->picture(static_cast<std::uint32_t>(std::abs(drag_)), true),
+                     drawn_x_, drawn_y_, drag_ < 0, scratch_);
+  } else {
+    draw_sprite_clipped(Viewport::full(env_.screen()), sprites_.frame(drag_ < 0 ? 0xb : 0xa), drawn_x_, drawn_y_);
+  }
 }
 
 void StatusStation::update_torpedo_page() {
@@ -933,6 +1021,9 @@ void StatusStation::update_torpedo_page() {
   }
   if (racks_changed) {
     draw_racks(true);
+  }
+  if (art_) {
+    highlight_card(static_cast<std::uint32_t>(std::abs(drag_)));
   }
   draw_dragged(tubes_changed);
 }

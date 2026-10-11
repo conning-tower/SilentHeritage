@@ -13,6 +13,7 @@
 #include "core/fixed_math.h"
 #include "core/install.h"
 #include "game/mission.h"
+#include "game/torpedo_art.h"
 #include "gfx/sprite.h"
 #include "gfx/text.h"
 #include "sim/geometry.h"
@@ -288,9 +289,87 @@ struct TdcPanelContext {
     const bool top = scrub->press_y() > box_y + h / 2;
     ui::draw_readout(vp, w / 2, top ? 2 : h - plate - 2, *readout_font, text, ghost, ghost_back);
   }
+  // The extended variant's labels (GUI_1.FNT; not in the original).
+  Font labels;
 
   Mission& mission() { return services.mission(); }
   Tdc& tdc() { return services.mission().player_combat().tdc; }
+
+  // The extended variant's torpedo types (not in the original): marked
+  // tube buttons and the type knob's labels written from its table, which
+  // the torpedo rules fill with other types than the original's.
+  bool marks_types() const { return services.features.torpedo_types; }
+  bool extended_knob() {
+    const MissionRules& rules = mission().sim().conditions().rules;
+    return marks_types() || rules.mixed_mark18 || rules.mark27;
+  }
+  // The palette entries a marking may use: the site's static ones (the
+  // scope's and TBT's overlay, 160..255; all on the TDC station) but the
+  // unused placeholders (the TBT's hold the type colours,
+  // `add_tbt_type_colours`).
+  std::vector<std::uint8_t> marking_colours() const {
+    const VgaPalette& pal = services.palette();
+    std::vector<std::uint8_t> out;
+    for (int i = site == TdcPanelSite::kTdc ? 0 : 160; i < 256; ++i) {
+      const auto u = static_cast<std::size_t>(i) * 3;
+      if (!(pal[u] < 4 && pal[u + 1] > 60 && pal[u + 2] < 4)) {
+        out.push_back(static_cast<std::uint8_t>(i));
+      }
+    }
+    return out;
+  }
+  // Returns the marking entry nearest to the grey `level` (0..255).
+  std::uint8_t ink(int level) const {
+    const VgaPalette& pal = services.palette();
+    std::uint8_t best = 0;
+    int best_d = 1 << 30;
+    for (const std::uint8_t a : marking_colours()) {
+      const auto v = static_cast<std::size_t>(a) * 3;
+      const int d = std::abs(pal[v] * 4 - level) + std::abs(pal[v + 1] * 4 - level) + std::abs(pal[v + 2] * 4 - level);
+      if (d < best_d) {
+        best_d = d;
+        best = a;
+      }
+    }
+    return best;
+  }
+  // Darkens the pixels of `box` (dialog coordinates) of `dialog`: a dial a
+  // bearing-only solution does not use (not in the original).
+  void dim(const ui::Dialog& dialog, const Box& box) {
+    const VgaPalette& pal = services.palette();
+    const std::vector<std::uint8_t> allowed = marking_colours();
+    std::array<std::int16_t, 256> remap;
+    remap.fill(-1);
+    Image8& screen = services.screen();
+    for (int y = box.y0; y <= box.y1; ++y) {
+      for (int x = box.x0; x <= box.x1; ++x) {
+        const int sx = dialog.x() + x;
+        const int sy = dialog.y() + y;
+        if (!screen.contains(sx, sy)) {
+          continue;
+        }
+        const std::uint8_t c = screen.at(sx, sy);
+        if (remap[c] < 0) {
+          const auto u = static_cast<std::size_t>(c) * 3;
+          const int r = pal[u] / 3;
+          const int g = pal[u + 1] / 3;
+          const int b = pal[u + 2] / 3;
+          int best = 1 << 30;
+          remap[c] = c;
+          for (const std::uint8_t a : allowed) {
+            const auto v = static_cast<std::size_t>(a) * 3;
+            const int d = (pal[v] - r) * (pal[v] - r) + (pal[v + 1] - g) * (pal[v + 1] - g) +
+                          (pal[v + 2] - b) * (pal[v + 2] - b);
+            if (d < best) {
+              best = d;
+              remap[c] = a;
+            }
+          }
+        }
+        screen.set(sx, sy, static_cast<std::uint8_t>(remap[c]));
+      }
+    }
+  }
 
   // Returns a buffer of `box` (dialog coordinates) filled from the
   // background (the `viewport_blit` that starts each dial redraw).
@@ -344,7 +423,11 @@ class PanelControl : public ui::Control {
       ui::add_control_hotspot(dialog, *this, {box_.x0, box_.y0, box_.x1, box_.y1}, 0, 0, ui::kFocusNone);
       return false;
     }
-    return message(dialog, msg, sub, event);
+    const bool handled = message(dialog, msg, sub, event);
+    if (handled && dimmed_ && dimmed_()) {
+      ctx_.dim(dialog, box_);
+    }
+    return handled;
   }
   bool is_disabled(int) const override { return disabled_ && disabled_(); }
   void hover(bool on, int, const ui::Event&) override {
@@ -355,6 +438,9 @@ class PanelControl : public ui::Control {
 
   // Disables the control while `fn` returns true (the manual-only dials).
   void set_disabled_when(std::function<bool()> fn) { disabled_ = std::move(fn); }
+  // Draws the control darkened while `fn` returns true (not in the
+  // original: the dials a bearing-only solution does not use).
+  void set_dimmed_when(std::function<bool()> fn) { dimmed_ = std::move(fn); }
   void without_cursor() { has_cursor_ = false; }
 
  protected:
@@ -367,6 +453,7 @@ class PanelControl : public ui::Control {
   ui::CursorId cursor_;
   bool has_cursor_ = true;
   std::function<bool()> disabled_;
+  std::function<bool()> dimmed_;
 };
 
 // A tube button (`tdc_tube_button_handler`, 0x7cf57): the press fires the
@@ -390,7 +477,16 @@ class TubeButton final : public PanelControl {
     const TorpedoTubes& tubes = ctx_.mission().player_combat().tubes;
     const bool ready = tubes.content(tube_) > 0 && tubes.damage(tube_).flags == 0;
     const std::int32_t frame = ready ? ready_frame_ : ready_frame_ + 1;
-    ctx_.draw_frame(dialog.gfx(), frame, box_.x0, box_.y0);
+    const std::int32_t content = tubes.content(tube_);
+    if (ctx_.marks_types() && content != 0 && static_cast<std::size_t>(frame) < ctx_.sprites.frame_count()) {
+      // The bezel in the type's colour (not in the original), dimmed while
+      // loading.
+      draw_marked_button(dialog.gfx(), ctx_.sprites.frame(static_cast<std::size_t>(frame)), box_.x0, box_.y0,
+                         static_cast<std::uint32_t>(std::abs(content)), content < 0, ctx_.services.palette(),
+                         ctx_.marking_colours());
+    } else {
+      ctx_.draw_frame(dialog.gfx(), frame, box_.x0, box_.y0);
+    }
     add_sprite_dirty(dialog, frame);
     return true;
   }
@@ -446,15 +542,22 @@ class TrackButton final : public PanelControl {
 
  protected:
   bool message(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event&) override {
+    Tdc& tdc = ctx_.tdc();
     if (msg == ui::Msg::kPress) {
       if (pressed) {
         return false;
       }
-      ctx_.tdc().toggle_track();
+      if (tdc.bearing_only()) {
+        // The Mark 27's bearing source (not in the original).
+        tdc.cycle_sonar_source(ctx_.mission().player_combat().heard);
+      } else {
+        tdc.toggle_track();
+      }
     } else if (msg != ui::Msg::kRelease && msg != ui::Msg::kPaint) {
       return false;
     }
-    const std::int32_t frame = ctx_.tdc().tracking() ? on_ : off_;
+    const bool lit = tdc.bearing_only() ? tdc.sonar_source() != nullptr : tdc.tracking();
+    const std::int32_t frame = lit ? on_ : off_;
     ctx_.draw_frame(dialog.gfx(), frame, box_.x0, box_.y0);
     if (static_cast<std::size_t>(frame) < ctx_.sprites.frame_count()) {
       const SpriteFrame& f = ctx_.sprites.frame(static_cast<std::size_t>(frame));
@@ -654,6 +757,11 @@ class QualityTape final : public PanelControl {
     const Viewport vp = Viewport::full(buf);
     const int w = buf.width();
     const int h = buf.height();
+    if (ctx_.tdc().bearing_only()) {
+      draw_bearing_only(vp, w, h);
+      ctx_.present(dialog, buf, box_);
+      return true;
+    }
     const std::int32_t value = ctx_.tdc().quality();
     // The label colour: the identity GUI table with entry 0xe0 set to the
     // def's colour (0).
@@ -687,7 +795,66 @@ class QualityTape final : public PanelControl {
   }
 
  private:
+  // The Mark 27's solution in place of the tape (not in the original):
+  // its type and where the bearing comes from.
+  void draw_bearing_only(const Viewport& vp, int w, int h) {
+    const Tdc& tdc = ctx_.tdc();
+    std::string source = "DIALLED BRG";
+    if (tdc.mode() == Tdc::Mode::kAuto && tdc.target() != nullptr) {
+      source = tdc.no_intercept() ? "NO INTERCEPT" : "LEAD 12 KN";
+    } else if (tdc.sonar_source() != nullptr) {
+      source = "SONAR BRG";
+    } else if (tdc.mode() == Tdc::Mode::kAuto) {
+      source = "NO BEARING";
+    }
+    GlyphColourTable ink{};
+    ink.fill(0xff);
+    for (std::size_t g = 1; g < 0xff; ++g) {
+      ink[g] = kColour;
+    }
+    const Font& font = ctx_.labels;
+    const int line = font.height() + 1;
+    const int top = (h - 2 * line) / 2 + 1;
+    for (const auto& [text, row] : {std::pair<std::string, int>{"MK27 HOMING", 0}, {source, 1}}) {
+      gui_draw_text(vp, (w - font.text_width(text)) / 2, top + row * line, font, text, &ink);
+    }
+  }
+
   static constexpr std::uint8_t kColour = 0;
+};
+
+// A text in a box, its background restored at each paint (not in the
+// original: the extended variant's labels), in `colour()`.
+class TextLabel final : public PanelControl {
+ public:
+  TextLabel(TdcPanelContext& ctx, Box box, std::function<std::string()> text, std::function<std::uint8_t()> colour)
+      : PanelControl(ctx, box, ui::CursorId::kSet), text_(std::move(text)), colour_(std::move(colour)) {
+    without_cursor();
+  }
+
+ protected:
+  bool message(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event&) override {
+    if (msg != ui::Msg::kPaint) {
+      return false;
+    }
+    Image8 buf = ctx_.box_buffer(box_, dialog.y());
+    const std::string text = text_();
+    GlyphColourTable ink{};
+    ink.fill(0xff);
+    const std::uint8_t c = colour_();
+    for (std::size_t g = 1; g < 0xff; ++g) {
+      ink[g] = c;
+    }
+    const Font& font = ctx_.labels;
+    gui_draw_text(Viewport::full(buf), buf.width() - font.text_width(text), (buf.height() - font.height()) / 2,
+                  font, text, &ink);
+    ctx_.present(dialog, buf, box_);
+    return true;
+  }
+
+ private:
+  std::function<std::string()> text_;
+  std::function<std::uint8_t()> colour_;
 };
 
 // A needle dial (`needle_dial_proc`, 0x4978c / `needle_dial_draw`,
@@ -841,12 +1008,14 @@ class RunTimer final : public PanelControl {
 // int32[3] x at 0x10fa48, int32[3] y at 0x10fa54.
 constexpr std::uint32_t kTypeLabelDx = 0x10fa48;
 constexpr std::uint32_t kTypeLabelDy = 0x10fa54;
+// The width of the extended variant's type labels ("MK18-2").
+constexpr int kTypeLabelWidth = 44;
 
 }  // namespace
 
 struct TdcPanels::Impl {
   explicit Impl(AttackServices& services, TdcPanelSite site)
-      : ctx{services, site, layout_of(site), {}, {}, {}, colours_of(site), {}, {}, 0, nullptr, 0, 0, std::nullopt} {}
+      : ctx{services, site, layout_of(site), {}, {}, {}, colours_of(site), {}, {}, 0, nullptr, 0, 0, std::nullopt, {}} {}
 
   TdcPanelContext ctx;
   std::optional<Shp> background;  // SCOPTDC<n>.SHP / TBTTDC<n>.SHP
@@ -1026,21 +1195,48 @@ void TdcPanels::Impl::open_solution_panel() {
       ctx, l.speed, [&tdc] { return tdc.speed_tenths(); }, [&tdc](std::int32_t v) { tdc.set_speed_tenths(v); });
   auto& track = solution->emplace<TrackButton>(ctx, l.track);
   auto& quality = solution->emplace<QualityTape>(ctx, l.quality);
+  bearing.set_disabled_when(manual_off);
+  // The Mark 27's bearing-only solution (not in the original) leaves the
+  // range, course and speed out, and its TRACK button picks the sonar
+  // source in either mode.
+  const auto unused = [&tdc] { return tdc.bearing_only(); };
   for (PanelControl* c :
-       {static_cast<PanelControl*>(&bearing), static_cast<PanelControl*>(&course), static_cast<PanelControl*>(&range),
-        static_cast<PanelControl*>(&speed), static_cast<PanelControl*>(&track)}) {
-    c->set_disabled_when(manual_off);
+       {static_cast<PanelControl*>(&course), static_cast<PanelControl*>(&range), static_cast<PanelControl*>(&speed)}) {
+    c->set_disabled_when([manual_off, unused] { return manual_off() || unused(); });
+    c->set_dimmed_when(unused);
   }
+  track.set_disabled_when([manual_off, unused] { return manual_off() && !unused(); });
+  // (The bearing-only flag only changes with the Mark 27: the original's
+  // values otherwise.)
+  const auto only = [&tdc] { return tdc.bearing_only() ? 1 << 30 : 0; };
   scrub_knob(bearing, *solution, "BEARING", 10);
   scrub_knob(course, *solution, "COURSE", 10);
   scrub_counter(range, *solution, 10, 10);
   scrub_counter(speed, *solution, 0.25, 1);
   watch(bearing, [&tdc] { return tdc.bearing().tenths(); });
-  watch(course, [this, &tdc] { return tdc.course().tenths() * 4000 + ctx.mission().player().heading().tenths(); });
-  watch(range, [&tdc] { return tdc.range_yd(); });
-  watch(speed, [&tdc] { return tdc.speed_tenths(); });
-  watch(track, [&tdc] { return tdc.tracking() ? 1 : 0; });
-  watch(quality, [&tdc] { return tdc.quality(); });
+  watch(course, [this, &tdc, only] {
+    return (tdc.course().tenths() * 4000 + ctx.mission().player().heading().tenths()) ^ only();
+  });
+  watch(range, [&tdc, only] { return tdc.range_yd() ^ only(); });
+  watch(speed, [&tdc, only] { return tdc.speed_tenths() ^ only(); });
+  watch(track, [&tdc, only] {
+    return (tdc.tracking() ? 1 : 0) + (tdc.sonar_source() != nullptr ? 2 : 0) + only();
+  });
+  watch(quality, [&tdc] {
+    if (!tdc.bearing_only()) {
+      return tdc.quality();
+    }
+    return (1 << 30) + (tdc.no_intercept() ? 1 : 0) + (tdc.sonar_source() != nullptr ? 2 : 0) +
+           (tdc.target() != nullptr ? 4 : 0) + static_cast<std::int32_t>(tdc.mode()) * 8;
+  });
+  if (ctx.site == TdcPanelSite::kTdc && ctx.extended_knob()) {
+    // The TRACK button's caption while it picks the sonar source.
+    const Box& t = l.track.box;
+    auto& caption = solution->emplace<TextLabel>(
+        ctx, Box{t.x0 - 16, t.y1 + 3, t.x1 + 16, t.y1 + 3 + ctx.labels.height()},
+        [&tdc] { return std::string(tdc.bearing_only() ? "SONAR" : ""); }, [this] { return ctx.ink(240); });
+    watch(caption, only);
+  }
   solution->open();
 }
 
@@ -1096,6 +1292,33 @@ void TdcPanels::Impl::open_torpedo_panel() {
   watch(depth, [&tdc] { return tdc.depth_ft(); });
   watch(speed, [&tdc] { return tdc.speed_setting(); });
   watch(type, [&tdc] { return tdc.type_index(); });
+  if (ctx.extended_knob()) {
+    // The labels written from the table's names (not in the original: its
+    // baked MARK10 / MARK14 / MARK18) in the original's places, the
+    // selected type lit.
+    const Box& b = l.torpedo_type.box;
+    const int h = ctx.labels.height();
+    for (std::int32_t k = 0; k < 3; ++k) {
+      const TorpedoChoice& c = pc.torpedo_types[static_cast<std::size_t>(k)];
+      if (!c.available) {
+        continue;
+      }
+      const auto u = static_cast<std::uint32_t>(k);
+      const std::int32_t frame = l.torpedo_type.frame + 3 + k;
+      const int width = static_cast<std::size_t>(frame) < ctx.sprites.frame_count()
+                            ? ctx.sprites.frame(static_cast<std::size_t>(frame)).width()
+                            : 0;
+      const int right = b.x0 - game_exe().i32(kTypeLabelDx + 4 * u) + width - 1;
+      const int y = b.y0 + game_exe().i32(kTypeLabelDy + 4 * u) - 1;
+      const std::string text = torpedo_short_label(c.name);
+      auto& label = torpedo->emplace<TextLabel>(
+          ctx, Box{right - kTypeLabelWidth + 1, y, right, y + h - 1}, [text] { return text; },
+          [this, &tdc, k] { return ctx.ink(tdc.type_index() == k ? 250 : 140); });
+      watch(label, [&tdc, k] { return tdc.type_index() == k ? 1 : 0; });
+    }
+    torpedo->open();
+    return;
+  }
   torpedo->open();
   // The labels of the available torpedo types beside the type button.
   for (std::size_t k = 0; k < 3; ++k) {
@@ -1117,6 +1340,7 @@ void TdcPanels::open() {
   const Install& install = ctx.services.install();
   ctx.digits = Font::load(install, "ART/DIGITS.FNT");
   ctx.big_digits = Font::load(install, "ART/DIGITS3.FNT");
+  ctx.labels = Font::load(install, "ART/GUI_1.FNT");
   Image8& screen = ctx.services.screen();
   const auto sub = static_cast<std::size_t>(ctx.services.tdc_panel);
   switch (ctx.site) {

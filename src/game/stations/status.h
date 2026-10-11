@@ -19,6 +19,7 @@
 #include "core/image.h"
 #include "game/station.h"
 #include "game/station_env.h"
+#include "game/torpedo_art.h"
 #include "gfx/text.h"
 
 namespace sh {
@@ -104,6 +105,11 @@ class StatusStation : public Station {
     std::int32_t index;
   };
   const std::vector<Hotspot>& hotspots() const { return hotspots_; }
+  // The weapon ids of the torpedo page's type cards, left to right.
+  const std::vector<std::uint32_t>& card_types() const { return card_ids_; }
+  // The type whose card is framed while one of its torpedoes is moved (not
+  // in the original), or 0.
+  std::uint32_t highlighted_card() const { return highlighted_; }
 
  private:
   struct Rect {
@@ -134,6 +140,12 @@ class StatusStation : public Station {
   void draw_tubes(bool redraw);              // status_draw_tubes (0x7622e)
   void draw_racks(bool redraw);              // status_draw_torpedo_racks (0x765f2)
   void draw_torpedo_info(int x, int y, std::uint32_t weapon_id);  // status_draw_torpedo_info (0x75922)
+  // The cards, centred (the original's torpedo page open). Not in the
+  // original: the card of `id` framed (0: none), the others redrawn plain;
+  // torpedo `id` (STATUST.SHP `frame`) or, with `art_`, its picture.
+  void draw_cards();
+  void highlight_card(std::uint32_t id);
+  void draw_torpedo(std::size_t frame, std::uint32_t id, bool moving, int x, int y, bool mirror);
   void draw_dragged(bool force);             // status_draw_dragged_torpedo (0x76078)
   void erase_dragged();                      // status_erase_dragged_torpedo (0x76194)
   void update_torpedo_page();                // status_torpedo_page_update (0x75ee7)
@@ -197,6 +209,13 @@ class StatusStation : public Station {
   int drawn_y_ = -1;             // 0x127d48
   Image8 drag_background_;       // 0x127d4c
   Image8 scratch_;               // sprite_draw_transformed's buffer
+  // The extended variant's torpedo pictures (`Features::torpedo_types`).
+  std::unique_ptr<TorpedoArt> art_;
+  // The cards' weapon ids and x, the screen under them, the framed card.
+  std::vector<std::uint32_t> card_ids_;
+  std::vector<int> card_x_;
+  Image8 cards_background_;
+  std::uint32_t highlighted_ = 0;
 };
 
 }  // namespace sh

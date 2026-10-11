@@ -26,6 +26,10 @@ class CommandPanelView {
   // presentation is turned off meanwhile, then restored). The button
   // group is semi-transparent unless the panel is open or it is dragged.
   void draw(const CommandPanel& panel);
+  // Replaces the icon of panel command `index` and its pressed look (not
+  // in the original: the tube buttons marked with their torpedo types).
+  // Throws std::runtime_error if SDL cannot create a texture.
+  void set_icon(std::size_t index, const RgbaImage& icon, const RgbaImage& pressed);
 
  private:
   // Draws icon `i` in `r` with the panel's live state (extended

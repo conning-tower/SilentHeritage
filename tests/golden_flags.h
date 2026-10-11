@@ -35,6 +35,8 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
     // The scenario editor only.
     {"editor_no_size_limit", &Features::editor_no_size_limit, true},
     {"editor_fixes", &Features::editor_fixes, true},
+    // The torpedo types' pictures, cards, tube marks and knob labels.
+    {"torpedo_types", &Features::torpedo_types, true},
 };
 // Every improvement must be listed above (`Features` holds only flags).
 static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool));

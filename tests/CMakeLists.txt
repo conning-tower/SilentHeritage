@@ -91,6 +91,7 @@ add_executable(sh_tests
   stations_control_gauges_test.cpp
   stations_control_status_test.cpp
   torpedo_types_test.cpp
+  torpedo_ui_test.cpp
   stations_control_cabin_test.cpp
   # Outside and attack stations (bridge, periscope, TBT, deck gun, TDC, radar).
   stations_attack_test.cpp

@@ -50,6 +50,10 @@ struct Features {
   // the torpedoes' service months are read right.
   // The .SCN files keep the records the original game reads.
   bool editor_fixes = false;
+  // The torpedo types told apart: each Mark 18 its own pictures, the status
+  // page's boxes for the types carried, the tube buttons marked by type.
+  // (Mixed loads and the Mark 27 are rules: MissionRules.)
+  bool torpedo_types = false;
 
   // Returns the original game's set: no improvement.
   static constexpr Features faithful() { return {}; }
@@ -63,7 +67,8 @@ struct Features {
             .precise_dials = true,
             .panel_status = true,
             .editor_no_size_limit = true,
-            .editor_fixes = true};
+            .editor_fixes = true,
+            .torpedo_types = true};
   }
   // Returns the set of this build's variant.
   static constexpr Features for_build() { return edition::kExtended ? extended() : faithful(); }

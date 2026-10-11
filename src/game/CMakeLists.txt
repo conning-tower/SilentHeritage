@@ -10,6 +10,7 @@ sh_add_module(sh_game
     mission_rules.cpp
     mission_loop.cpp
     screen_shake.cpp
+    torpedo_art.cpp
     torpedo_load.cpp
     mission_session.cpp
     # Control-room stations and the in-mission screen host: the command

@@ -391,6 +391,12 @@ void Display::set_command_panel(CommandPanel& panel, const CommandIcons& icons) 
   impl_->sync_panel_window();
 }
 
+void Display::set_command_icon(std::size_t index, const RgbaImage& icon, const RgbaImage& pressed) {
+  if (impl_->panel_view) {
+    impl_->panel_view->set_icon(index, icon, pressed);
+  }
+}
+
 void Display::show_command_panel(bool shown) {
   if (impl_->panel != nullptr && !shown) {
     impl_->panel->close();

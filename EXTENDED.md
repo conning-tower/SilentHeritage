@@ -32,6 +32,9 @@ kept with it.
   ghost needle and given when you let go.
 - **Live ORDERS panel:** the touch ORDERS panel shows the depth order in
   effect and each tube's state.
+- **Torpedo types:** each torpedo type has its own look, the Mark 18-1 blue
+  and the 18-2 orange, and the status page and the tube buttons of the TDC,
+  TBT, periscope and touch panel show the types aboard.
 
 ## Rules
 
@@ -42,7 +45,6 @@ kept with it.
   a 10 % higher realism rating.
 - **Detectable radar:** a new REALISM item, on at EXPERT, that gives the
   escorts radar detectors; turning it off lowers the realism rating by 5 %.
-
 - **Mixed Mark 18s:** from August 1944 the Mark 18-2 replaces the Mark 18-1
   over three months, and a boat carries at most three torpedo types, its
   oldest type giving way to its newest.
