@@ -63,7 +63,7 @@ TEST_CASE("career calendar", "[career]") {
   CHECK(campaign_month_index_abs(7, 1945) == 44);
 }
 
-TEST_CASE("career patrol zone pick and transit", "[career]") {
+TEST_CASE("career patrol zone pick and transit", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const CampaignData data = all_zones(install);
   REQUIRE(data.zones.size() == 15);
@@ -116,7 +116,7 @@ TEST_CASE("career patrol zone pick and transit", "[career]") {
 }
 
 TEST_CASE("career home ports by date", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const CampaignData data = all_zones(install);
   CareerRecord r;
   r.day = 1;
@@ -138,7 +138,7 @@ TEST_CASE("career home ports by date", "[career]") {
 }
 
 TEST_CASE("career transfers", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const CampaignData data = all_zones(install);
   Career c = darwin_career();
   WatcomRandom random(7);
@@ -360,7 +360,7 @@ TEST_CASE("career relieved of command", "[career]") {
 }
 
 TEST_CASE("career promotions and new boats", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const CampaignData data = all_zones(install);
   Career c = darwin_career();
   c.record.promotion_patrols = 2;
@@ -393,7 +393,7 @@ TEST_CASE("career promotions and new boats", "[career]") {
   CHECK_FALSE(m.from_fleet_boat);
 }
 
-TEST_CASE("career top commanders", "[career]") {
+TEST_CASE("career top commanders", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   CareerRecord r;
