@@ -27,14 +27,10 @@ enum class EventType : std::uint8_t {
   // keyboard while text input is on): its printable ASCII code in
   // `character` (and `key`).
   kText,
-  // The application goes to the background (SDL_EVENT_WILL_ENTER_BACKGROUND
-  // and DID_ENTER_BACKGROUND). On Android the process may then be killed
-  // without further notice, and the next `poll` blocks until it comes back.
-  kSuspend,
-  // It is back in the foreground (SDL_EVENT_DID_ENTER_FOREGROUND).
-  kResume,
-  // The system is low on memory (SDL_EVENT_LOW_MEMORY).
-  kLowMemory,
+  // The window lost or gained the input focus. (The application's
+  // lifecycle events reach only a `LifecycleWatch`.)
+  kFocusLost,
+  kFocusGained,
 };
 
 enum class MouseButton : std::uint8_t { kNone, kLeft, kRight, kMiddle };
@@ -105,7 +101,8 @@ class Display {
   void present(const Image8& frame, const Palette& palette);
 
   // Returns the next pending input event, if any. The window's close
-  // button and SDL_EVENT_TERMINATING give `kQuit`. While text input is on,
+  // button and the system ending the program (SDL_EVENT_QUIT) give
+  // `kQuit`. While text input is on,
   // the typed characters arrive as `kText` events and the key downs typing
   // them are dropped (`key_types_text`).
   std::optional<InputEvent> poll();

@@ -350,6 +350,9 @@ TEST_CASE("command panel: the display swallows its taps and types its keys", "[c
   display.set_command_panel(panel, icons);
   // The dummy window: 1280x960 pixels at scale 1.
   panel.set_window(1280, 960, 1);
+  // The window's own events (its focus).
+  while (display.poll()) {
+  }
   const auto click = [](float x, float y) {
     for (const Uint32 type : {SDL_EVENT_MOUSE_BUTTON_DOWN, SDL_EVENT_MOUSE_BUTTON_UP}) {
       SDL_Event e{};

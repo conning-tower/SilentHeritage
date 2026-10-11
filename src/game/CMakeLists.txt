@@ -82,7 +82,10 @@ sh_add_module(sh_game
     frontend_continue.cpp
     save_commands.cpp
     # The mission layer of the program (its missions and patrols with every
-    # station) and the resume snapshot of a suspended game.
+    # station) and the resume snapshot of a suspended game, kept through
+    # the system's lifecycle events with their diagnostic log.
     game_runner.cpp
     resume.cpp
+    resume_keeper.cpp
+    lifecycle_log.cpp
   DEPS sh_core sh_gfx sh_assets sh_audio sh_sim sh_ui sh_view)

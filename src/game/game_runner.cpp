@@ -65,6 +65,13 @@ struct FlagClearer {
   bool& flag_;
 };
 
+// Ends the front end's resuming when the scope ends (also by an
+// exception).
+struct ResumingEnder {
+  FrontEnd& front_end;
+  ~ResumingEnder() { front_end.end_resuming(); }
+};
+
 }  // namespace
 
 GameRunner::GameRunner(GameRunnerServices services, FrontendHost& host)
@@ -87,6 +94,7 @@ MissionSetup GameRunner::setup_for(std::uint32_t options, const GameOptions& gam
 }
 
 std::int32_t GameRunner::run(const MissionRequest& request) {
+  const ResumingEnder resumed{*front_end_};
   outcome_ = MissionOutcome{};
   if (!tables_) {
     tables_ = std::make_unique<GameTables>(GameTables::load(services_.install));
@@ -145,6 +153,7 @@ std::int32_t GameRunner::run(const MissionRequest& request) {
 
 std::int32_t GameRunner::run_patrol(const PatrolRequest& request, PatrolResult& result) {
   // run_mission with the patrol built by career_build_patrol_scenario.
+  const ResumingEnder resumed{*front_end_};
   outcome_ = MissionOutcome{};
   if (!tables_) {
     tables_ = std::make_unique<GameTables>(GameTables::load(services_.install));
@@ -229,6 +238,8 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
     const ScopedPointer<MissionSession> in_play(session_, &session);
     const ScopedPointer<Patrol> patrol_in_play(patrol_, patrol);
     const FlagClearer loop_left(in_play_);
+    // Restored: the game runs again, the mission in play its snapshot.
+    front_end_->end_resuming();
     std::uint32_t last = host_.ticks();
     while (true) {
       in_play_ = screen.in_play();
@@ -274,7 +285,15 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
   return end;
 }
 
-ResumeSnapshot GameRunner::snapshot() {
+std::optional<ResumeSnapshot> GameRunner::snapshot() {
+  if (session_ == nullptr) {
+    if (front_end_->launch_resume_pending()) {
+      return std::nullopt;
+    }
+    if (const ResumeSnapshot* resuming = front_end_->resuming()) {
+      return *resuming;
+    }
+  }
   ResumeSnapshot s;
   if (session_ != nullptr) {
     Mission& mission = session_->screen().mission();
@@ -289,6 +308,9 @@ ResumeSnapshot GameRunner::snapshot() {
   return s;
 }
 
-bool GameRunner::suspend() { return write_resume_snapshot(services_.saves, snapshot()); }
+bool GameRunner::suspend() {
+  const std::optional<ResumeSnapshot> s = snapshot();
+  return s && write_resume_snapshot(services_.saves, *s);
+}
 
 }  // namespace sh

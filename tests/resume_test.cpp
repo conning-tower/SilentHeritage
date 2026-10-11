@@ -5,18 +5,24 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_hints.h>
 #include <SDL3/SDL_keycode.h>
 #include <SDL3/SDL_scancode.h>
+#include <SDL3/SDL_system.h>
 
 #include <algorithm>
 #include <array>
 #include <deque>
 #include <filesystem>
 #include <format>
+#include <fstream>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -31,12 +37,16 @@
 #include "game/mission.h"
 #include "game/mission_session.h"
 #include "game/patrol.h"
+#include "game/lifecycle_log.h"
 #include "game/resume.h"
+#include "game/resume_keeper.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
 #include "game/sim_state.h"
 #include "game_data.h"
 #include "platform/bios_keys.h"
+#include "platform/display.h"
+#include "platform/lifecycle_watch.h"
 #include "ui/controls.h"
 #include "ui/default_skin.h"
 #include "ui/dialog.h"
@@ -352,6 +362,7 @@ TEST_CASE("A suspended mission resumes at the next launch as if never left", "[r
   std::vector<std::uint8_t> at_suspend;
   {
     GameRig a(install, dir);
+    a.front_end.set_resume(false);  // no launch snapshot pending
     a.host.on_poll = [&](ui::Gui& gui) {
       const int frame = a.mission_frame();
       if (frame < 0) {
@@ -452,6 +463,7 @@ TEST_CASE("A suspended career patrol resumes inside the career", "[resume]") {
   std::int32_t hundredths = 0;
   {
     GameRig a(install, dir);
+    a.front_end.set_resume(false);  // no launch snapshot pending
     Career career = patrol_career();
     WatcomRandom random(99);
     PatrolRequest request;
@@ -583,6 +595,379 @@ TEST_CASE("The resume snapshot keeps the mission and its save slot", "[resume]")
   // A truncated mission image is damage.
   std::vector<std::uint8_t> cut(bytes.begin(), bytes.end() - 100);
   CHECK_THROWS_AS(ResumeSnapshot::parse(cut), DataError);
+}
+
+
+// ------------------------------------------------- lifecycle and keeping
+
+// SDL 3.4 on Android as it reaches the game's `ResumeKeeper` (through
+// GameApp): the lifecycle events go only to the event watch, from the
+// event poll that pumps the activity's state changes (SDL_SendAppEvent
+// never queues them); the window events SDLActivity sends from its Java
+// thread are queued and reach the game at its next poll; with
+// SDL_HINT_ANDROID_BLOCK_ON_PAUSE the poll that reports the pause blocks
+// there (Android_PumpEvents, GetLifecycleEventTimeout) until the resume.
+struct AndroidSdl {
+  ResumeKeeper& keeper;
+  std::vector<LifecycleEvent> queue;
+
+  // onWindowFocusChanged: nativeFocusChanged queues the window event.
+  void focus(bool gained) { queue.push_back(gained ? LifecycleEvent::kFocusGained : LifecycleEvent::kFocusLost); }
+  // The game's event poll: the queued events (GameApp::feed).
+  void poll() {
+    for (const LifecycleEvent e : queue) {
+      if (e != LifecycleEvent::kQuit || !keeper.quitting()) {
+        keeper.handle(e);
+      }
+    }
+    queue.clear();
+  }
+  // onStop (multi-window systems; onPause otherwise): nativePause, pumped
+  // at the next poll by Android_OnPause, which then blocks.
+  void pause() {
+    keeper.handle(LifecycleEvent::kWillEnterBackground);
+    keeper.handle(LifecycleEvent::kDidEnterBackground);
+  }
+  // onStart: nativeResume unblocks the poll (Android_OnResume), which then
+  // returns the events queued meanwhile.
+  void resume() {
+    keeper.handle(LifecycleEvent::kWillEnterForeground);
+    keeper.handle(LifecycleEvent::kDidEnterForeground);
+    poll();
+  }
+  // onTrimMemory: nativeLowMemory, pumped even while blocked.
+  void low_memory() { keeper.handle(LifecycleEvent::kLowMemory); }
+  // onDestroy: nativeSendQuit drops the pending pause; Android_OnDestroy
+  // flushes the queue, pushes SDL_EVENT_QUIT (watched and queued) and
+  // sends SDL_EVENT_TERMINATING; the poll returns the quit and the game
+  // ends.
+  void destroy() {
+    queue.clear();
+    keeper.handle(LifecycleEvent::kQuit);
+    queue.push_back(LifecycleEvent::kQuit);
+    keeper.handle(LifecycleEvent::kTerminating);
+    poll();
+    keeper.exit();
+  }
+};
+
+// Returns the lines of the lifecycle log in `dir`, without their time.
+std::vector<std::string> log_lines(const std::filesystem::path& dir) {
+  std::vector<std::string> lines;
+  std::ifstream in(dir / kLifecycleLogName);
+  for (std::string line; std::getline(in, line);) {
+    lines.push_back(line.size() > 24 ? line.substr(24) : line);
+  }
+  return lines;
+}
+
+// HIST01 in play through `script(device, frame)` until it throws `Stop`
+// (the process killed, or ended after `AndroidSdl::destroy`). Returns the
+// mission's state lists when `script` asked for them (`capture`).
+struct LifecycleRun {
+  std::vector<std::uint8_t> captured;
+
+  LifecycleRun(const Install& install, const std::filesystem::path& dir,
+               const std::function<void(AndroidSdl&, int, LifecycleRun&)>& script)
+      : rig_(install, dir), log_(dir / "SAVE"), keeper_(rig_.saves, [this] { return rig_.runner.snapshot(); }, &log_) {
+    rig_.front_end.set_resume(false);
+    AndroidSdl device{keeper_, {}};
+    rig_.host.on_poll = [&](ui::Gui& gui) {
+      const int frame = rig_.mission_frame();
+      if (frame < 0) {
+        rig_.close_briefing(gui);
+        return;
+      }
+      device.poll();
+      script(device, frame, *this);
+    };
+    MissionRequest request;
+    request.type = MissionType::kScenario;
+    request.scenario_path = "SCEN\\HIST01.SCN";
+    request.options = RealismFile::kDefaultBits;
+    request.random = WatcomRandom(11);
+    CHECK_THROWS_AS(rig_.runner.run(request), Stop);
+  }
+
+  // Keeps the mission's state lists as they are now.
+  void capture() { captured = sim_bytes(rig_.runner.session()->screen().mission()); }
+  bool snapshot_on_disk() const { return has_snapshot(rig_.saves); }
+  ResumeKeeper& keeper() { return keeper_; }
+
+ private:
+  GameRig rig_;
+  LifecycleLog log_;
+  ResumeKeeper keeper_;
+};
+
+// Launches the game over `dir` as `run_game` does: returns the state lists
+// of the mission resumed, nothing when the main menu shows instead.
+std::optional<std::vector<std::uint8_t>> relaunch(const Install& install, const std::filesystem::path& dir) {
+  GameRig rig(install, dir);
+  const LifecycleLog log(dir / "SAVE");
+  ResumeKeeper keeper(rig.saves, [&] { return rig.runner.snapshot(); }, &log);
+  keeper.launch("test");
+  std::optional<std::vector<std::uint8_t>> resumed;
+  rig.host.on_poll = [&](ui::Gui&) {
+    if (rig.mission_frame() == 0) {
+      resumed = sim_bytes(rig.runner.session()->screen().mission());
+      throw Stop();
+    }
+    if (rig.front_end.location().place == FrontEndPlace::kMainMenu) {
+      throw Stop();
+    }
+  };
+  CHECK_THROWS_AS(rig.front_end.run(), Stop);
+  CHECK(rig.host.reports.empty());
+  return resumed;
+}
+
+bool log_has(const std::filesystem::path& dir, std::string_view line) {
+  const std::vector<std::string> lines = log_lines(dir);
+  return std::ranges::find(lines, line) != lines.end();
+}
+
+bool log_has_prefix(const std::filesystem::path& dir, std::string_view prefix) {
+  return std::ranges::any_of(log_lines(dir), [&](const std::string& l) { return l.starts_with(prefix); });
+}
+
+TEST_CASE("The resume snapshot survives every way Android ends the app", "[resume][lifecycle]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_resume_lifecycle_test";
+  std::filesystem::remove_all(dir);
+  using Script = std::function<void(AndroidSdl&, int, LifecycleRun&)>;
+  // Runs `script`, then checks that the next launch resumes the mission as
+  // captured.
+  const auto resumes_as_captured = [&](const Script& script) {
+    LifecycleRun run(install, dir, script);
+    REQUIRE_FALSE(run.captured.empty());
+    REQUIRE(run.snapshot_on_disk());
+    const std::optional<std::vector<std::uint8_t>> resumed = relaunch(install, dir);
+    REQUIRE(resumed);
+    CHECK(state_difference(*resumed, run.captured) == "");
+  };
+
+  SECTION("Home, then swiped away from the recent apps: killed in the background") {
+    resumes_as_captured([](AndroidSdl& device, int frame, LifecycleRun& run) {
+      if (frame == 20) {
+        device.focus(false);
+      } else if (frame == 25) {
+        // Stopped a few frames after losing the focus.
+        device.pause();
+        run.capture();
+        throw Stop();
+      }
+    });
+    CHECK(log_has_prefix(dir / "SAVE", "focus-lost: snapshot written (mission, "));
+    CHECK(log_has_prefix(dir / "SAVE", "will-enter-background: snapshot written (mission, "));
+    CHECK(log_has(dir / "SAVE", "did-enter-background: snapshot unchanged (the game has not run since)"));
+    CHECK(log_has_prefix(dir / "SAVE", "launch test: RESUME.SAV of "));
+  }
+
+  SECTION("Home, then swiped away: destroyed while blocked in the background") {
+    resumes_as_captured([](AndroidSdl& device, int frame, LifecycleRun& run) {
+      if (frame == 20) {
+        device.focus(false);
+        device.poll();
+        device.pause();
+        run.capture();
+        device.destroy();
+        throw Stop();
+      }
+    });
+    CHECK(log_has(dir / "SAVE", "quit: snapshot unchanged (the game has not run since)"));
+    CHECK(log_has(dir / "SAVE", "terminating: snapshot unchanged (the game has not run since)"));
+    CHECK(log_has(dir / "SAVE", "exit: snapshot kept"));
+  }
+
+  SECTION("Swiped away from the recent apps, paused but not stopped: killed") {
+    resumes_as_captured([](AndroidSdl& device, int frame, LifecycleRun& run) {
+      if (frame == 20) {
+        device.focus(false);
+        device.poll();
+        run.capture();
+      } else if (frame == 30) {
+        throw Stop();
+      }
+    });
+  }
+
+  SECTION("Swiped away from the recent apps, paused but not stopped: destroyed") {
+    resumes_as_captured([](AndroidSdl& device, int frame, LifecycleRun& run) {
+      if (frame == 20) {
+        device.focus(false);
+      } else if (frame == 30) {
+        // The game ran since the focus was lost: written again.
+        device.destroy();
+        run.capture();
+        throw Stop();
+      }
+    });
+    CHECK(log_has_prefix(dir / "SAVE", "quit: snapshot written (mission, "));
+  }
+
+  SECTION("Killed for memory in the foreground") {
+    resumes_as_captured([](AndroidSdl& device, int frame, LifecycleRun& run) {
+      if (frame == 20) {
+        device.low_memory();
+        run.capture();
+      } else if (frame == 30) {
+        throw Stop();
+      }
+    });
+  }
+
+  SECTION("Killed for memory in the background") {
+    resumes_as_captured([](AndroidSdl& device, int frame, LifecycleRun& run) {
+      if (frame == 20) {
+        device.pause();
+        run.capture();
+        device.low_memory();
+        throw Stop();
+      }
+    });
+    CHECK(log_has(dir / "SAVE", "low-memory: snapshot unchanged (the game has not run since)"));
+  }
+
+  SECTION("The desktop window closed") {
+    resumes_as_captured([](AndroidSdl& device, int frame, LifecycleRun& run) {
+      if (frame == 20) {
+        // SDL_EVENT_QUIT: watched, then polled.
+        device.keeper.handle(LifecycleEvent::kQuit);
+        run.capture();
+        device.queue.push_back(LifecycleEvent::kQuit);
+        device.poll();
+        device.keeper.exit();
+        throw Stop();
+      }
+    });
+  }
+
+  SECTION("Home, then back: the game goes on, the snapshot is gone") {
+    LifecycleRun run(install, dir, [](AndroidSdl& device, int frame, LifecycleRun& r) {
+      if (frame == 20) {
+        device.focus(false);
+        device.poll();
+        device.pause();
+        CHECK(r.snapshot_on_disk());
+        device.focus(true);
+        device.resume();
+        CHECK_FALSE(r.snapshot_on_disk());
+      } else if (frame == 30) {
+        // Killed in the foreground without notice (a crash).
+        throw Stop();
+      }
+    });
+    CHECK_FALSE(run.snapshot_on_disk());
+    CHECK(log_has(dir / "SAVE", "did-enter-foreground: snapshot deleted (the game goes on)"));
+    CHECK_FALSE(relaunch(install, dir));
+  }
+
+  SECTION("Left through the menus: nothing to resume") {
+    LifecycleRun run(install, dir, [](AndroidSdl& device, int frame, LifecycleRun&) {
+      if (frame == 20) {
+        device.focus(false);
+        device.poll();
+        throw Stop();
+      }
+    });
+    CHECK(run.snapshot_on_disk());
+    run.keeper().exit();
+    CHECK_FALSE(run.snapshot_on_disk());
+    CHECK(log_has(dir / "SAVE", "exit through the menus: nothing to resume"));
+  }
+  std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("The launch's snapshot is kept until its game runs again", "[resume][lifecycle]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_resume_launch_test";
+  std::filesystem::remove_all(dir);
+  const SaveDir saves(dir / "SAVE");
+  ResumeSnapshot menu;
+  menu.location.place = FrontEndPlace::kCareerMenu;
+  menu.random = 1234;
+  REQUIRE(write_resume_snapshot(saves, menu));
+
+  GameRig rig(install, dir);
+  const LifecycleLog log(dir / "SAVE");
+  ResumeKeeper keeper(rig.saves, [&] { return rig.runner.snapshot(); }, &log);
+  AndroidSdl device{keeper, {}};
+  // Sent to the background and back before the front end took it: the
+  // file is the launch's, neither replaced nor deleted.
+  device.pause();
+  CHECK(saves.read(kResumeFileName) == menu.serialize());
+  device.resume();
+  CHECK(saves.read(kResumeFileName) == menu.serialize());
+  CHECK(log_has(dir / "SAVE", "will-enter-background: the launch's RESUME.SAV kept (not resumed yet)"));
+  // Taken, then the program is sent to the background at its place.
+  rig.host.on_poll = [&](ui::Gui&) {
+    device.pause();
+    throw Stop();
+  };
+  CHECK_THROWS_AS(rig.front_end.run(), Stop);
+  const std::optional<std::vector<std::uint8_t>> file = saves.read(kResumeFileName);
+  REQUIRE(file);
+  const ResumeSnapshot written = ResumeSnapshot::parse(*file);
+  CHECK(written.kind == ResumeKind::kFrontEnd);
+  CHECK(written.location.place == FrontEndPlace::kCareerMenu);
+  std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("The lifecycle log moves to LIFECYCLE.OLD once full", "[resume][lifecycle]") {
+  const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_lifecycle_log_test";
+  std::filesystem::remove_all(dir);
+  const LifecycleLog log(dir);
+  const std::string line(99, 'x');
+  for (std::uintmax_t i = 0; i * 124 < LifecycleLog::kMaxSize; ++i) {
+    log.write(line);
+  }
+  CHECK_FALSE(std::filesystem::exists(dir / kLifecycleOldLogName));
+  log.write("next");
+  CHECK(std::filesystem::file_size(dir / kLifecycleOldLogName) >= LifecycleLog::kMaxSize);
+  CHECK(log_lines(dir) == std::vector<std::string>{"next"});
+  std::filesystem::remove_all(dir);
+}
+
+TEST_CASE("SDL hands the lifecycle events only to the event watch", "[resume][lifecycle]") {
+  SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "dummy");
+  Display display("test", 1);
+  while (display.poll()) {
+  }
+  std::vector<LifecycleEvent> watched;
+  const LifecycleWatch watch([&](LifecycleEvent e) { watched.push_back(e); });
+  // What SDLActivity's pause, resume, low memory and destroy send.
+  SDL_OnApplicationWillEnterBackground();
+  SDL_OnApplicationDidEnterBackground();
+  SDL_OnApplicationWillEnterForeground();
+  SDL_OnApplicationDidEnterForeground();
+  SDL_OnApplicationDidReceiveMemoryWarning();
+  SDL_OnApplicationWillTerminate();
+  CHECK(watched == std::vector<LifecycleEvent>{LifecycleEvent::kWillEnterBackground,
+                                               LifecycleEvent::kDidEnterBackground,
+                                               LifecycleEvent::kWillEnterForeground,
+                                               LifecycleEvent::kDidEnterForeground, LifecycleEvent::kLowMemory,
+                                               LifecycleEvent::kTerminating});
+  // None of them is queued: the event poll never sees them.
+  std::vector<EventType> polled;
+  while (const std::optional<InputEvent> e = display.poll()) {
+    polled.push_back(e->type);
+  }
+  CHECK(std::ranges::find(polled, EventType::kQuit) == polled.end());
+  // A quit is watched and queued; one pushed by another thread is only
+  // queued.
+  watched.clear();
+  SDL_Event quit{};
+  quit.type = SDL_EVENT_QUIT;
+  std::thread([&] { SDL_PushEvent(&quit); }).join();
+  CHECK(watched.empty());
+  SDL_PushEvent(&quit);
+  CHECK(watched == std::vector<LifecycleEvent>{LifecycleEvent::kQuit});
+  int quits = 0;
+  while (const std::optional<InputEvent> e = display.poll()) {
+    quits += e->type == EventType::kQuit ? 1 : 0;
+  }
+  CHECK(quits == 2);
 }
 
 }  // namespace

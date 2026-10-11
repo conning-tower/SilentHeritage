@@ -13,6 +13,7 @@
 #include <format>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <stdexcept>
 
 #include "app/command_icons.h"
@@ -27,10 +28,13 @@
 #include "game/frontend.h"
 #include "game/frontend_results.h"
 #include "game/game_runner.h"
+#include "game/lifecycle_log.h"
 #include "game/resume.h"
+#include "game/resume_keeper.h"
 #include "game/shpath.h"
 #include "platform/bios_keys.h"
 #include "platform/command_panel.h"
+#include "platform/lifecycle_watch.h"
 #include "platform/screenshot.h"
 #include "ui/dialog.h"
 #include "ui/skin.h"
@@ -97,9 +101,9 @@ class SdlVideoSound final : public VideoSound {
 
 // The SDL host of the front end and of the scenario editor; its missions
 // run on a `GameRunner`. It turns the system's text input on for the text
-// fields being edited, and writes the resume snapshot when the system
-// suspends the program or its window is closed, the game clock stopped
-// while it is in the background.
+// fields being edited, keeps the resume snapshot through the lifecycle
+// events (`lifecycle`, a `ResumeKeeper`) and stops the game clock while
+// the program is in the background.
 class GameApp final : public FrontendHost, public EditorRunner {
  public:
   GameApp(const GameAppOptions& options, const Install& install, const ShPaths& paths, const ExeImage& exe,
@@ -110,7 +114,6 @@ class GameApp final : public FrontendHost, public EditorRunner {
         saves_(saves),
         custom_(custom),
         headless_(options.screenshot.has_value()),
-        resume_(resume),
         display_(edition::kName, 2, options.scaling),
         sound_(install, paths),
         runner_({.install = install,
@@ -123,6 +126,10 @@ class GameApp final : public FrontendHost, public EditorRunner {
                  .wait_tick = headless_ ? std::function<void()>() : [] { Display::delay_ms(1); }},
                 *this),
         pending_(options.keys.begin(), options.keys.end()) {
+    if (resume) {
+      log_.emplace(saves.dir());
+      keeper_.emplace(saves, [this] { return runner_.snapshot(); }, &*log_);
+    }
     if (!headless_) {
       display_.remember_fullscreen(saves.dir() / "DISPLAY.CFG");
     }
@@ -136,9 +143,44 @@ class GameApp final : public FrontendHost, public EditorRunner {
   MissionRunner& runner() { return runner_; }
   // The front end whose GUI the missions use; must be set before a run.
   void set_front_end(FrontEnd& front_end) { runner_.set_front_end(front_end); }
-  // Returns whether the game ends after writing the resume snapshot (the
-  // window closed), which must then be kept.
-  bool quit_with_snapshot() const { return quit_with_snapshot_; }
+
+  // Handles a lifecycle event at an event poll (from a `LifecycleWatch`,
+  // or the event queue for the window's focus and the quit).
+  void lifecycle(LifecycleEvent e) {
+    switch (e) {
+      case LifecycleEvent::kWillEnterBackground:
+      case LifecycleEvent::kDidEnterBackground:
+        if (!suspended_) {
+          suspended_ = true;
+          suspended_at_ms_ = Display::ticks_ms();
+        }
+        break;
+      case LifecycleEvent::kDidEnterForeground:
+        if (suspended_) {
+          suspended_ = false;
+          background_ms_ += Display::ticks_ms() - suspended_at_ms_;
+        }
+        break;
+      default:
+        break;
+    }
+    if (keeper_) {
+      keeper_->handle(e);
+    }
+  }
+  // Logs the launch (with the resume snapshot).
+  void launch() const {
+    if (keeper_) {
+      keeper_->launch(edition::kName);
+    }
+  }
+  // Ends the program: keeps the resume snapshot when it ends on a quit,
+  // else deletes it (left through the menus).
+  void exit() const {
+    if (keeper_) {
+      keeper_->exit();
+    }
+  }
 
   // FrontendHost
 
@@ -212,6 +254,9 @@ class GameApp final : public FrontendHost, public EditorRunner {
 
   void report(std::string_view message) override {
     SDL_Log("%s: %.*s", edition::kExecutable, static_cast<int>(message.size()), message.data());
+    if (log_) {
+      log_->write(std::format("report: {}", message));
+    }
   }
 
   // EditorRunner
@@ -227,50 +272,26 @@ class GameApp final : public FrontendHost, public EditorRunner {
   }
 
  private:
-  // Writes the resume snapshot of the game as it is now.
-  void write_snapshot() {
-    if (!resume_) {
-      return;
-    }
-    snapshot_written_ = runner_.suspend();
-    if (!snapshot_written_) {
-      SDL_Log("%s: cannot write %s", edition::kExecutable, (saves_.dir() / kResumeFileName).string().c_str());
-    }
-  }
-
   // Feeds one input event to the GUI the way the INT 9 / INT 33h handlers
   // feed the original's event queue.
   void feed(ui::Gui& gui, const InputEvent& e) {
     switch (e.type) {
       case EventType::kQuit:
         // The window closed or the system ends the program: back here on
-        // the next launch (as written when suspended, nothing ran since).
-        if (!suspended_) {
-          write_snapshot();
+        // the next launch. The event watch has normally seen it first.
+        if (keeper_ && !keeper_->quitting()) {
+          lifecycle(LifecycleEvent::kQuit);
         }
-        quit_with_snapshot_ = snapshot_written_;
         throw QuitRequested();
-      case EventType::kSuspend:
-        if (!suspended_) {
-          suspended_ = true;
-          suspended_at_ms_ = Display::ticks_ms();
-          write_snapshot();
-        }
-        break;
-      case EventType::kResume:
-        if (suspended_) {
-          suspended_ = false;
-          background_ms_ += Display::ticks_ms() - suspended_at_ms_;
-        }
-        // Not killed: the game in memory goes on, the snapshot is stale.
-        if (snapshot_written_) {
-          delete_resume_snapshot(saves_);
-          snapshot_written_ = false;
-        }
-        break;
-      case EventType::kLowMemory:
-        // The system may kill the program soon.
-        write_snapshot();
+      case EventType::kFocusLost:
+      case EventType::kFocusGained:
+#ifdef SDL_PLATFORM_ANDROID
+        // SDLActivity reports the background only once the activity is
+        // stopped (onStop, on multi-window systems), but the system may
+        // kill the app from the recent apps screen while it is only
+        // paused: its window then has just lost the focus.
+        lifecycle(e.type == EventType::kFocusLost ? LifecycleEvent::kFocusLost : LifecycleEvent::kFocusGained);
+#endif
         break;
       case EventType::kKeyDown:
       case EventType::kText:
@@ -316,9 +337,10 @@ class GameApp final : public FrontendHost, public EditorRunner {
   const SaveDir& saves_;
   const SaveDir& custom_;
   bool headless_;
-  // Whether the resume snapshot is written (not for a headless run or the
-  // editor alone).
-  bool resume_;
+  // The lifecycle log and the keeping of the resume snapshot (not for a
+  // headless run or the editor alone).
+  std::optional<LifecycleLog> log_;
+  std::optional<ResumeKeeper> keeper_;
   // The floating command button (outlives the display that shows it).
   std::unique_ptr<CommandPanel> command_panel_;
   Display display_;
@@ -333,8 +355,6 @@ class GameApp final : public FrontendHost, public EditorRunner {
   bool suspended_ = false;
   std::uint64_t suspended_at_ms_ = 0;
   std::uint64_t background_ms_ = 0;
-  bool snapshot_written_ = false;
-  bool quit_with_snapshot_ = false;
 };
 
 }  // namespace
@@ -355,8 +375,8 @@ int run_game(const GameAppOptions& options, const Install& install) {
     SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "dummy");
     SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "dummy");
   }
-  // Android: once the background events are handled (the resume snapshot
-  // written), the next event poll blocks until the app is resumed, with
+  // Android: the event poll that reports the app paused (to the lifecycle
+  // watch: the resume snapshot written) blocks until it is resumed, with
   // the audio paused; the process may be killed meanwhile.
   SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE, "1");
   // load_shpath_ini (0x50985), then init_video / init_sound
@@ -384,7 +404,11 @@ int run_game(const GameAppOptions& options, const Install& install) {
   front_end.set_play_intro(options.play_intro);
   front_end.set_editor(&app);
   front_end.set_resume(resume);
+  app.launch();
   try {
+    // The lifecycle events from now on (the front end ready), until the
+    // front end is gone.
+    const LifecycleWatch watch([&app](LifecycleEvent e) { app.lifecycle(e); });
     if (options.editor) {
       // SE.EXE started from DOS: its exit code ends the program.
       app.run_scenario_editor(false);
@@ -395,10 +419,7 @@ int run_game(const GameAppOptions& options, const Install& install) {
     // The window was closed, EXIT TO DOS? confirmed, or the screenshot
     // taken: the original leaves through exit().
   }
-  if (resume && !app.quit_with_snapshot()) {
-    // Left through the menus: nothing to resume.
-    delete_resume_snapshot(saves);
-  }
+  app.exit();
   return 0;
 }
 

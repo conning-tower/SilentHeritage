@@ -2,6 +2,8 @@ sh_add_module(sh_platform
   SOURCES
     display.cpp
     screenshot.cpp
+    # The lifecycle events SDL hands only to event watches.
+    lifecycle_watch.cpp
     # BIOS keyboard words (UI area).
     bios_keys.cpp
     # The floating command button of touch screens.

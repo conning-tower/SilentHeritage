@@ -246,18 +246,13 @@ std::optional<InputEvent> Display::poll() {
     InputEvent out;
     switch (e.type) {
       case SDL_EVENT_QUIT:
-      case SDL_EVENT_TERMINATING:
         out.type = EventType::kQuit;
         return out;
-      case SDL_EVENT_WILL_ENTER_BACKGROUND:
-      case SDL_EVENT_DID_ENTER_BACKGROUND:
-        out.type = EventType::kSuspend;
+      case SDL_EVENT_WINDOW_FOCUS_LOST:
+        out.type = EventType::kFocusLost;
         return out;
-      case SDL_EVENT_DID_ENTER_FOREGROUND:
-        out.type = EventType::kResume;
-        return out;
-      case SDL_EVENT_LOW_MEMORY:
-        out.type = EventType::kLowMemory;
+      case SDL_EVENT_WINDOW_FOCUS_GAINED:
+        out.type = EventType::kFocusGained;
         return out;
       case SDL_EVENT_TEXT_INPUT: {
         if (!impl_->text_input) {

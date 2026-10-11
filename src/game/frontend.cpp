@@ -11,6 +11,7 @@
 #include <format>
 #include <memory>
 #include <optional>
+#include <utility>
 
 #include "assets/exe_image.h"
 #include "assets/format_header.h"
@@ -230,21 +231,25 @@ FrontEnd::~FrontEnd() = default;
 void FrontEnd::run() {
   // check_cd_and_play_intro (0x10be1) only checks the CD (BUD\1.SMK of the
   // CD's size); the intro itself plays in front_end_loop.
-  std::optional<ResumeSnapshot> resume;
-  if (resume_) {
+  if (resume_ && !launch_taken_) {
     try {
-      resume = take_resume_snapshot(saves_);
+      if (std::optional<ResumeSnapshot> taken = take_resume_snapshot(saves_)) {
+        launch_snapshot_ = std::make_unique<ResumeSnapshot>(std::move(*taken));
+        resuming_ = true;
+      }
     } catch (const DataError& e) {
       host_.report(std::format("{} (starting anew)", e.what()));
     }
+    launch_taken_ = true;
   }
-  front_end_loop(resume ? &*resume : nullptr);
+  front_end_loop(launch_snapshot_.get());
 }
 
 void FrontEnd::resume_from(const ResumeSnapshot& resume) {
   random_.srand(resume.random);
   switch (resume.kind) {
     case ResumeKind::kMission:
+      // The runner ends the resuming once the mission is restored.
       resume_mission(resume);
       single_mission_menu_loop();
       return;
@@ -254,6 +259,8 @@ void FrontEnd::resume_from(const ResumeSnapshot& resume) {
     case ResumeKind::kFrontEnd:
       break;
   }
+  location_ = resume.location;
+  end_resuming();
   switch (resume.location.place) {
     case FrontEndPlace::kMainMenu:
       break;

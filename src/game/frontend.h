@@ -191,6 +191,15 @@ class FrontEnd {
   const VgaPalette& dac() const { return dac_; }
   // Where the player is in the menus.
   const FrontEndLocation& location() const { return location_; }
+  // Whether `run` is still to take the launch's resume snapshot (with
+  // `set_resume`): until then, RESUME.SAV stands for the game.
+  bool launch_resume_pending() const { return resume_ && !launch_taken_; }
+  // The snapshot `run` took while its game is being restored, which stands
+  // for the game until it runs again (`end_resuming`); null otherwise.
+  const ResumeSnapshot* resuming() const { return resuming_ ? launch_snapshot_.get() : nullptr; }
+  // Ends the restoring of the launch's snapshot: its game runs (a mission
+  // in play), or its restoring is over.
+  void end_resuming() { resuming_ = false; }
   std::uint32_t options() const { return options_; }
   const EncounterSettings& encounter_settings() const { return encounter_; }
   const GameOptions& game_options() const { return game_options_; }
@@ -354,6 +363,11 @@ class FrontEnd {
   WatcomRandom random_;
   bool play_intro_ = true;
   bool resume_ = false;
+  bool launch_taken_ = false;
+  // The launch's resume snapshot (for the life of `run`), and whether it
+  // is being restored.
+  std::unique_ptr<ResumeSnapshot> launch_snapshot_;
+  bool resuming_ = false;
   FrontEndLocation location_;
 
   GameOptions game_options_;

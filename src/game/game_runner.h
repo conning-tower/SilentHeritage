@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 
 #include "game/frontend.h"
 #include "game/frontend_host.h"
@@ -66,7 +67,8 @@ class GameRunner final : public MissionRunner {
 
   // MissionRunner. A request with `resume` restores the snapshot's mission
   // at its station without a briefing. The resume snapshot is deleted
-  // when a mission ends.
+  // when a mission ends. Once a mission is in play, or the run returns,
+  // the front end's resuming is over (`FrontEnd::end_resuming`).
   std::int32_t run(const MissionRequest& request) override;
   MissionOutcome outcome() const override { return outcome_; }
   std::int32_t run_patrol(const PatrolRequest& request, PatrolResult& result) override;
@@ -79,10 +81,13 @@ class GameRunner final : public MissionRunner {
   bool mission_in_play() const { return in_play_; }
 
   // Returns the game as a resume snapshot: the single mission or career
-  // patrol in play, else the front end's place.
-  ResumeSnapshot snapshot();
+  // patrol in play, else the snapshot the front end is resuming (its game
+  // not restored yet), else the front end's place. Returns nothing before
+  // the front end has taken the launch's snapshot, which RESUME.SAV still
+  // holds (`FrontEnd::launch_resume_pending`).
+  std::optional<ResumeSnapshot> snapshot();
   // Writes `snapshot()` as RESUME.SAV; returns false when it cannot be
-  // written.
+  // written or there is nothing to write.
   bool suspend();
 
  private:

@@ -69,6 +69,14 @@ mission, a floating ORDERS button opens a panel with the orders that are
 keyboard-only in the original (depth orders, firing tubes), and its + and −
 buttons change the time compression.
 
+Leaving the app (Home, the recent apps, the system closing it) keeps the
+game: the next start resumes where you were. If it does not, the file
+`SAVE/LIFECYCLE.LOG` in the app's storage tells what the system sent and
+what became of the resume snapshot; get it with
+`adb shell run-as com.conningtower.silentheritage cat files/SAVE/LIFECYCLE.LOG`
+(the desktop game keeps the same log in the `SAVE` folder of your per-user
+application folder).
+
 ## Tests
 
     ninja -C <build> sh_tests sh_editor_tests
