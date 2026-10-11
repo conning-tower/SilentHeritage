@@ -592,8 +592,11 @@ void Display::open_command_panel_above(const ScreenRect& area) {
   float y0 = 0;
   float x1 = 0;
   float y1 = 0;
-  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(area.x), static_cast<float>(area.y), &x0, &y0);
-  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(area.x + area.w),
+  // The frame's coordinates to the screen's.
+  const int fx = impl_->frame_x();
+  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(fx + area.x), static_cast<float>(area.y), &x0,
+                                &y0);
+  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(fx + area.x + area.w),
                                 static_cast<float>(area.y + area.h), &x1, &y1);
   // Window points to output pixels.
   const float density = SDL_GetWindowPixelDensity(impl_->window);

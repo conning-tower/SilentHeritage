@@ -64,6 +64,13 @@ bool StationEnvHost::full_redraw() const { return env_.ui.redraw; }
 
 WatcomRandom* StationEnvHost::draw_random() { return &env_.draw_random(); }
 
+bool StationEnvHost::wide_screen() const { return env_.ui.features.wide_screen; }
+
+void StationEnvHost::set_side_fill(SideFill fill) {
+  env_.ui.side_fill = std::move(fill);
+  ++env_.ui.side_fill_changes;
+}
+
 Fixed16 next_magnification(Fixed16 zoom) {
   // tbt_cycle_zoom / scope_toggle_magnification: doubles up to 8x.
   return zoom.raw() < 0x80000 ? Fixed16::from_raw(zoom.raw() << 1) : Fixed16::from_int(1);

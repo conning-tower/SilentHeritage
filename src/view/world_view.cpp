@@ -1,5 +1,6 @@
 #include "view/world_view.h"
 
+#include <algorithm>
 #include <format>
 #include <string>
 
@@ -114,7 +115,8 @@ RenderList render_world_view(const Viewport& vp, const Scene& scene, const World
   list.project_all(camera);
 
   view3d::DrawContext ctx{
-      {vp.bitmap, vp.x0, vp.y0, vp.x0 + kWorldViewWidth - 1, vp.y0 + kWorldViewHeight - 1},
+      {vp.bitmap, vp.x0, vp.y0, vp.x0 + std::max(kWorldViewWidth, scene.screen_width) - 1,
+       vp.y0 + kWorldViewHeight - 1},
       {vp.bitmap, vp.x0, vp.y0, vp.x0 + scene.screen_width - 1, vp.y0 + kWorldViewHeight - 1},
       camera,
       assets,

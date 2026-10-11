@@ -97,7 +97,9 @@ class GoldenMissionRig {
  public:
   // Plays `mission` (built on `game`'s tables) with `features`, without
   // sound, at 5 ticks a frame.
-  GoldenMissionRig(const GoldenGame& game, std::unique_ptr<Mission> mission, Features features = Features::faithful());
+  // `screen_width` is the window's for the wide-screen layouts.
+  GoldenMissionRig(const GoldenGame& game, std::unique_ptr<Mission> mission, Features features = Features::faithful(),
+                   int screen_width = kScreenWidth);
 
   MissionScreen& screen() { return session_->screen(); }
   Mission& mission() { return screen().mission(); }

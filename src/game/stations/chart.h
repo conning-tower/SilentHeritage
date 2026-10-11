@@ -89,6 +89,7 @@ class ChartStation : public Station, private PanelSuspender {
   void update() override;   // chart_station_update (0x20f26)
   void close() override;    // chart_station_close (0x20de5)
   bool capturing() const override { return nav_panel_ && nav_panel_->capturing(); }
+  bool wide_layout() const override { return true; }
 
   // The view and the state the tests look at.
   const ChartView& view() const { return view_; }

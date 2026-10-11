@@ -26,7 +26,34 @@ struct DeckView {
   std::int32_t x = 0;
   bool mirror = false;
 };
-std::optional<DeckView> bridge_deck_view(Angle10 bearing);
+std::optional<DeckView> bridge_deck_view(Angle10 bearing, int width = kBridgeViewWidth);
+
+// The deck of the wide bridge (not in the original), wider than 640: shown
+// at every look bearing, the bow's frames up to 90 degrees off it and the
+// stern's beyond (the original stops at 45 degrees, its frames of the sides
+// unused), blended from one frame to the next as the bearing turns.
+enum class DeckTransition : std::uint8_t {
+  kStepped,     // the frame of the bearing, as the original
+  kWarp,        // the nearer frame, resampled to the outline in between
+  kWarpDither,  // both, resampled and mixed by an ordered dither
+};
+// The blending levels (the 4x4 dither's), and the column from the screen's
+// edge the deck's axis is held at once the original's moving deck reaches it.
+inline constexpr std::int32_t kDeckLevels = 16;
+inline constexpr std::int32_t kWideDeckPin = 150;
+// The frames to draw: `frame`, and `next` where the dither level is under
+// `weight` (0..kDeckLevels); their outlines resampled to the one in between
+// when `warp`; with the hotspot at column `x`, mirrored as `DeckView`.
+struct WideDeckView {
+  std::int32_t frame = 0;
+  std::int32_t next = 0;
+  std::int32_t weight = 0;
+  bool warp = false;
+  std::int32_t x = 0;
+  bool mirror = false;
+};
+// Returns the deck of a `width`-wide view for look bearing `bearing`.
+WideDeckView bridge_wide_deck_view(Angle10 bearing, int width, DeckTransition transition);
 
 class BridgeStation final : public Station {
  public:
@@ -51,9 +78,13 @@ class BridgeStation final : public Station {
   bool capturing() const override {
     return (drag_ && drag_->dragging()) || (nav_panel_ && nav_panel_->capturing());
   }
+  bool wide_layout() const override { return true; }
 
  private:
   void render_view();
+  // Extends the strip under the view (BRDGNAV.SHP frame 0) to the screen's
+  // edges (`make_panel_ends`; the wide screen, not in the original).
+  void draw_strip_ends();
   void turn(std::int32_t step, int sign);
 
   AttackServices& s_;
@@ -68,6 +99,9 @@ class BridgeStation final : public Station {
   std::unique_ptr<ViewDrag> drag_;
   std::uint32_t render_mark_ = 0;   // ticks of the last render (counter 0x129bd4)
   std::int32_t tape_bearing_ = -1;  // 0x116274
+  // The left column of the original's 640 columns on the screen (0 unless
+  // wide).
+  int origin_ = 0;
 };
 
 }  // namespace sh

@@ -559,10 +559,12 @@ void ChartStation::finish_line() {
 }
 
 void ChartStation::ask_note(geom::WorldXZ at) {
-  // A name dialog of the game's kind; the mission waits meanwhile.
+  // A name dialog of the game's kind; the mission waits meanwhile. Placed
+  // like the in-game menus, for the 640-wide screen (moved to the middle of
+  // a wide one when it opens).
   constexpr int kW = 0x140;
   constexpr int kH = 0x8a;
-  auto d = std::make_unique<ui::Dialog>(env_.gui, (view_.x0() + view_.x1() + 1 - kW) / 2, 0x80, kW, kH,
+  auto d = std::make_unique<ui::Dialog>(env_.gui, (kScreenWidth - kW) / 2, 0x80, kW, kH,
                                         ui::kDialogTitled | ui::kDialogFramed | ui::kDialogCancel);
   d->emplace<ui::TitleBar>(std::string("CHART NOTE"));
   auto& entry = d->emplace<ui::TextEntry>(0xc, 0x46, kW - 0x18, static_cast<int>(kChartNoteMaxLength) + 1,

@@ -371,13 +371,17 @@ void ChartStation::open() {
   }
   Image8& screen = env_.screen();
   ui::gui_fill_rect(Viewport::full(screen), 0, 0, screen.width(), screen.height(), 0);
+  // The map fills the screen's width (wider than 640 for the wide screen).
+  const int view_x1 = screen.width() - 1;
+  view_.set_extent(view_x1, kViewY1);
+  panels_.set_bounds({0, 0, view_x1, kViewY1});
   nav_background_ = Image8(kNavPanelW, kNavPanelH, 0);
   draw_sprite_clipped(Viewport::full(nav_background_), chart_sprites_.frame(kNavPicture), 8, 0x28);
   build_palette();
 
-  dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, 0, kViewX1 + 1, kViewY1 + 1, 0, &screen);
+  dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, 0, view_x1 + 1, kViewY1 + 1, 0, &screen);
   dialog_->emplace<ui::Area>(
-      0, 0, kViewX1, kViewY1,
+      0, 0, view_x1, kViewY1,
       [this](ui::Dialog& d, ui::Area& a, ui::Msg msg, int, const ui::Event& e) {
         // chart_view_on_click (0x2b716)
         if (msg == ui::Msg::kPress) {
@@ -546,7 +550,7 @@ void ChartStation::view_update() {
   if (!view_held() && env_.options.chart_follow_sub == 0) {
     // Over the extended chart's full bar, only the screen's last row.
     chart_edge_scroll(view_, env_.gui.mouse(), panels_.hovered(), dirty_,
-                      full_bar() ? view_.y1() + 1 : kScreenHeight);
+                      full_bar() ? view_.y1() + 1 : kScreenHeight, env_.screen().width());
   }
   if (env_.ui.features.chart_tools || pointer_.active()) {
     update_map_pointer();
@@ -1527,7 +1531,7 @@ void ChartStation::mouse_moved(std::int32_t x, std::int32_t y) {
       }
     }
   }
-  const Viewport bar{&env_.screen(), 0, 0x1cb, 0x27f, 0x1df};
+  const Viewport bar{&env_.screen(), 0, 0x1cb, env_.screen().width() - 1, 0x1df};
   if (zoom_box_.is_open() && !zoom_message_) {
     ui::fill_rect(bar, 0, 0, bar.x1 - bar.x0, bar.y1 - bar.y0, 0);
     const GlyphColourTable table = gui_colour_table();

@@ -44,6 +44,7 @@ sh_add_module(sh_game
     stations/deckgun.cpp
     stations/radar.cpp
     stations/bridge.cpp
+    stations/panel_ends.cpp
     stations/scope.cpp
     stations/tbt.cpp
     # The recognition manual (scope, TBT, captain's quarters).

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <optional>
 
 #include "game/mission.h"
@@ -76,6 +77,9 @@ struct MissionLoopHooks {
   CommandBar& command_bar;
   GameOverScreen& game_over;
   MissionEventSink* events = nullptr;
+  // Called between closing a station and opening the next one (not in
+  // the original: the wide-screen layouts size the screen there).
+  std::function<void(const Station& next)> before_open = {};
 };
 
 // Returns whether the station update runs this frame

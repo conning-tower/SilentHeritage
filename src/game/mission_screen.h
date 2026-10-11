@@ -64,6 +64,9 @@ struct MissionScreenSetup {
   // EXTENDED.CFG is read and written (game/extended_config.h): GAME OPTIONS
   // has its EXTENDED page.
   bool extended_config = false;
+  // Returns the width of the window's screen, which the wide layouts draw
+  // at (`Features::wide_screen`); unset: 640.
+  std::function<int()> screen_width = {};
 };
 
 class MissionScreen : private MissionSound,
@@ -118,6 +121,7 @@ class MissionScreen : private MissionSound,
   StationEnvHost& attack_host() { return attack_host_; }
   StationRegistry& stations() { return stations_; }
   MissionUiState& ui_state() { return ui_; }
+  const MissionUiState& ui_state() const { return ui_; }
   // The dive's deepest depth for the bathythermograph (0x11b0e4).
   const DiveRecorder& dive_recorder() const { return dive_recorder_; }
   const MissionLoop& loop() const { return loop_; }
@@ -146,6 +150,8 @@ class MissionScreen : private MissionSound,
   void run_modal(std::unique_ptr<ui::Dialog> dialog, ModalFrame frame, std::function<void(int)> done) override;
   bool modal_active() const override { return !modals_.empty(); }
 
+  // Sizes the GUI's screen for station `next` before it opens.
+  void fit_screen(const Station& next);
   // Runs one iteration of the first pending modal.
   void step_modal();
   void begin_modal(Modal& m);

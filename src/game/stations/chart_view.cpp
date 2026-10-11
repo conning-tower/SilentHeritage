@@ -38,6 +38,13 @@ ChartView::ChartView(const World& world, int x0, int y0, int x1, int y1)
   set_center(0, 0);
 }
 
+void ChartView::set_extent(int x1, int y1) {
+  centre_narrow_ = true;
+  x1_ = x1;
+  y1_ = y1;
+  set_zoom(zoom_);
+}
+
 std::int32_t ChartView::zoom_int() const { return fx::trunc(zoom_); }
 
 void ChartView::set_zoom(std::int32_t zoom) {
@@ -60,6 +67,9 @@ void ChartView::set_center(std::int32_t x, std::int32_t y) {
   }
   if (map_w_ * 0x10000 < half_w_ + x) {
     x = map_w_ * 0x10000 - half_w_;
+  }
+  if (centre_narrow_ && map_w_ * 0x10000 < 2 * half_w_) {
+    x = map_w_ * 0x10000 / 2;
   }
   if (map_h_ * 0x10000 < half_h_ + y) {
     y = map_h_ * 0x10000 - half_h_;

@@ -36,6 +36,9 @@ bool MissionLoop::frame(std::int32_t timer_ticks) {
   if (stations_.reopen_requested() || current != open_) {
     close_open_station();
     open_ = current;
+    if (hooks_.before_open) {
+      hooks_.before_open(*open_);
+    }
     open_->open();
     open_->first_frame_ = true;
     stations_.clear_reopen();

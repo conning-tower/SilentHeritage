@@ -106,7 +106,8 @@ void MissionTracer::checkpoint(GoldenTrace& trace, std::string_view name, Missio
   }
 }
 
-GoldenMissionRig::GoldenMissionRig(const GoldenGame& game, std::unique_ptr<Mission> mission, Features features)
+GoldenMissionRig::GoldenMissionRig(const GoldenGame& game, std::unique_ptr<Mission> mission, Features features,
+                                   int screen_width)
     : game_(game),
       features_(features),
       resources_(ui::GuiResources::load(game.install)),
@@ -118,7 +119,8 @@ GoldenMissionRig::GoldenMissionRig(const GoldenGame& game, std::unique_ptr<Missi
                                                                  .gui = gui_,
                                                                  .options = options_,
                                                                  .detail = detail_,
-                                                                 .features = features},
+                                                                 .features = features,
+                                                                 .screen_width = [screen_width] { return screen_width; }},
                                               std::move(mission), saves_);
   tracer_.attach(*session_);
 }

@@ -27,9 +27,9 @@ using HA = HotkeyAction;
 constexpr std::size_t kClockBoxFrame = 0x24;
 constexpr std::uint8_t kCompressionFrame = 0x12;
 constexpr std::uint8_t kCompressionPressedFrame = 0x13;
-// The bar dialog 0x11e540: 640 x 20 at y 459, cancellable, no navigation.
+// The bar dialog 0x11e540: 640 (the screen's width) x 20 at y 459,
+// cancellable, no navigation.
 constexpr int kBarY = 0x1cb;
-constexpr int kBarWidth = 0x280;
 constexpr int kBarHeight = 0x14;
 constexpr int kButtonWidth = 0x48;
 constexpr int kButtonStep = 0x49;
@@ -463,7 +463,9 @@ void ControlBar::open(const BarConfig& config) {
 
 void ControlBar::build(const BarConfig& config) {
   // control_bar_build (0x48e84)
-  dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, kBarY, kBarWidth, kBarHeight,
+  // The screen's width: wider than 640 on the wide-screen layouts.
+  const int bar_width = env_.gui.screen().width();
+  dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, kBarY, bar_width, kBarHeight,
                                          ui::kDialogCancel | ui::kDialogNoNavigation, &env_.gui.screen());
   if (config.hotkeys) {
     // control_bar_add_hotkeys: key-only areas running `hotkey_proc`.
@@ -515,7 +517,7 @@ void ControlBar::build(const BarConfig& config) {
       open_crew_log();
       return 0;
     };
-    dialog_->emplace<ui::Area>(0, 0, kBarWidth - button_slots_ * kButtonStep - 2, kBarHeight - 1, nullptr, open_log);
+    dialog_->emplace<ui::Area>(0, 0, bar_width - button_slots_ * kButtonStep - 2, kBarHeight - 1, nullptr, open_log);
     if (config.hotkeys) {
       dialog_->emplace<ui::Area>(-1, -1, -1, -1, nullptr, open_log, kCrewLogKey);
     }
@@ -524,7 +526,7 @@ void ControlBar::build(const BarConfig& config) {
   // little above the bar, ORDERS sits left of the station buttons.
   const Features& f = env_.ui.features;
   const int above = f.orders_in_bar() ? kTouchAbove : 0;
-  int x = kBarWidth - kButtonWidth;
+  int x = bar_width - kButtonWidth;
   for (const BarButton& b : config.buttons) {
     dialog_->emplace<SpriteButton>(*this, x, 0, x + kButtonWidth, 0x13, b, SpriteButton::Extras{.above = above, .split = false, .label = {}});
     x -= kButtonStep;

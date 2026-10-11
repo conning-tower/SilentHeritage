@@ -1,9 +1,13 @@
 #include "game/stations/bridge.h"
 
+#include <algorithm>
+#include <array>
+
 #include "core/fixed_math.h"
 #include "core/install.h"
 #include "game/mission.h"
 #include "game/stations/nav_panel.h"
+#include "game/stations/panel_ends.h"
 #include "gfx/sprite.h"
 #include "sim/player_combat.h"
 
@@ -23,15 +27,128 @@ constexpr std::uint8_t kTapeColour = 0xa0;
 constexpr int kDeckY = 0xcd;
 // The view window: the whole width, 200 rows from the swell offset.
 constexpr int kViewRows = 200;
+// The strip under the view (BRDGNAV.SHP frame 0) and the command bar's top
+// row.
+constexpr int kStripTop = 200;
+constexpr int kBarTop = 0x1cb;
+
+// The strip's extensions on a wide screen (not in the original): its bands,
+// the mounts of the depth gauge (centre 75.5, 113) and of the speed gauge
+// (562.5), and plain plate sections next to the borders, where the plate's
+// shading is the border's.
+constexpr PanelEndsLayout kStripEnds{.band_rows = 33,
+                                     .centre_x2 = 151,
+                                     .centre_y = 113,
+                                     .gauge_shift = 487,
+                                     .mount_radius = 82,
+                                     .lug_radius = 16,
+                                     .bolt_dx2 = 131,
+                                     .bolt_top = 49,
+                                     .bolt_bottom = 180,
+                                     .left_plate = {0, 206, 15, 255},
+                                     .right_plate = {624, 242, 639, 255}};
 
 bool bridge_above_water(const PlayerSub& sub) {
   // player_is_surfaced (0x607a8)
   return sub.sub().bridge_height_ft * kUnitsPerFoot + sub.position().y > 0;
 }
 
+// The transition between the deck frames of the wide bridge.
+constexpr DeckTransition kDeckTransition = DeckTransition::kWarpDither;
+
+// Returns the 4x4 ordered dither level (0..15) of pixel (x, y).
+int dither_level(int x, int y) {
+  static constexpr std::array<std::array<std::uint8_t, 4>, 4> kBayer{
+      {{0, 8, 2, 10}, {12, 4, 14, 6}, {3, 11, 1, 9}, {15, 7, 13, 5}}};
+  return kBayer[static_cast<std::size_t>(y & 3)][static_cast<std::size_t>(x & 3)];
+}
+
+// Draws the deck of `view` through `remap` at its column, on row kDeckY of
+// `vp`: each of the two frames resampled to their outline in between
+// (left and right of the hotspot and above it, apart), the second frame's
+// pixels where the dither level is under `weight` (not in the original).
+void draw_wide_deck(const Viewport& vp, const Shp& sprites, const WideDeckView& view, const ColourRemap& remap) {
+  struct Source {
+    DecodedFrame pixels;
+    int left;   // columns left of the hotspot, as drawn (mirrored or not)
+    int right;  // from the hotspot rightwards
+    int top;    // rows above the hotspot
+    int bottom;
+    bool mirror;
+  };
+  const auto source = [&](std::int32_t index) {
+    const SpriteFrame& f = sprites.frame(static_cast<std::size_t>(index));
+    Source s{f.decode(), -f.x0, f.x1 + 1, -f.y0, f.y1 + 1, view.mirror};
+    if (s.mirror) {
+      std::swap(s.left, s.right);
+    }
+    return s;
+  };
+  const Source a = source(view.frame);
+  const Source b = source(view.next);
+  const auto lerp = [&](int p, int q) {
+    return view.warp ? (p * (kDeckLevels - view.weight) + q * view.weight) / kDeckLevels : p;
+  };
+  const int left = lerp(a.left, b.left);
+  const int right = lerp(a.right, b.right);
+  const int top = lerp(a.top, b.top);
+  const int bottom = lerp(a.bottom, b.bottom);
+  // The pixel of `s` at (`dx`, `dy`) from the hotspot of the outline, each
+  // side scaled to the frame's own; nothing when transparent.
+  const auto sample = [&](const Source& s, int dx, int dy) -> std::optional<std::uint8_t> {
+    int sx = dx < 0 ? -1 - (-1 - dx) * s.left / std::max(left, 1) : dx * s.right / std::max(right, 1);
+    const int sy = dy < 0 ? -1 - (-1 - dy) * s.top / std::max(top, 1) : dy * s.bottom / std::max(bottom, 1);
+    // To the frame's pixels: its column 0 is the leftmost as drawn.
+    sx += s.left;
+    if (s.mirror) {
+      sx = s.left + s.right - 1 - sx;
+    }
+    const int py = sy + s.top;
+    if (!s.pixels.image.contains(sx, py) || s.pixels.opaque.at(sx, py) == 0) {
+      return std::nullopt;
+    }
+    return s.pixels.image.at(sx, py);
+  };
+  for (int dy = -top; dy < bottom; ++dy) {
+    for (int dx = -left; dx < right; ++dx) {
+      const int x = view.x + dx;
+      const int y = kDeckY + dy;
+      const bool second = dither_level(x, y) < view.weight;
+      const int bx = vp.x0 + x;
+      const int by = vp.y0 + y;
+      if (!vp.clip().contains(bx, by)) {
+        continue;
+      }
+      if (const std::optional<std::uint8_t> c = sample(second ? b : a, dx, dy)) {
+        vp.bitmap->set(bx, by, remap[*c]);
+      }
+    }
+  }
+}
+
+// Returns the column of the deck's axis for look bearing `b` (tenths) off
+// the axis at `base` (0 the bow, 1800 the stern), in a `width`-wide view:
+// the original's half field of view of a quarter of the width at the near
+// distance, so that the deck moves faster than the world.
+std::int32_t deck_axis_column(std::int32_t b, std::int32_t base, int width) {
+  // The half field of view and the pixels per tenth of a degree of the
+  // 640-wide view (half width 320 at the 460-px focal distance; wider for
+  // the wide screen).
+  const std::int32_t half_width = width / 2;
+  const std::int32_t half_fov = fx::heading_from_delta((half_width << 16) >> 1, kNearZ << 16).tenths();
+  const std::int32_t px_per_tenth = fx::int64_div(static_cast<std::int64_t>(half_width << 16) << 16, half_fov << 16);
+  std::int32_t offset = fx::angle_sub(Angle10(base), fx::angle_sub(Angle10(b), Angle10(half_fov))).tenths();
+  if (offset > 1800) {
+    offset -= 3600;
+  }
+  const std::int64_t product = static_cast<std::int64_t>(offset) * 65536 * px_per_tenth + 0x8000;
+  const auto x16 = static_cast<std::int32_t>(product >> 16);
+  return x16 < 0 ? -(-x16 >> 16) : x16 >> 16;
+}
+
 }  // namespace
 
-std::optional<DeckView> bridge_deck_view(Angle10 bearing) {
+std::optional<DeckView> bridge_deck_view(Angle10 bearing, int width) {
   // bridge_draw_deck_overlay (0x17b4c)
   std::int32_t b = bearing.normalized().tenths();
   int mode = 0;
@@ -44,20 +161,8 @@ std::optional<DeckView> bridge_deck_view(Angle10 bearing) {
   if (mode == 0) {
     return std::nullopt;
   }
-  const std::int32_t base = mode == 1 ? 0 : 1800;
-  // The half field of view and the pixels per tenth of a degree of the
-  // 640-wide view (half width 320 at the 460-px focal distance).
-  constexpr std::int32_t kHalfWidth = kBridgeViewWidth / 2;
-  const std::int32_t half_fov = fx::heading_from_delta((kHalfWidth << 16) >> 1, kNearZ << 16).tenths();
-  const std::int32_t px_per_tenth = fx::int64_div(static_cast<std::int64_t>(kHalfWidth << 16) << 16, half_fov << 16);
-  std::int32_t offset = fx::angle_sub(Angle10(base), fx::angle_sub(Angle10(b), Angle10(half_fov))).tenths();
-  if (offset > 1800) {
-    offset -= 3600;
-  }
-  const std::int64_t product = static_cast<std::int64_t>(offset) * 65536 * px_per_tenth + 0x8000;
-  const auto x16 = static_cast<std::int32_t>(product >> 16);
   DeckView v;
-  v.x = x16 < 0 ? -(-x16 >> 16) : x16 >> 16;
+  v.x = deck_axis_column(b, mode == 1 ? 0 : 1800, width);
   if (mode == 2) {
     b = fx::angle_sub(Angle10(b), Angle10(1800)).tenths();
   }
@@ -71,6 +176,30 @@ std::optional<DeckView> bridge_deck_view(Angle10 bearing) {
   return v;
 }
 
+WideDeckView bridge_wide_deck_view(Angle10 bearing, int width, DeckTransition transition) {
+  const std::int32_t b = bearing.normalized().tenths();
+  const bool aft = b > 900 && b < 2700;
+  // Degrees off the axis, and the side looked at as the original mirrors.
+  const std::int32_t rel = fx::angle_sub(Angle10(b), Angle10(aft ? 1800 : 0)).tenths();
+  const bool right = rel < 1800;
+  const std::int32_t off = right ? rel : 3600 - rel;
+  WideDeckView v;
+  v.mirror = right;
+  const std::int32_t base = aft ? 9 : 0;
+  v.frame = base + std::min(off / 150, 8);
+  v.next = base + std::min(off / 150 + 1, 8);
+  v.weight = transition == DeckTransition::kStepped ? 0 : off % 150 * kDeckLevels / 150;
+  if (transition == DeckTransition::kWarp) {
+    v.weight = v.weight * 2 < kDeckLevels ? 0 : kDeckLevels;
+  }
+  v.warp = transition != DeckTransition::kStepped;
+  // The original's moving deck, held at a column from the screen's edge on
+  // the axis' side so that it stays in view.
+  const std::int32_t x = deck_axis_column(b, aft ? 1800 : 0, width);
+  v.x = right ? std::max(x, kWideDeckPin) : std::min(x, width - 1 - kWideDeckPin);
+  return v;
+}
+
 BridgeStation::BridgeStation(AttackServices& services) : s_(services) {}
 
 BridgeStation::~BridgeStation() = default;
@@ -79,6 +208,15 @@ void BridgeStation::open() {
   // bridge_screen (0x1773c)
   const Install& install = s_.install();
   background_ = load_pcx(install, "ART/BRIDGE.PCX");
+  // The 640 columns of the original in the middle of the screen (wider for
+  // the wide screen), the view across its whole width.
+  const int width = s_.screen().width();
+  origin_ = (width - kScreenWidth) / 2;
+  if (origin_ > 0) {
+    Image8 wide(width, background_.image.height(), 0);
+    wide.blit(background_.image, origin_, 0);
+    background_.image = std::move(wide);
+  }
   s_.screen().blit(background_.image, 0, 0);
   s_.palette() = background_.palette;
   pcx_palette_ = background_.palette;
@@ -87,12 +225,12 @@ void BridgeStation::open() {
 
   // bridge_init_dialogs (0x1745c): the two halves of the view train left
   // and right (',' / '.'); Alt-F toggles the frame rate display.
-  dialog_ = std::make_unique<ui::Dialog>(s_.gui(), 0, 0, 0x27f, 0x1df, ui::kDialogNoNavigation, &s_.screen());
+  dialog_ = std::make_unique<ui::Dialog>(s_.gui(), 0, 0, width - 1, 0x1df, ui::kDialogNoNavigation, &s_.screen());
   add_train_area(
-      *dialog_, 0, 0, 0x13f, 199, 0x332c, [this](std::int32_t step) { turn(step, -1); },
+      *dialog_, 0, 0, width / 2 - 1, 199, 0x332c, [this](std::int32_t step) { turn(step, -1); },
       [this](bool on) { on ? s_.set_cursor(ui::CursorId::kRotateLeftFast) : s_.set_default_cursor(); });
   add_train_area(
-      *dialog_, 0x140, 0, 0x27f, 199, 0x342e, [this](std::int32_t step) { turn(step, 1); },
+      *dialog_, width / 2, 0, width - 1, 199, 0x342e, [this](std::int32_t step) { turn(step, 1); },
       [this](bool on) { on ? s_.set_cursor(ui::CursorId::kRotateRightFast) : s_.set_default_cursor(); });
   dialog_->open();
   if (s_.features.drag_rotate) {
@@ -108,7 +246,10 @@ void BridgeStation::open() {
                 {0x14, 0x15, [this] { s_.go_to(StationId::kDeckGun); }}};
   s_.host().open_command_bar(menu);
   nav_ = Shp::load(install, "ART/BRDGNAV.SHP");
-  draw_sprite_clipped(Viewport::full(s_.screen()), nav_->frame(0), 0, 200);
+  draw_sprite_clipped(Viewport::full(s_.screen()), nav_->frame(0), origin_, 200);
+  if (origin_ > 0) {
+    draw_strip_ends();
+  }
   nav_panel_ = s_.host().make_nav_panel(PanelSite::kBridge);
   if (nav_panel_) {
     nav_panel_->open();
@@ -160,8 +301,8 @@ void BridgeStation::update() {
   // bridge_draw_bearing_strip (0x17de7)
   if (tape_bearing_ != bearing) {
     tape_bearing_ = bearing;
-    draw_bearing_tape(s_.screen(), background_.image, s_.bearing_font(), Angle10(bearing), kTapeX0, kTapeY0, kTapeX1,
-                      kTapeY1, kTapeColour, nav_digit_colours(NavPanelSite::kBridge));
+    draw_bearing_tape(s_.screen(), background_.image, s_.bearing_font(), Angle10(bearing), origin_ + kTapeX0,
+                      kTapeY0, origin_ + kTapeX1, kTapeY1, kTapeColour, nav_digit_colours(NavPanelSite::kBridge));
   }
   if (first_frame()) {
     s_.host().fade_in();
@@ -189,16 +330,34 @@ void BridgeStation::render_view() {
   // bridge_render_view (0x17ac6)
   Mission& mission = s_.mission();
   const Angle10 bearing = mission.player_combat().view_bearing;
-  const ViewEye eye = bridge_eye(mission.player(), bearing);
+  const int width = s_.screen().width();
+  const ViewEye eye = bridge_eye(mission.player(), bearing, width);
   s_.render_world(eye);
-  const Viewport window = s_.world_window(0, 0, kBridgeViewWidth - 1, kViewRows - 1);
-  if (const std::optional<DeckView> deck = bridge_deck_view(bearing)) {
+  const Viewport window = s_.world_window(0, 0, width - 1, kViewRows - 1);
+  const ColourRemap remap = gui_colour_table();
+  if (width > kBridgeViewWidth) {
+    // The wide bridge (not in the original): every frame, blended.
+    draw_wide_deck(window, *deck_, bridge_wide_deck_view(bearing, width, kDeckTransition), remap);
+  } else if (const std::optional<DeckView> deck = bridge_deck_view(bearing, width)) {
     const SpriteFrame& frame = deck_->frame(static_cast<std::size_t>(deck->frame));
-    const ColourRemap remap = gui_colour_table();
     sprite_draw_transformed(window, frame, deck->x, kDeckY, scratch_, Angle10(0),
                             Fixed16::from_int(deck->mirror ? -1 : 1), Fixed16::from_int(1), kSpriteRemap, &remap);
   }
   s_.blit_to_screen(window, 0, 0);
+}
+
+void BridgeStation::draw_strip_ends() {
+  Image8& screen = s_.screen();
+  Image8 strip(kScreenWidth, kBarTop - kStripTop);
+  for (int y = 0; y < strip.height(); ++y) {
+    for (int x = 0; x < kScreenWidth; ++x) {
+      strip.set(x, y, screen.at(origin_ + x, kStripTop + y));
+    }
+  }
+  const PanelEnds ends =
+      make_panel_ends(strip, strip, origin_, screen.width() - origin_ - kScreenWidth, kStripEnds);
+  screen.blit(ends.left, 0, kStripTop);
+  screen.blit(ends.right, origin_ + kScreenWidth, kStripTop);
 }
 
 void BridgeStation::turn(std::int32_t step, int sign) {

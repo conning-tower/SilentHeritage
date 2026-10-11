@@ -13,7 +13,7 @@
 namespace sh::view3d {
 
 struct DrawContext {
-  Viewport frame;  // the whole 640 x 260 frame
+  Viewport frame;  // the whole 640 x 260 frame (wider for a wide view)
   Viewport view;   // the frame cut to the screen width (0x10fd7c)
   const ViewCamera& camera;
   const WorldViewAssets& assets;
@@ -22,6 +22,9 @@ struct DrawContext {
   Image8 scratch;      // the rotate/scale buffer of `sprite_draw_transformed`
   ColourRemap gui;     // the GUI colour table 0x11dce0 (effects draw through it)
 };
+
+// Returns the width of the frame.
+inline int frame_width(const DrawContext& ctx) { return ctx.frame.x1 - ctx.frame.x0 + 1; }
 
 // Returns `vp` with its bottom clip row moved to `row` (frame-relative).
 inline Viewport with_bottom(const Viewport& vp, int row) { return {vp.bitmap, vp.x0, vp.y0, vp.x1, vp.y0 + row}; }

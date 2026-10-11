@@ -171,8 +171,8 @@ class Display {
   // Shows or hides the command panel set (shown at first). Hiding it
   // closes it; hidden, it is not drawn and takes no input.
   void show_command_panel(bool shown);
-  // Opens the command panel above `area` of the 640x480 picture (the
-  // command bar's ORDERS button).
+  // Opens the command panel above `area` of the frame shown (the command
+  // bar's ORDERS button).
   void open_command_panel_above(const ScreenRect& area);
 
   // Whether the window is fullscreen (borderless, at the desktop's

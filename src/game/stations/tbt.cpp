@@ -7,6 +7,7 @@
 #include "core/install.h"
 #include "game/mission.h"
 #include "game/stations/nav_panel.h"
+#include "game/stations/panel_ends.h"
 #include "gfx/sprite.h"
 #include "sim/player_combat.h"
 #include "ui/draw.h"
@@ -47,6 +48,54 @@ constexpr std::uint32_t kPlateFrame = 0x10ecbc;  // int32[9]
 // The TDC mode's sub-panel button (definition 0x10f444): TBTTDC.SHP
 // frames 20 + state (0x10f474).
 constexpr std::uint32_t kTdcButtonState = 0x10f474;  // int32[3]
+
+// The sides of a wide screen (not in the original): the sky and the
+// housing's bands continued from the border columns, the nav panel's edge
+// gauges completed (the depth gauge centred at 75.2, 370; the speed gauge
+// 487 columns right), and the plate of the bridge's panel (its strip over
+// BRIDGE.PCX, from row 200) beyond. Down to the command bar; as wide as the
+// widest screen's sides.
+constexpr int kSideEndRows = 0x1cb;
+constexpr int kSideEndWidth = (kMaxScreenWidth - kScreenWidth) / 2;
+constexpr PanelEndsLayout kNavEnds{.band_rows = 293,
+                                   .centre_x2 = 151,
+                                   .centre_y = 370,
+                                   .gauge_shift = 487,
+                                   .mount_radius = 82,
+                                   .lug_radius = 16,
+                                   .bolt_dx2 = 131,
+                                   .bolt_top = 306,
+                                   .bolt_bottom = 437,
+                                   .left_plate = {0, 206, 15, 255},
+                                   .right_plate = {624, 242, 639, 255}};
+// The TDC and recognition panels: no gauges to complete.
+constexpr PanelEndsLayout kPlainEnds{.band_rows = 293,
+                                     .left_plate = {0, 206, 15, 255},
+                                     .right_plate = {624, 242, 639, 255}};
+
+// The row of the bridge's screen its strip is drawn at.
+constexpr int kBridgeStripTop = 200;
+
+// Returns, for each colour of `from`, the nearest colour of `to` (not in the
+// original).
+std::array<std::uint8_t, 256> nearest_colours(const VgaPalette& from, const VgaPalette& to) {
+  std::array<std::uint8_t, 256> out{};
+  for (std::size_t i = 0; i < out.size(); ++i) {
+    int best = -1;
+    for (std::size_t j = 0; j < out.size(); ++j) {
+      int d = 0;
+      for (std::size_t k = 0; k < 3; ++k) {
+        const int e = from[3 * i + k] - to[3 * j + k];
+        d += e * e;
+      }
+      if (best < 0 || d < best) {
+        best = d;
+        out[i] = static_cast<std::uint8_t>(j);
+      }
+    }
+  }
+  return out;
+}
 
 bool bridge_above_water(const PlayerSub& sub) {
   // player_is_surfaced (0x607a8)
@@ -147,6 +196,7 @@ void TbtStation::open() {
 
 void TbtStation::load_overlays() {
   // tbt_load_overlays (0x77d2d)
+  side_ends_due_ = true;
   const Install& install = s_.install();
   const Viewport screen = Viewport::full(s_.screen());
   switch (s_.lower_panel) {
@@ -183,6 +233,38 @@ void TbtStation::load_overlays() {
       }
       break;
   }
+}
+
+void TbtStation::set_side_ends() {
+  if (!s_.host().wide_screen()) {
+    return;
+  }
+  const Image8& screen = s_.screen();
+  Image8 panel(kScreenWidth, kSideEndRows);
+  for (int y = 0; y < kSideEndRows; ++y) {
+    for (int x = 0; x < kScreenWidth; ++x) {
+      panel.set(x, y, screen.at(x, y));
+    }
+  }
+  // The bridge's panel (its strip over BRIDGE.PCX), whose plain plate the
+  // TBT's panel hides, in the TBT's colours.
+  const PcxImage bridge = load_pcx(s_.install(), "ART/BRIDGE.PCX");
+  const Shp strip = Shp::load(s_.install(), "ART/BRDGNAV.SHP");
+  Image8 plate(kScreenWidth, kScreenHeight - kBridgeStripTop, 0);
+  plate.blit(bridge.image, 0, -kBridgeStripTop);
+  draw_sprite_clipped(Viewport::full(plate), strip.frame(0), 0, 0);
+  const std::array<std::uint8_t, 256> colours = nearest_colours(bridge.palette, background_.palette);
+  for (std::uint8_t& c : plate.pixels()) {
+    c = colours[c];
+  }
+  const PanelEnds ends = make_panel_ends(panel, plate, kSideEndWidth, kSideEndWidth,
+                                         s_.lower_panel == LowerPanel::kNav ? kNavEnds : kPlainEnds);
+  SideFill fill{.kind = SideFill::Kind::kPicture,
+                .left = Image8(kSideEndWidth, kScreenHeight, 0),
+                .right = Image8(kSideEndWidth, kScreenHeight, 0)};
+  fill.left.blit(ends.left, 0, 0);
+  fill.right.blit(ends.right, 0, 0);
+  s_.host().set_side_fill(std::move(fill));
 }
 
 void TbtStation::unload_overlays() {
@@ -309,6 +391,10 @@ void TbtStation::update() {
   draw_zoom_indicator();
   if (first_frame()) {
     s_.host().fade_in();
+  }
+  if (side_ends_due_) {
+    side_ends_due_ = false;
+    set_side_ends();
   }
   if (shade) {
     s_.shade_palette(&pcx_palette_);

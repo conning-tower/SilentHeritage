@@ -458,19 +458,21 @@ void NavPanel::open() {
   telegraph_mask_ = Image8(mask.width(), mask.height(), 0);
   draw_sprite_clipped(Viewport::full(telegraph_mask_), mask, 0, 0);
   const PlayerSub& player = env_.mission.player();
+  // Without a frame: the 640 columns in the middle of the screen (wider for
+  // the wide-screen layouts).
+  const int dx = frame_ ? frame_->x : (screen.width() - kScreenWidth) / 2;
   if (layout_.test_depth_at) {
     // The test depth, in BEARING.FNT on the station picture (a stack table
     // of which only 0xe0 and 0xff are set: the glyphs use these two).
     GlyphColourTable table = ui::GuiResources::identity_table();
     table[0xe0] = layout_.test_depth_colour;
     table[0xff] = 0xff;
-    gui_draw_text(Viewport::full(screen), (*layout_.test_depth_at)[0], (*layout_.test_depth_at)[1],
+    gui_draw_text(Viewport::full(screen), dx + (*layout_.test_depth_at)[0], (*layout_.test_depth_at)[1],
                   env_.assets.bearing, std::to_string(player.sub().test_depth_ft), &table);
   }
   ordered_depth_ = player.dive().ordered_depth_ft;
   shown_depth_ = std::min(player.depth_ft(), kDepthDialMax);
 
-  const int dx = frame_ ? frame_->x : 0;
   const int dy = frame_ ? frame_->y : 0;
   const int dw = frame_ ? frame_->w : 0x27f;
   const int dh = frame_ ? frame_->h : 0x1df;

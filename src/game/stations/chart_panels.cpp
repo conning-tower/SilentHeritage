@@ -20,6 +20,16 @@ std::uint8_t pixel_at(const Image8& image, int x, int y) { return image.contains
 ChartPanelHost::ChartPanelHost(ui::Gui& gui, ui::Rect bounds, Hooks hooks)
     : gui_(gui), bounds_(bounds), hooks_(std::move(hooks)) {}
 
+void ChartPanelHost::set_bounds(ui::Rect bounds) {
+  bounds_ = bounds;
+  for (const ChartPanelSlot& s : slots_) {
+    if (s.position != nullptr) {
+      s.position->x = std::clamp(s.position->x, bounds_.x0, std::max(bounds_.x0, bounds_.x1 - s.width + 1));
+      s.position->y = std::clamp(s.position->y, bounds_.y0, std::max(bounds_.y0, bounds_.y1 - s.height + 1));
+    }
+  }
+}
+
 int ChartPanelHost::add(ChartPanelSlot slot) {
   if (slots_.size() == kMaxPanels) {
     return kNone;
@@ -336,7 +346,8 @@ void ChartRubberBand::erase() {
 
 // --- Edge scrolling -------------------------------------------------------------
 
-ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdges edges, int bar_top) {
+ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdges edges, int bar_top,
+                                   int screen_w) {
   if (edges == ui::PointerEdges::kNone) {
     return {};
   }
@@ -344,18 +355,18 @@ ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdg
   const int margin = exact ? 1 : kChartEdgeScrollMargin;
   return ChartEdges{
       .left = x < margin,
-      .right = x > kScreenWidth - 1 - margin,
+      .right = x > screen_w - 1 - margin,
       .top = y < margin,
       .bottom = y > kScreenHeight - 1 - margin,
   };
 }
 
-void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty, int bar_top) {
+void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty, int bar_top, int screen_w) {
   // chart_view_edge_scroll (0x2aa58): the pointer on a screen edge scrolls
   // 50 / zoom chart pixels and is moved back 30 pixels.
   int x = mouse.x();
   int y = mouse.y();
-  const ChartEdges e = chart_edge_scroll_edges(x, y, over_panel, mouse.edges(), bar_top);
+  const ChartEdges e = chart_edge_scroll_edges(x, y, over_panel, mouse.edges(), bar_top, screen_w);
   if (!e.any()) {
     return;
   }
@@ -390,11 +401,12 @@ void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool&
 
 // --- The info popup ---------------------------------------------------------------
 
-std::array<int, 2> chart_place_info_popup(int x, int y, int w, int h, std::optional<ui::Rect> avoid) {
+std::array<int, 2> chart_place_info_popup(int x, int y, int w, int h, std::optional<ui::Rect> avoid,
+                                          int screen_w) {
   std::int32_t radius = std::max(w, h) * 4 / 5;
   // The starting angles of the quadrants (0x219fc).
   constexpr std::array<std::int32_t, 4> kStart{0x8ca, 0x546, 0xc4e, 0x1c2};
-  const std::size_t quadrant = (x < 0x140 ? 1u : 0u) | (y > 0xe5 ? 2u : 0u);
+  const std::size_t quadrant = (x < screen_w / 2 ? 1u : 0u) | (y > 0xe5 ? 2u : 0u);
   std::int32_t angle = kStart[quadrant];
   for (int pass = 0, rounds = 0; rounds < 2; ++pass) {
     for (int tries = 0; tries <= 0xb4; ++tries) {
@@ -403,7 +415,7 @@ std::array<int, 2> chart_place_info_popup(int x, int y, int w, int h, std::optio
       const int by = y + off.y - h / 2;
       const int bx1 = bx + w - 1;
       const int by1 = by + h - 1;
-      const bool on_screen = bx >= 0 && bx1 < 0x280 && by >= 0 && by1 < 0x1cb;
+      const bool on_screen = bx >= 0 && bx1 < screen_w && by >= 0 && by1 < 0x1cb;
       const bool clear = !avoid || bx1 < avoid->x0 || by1 < avoid->y0 || avoid->x1 < bx || avoid->y1 < by;
       angle = Angle10(angle + 0x14).normalized().tenths();
       if (on_screen && clear) {
@@ -439,7 +451,7 @@ void ChartInfoPopup::show(int x, int y, const std::vector<std::string>& lines, s
   }
   w += 0x16;
   const std::int32_t h = static_cast<std::int32_t>(lines.size()) * 0xf + 0x1e;
-  const std::array<int, 2> at = chart_place_info_popup(x, y, w, h, avoid);
+  const std::array<int, 2> at = chart_place_info_popup(x, y, w, h, avoid, gui_.screen().width());
   dialog_ = std::make_unique<ui::Dialog>(gui_, at[0], at[1], w, h, ui::kDialogFramed, &gui_.screen());
   for (std::size_t i = 0; i < lines_.size(); ++i) {
     lines_[i] = &dialog_->emplace<ui::Label>(0xb, 0xf + 0xf * static_cast<int>(i),

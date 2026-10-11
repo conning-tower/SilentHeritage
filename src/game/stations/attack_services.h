@@ -19,6 +19,7 @@
 #include "core/fixed.h"
 #include "core/image.h"
 #include "core/random.h"
+#include "core/side_fill.h"
 #include "game/station.h"
 #include "game/station_env.h"
 #include "game/world_view_adapter.h"
@@ -110,6 +111,10 @@ class AttackStationHost {
   // (`Features::draw_random`; not in the original), or nullptr for the
   // game's own, as the original draws them.
   virtual WatcomRandom* draw_random() { return nullptr; }
+  // Whether the stations lay out for a wide screen (`Features::wide_screen`;
+  // not in the original), and sets what fills it beside a 640-wide station.
+  virtual bool wide_screen() const { return false; }
+  virtual void set_side_fill(SideFill fill) { static_cast<void>(fill); }
 };
 
 // The host of the stations in the mission screen (`MissionScreen`): the
@@ -131,6 +136,8 @@ class StationEnvHost final : public AttackStationHost {
   void play_sfx_at(std::int32_t sfx, std::int32_t volume) override;
   bool full_redraw() const override;
   WatcomRandom* draw_random() override;
+  bool wide_screen() const override;
+  void set_side_fill(SideFill fill) override;
 
   std::function<std::unique_ptr<StationPanel>(PanelSite)> nav_panels;
   std::function<std::unique_ptr<StationPanel>(PanelSite)> id_books;

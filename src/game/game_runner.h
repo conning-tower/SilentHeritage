@@ -105,7 +105,8 @@ class GameRunner final : public MissionRunner {
   // Returns the set-up of a mission of `request`'s options and rules.
   MissionSetup setup_for(std::uint32_t options, const GameOptions& game_options, const WatcomRandom& random,
                          const MissionRules& rules) const;
-  // Shows the mission's screen from the screen shake's display start.
+  // Shows the mission's screen from the screen shake's display start, with
+  // its side fill when it changed.
   void present(const MissionScreen& screen);
 
   GameRunnerServices services_;
@@ -124,6 +125,9 @@ class GameRunner final : public MissionRunner {
   MissionSession* session_ = nullptr;
   Patrol* patrol_ = nullptr;
   bool in_play_ = false;
+  // The count of side fill changes last passed to the host (the mission's
+  // count starts at 0; its first fill is always passed).
+  std::uint32_t side_fill_changes_ = ~std::uint32_t{0};
 };
 
 }  // namespace sh

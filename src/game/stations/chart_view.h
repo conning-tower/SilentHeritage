@@ -42,6 +42,12 @@ class ChartView {
   // chart's top-left corner (the static view object and `chart_reset_view`).
   ChartView(const World& world, int x0, int y0, int x1, int y1);
 
+  // Moves the view's right and bottom edges (the wide-screen layout; not
+  // in the original), keeping the zoom and the centre (clamped). From then
+  // on a map narrower than the view is centred in it: some maps are
+  // narrower than the widest screens, none than the original's.
+  void set_extent(int x1, int y1);
+
   // `chart_view_set_zoom` (0x94eb0): zooms below 1x (0x10000) are ignored;
   // recomputes the half extents and the step and clamps the centre.
   void set_zoom(std::int32_t zoom);
@@ -93,6 +99,7 @@ class ChartView {
   std::vector<SpriteFrame> tiles_;  // the map's icons (frames 0..15)
   std::array<Image8, 16> scratch_;  // 0x12a75c: one render buffer per tile
   int x0_, y0_, x1_, y1_;
+  bool centre_narrow_ = false;
   std::int32_t map_w_;  // 0x11a798 + 1
   std::int32_t map_h_;  // 0x11a79c + 1
   std::int32_t scale_ = 0x10000;  // +0x08

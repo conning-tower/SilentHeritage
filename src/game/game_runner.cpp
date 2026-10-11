@@ -191,6 +191,10 @@ std::int32_t GameRunner::run_patrol(const PatrolRequest& request, PatrolResult& 
 }
 
 void GameRunner::present(const MissionScreen& screen) {
+  if (const MissionUiState& ui = screen.ui_state(); ui.side_fill_changes != side_fill_changes_) {
+    side_fill_changes_ = ui.side_fill_changes;
+    host_.set_side_fill(ui.side_fill);
+  }
   if (screen.display_start() == 0) {
     host_.present(screen.screen(), screen.dac());
   } else {
@@ -221,7 +225,8 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
                           .features = services_.extended_config
                                           ? load_features(services_.saves, services_.features)
                                           : services_.features,
-                          .extended_config = services_.extended_config},
+                          .extended_config = services_.extended_config,
+                          .screen_width = [this] { return host_.screen_width(); }},
                          std::move(mission), services_.saves);
   MissionScreen& screen = session.screen();
   if (host_.has_orders_panel()) {
@@ -281,6 +286,9 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
   }
   // The mission ended in play: a snapshot written meanwhile is stale.
   delete_resume_snapshot(services_.saves);
+  // Back to the menus' side fill.
+  host_.set_side_fill({});
+  side_fill_changes_ = ~std::uint32_t{0};
   std::int32_t end = screen.finish();
   if (patrol != nullptr) {
     // mission_shutdown's wp_free_patrol_data: the fuel home.

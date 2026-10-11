@@ -67,7 +67,7 @@ inline constexpr std::int32_t kDeckGunEyeY = 0xa0;
 
 // Returns the bridge's eye: the boat's heading plus `bearing`, from the
 // bridge height (SUBS.DAT +176) above the boat, 1x, 640 wide.
-ViewEye bridge_eye(const PlayerSub& sub, Angle10 bearing);
+ViewEye bridge_eye(const PlayerSub& sub, Angle10 bearing, int width = kBridgeViewWidth);
 // Returns the periscope's eye: from the periscope height (SUBS.DAT +172),
 // at `zoom`, 201 wide.
 ViewEye scope_eye(const PlayerSub& sub, Angle10 bearing, Fixed16 zoom);

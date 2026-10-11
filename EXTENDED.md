@@ -42,6 +42,13 @@ kept with it.
   around the time compression, or float as in the original, or be hidden.
 - **Closing menus:** a click outside the 1MC, crew log, time compression,
   game options, detail level or end mission box closes it.
+- **Wide screens:** the game fills windows and screens wider than 4:3, up to
+  21:9. The chart shows more of the map and the bridge a wider view, with its
+  gauge panel and command bar running to the screen's edges; looking out to
+  the side from the bridge, you now see the bow or the stern turning with
+  you. The other screens are shown in the middle, framed by the menus' brass,
+  the TDC's wood or, at the TBT, its own panel continued; the frame follows
+  fades and the red light. `--window 1708x960` opens a window of that size.
 
 ## Rules
 

@@ -218,7 +218,7 @@ void draw_sky(DrawContext& ctx, const ViewDetail& detail) {
     const std::uint8_t colour = ctx.assets.env.header[kSkyColour];
     for (int y = 0; y < kHorizonRow; ++y) {
       std::uint8_t* row = frame_pixel(ctx.frame, 0, y);
-      std::fill(row, row + kWorldViewWidth, colour);
+      std::fill(row, row + frame_width(ctx), colour);
     }
   }
   draw_sky_body(ctx, true);
@@ -234,7 +234,7 @@ void draw_sea(DrawContext& ctx, const ViewDetail& detail, std::int32_t drift) {
       last = std::min(last, kWorldViewHeight - 1);
       for (int y = first; y <= last; ++y) {
         std::uint8_t* row = frame_pixel(ctx.frame, 0, y);
-        std::fill(row, row + kWorldViewWidth, colours[band]);
+        std::fill(row, row + frame_width(ctx), colours[band]);
       }
     };
     std::uint8_t band = bands[0];

@@ -69,6 +69,10 @@ class Station {
   // (a view drag, a dial's pending value), so the command bar must not see
   // them (its Escape and right button).
   virtual bool capturing() const { return false; }
+  // Lays out its screen at any width (`Features::wide_screen`; not in the
+  // original): it is opened on a screen as wide as the window's, the
+  // others on the 640-wide screen.
+  virtual bool wide_layout() const { return false; }
 
   // The first-frame flag (+4): set when opened, cleared by the first update.
   bool first_frame() const { return first_frame_; }

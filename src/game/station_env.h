@@ -20,6 +20,7 @@
 #include "core/features.h"
 #include "core/install.h"
 #include "core/random.h"
+#include "core/side_fill.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
 #include "ui/dialog.h"
@@ -181,6 +182,10 @@ struct MissionUiState {
   // The views' own generator (`Features::draw_random`; not in the
   // original).
   WatcomRandom draw_generator;
+  // What fills a wide screen beside the 640-wide stations, and the count of
+  // its changes (`Features::wide_screen`; not in the original).
+  SideFill side_fill;
+  std::uint32_t side_fill_changes = 0;
   // The 16 animation tick counters 0x129bc0..0x129bfc, advanced by the
   // 100 Hz game timer while the simulation runs (`game_timer_tick`).
   std::array<std::int32_t, 16> timers{};

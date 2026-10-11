@@ -74,6 +74,9 @@ class TbtStation final : public Station {
   };
   void apply_mode_change();
   void load_overlays();    // tbt_load_overlays (0x77d2d)
+  // Sets the side fill of a wide screen: the screen continued past its
+  // borders (`make_panel_ends`; not in the original).
+  void set_side_ends();
   void unload_overlays();  // tbt_unload_overlays (0x77ff5)
   void render_view();
   void blit_view();
@@ -104,6 +107,8 @@ class TbtStation final : public Station {
   std::int32_t dial_bearing_ = -1;  // 0x1282e0
   ZoomPlate plate_;
   std::optional<ModeChange> pending_;
+  // The side fill is set after the next update has drawn the lower panel.
+  bool side_ends_due_ = false;
 };
 
 }  // namespace sh

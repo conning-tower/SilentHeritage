@@ -1,5 +1,7 @@
 #include "game/world_view_adapter.h"
 
+#include <algorithm>
+
 #include "core/fixed_math.h"
 #include "core/install.h"
 #include "game/mission.h"
@@ -72,7 +74,7 @@ std::int32_t player_horizon_yd(const PlayerSub& sub) {
 
 }  // namespace
 
-ViewEye bridge_eye(const PlayerSub& sub, Angle10 bearing) {
+ViewEye bridge_eye(const PlayerSub& sub, Angle10 bearing, int width) {
   // bridge_render_view (0x17ac6)
   const fx::Vec3 p = sub.position();
   return {fx::angle_add(sub.heading(), bearing.normalized()),
@@ -80,7 +82,7 @@ ViewEye bridge_eye(const PlayerSub& sub, Angle10 bearing) {
           sub.sub().bridge_height_ft * kUnitsPerFoot + p.y,
           p.z,
           Fixed16::from_int(1),
-          kBridgeViewWidth};
+          width};
 }
 
 ViewEye scope_eye(const PlayerSub& sub, Angle10 bearing, Fixed16 zoom) {
@@ -468,6 +470,10 @@ RenderList WorldViewAdapter::render(const Mission& mission, const ViewEye& eye, 
   scene_ = build_scene(mission, eye, random);
   const std::uint32_t shift = assets_.world ? assets_.world->scale_shift : 0;
   camera_ = make_view_camera(eye.heading, eye.x, eye.y, eye.z, eye.zoom, eye.screen_width, shift);
+  if (const int width = std::max(kWorldViewWidth, eye.screen_width); frame_.width() != width) {
+    // A wide view (`Features::wide_screen`).
+    frame_ = Image8(width, kWorldViewHeight);
+  }
   frame_.fill(0);
   return render_world_view(Viewport::full(frame_), scene_, assets_, lighting_, random);
 }

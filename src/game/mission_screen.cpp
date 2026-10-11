@@ -47,7 +47,8 @@ MissionScreen::MissionScreen(MissionScreenSetup setup, std::unique_ptr<Mission> 
            setup.detail,  assets_},
       bar_(env_),
       attack_host_(env_),
-      loop_(*mission_, stations_, MissionLoopHooks{*this, *this, bar_, *this, this}) {
+      loop_(*mission_, stations_,
+            MissionLoopHooks{*this, *this, bar_, *this, this, [this](const Station& next) { fit_screen(next); }}) {
   // The UI part of `init_simulation` (0x4f078).
   ui_.debug = setup.debug;
   ui_.features = setup.features;
@@ -76,6 +77,21 @@ MissionScreen::MissionScreen(MissionScreenSetup setup, std::unique_ptr<Mission> 
   sound_.apply_options();
 }
 
+void MissionScreen::fit_screen(const Station& next) {
+  int width = kScreenWidth;
+  if (ui_.features.wide_screen && next.wide_layout() && setup_.screen_width) {
+    width = setup_.screen_width();
+  }
+  setup_.gui.set_screen_width(width);
+  // Beside a 640-wide station: the brass, the wood for the TDC; a station
+  // may set pictures of its own when it opens.
+  if (ui_.features.wide_screen) {
+    ui_.side_fill = SideFill();
+    ui_.side_fill.kind = &next == stations_.get(StationId::kTdc) ? SideFill::Kind::kWood : SideFill::Kind::kBrass;
+    ++ui_.side_fill_changes;
+  }
+}
+
 MissionScreen::~MissionScreen() {
   // Modal dialogs and the open station hold hotspots in the shared GUI.
   modals_.clear();
@@ -85,6 +101,8 @@ MissionScreen::~MissionScreen() {
   for (std::size_t i = 0; i < kStationCount; ++i) {
     stations_.install(static_cast<StationId>(i), nullptr);
   }
+  // The front end's screen.
+  setup_.gui.set_screen_width(kScreenWidth);
 }
 
 void MissionScreen::install(StationId id, std::unique_ptr<Station> station) {
@@ -118,6 +136,12 @@ bool MissionScreen::frame(std::int32_t timer_ticks) {
       }
     }
     mission_->set_paused(ui_.pause > 0);
+    if (const Station* open = loop_.open_station(); ui_.features.wide_screen && open != nullptr &&
+                                                     open->wide_layout() && setup_.screen_width &&
+                                                     setup_.screen_width() != gui.screen().width()) {
+      // The window changed its aspect: laid out again.
+      stations_.request_reopen();
+    }
     // mission_main_loop's step 1.
     shake_.update(env_.timer(GameTimer::kScreenShake));
     mission_->sim().conditions().screen_shaking = shake_.active();
@@ -149,6 +173,7 @@ void MissionScreen::show(GameOverReason reason) {
   const std::string text(setup_.exe.c_string(
       setup_.exe.u32(kGameOverTexts + 4 * static_cast<std::uint32_t>(static_cast<std::int32_t>(reason)))));
   ui::Dialog popup(setup_.gui, 0x99, 0xc4, 0x146, 0x50, ui::kDialogFramed, &setup_.gui.screen());
+  popup.move_by((setup_.gui.screen().width() - kScreenWidth) / 2, 0);  // centred on a wide screen
   popup.emplace<ui::TitleBar>(std::string(setup_.exe.c_string(kGameOverTitle)));
   auto& field = popup.emplace<ui::TextField>(9, 0x2f, 0x13c, 0x3a, [text] { return text; }, ui::FontSlot::kSmall,
                                              TextAlign::kCentre);
@@ -206,6 +231,8 @@ void MissionScreen::run_modal(std::unique_ptr<ui::Dialog> dialog, ModalFrame fra
 }
 
 void MissionScreen::begin_modal(Modal& m) {
+  // The menus are placed for the 640-wide screen: centred on a wider one.
+  m.dialog->move_by((setup_.gui.screen().width() - kScreenWidth) / 2, 0);
   ++ui_.pause;
   if (m.frame == ModalFrame::kMenu) {
     sound_.stop_all();

@@ -81,6 +81,10 @@ class ChartPanelHost {
   // A host for a view covering `bounds` (the panels are kept inside it).
   ChartPanelHost(ui::Gui& gui, ui::Rect bounds, Hooks hooks);
 
+  // Changes the view's rectangle (the wide-screen layout; not in the
+  // original), moving the panels back inside it.
+  void set_bounds(ui::Rect bounds);
+
   // `chart_view_add_panel`: returns the slot index, or `kNone` when the five
   // slots are taken (the original ignores the call).
   int add(ChartPanelSlot slot);
@@ -227,8 +231,9 @@ struct ChartEdges {
 // (the original's). Not in the original: with `edges` kExact (fullscreen),
 // or from row `bar_top` down (the extended chart's full command bar), only
 // the edge rows and columns themselves; with kNone (touch screens), none.
+// `screen_w` is the screen's width (wider for the wide screen).
 ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdges edges = ui::PointerEdges::kBand,
-                                   int bar_top = kScreenHeight);
+                                   int bar_top = kScreenHeight, int screen_w = kScreenWidth);
 
 // `chart_view_edge_scroll`: the pointer on a screen edge (see
 // `chart_edge_scroll_edges`) scrolls the view by 50 / zoom chart pixels;
@@ -236,7 +241,7 @@ ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdg
 // back 30 pixels.
 // The zones follow the mouse's `edges` and `bar_top`.
 void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty,
-                       int bar_top = kScreenHeight);
+                       int bar_top = kScreenHeight, int screen_w = kScreenWidth);
 
 // Returns the top-left corner of a `w` x `h` info box for the pointer at
 // (`x`, `y`) (`chart_show_info_popup` 0x21a0c, SE `sbchart_place_info_popup`
@@ -244,7 +249,8 @@ void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool&
 // screen's centre, on the screen above the status bar and off `avoid`; the
 // panel is ignored after 0x98 rounds, and a box that fits nowhere goes to
 // (0, 0) after two more passes (the original searches forever).
-std::array<int, 2> chart_place_info_popup(int x, int y, int w, int h, std::optional<ui::Rect> avoid);
+std::array<int, 2> chart_place_info_popup(int x, int y, int w, int h, std::optional<ui::Rect> avoid,
+                                          int screen_w = kScreenWidth);
 
 // The hover info box (dialog 0x1186c0, SE 0xae590): up to six lines.
 class ChartInfoPopup {
