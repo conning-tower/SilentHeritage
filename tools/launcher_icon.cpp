@@ -347,6 +347,29 @@ RgbaBitmap decode_pam(std::span<const std::uint8_t> data, std::string_view conte
   return out;
 }
 
+RgbaBitmap composite_over(const RgbaBitmap& base, const RgbaBitmap& overlay) {
+  const RgbaBitmap top = overlay.width() == base.width() && overlay.height() == base.height()
+                             ? overlay
+                             : resize_area(overlay, base.width(), base.height());
+  RgbaBitmap out(base.width(), base.height());
+  for (int y = 0; y < base.height(); ++y) {
+    for (int x = 0; x < base.width(); ++x) {
+      const Rgba8 b = base.at(x, y);
+      const Rgba8 t = top.at(x, y);
+      if (t.a == 0) {
+        out.at(x, y) = b;
+        continue;
+      }
+      const double ta = t.a / 255.0;
+      const double ba = b.a / 255.0 * (1 - ta);
+      const double a = ta + ba;
+      out.at(x, y) = {to_byte((t.r * ta + b.r * ba) / a), to_byte((t.g * ta + b.g * ba) / a),
+                      to_byte((t.b * ta + b.b * ba) / a), to_byte(a * 255)};
+    }
+  }
+  return out;
+}
+
 RgbaBitmap game_art_foreground(const Install& install) {
   const PcxImage pcx = load_pcx(install, "ART/RTNPORT.PCX");
   const Palette pal = to_palette(pcx.palette);

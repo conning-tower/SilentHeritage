@@ -1,12 +1,18 @@
-// The launcher icon tool's PNG encoder, resampler and game-art picture.
+// The launcher icon tool's PNG encoder, resampler, overlays and game-art
+// picture.
 #include <catch2/catch_test_macros.hpp>
 
+#include <algorithm>
+#include <chrono>
 #include <cstdint>
+#include <filesystem>
 #include <span>
+#include <string>
 #include <vector>
 
 #include "assets/pcx.h"
 #include "core/image.h"
+#include "core/install.h"
 #include "game_data.h"
 #include "tools/launcher_icon.h"
 
@@ -100,6 +106,37 @@ DecodedPng read_png(std::span<const std::uint8_t> png) {
   return out;
 }
 
+// A scratch directory removed at the end of the test.
+class TempDir {
+ public:
+  TempDir() {
+    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
+    path_ = std::filesystem::temp_directory_path() / ("sh_launcher_icon_test_" + std::to_string(stamp));
+    std::filesystem::create_directories(path_);
+  }
+  ~TempDir() { std::filesystem::remove_all(path_); }
+  TempDir(const TempDir&) = delete;
+  TempDir& operator=(const TempDir&) = delete;
+  const std::filesystem::path& path() const { return path_; }
+
+ private:
+  std::filesystem::path path_;
+};
+
+// A 432 x 432 foreground with every kind of pixel: opaque gradients, a
+// half-transparent band and a fully transparent (but coloured) corner.
+sh::RgbaBitmap test_foreground() {
+  sh::RgbaBitmap image(432, 432);
+  for (int y = 0; y < image.height(); ++y) {
+    for (int x = 0; x < image.width(); ++x) {
+      const std::uint8_t a = x < 40 && y < 40 ? 0 : (y >= 200 && y < 230 ? 128 : 255);
+      image.at(x, y) = {static_cast<std::uint8_t>(x * 255 / 431), static_cast<std::uint8_t>(y * 255 / 431),
+                        static_cast<std::uint8_t>((x + y) % 256), a};
+    }
+  }
+  return image;
+}
+
 }  // namespace
 
 TEST_CASE("launcher icon: PNG encoder round trip", "[launcher_icon]") {
@@ -171,6 +208,100 @@ TEST_CASE("launcher icon: area resampling", "[launcher_icon]") {
     CHECK(out.height() == 162);
     CHECK(out.at(0, 0) == sh::Rgba8{12, 34, 56, 255});
     CHECK(out.at(161, 97) == sh::Rgba8{12, 34, 56, 255});
+  }
+}
+
+TEST_CASE("launcher icon: overlays drawn over the picture", "[launcher_icon]") {
+  SECTION("an opaque overlay replaces the picture") {
+    const sh::RgbaBitmap out =
+        sh::composite_over(sh::RgbaBitmap(3, 2, {10, 20, 30, 255}), sh::RgbaBitmap(3, 2, {200, 100, 50, 255}));
+    CHECK(out.at(0, 0) == sh::Rgba8{200, 100, 50, 255});
+    CHECK(out.at(2, 1) == sh::Rgba8{200, 100, 50, 255});
+  }
+  SECTION("a fully transparent overlay keeps every pixel, transparent ones too") {
+    const sh::RgbaBitmap base = test_foreground();
+    const sh::RgbaBitmap out = sh::composite_over(base, sh::RgbaBitmap(432, 432, {255, 255, 255, 0}));
+    CHECK(std::ranges::equal(out.pixels(), base.pixels()));
+  }
+  SECTION("a half-transparent overlay blends") {
+    // 128 / 255 of the red over the opaque blue.
+    const sh::RgbaBitmap out =
+        sh::composite_over(sh::RgbaBitmap(1, 1, {0, 0, 255, 255}), sh::RgbaBitmap(1, 1, {255, 0, 0, 128}));
+    CHECK(out.at(0, 0) == sh::Rgba8{128, 0, 127, 255});
+  }
+  SECTION("alpha accumulates over a half-transparent picture") {
+    // a = t + b (1 - t): 0.502 + 0.502 * 0.498 = 0.752; the colours by
+    // their share of it.
+    const sh::RgbaBitmap out =
+        sh::composite_over(sh::RgbaBitmap(1, 1, {0, 0, 200, 128}), sh::RgbaBitmap(1, 1, {200, 0, 0, 128}));
+    CHECK(out.at(0, 0) == sh::Rgba8{134, 0, 66, 192});
+  }
+  SECTION("over a transparent picture, the overlay as it is") {
+    const sh::RgbaBitmap out =
+        sh::composite_over(sh::RgbaBitmap(1, 1, {9, 9, 9, 0}), sh::RgbaBitmap(1, 1, {40, 80, 120, 77}));
+    CHECK(out.at(0, 0) == sh::Rgba8{40, 80, 120, 77});
+  }
+  SECTION("a smaller overlay is resampled to the picture's size") {
+    sh::RgbaBitmap overlay(2, 2);
+    overlay.at(1, 1) = {255, 255, 255, 255};
+    const sh::RgbaBitmap out = sh::composite_over(sh::RgbaBitmap(4, 4, {0, 0, 0, 255}), overlay);
+    REQUIRE(out.width() == 4);
+    REQUIRE(out.height() == 4);
+    for (int y = 0; y < 4; ++y) {
+      for (int x = 0; x < 4; ++x) {
+        const std::uint8_t v = x >= 2 && y >= 2 ? 255 : 0;
+        CHECK(out.at(x, y) == sh::Rgba8{v, v, v, 255});
+      }
+    }
+  }
+}
+
+TEST_CASE("launcher icon: the icons without the extended mark are unchanged", "[launcher_icon]") {
+  // The faithful packages draw no overlay; a transparent one changes no
+  // byte of any resource either.
+  const sh::RgbaBitmap base = test_foreground();
+  const TempDir plain;
+  const TempDir overlaid;
+  sh::write_launcher_icons(base, sh::MonochromeSource::kLightness, plain.path());
+  sh::write_launcher_icons(sh::composite_over(base, sh::RgbaBitmap(108, 108)), sh::MonochromeSource::kLightness,
+                           overlaid.path());
+  int files = 0;
+  for (const auto& entry : std::filesystem::recursive_directory_iterator(plain.path())) {
+    if (entry.is_regular_file()) {
+      const std::filesystem::path relative = std::filesystem::relative(entry.path(), plain.path());
+      CHECK(sh::read_file(entry.path()) == sh::read_file(overlaid.path() / relative));
+      ++files;
+    }
+  }
+  // Five densities, four PNGs each.
+  CHECK(files == 20);
+}
+
+TEST_CASE("launcher icon: the extended mark reaches every layer", "[launcher_icon]") {
+  // An opaque white band over the lower part, as the ribbon: it shows in
+  // the foreground, the monochrome layer (the light parts) and the legacy
+  // icons.
+  const sh::RgbaBitmap base(432, 432, {24, 48, 44, 255});
+  sh::RgbaBitmap band(432, 432);
+  for (int y = 290; y < 330; ++y) {
+    for (int x = 0; x < 432; ++x) {
+      band.at(x, y) = {238, 230, 206, 255};
+    }
+  }
+  const sh::RgbaBitmap marked = sh::composite_over(base, band);
+  CHECK(marked.at(216, 310) == sh::Rgba8{238, 230, 206, 255});
+  CHECK(marked.at(216, 100) == base.at(216, 100));
+  const sh::RgbaBitmap mono = sh::monochrome(marked, sh::MonochromeSource::kLightness);
+  CHECK(mono.at(216, 310).a == 255);
+  CHECK(mono.at(216, 100).a == 0);
+  const TempDir plain;
+  const TempDir extended;
+  sh::write_launcher_icons(base, sh::MonochromeSource::kLightness, plain.path());
+  sh::write_launcher_icons(marked, sh::MonochromeSource::kLightness, extended.path());
+  for (const char* name : {"ic_launcher_foreground.png", "ic_launcher_monochrome.png", "ic_launcher.png",
+                           "ic_launcher_round.png"}) {
+    const std::filesystem::path png = std::filesystem::path("mipmap-xxxhdpi") / name;
+    CHECK(sh::read_file(plain.path() / png) != sh::read_file(extended.path() / png));
   }
 }
 

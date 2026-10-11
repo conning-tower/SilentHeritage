@@ -6,9 +6,14 @@ cairo shared libraries but without the `rsvg-convert` program. A `.pam`
 output (8-bit RGB_ALPHA, straight alpha) is what `make_launcher_icon
 --foreground` reads.
 
-Usage: render_svg.py <in.svg> <out.png|out.pam> <size in pixels>
+Usage: render_svg.py [--css <stylesheet>] <in.svg> <out.png|out.pam> <size in pixels>
+
+`--css` applies a user stylesheet (librsvg 2.48+); its declarations
+override the SVG's presentation attributes (such as `fill="..."`), e.g.
+`#plate{fill:#3c1416}`.
 """
 
+import argparse
 import ctypes
 import ctypes.util
 import sys
@@ -51,12 +56,13 @@ def _pam(argb: bytes, size: int, stride: int) -> bytes:
     return bytes(out)
 
 
-def render(svg_path: str, out_path: str, size: int) -> None:
+def render(svg_path: str, out_path: str, size: int, css: str | None = None) -> None:
     """Renders `svg_path` scaled into a `size` x `size` picture at `out_path`:
-    a PAM file if its name ends with `.pam`, else a PNG.
+    a PAM file if its name ends with `.pam`, else a PNG; `css`, when given,
+    is applied as a user stylesheet.
 
-    Raises `RuntimeError` when librsvg cannot read the SVG or cairo cannot
-    write the PNG.
+    Raises `RuntimeError` when librsvg cannot read the SVG or the stylesheet,
+    or cairo cannot write the PNG.
     """
     if sys.byteorder != "little":
         raise RuntimeError("render_svg.py reads cairo's pixels as little-endian words")
@@ -84,12 +90,24 @@ def render(svg_path: str, out_path: str, size: int) -> None:
     cairo.cairo_surface_flush.argtypes = [ctypes.c_void_p]
     cairo.cairo_destroy.argtypes = [ctypes.c_void_p]
     cairo.cairo_surface_destroy.argtypes = [ctypes.c_void_p]
+    rsvg.rsvg_handle_set_stylesheet.restype = ctypes.c_int
+    rsvg.rsvg_handle_set_stylesheet.argtypes = [
+        ctypes.c_void_p,
+        ctypes.c_char_p,
+        ctypes.c_size_t,
+        ctypes.c_void_p,
+    ]
     gobject = _load("gobject-2.0", "libgobject-2.0.so.0")
     gobject.g_object_unref.argtypes = [ctypes.c_void_p]
 
     handle = rsvg.rsvg_handle_new_from_file(svg_path.encode(), None)
     if not handle:
         raise RuntimeError(f"librsvg cannot read {svg_path}")
+    if css is not None:
+        sheet = css.encode()
+        if not rsvg.rsvg_handle_set_stylesheet(handle, sheet, len(sheet), None):
+            gobject.g_object_unref(handle)
+            raise RuntimeError(f"librsvg cannot parse the stylesheet {css!r}")
     cairo_format_argb32 = 0
     surface = cairo.cairo_image_surface_create(cairo_format_argb32, size, size)
     context = cairo.cairo_create(surface)
@@ -112,6 +130,10 @@ def render(svg_path: str, out_path: str, size: int) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        sys.exit(f"usage: {sys.argv[0]} <in.svg> <out.png|out.pam> <size>")
-    render(sys.argv[1], sys.argv[2], int(sys.argv[3]))
+    parser = argparse.ArgumentParser(description="Renders an SVG file to a square PNG or PAM.")
+    parser.add_argument("--css", help="a user stylesheet applied over the SVG's styles")
+    parser.add_argument("svg", help="the SVG file")
+    parser.add_argument("out", help="the output picture (.png or .pam)")
+    parser.add_argument("size", type=int, help="the picture's width and height in pixels")
+    args = parser.parse_args()
+    render(args.svg, args.out, args.size, args.css)

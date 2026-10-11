@@ -75,6 +75,11 @@ RgbaBitmap round_mask(const RgbaBitmap& image);
 // otherwise.
 RgbaBitmap decode_pam(std::span<const std::uint8_t> data, std::string_view context);
 
+// Returns `overlay` drawn over `base` (straight-alpha "over"), `overlay`
+// first resampled to `base`'s size when they differ (`resize_area`). Where
+// the overlay is fully transparent, `base`'s pixels are kept exactly.
+RgbaBitmap composite_over(const RgbaBitmap& base, const RgbaBitmap& overlay);
+
 // The full-bleed square cut from the install's ART/RTNPORT.PCX (the fleet
 // boat "305" at its pier): 600 x 600 pixels, wider than the 480 pixel high
 // picture, the conning tower in the centre; the sky above is extended

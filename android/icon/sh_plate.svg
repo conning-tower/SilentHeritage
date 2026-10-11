@@ -44,7 +44,8 @@
   </defs>
   <rect width="108" height="108" fill="#282c2a"/>
   <circle cx="54" cy="54" r="36.2" fill="url(#ring)"/>
-  <circle cx="54" cy="54" r="31.3" fill="#18302c"/>
+  <!-- The plate: the extended variant recolours it by its id (build_apk.sh). -->
+  <circle id="plate" cx="54" cy="54" r="31.3" fill="#18302c"/>
   <g transform="translate(54.5 69.1) scale(1 1.62)">
     <!-- Bottom edge, right side, top and left edges, then the face. -->
     <use xlink:href="#sh" x="0.9" y="0.5" fill="#302804"/>

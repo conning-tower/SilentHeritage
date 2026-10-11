@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The extended variant's mark, drawn over either edition's launcher icon
+     (make_launcher_icon's overlay option): a brass band across the lower
+     part, lit from the top like the SH plate's ring, with "EXT" in oxblood
+     letters (Liberation Sans Narrow Bold, stretched like the plate's).
+     Transparent elsewhere. Adaptive icon foreground: 108 x 108 dp; the band
+     crosses the visible 72 dp circle at 16 to 29 dp below its centre. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="432" viewBox="0 0 108 108">
+  <defs>
+    <linearGradient id="band" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eee6ce"/>
+      <stop offset="0.12" stop-color="#cabe89"/>
+      <stop offset="0.7" stop-color="#9d914c"/>
+      <stop offset="1" stop-color="#615518"/>
+    </linearGradient>
+  </defs>
+  <!-- The band's shadow, the band, then the letters' light edge and face. -->
+  <rect x="0" y="71.6" width="108" height="13" fill="#000" fill-opacity="0.45"/>
+  <rect x="0" y="70.5" width="108" height="12.5" fill="url(#band)"/>
+  <g transform="translate(54 81) scale(1 1.3)">
+    <text x="0.4" y="0.3" text-anchor="middle" font-family="Liberation Sans Narrow" font-weight="bold"
+          font-size="9.4" letter-spacing="1.2" fill="#eee6ce" fill-opacity="0.5">EXT</text>
+    <text x="0" y="0" text-anchor="middle" font-family="Liberation Sans Narrow" font-weight="bold"
+          font-size="9.4" letter-spacing="1.2" fill="#3a1012">EXT</text>
+  </g>
+</svg>

@@ -15,7 +15,10 @@
 # With --variant=extended, the packages are the extended variant's
 # (SH_VARIANT): build/android/SilentHeritageExtended-debug.apk
 # (com.conningtower.silentheritage.extended), and likewise for Silent Hunter,
-# installed next to the faithful ones.
+# installed next to the faithful ones. Their launcher icons carry the
+# extended mark, a brass "EXT" ribbon (android/icon/extended_ribbon.svg)
+# drawn over the edition's icon, whatever --icon says; the SH plate is
+# oxblood instead of dark green.
 #
 # Usage: android/build_apk.sh [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate]
 #   --edition  the edition's package to build [heritage]; --edition=hunter
@@ -27,7 +30,7 @@
 #              the install's ART/RTNPORT.PCX; `sh-plate` renders
 #              android/icon/sh_plate.svg (needs python3
 #              with the librsvg and cairo libraries, and the Liberation Sans
-#              Narrow font)
+#              Narrow font, as does the extended variant's ribbon)
 # Environment (defaults in brackets):
 #   ANDROID_HOME  the Android SDK (required; ANDROID_SDK_ROOT is accepted
 #                 too), holding platforms/android-36 and build-tools/36.1.0
@@ -109,6 +112,16 @@ readonly android="${reimpl}/android"
 readonly out="${reimpl}/build/android"
 readonly native="${out}/native"
 readonly stage="${out}/stage"
+# The extended variant's launcher icon: the extra arguments of
+# make_launcher_icon (the ribbon drawn over any edition's icon, rendered
+# before step 1's native build) and of render_svg.py for the SH plate (its colour).
+variant_icon_args=()
+variant_plate_args=()
+if [[ "${variant}" == extended ]]; then
+  variant_icon_args=(--overlay "${stage}/extended_ribbon.pam")
+  variant_plate_args=(--css '#plate{fill:#3c1416}')
+fi
+readonly variant_icon_args variant_plate_args
 # SDL's sources: those of the Linux build when present, else CMake fetches them.
 sdl_src="${reimpl}/build/linux/_deps/sdl3-src"
 
@@ -169,6 +182,10 @@ build_native() {
 # every package; the first native build fetches SDL's sources if needed).
 rm -rf "${stage}"
 mkdir -p "${stage}/classes"
+# The extended variant's ribbon (variant_icon_args), for every package.
+if [[ "${variant}" == extended ]]; then
+  python3 "${android}/icon/render_svg.py" "${android}/icon/extended_ribbon.svg" "${stage}/extended_ribbon.pam" 864
+fi
 build_native "${editions[0]}"
 if [[ ! -d "${sdl_src}" ]]; then
   sdl_src="${native}/_deps/sdl3-src"
@@ -228,12 +245,12 @@ for edition in "${editions[@]}"; do
     "${edition_name}" > "${dir}/res/values/strings.xml"
   case "$(edition_icon "${edition}")" in
     game)
-      "${icon_tool}" --res "${dir}/res" --install "${data}"
+      "${icon_tool}" --res "${dir}/res" --install "${data}" "${variant_icon_args[@]}"
       ;;
     sh-plate)
-      python3 "${android}/icon/render_svg.py" "${android}/icon/sh_plate.svg" \
+      python3 "${android}/icon/render_svg.py" "${variant_plate_args[@]}" "${android}/icon/sh_plate.svg" \
         "${dir}/icon.pam" 864
-      "${icon_tool}" --res "${dir}/res" --foreground "${dir}/icon.pam"
+      "${icon_tool}" --res "${dir}/res" --foreground "${dir}/icon.pam" "${variant_icon_args[@]}"
       rm "${dir}/icon.pam"
       ;;
   esac
