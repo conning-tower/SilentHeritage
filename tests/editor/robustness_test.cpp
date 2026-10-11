@@ -59,7 +59,7 @@ std::vector<std::uint8_t> damaged(std::vector<std::uint8_t> data, std::mt19937& 
 }  // namespace
 
 TEST_CASE("Every truncation of a scenario file is refused", "[editor][robustness]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const std::string& name : kFiles) {
     const std::vector<std::uint8_t> data = install.read(name);
     const ScnFile file = read_scn_file(data, name);
@@ -76,7 +76,7 @@ TEST_CASE("Every truncation of a scenario file is refused", "[editor][robustness
 }
 
 TEST_CASE("Damaged scenario files are refused or load, save and draw", "[editor][robustness]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   std::mt19937 random(7);
   int read = 0;
@@ -121,7 +121,7 @@ TEST_CASE("Damaged scenario files are refused or load, save and draw", "[editor]
 TEST_CASE("A path far off the map is drawn without hanging", "[editor][robustness]") {
   // An aircraft of a damaged file at y = 2^31 - 1: clipping its path's legs
   // with the wrapping arithmetic never converged.
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   Aircraft& a = rig.scenario.add_aircraft(0, AircraftMission::kFollowPath);
   const WorldPoint p = rig.scenario.player().position(rig.scenario.object_env());
@@ -136,7 +136,7 @@ TEST_CASE("A path far off the map is drawn without hanging", "[editor][robustnes
 }
 
 TEST_CASE("Values the editor indexes with are checked on load", "[editor][robustness]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ScnFile good = read_scn_file(install.read("SCEN/HIST57.SCN"), "HIST57.SCN");
   CHECK_NOTHROW(Scenario::check_file(good));
   const auto with = [&](auto change) {
@@ -174,7 +174,7 @@ TEST_CASE("Values the editor indexes with are checked on load", "[editor][robust
 TEST_CASE("A leader of convoy 0 and huge depths are harmless", "[editor][robustness]") {
   // A damaged file: a Convoy Leader without a convoy (the original takes
   // the player for its leader), depths whose world units overflow.
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install, "SCEN/HIST57.SCN");
   Vessel* ship = nullptr;
   for (const auto& o : rig.scenario.objects()) {
