@@ -58,7 +58,7 @@ TEST_CASE("Status severity, repair state and repair time texts", "[stations]") {
   CHECK(status_repair_state(4 | 8) == 3);
 }
 
-TEST_CASE("Status texts come from SH.EXE", "[stations]") {
+TEST_CASE("Status texts come from SH.EXE", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const StatusTexts t = StatusTexts::load(ExeImage::load(install));
   // status_format_repair_time (0x7555f): rounded up to the next minute.
@@ -83,7 +83,7 @@ TEST_CASE("Status texts come from SH.EXE", "[stations]") {
 }
 
 TEST_CASE("The damage page selects a compartment by click", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   StatusStation& s = open_status(rig);
   REQUIRE(rig.screen->loop().open_station() == &s);
@@ -115,7 +115,7 @@ TEST_CASE("The damage page selects a compartment by click", "[stations]") {
 }
 
 TEST_CASE("A torpedo is dragged from a rack into an empty tube", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   StatusStation& s = open_status(rig);
   rig.key(0x4200);  // F8 again: the torpedo page
@@ -156,7 +156,7 @@ TEST_CASE("A torpedo is dragged from a rack into an empty tube", "[stations]") {
 }
 
 TEST_CASE("A loaded torpedo goes back into its own tube at once", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   StatusStation& s = open_status(rig);
   rig.key(0x4200);
