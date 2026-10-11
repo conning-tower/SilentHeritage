@@ -35,7 +35,7 @@ GeneratorParams params_for(std::int32_t month, std::int32_t year) {
 
 }  // namespace
 
-TEST_CASE("Equipment fit dates", "[scengen]") {
+TEST_CASE("Equipment fit dates", "[scengen][content]") {
   SH_REQUIRE_GAME_EXE();
   using E = Equipment;
   const auto bit = [](E e) { return static_cast<std::uint32_t>(e); };
@@ -184,7 +184,7 @@ void check_scenario(const Fixture& f, const GeneratedMission& g, const Generator
 }  // namespace
 
 TEST_CASE("An oversized patrol (size 3) is capped at 6 ships instead of hanging", "[scengen]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   GeneratorParams params;
   params.patrol_size = 3;
@@ -198,7 +198,7 @@ TEST_CASE("An oversized patrol (size 3) is capped at 6 ships instead of hanging"
 }
 
 TEST_CASE("Torpedo load by boat and date", "[scengen]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::int32_t mk10 = static_cast<std::int32_t>(tables.find_torpedo("MARK10")->id);
   const std::int32_t mk14 = static_cast<std::int32_t>(tables.find_torpedo("MARK14")->id);
@@ -274,7 +274,7 @@ TEST_CASE("Torpedo load by boat and date", "[scengen]") {
 }
 
 TEST_CASE("Submarine classes in service", "[scengen]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const auto names = [&](std::int32_t month, std::int32_t year) {
     std::set<std::string> out;
@@ -291,7 +291,7 @@ TEST_CASE("Submarine classes in service", "[scengen]") {
   CHECK(names(1, 15).contains("TENCH"));
 }
 
-TEST_CASE("Convoy encounter for a fixed seed", "[scengen]") {
+TEST_CASE("Convoy encounter for a fixed seed", "[scengen][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Fixture f{install, GameTables::load(install)};
   GeneratorParams p = params_for(5, 13);
@@ -372,7 +372,7 @@ TEST_CASE("Convoy encounter for a fixed seed", "[scengen]") {
 }
 
 TEST_CASE("Warship encounter: real IJN ships, never repeated", "[scengen]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Fixture f{install, GameTables::load(install)};
   for (std::int32_t type = 0; type < 4; ++type) {
     for (std::uint32_t seed = 1; seed <= 5; ++seed) {
@@ -401,7 +401,7 @@ TEST_CASE("Warship encounter: real IJN ships, never repeated", "[scengen]") {
   }
 }
 
-TEST_CASE("Patrol encounter: the boat inside the patrol box", "[scengen]") {
+TEST_CASE("Patrol encounter: the boat inside the patrol box", "[scengen][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Fixture f{install, GameTables::load(install)};
   GeneratorParams p = params_for(2, 14);
@@ -422,7 +422,7 @@ TEST_CASE("Patrol encounter: the boat inside the patrol box", "[scengen]") {
 }
 
 TEST_CASE("Every encounter option generates and loads", "[scengen]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Fixture f{install, GameTables::load(install)};
   std::uint32_t seed = 1;
   const std::vector<std::pair<std::int32_t, std::int32_t>> dates = {{11, 11}, {3, 12}, {9, 13}, {5, 14}, {6, 15}};
@@ -466,7 +466,7 @@ TEST_CASE("Every encounter option generates and loads", "[scengen]") {
 }
 
 TEST_CASE("A generated scenario builds a mission", "[scengen]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Fixture f{install, GameTables::load(install)};
   GeneratorParams p = params_for(4, 13);
   p.escort = 1;
