@@ -1,0 +1,200 @@
+# Golden trace "synthetic/frontend_hist01" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=synthetic/frontend_hist01 (see tests/golden_trace.h).
+@install synthetic
+briefing fe.place single -1
+briefing fe.rng 41c67ea6
+briefing frame menu 346ee4b0ec9ca800
+briefing dac 6d166b797de0a4e9
+briefing file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+briefing file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+conn fe.place single -1
+conn fe.rng 41c67ea6
+conn fe.draws 0
+conn sim.time day 1 06:00:02.85 x1/1/64
+conn sim.player 5ba03490f902d97a
+conn sim.tdc d44650a51d80725e
+conn sim.deckgun 68f14d5db9c222c8
+conn sim.vehicle.0 1 07459c2132fadad1
+conn sim.vehicle.1 1 b3c2090b37a339f6
+conn sim.vehicle.2 1 80bf721215b769cc
+conn sim.vehicle.3 1 db2b3dda21e4dfd6
+conn sim.vehicle.4 1 a335fb94fd4d54b1
+conn sim.vehicle.5 1 535a40247d00fbed
+conn sim.extension 2aecbe9074c4dea4
+conn rng 795a48c7
+conn msgs -
+conn ui.state 8c86318df91bea1e
+conn frame conn cb888ff4fa850264
+conn dac 8614c084117a6c24
+conn file.SAVE/GDETAIL.SAV fa99f9619326b3db
+conn file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+conn file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+scope fe.place single -1
+scope fe.rng 41c67ea6
+scope fe.draws 0
+scope sim.time day 1 06:00:04.80 x1/1/64
+scope sim.player 98df2995da8004bb
+scope sim.tdc dc1094f2a2c6f75e
+scope sim.deckgun 62d4279937aa4e64
+scope sim.vehicle.0 1 37844b286181319f
+scope sim.vehicle.1 1 d0c37f90106ae73f
+scope sim.vehicle.2 1 601898a14b9680f0
+scope sim.vehicle.3 1 3f54874d1bff8aee
+scope sim.vehicle.4 1 fbd920b2b0c2a61f
+scope sim.vehicle.5 1 9d6edaf0da47b1f7
+scope sim.extension bc95fde2e8845165
+scope rng fe87cef4
+scope draws 1
+scope msgs 3(-1,-1)
+scope ui.state e9311554bc12bc97
+scope frame scope ecb86b948fd7f711
+scope dac 8968a21c001965ce
+scope file.SAVE/GDETAIL.SAV fa99f9619326b3db
+scope file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+scope file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+bridge fe.place single -1
+bridge fe.rng 41c67ea6
+bridge fe.draws 0
+bridge sim.time day 1 06:00:06.75 x1/1/64
+bridge sim.player 815ff893723dd3f6
+bridge sim.tdc 527c9842f7444411
+bridge sim.deckgun d91165c789ec9b9e
+bridge sim.vehicle.0 1 12f6f1eeaf80a480
+bridge sim.vehicle.1 1 79a0a0b8a6d513fa
+bridge sim.vehicle.2 1 137ce3388f25422e
+bridge sim.vehicle.3 1 32643952f25c0a04
+bridge sim.vehicle.4 1 fac73a520f3c8b60
+bridge sim.vehicle.5 1 331e517b8670c1e8
+bridge sim.extension 7f5452a018ccf8c8
+bridge rng ca76c092
+bridge draws 2
+bridge msgs -
+bridge ui.state 37206b25a7a68be0
+bridge frame bridge 78147f9ba889819c
+bridge dac af4f9fe5231db20d
+bridge file.SAVE/GDETAIL.SAV fa99f9619326b3db
+bridge file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+bridge file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+chart fe.place single -1
+chart fe.rng 41c67ea6
+chart fe.draws 0
+chart sim.time day 1 06:00:08.70 x1/1/64
+chart sim.player b7983c5f0df56b98
+chart sim.tdc a20d730bded92703
+chart sim.deckgun 9bccf585ef800d77
+chart sim.vehicle.0 1 341adce80b6cfc6a
+chart sim.vehicle.1 1 28eb053b295ade83
+chart sim.vehicle.2 1 5cd9e80e5f89a7c6
+chart sim.vehicle.3 1 62cf3f5034eb566d
+chart sim.vehicle.4 1 2d8cb94113d48389
+chart sim.vehicle.5 1 a46ceda9241be8e8
+chart sim.extension a9e6ade86dc3810f
+chart rng cecce660
+chart draws 2
+chart msgs -
+chart ui.state 322e02600a125281
+chart frame chart 3188ac455206254d
+chart dac 0dad36b85fdd5a6e
+chart file.SAVE/GDETAIL.SAV fa99f9619326b3db
+chart file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+chart file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+status fe.place single -1
+status fe.rng 41c67ea6
+status fe.draws 0
+status sim.time day 1 06:00:10.65 x1/1/64
+status sim.player ca59261d8b5e5d41
+status sim.tdc a03b2926460ef033
+status sim.deckgun 3581f4b8b9bd0b60
+status sim.vehicle.0 1 8d442b047b015f64
+status sim.vehicle.1 1 3a42de2338d04cdb
+status sim.vehicle.2 1 82b3f70b985aaa1f
+status sim.vehicle.3 1 556840aa318d4fa4
+status sim.vehicle.4 1 09e64d431ce3c28e
+status sim.vehicle.5 1 46d935d79bc51582
+status sim.extension 5922e47ec630d04d
+status rng 09af8719
+status draws 1
+status msgs -
+status ui.state 3341f9ebc2770b0e
+status frame status b3550757180ad658
+status dac edc817de9db41dbe
+status file.SAVE/GDETAIL.SAV fa99f9619326b3db
+status file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+status file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+conn2 fe.place single -1
+conn2 fe.rng 41c67ea6
+conn2 fe.draws 0
+conn2 sim.time day 1 06:00:12.60 x1/1/64
+conn2 sim.player 7fcd1efa7d85096b
+conn2 sim.tdc 5b984578355773c6
+conn2 sim.deckgun f362c1394761f26d
+conn2 sim.vehicle.0 1 c3c587ee1a17a55c
+conn2 sim.vehicle.1 1 b988c0b756d98fd7
+conn2 sim.vehicle.2 1 2b5588dd421f593c
+conn2 sim.vehicle.3 1 73b30cd541ba808a
+conn2 sim.vehicle.4 1 daa08ea6c53335ea
+conn2 sim.vehicle.5 1 17ccb3afaea1fa45
+conn2 sim.extension 0922bf44fe4583d8
+conn2 rng d3f189bf
+conn2 draws 2
+conn2 msgs -
+conn2 ui.state 5a9852295d9f5c32
+conn2 frame conn 309aa33c2f239682
+conn2 dac 8614c084117a6c24
+conn2 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+conn2 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+conn2 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run1 fe.place single -1
+run1 fe.rng 41c67ea6
+run1 fe.draws 0
+run1 sim.time day 1 06:02:14.95 x8/32/64
+run1 sim.player 8f1ee226c3a72f18
+run1 sim.tdc 8e5d4199c0d9d05c
+run1 sim.deckgun d721ee1ee88999fb
+run1 sim.vehicle.0 1 20160df9cb669cc1
+run1 sim.vehicle.1 1 f3bae525864ad832
+run1 sim.vehicle.2 1 b909e571ece4fc54
+run1 sim.vehicle.3 1 8bb5b65b18640010
+run1 sim.vehicle.4 1 59ae8212bc8d2286
+run1 sim.vehicle.5 1 38dd89963c7a6fae
+run1 sim.extension ab79a1b57aa696de
+run1 rng 20fec0f1
+run1 draws 102
+run1 msgs -
+run1 ui.state 16f1d77d9663de80
+run1 frame conn 724fd3e3568c3a16
+run1 dac 8614c084117a6c24
+run1 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run1 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run1 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run2 fe.place single -1
+run2 fe.rng 41c67ea6
+run2 fe.draws 0
+run2 sim.time day 1 06:04:14.95 x8/32/64
+run2 sim.player ff93e5128c55af15
+run2 sim.tdc 34a88a7bfd6c950b
+run2 sim.deckgun 899e904b91572672
+run2 sim.vehicle.0 1 c25234921d981288
+run2 sim.vehicle.1 1 d2a87133e81b4671
+run2 sim.vehicle.2 1 b9025adf9349d818
+run2 sim.vehicle.3 1 1f14a08c12688925
+run2 sim.vehicle.4 1 8f819032d95e4fb0
+run2 sim.vehicle.5 1 1311eb2f379e154e
+run2 sim.extension 5b1bc516802d318c
+run2 rng 21bb15cd
+run2 draws 100
+run2 msgs -
+run2 ui.state 5dc617ab72506cb2
+run2 frame conn 08ce9fe2ed76e4c2
+run2 dac 8614c084117a6c24
+run2 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run2 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run2 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+single fe.place single -1
+single fe.rng 0000167e
+single fe.draws ?
+single frame menu c3f93bd27059743b
+single dac af4799d8515004b0
+single file.SAVE/GDETAIL.SAV fa99f9619326b3db
+single file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+single file.SAVE/REALISM.SAV ea4003ea1cd2c3cc

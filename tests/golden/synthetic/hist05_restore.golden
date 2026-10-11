@@ -1,0 +1,76 @@
+# Golden trace "synthetic/hist05_restore" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=synthetic/hist05_restore (see tests/golden_trace.h).
+@install synthetic
+saved sim.time day 1 02:52:09.90 x1/1/64
+saved sim.player 9aa481543e7bc945
+saved sim.tdc 678552ed68e9f1ce
+saved sim.deckgun 82ffcea5c02f719f
+saved sim.vehicle.0 1 fe6ecf33ff2c7e3e
+saved sim.extension 2d27a09d8f60aef1
+saved rng 6628fbc6
+saved msgs 56(0,-1)
+saved ui.state e0c4fc4b47d1878c
+saved frame conn 8f3da1438d327927
+saved dac 8614c084117a6c24
+saved save 3d34217a763b96e0
+restored sim.time day 1 02:52:09.95 x1/1/64
+restored sim.player c238718ff605d394
+restored sim.tdc c5941e93695e453e
+restored sim.deckgun 62ef6ada53d9c6ef
+restored sim.vehicle.0 1 9bd679b310e403c8
+restored sim.extension 97e2b41969e97832
+restored rng 6628fbc6
+restored draws 0
+restored msgs -
+restored ui.state 00334d7260d25113
+restored frame conn 8f3da1438d327927
+restored dac 125029f9eb8c7cad
+run1 sim.time day 1 02:53:51.55 x8/32/64
+run1 sim.player 811f70aa18d33eee
+run1 sim.tdc 0f22241d42458a7b
+run1 sim.deckgun 711efae01432f90e
+run1 sim.vehicle.0 1 4ae6b1ee6865719b
+run1 sim.extension 133d81e3e5a994e1
+run1 rng 60b0ddd5
+run1 draws 203
+run1 msgs -
+run1 ui.state e4128e910a002161
+run1 frame conn f89f7ea324dc8b55
+run1 dac 8614c084117a6c24
+run2 sim.time day 1 02:55:31.55 x8/32/64
+run2 sim.player ce9c30d878b445e9
+run2 sim.tdc 632a3d02d7f2281d
+run2 sim.deckgun ddf8b3d59bab137d
+run2 sim.vehicle.0 1 169c7ae1e8f75432
+run2 sim.extension 6832013949b96435
+run2 rng f31059b8
+run2 draws 195
+run2 msgs -
+run2 ui.state eb33e993fe3375ae
+run2 frame conn a47579c9f036a909
+run2 dac 8614c084117a6c24
+run3 sim.time day 1 02:57:11.55 x8/32/64
+run3 sim.player 866de8cc5754449d
+run3 sim.tdc b5854a2c4cf25367
+run3 sim.deckgun 9d149607f2e2f7b5
+run3 sim.vehicle.0 1 64d990c33075b652
+run3 sim.extension 20c554c1f61dd163
+run3 rng 7496ea37
+run3 draws 195
+run3 msgs -
+run3 ui.state 802c2f0bd0cdbbfb
+run3 frame conn f3f946205c462ed6
+run3 dac 8614c084117a6c24
+run4 sim.time day 1 02:58:51.55 x8/32/64
+run4 sim.player a72daf97185bada6
+run4 sim.tdc 3589c4019f75c357
+run4 sim.deckgun 0a8d592f475361ed
+run4 sim.vehicle.0 1 553b50dc3c20c20c
+run4 sim.extension 9dc87d7e983a5a23
+run4 rng 9e60788b
+run4 draws 204
+run4 msgs -
+run4 ui.state 7f8a1441c99dde9e
+run4 frame conn 1012356163f24b58
+run4 dac 8614c084117a6c24
+end save 9b76149f52920d7b

@@ -1,0 +1,126 @@
+# Golden trace "synthetic/editor" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=synthetic/editor (see tests/golden_trace.h).
+@install synthetic
+new fe.place single -1
+new fe.rng 00000001
+new frame editor 0968663ff49b7dc5
+new dac fed179432fe52711
+new file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+new file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+files fe.place single -1
+files fe.rng 00000001
+files fe.draws 0
+files frame editor 38c0690a2b6dbd7c
+files dac 2ee87753b55f7d62
+files file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+files file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+load_historical fe.place single -1
+load_historical fe.rng 00000001
+load_historical fe.draws 0
+load_historical frame editor 7867202ac386b361
+load_historical dac 2ee87753b55f7d62
+load_historical file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+load_historical file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+loaded fe.place single -1
+loaded fe.rng 00000001
+loaded fe.draws 0
+loaded frame editor 9d73420fbec04d5a
+loaded dac fed179432fe52711
+loaded file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+loaded file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+save_scenario fe.place single -1
+save_scenario fe.rng 00000001
+save_scenario fe.draws 0
+save_scenario frame editor bd70227e9d00f2ca
+save_scenario dac 2ee87753b55f7d62
+save_scenario file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+save_scenario file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+saved fe.place single -1
+saved fe.rng 00000001
+saved fe.draws 0
+saved frame editor 5ac8af3d7e96204d
+saved dac fed179432fe52711
+saved file.CUSTOM/GOLD.SCN c30d2e5c3f030ec7
+saved file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+saved file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+realism fe.place single -1
+realism fe.rng 00000001
+realism fe.draws 0
+realism frame menu 6adc8f43352045cf
+realism dac af4799d8515004b0
+realism file.CUSTOM/AEONSCEN.TMP c30d2e5c3f030ec7
+realism file.CUSTOM/GOLD.SCN c30d2e5c3f030ec7
+realism file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+realism file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+realism file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+briefing fe.place single -1
+briefing fe.rng 41c67ea6
+briefing fe.draws 1
+briefing frame menu c68f53d7ee33fa6f
+briefing dac 6d166b797de0a4e9
+briefing file.CUSTOM/AEONSCEN.TMP c30d2e5c3f030ec7
+briefing file.CUSTOM/GOLD.SCN c30d2e5c3f030ec7
+briefing file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+briefing file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+briefing file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+conn fe.place single -1
+conn fe.rng 41c67ea6
+conn fe.draws 0
+conn sim.time day 15 12:18:02.85 x1/1/64
+conn sim.player 782214b98f8f0c9a
+conn sim.tdc d44650a51d80725e
+conn sim.deckgun ed7a09f0d7169f29
+conn sim.vehicle.0 1 43548843d7d071d7
+conn sim.vehicle.1 1 43fe971472b0018e
+conn sim.vehicle.2 1 3ff1f8358472149b
+conn sim.vehicle.3 1 8ea0724cf09fb91c
+conn sim.vehicle.4 1 b6458b964818f142
+conn sim.vehicle.5 1 2efddef14b44d255
+conn sim.extension 642919339b0d8da4
+conn rng 59c8fc26
+conn msgs -
+conn ui.state ffd7629ffb16be87
+conn frame conn 98517e81529f118d
+conn dac 8614c084117a6c24
+conn file.CUSTOM/AEONSCEN.TMP c30d2e5c3f030ec7
+conn file.CUSTOM/GOLD.SCN c30d2e5c3f030ec7
+conn file.SAVE/GDETAIL.SAV fa99f9619326b3db
+conn file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+conn file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+conn file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+run fe.place single -1
+run fe.rng 41c67ea6
+run fe.draws 0
+run sim.time day 15 12:18:12.85 x1/1/64
+run sim.player b81f85ebcb87e0ff
+run sim.tdc 6c302433b73ad1cc
+run sim.deckgun 08f88b219d8bdde1
+run sim.vehicle.0 1 2cad18f2380ce486
+run sim.vehicle.1 1 325cc444c1286b66
+run sim.vehicle.2 1 524d0343266c319d
+run sim.vehicle.3 1 fae732745c7a1548
+run sim.vehicle.4 1 c2f3e171082b022a
+run sim.vehicle.5 1 6e474a0df25cb8c6
+run sim.extension 8003b68d38a92888
+run rng f5848698
+run draws 14
+run msgs -
+run ui.state c76eef74efc61dca
+run frame conn ec63846fa41e032b
+run dac 8614c084117a6c24
+run file.CUSTOM/AEONSCEN.TMP c30d2e5c3f030ec7
+run file.CUSTOM/GOLD.SCN c30d2e5c3f030ec7
+run file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run file.SAVE/SBOPTION.SAV 1062c099dc16f7d1
+single fe.place single -1
+single fe.rng 0000167e
+single fe.draws ?
+single frame menu c3f93bd27059743b
+single dac af4799d8515004b0
+single file.CUSTOM/GOLD.SCN c30d2e5c3f030ec7
+single file.SAVE/GDETAIL.SAV fa99f9619326b3db
+single file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+single file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+single file.SAVE/SBOPTION.SAV 1062c099dc16f7d1

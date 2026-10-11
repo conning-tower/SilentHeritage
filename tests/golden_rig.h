@@ -82,6 +82,21 @@ class MissionTracer {
   std::string messages_;
 };
 
+// The game files of a golden run and where its traces are: the original's
+// install (SH_DATA) with the traces in tests/golden/real, tied to its
+// SH.EXE; else the synthetic install (synthetic/synthetic_install.h) with
+// the traces in tests/golden/synthetic. Only one of them per run: the
+// process-wide SH.EXE (game_exe_setup.cpp) is that of the same files.
+struct GoldenData {
+  Install install;
+  std::string dir;                  // "real" or "synthetic"
+  std::vector<std::string> header;  // the trace files' header lines
+
+  // Returns the trace name of `script`, e.g. "real/hist01_tour".
+  std::string trace_name(std::string_view script) const { return dir + "/" + std::string(script); }
+};
+GoldenData golden_data();
+
 // The tables and resources of the game (for building missions before the rig).
 struct GoldenGame {
   explicit GoldenGame(const Install& game)

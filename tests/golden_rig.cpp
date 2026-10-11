@@ -4,6 +4,7 @@
 #include <format>
 
 #include "app/command_line.h"
+#include "game_data.h"
 #include "game/sim_state.h"
 #include "platform/bios_keys.h"
 
@@ -14,6 +15,14 @@ namespace {
 std::span<const std::uint8_t> image_bytes(const StateImage& image) { return image.bytes(0, image.size()); }
 
 }  // namespace
+
+GoldenData golden_data() {
+  if (std::optional<Install> install = game_install(); install && !synthetic_forced()) {
+    std::vector<std::string> header{"install SH.EXE " + hex64(fnv1a64(install->read("SH.EXE")))};
+    return GoldenData{*install, "real", std::move(header)};
+  }
+  return GoldenData{synthetic_install(), "synthetic", {"install synthetic"}};
+}
 
 std::string_view station_name(StationId id) {
   constexpr std::string_view kNames[kStationCount] = {"chart", "conn",   "bridge", "deckgun", "gauges", "scope",

@@ -1,7 +1,8 @@
-// Golden traces of the whole faithful program on the original's data
-// (SH_DATA): the front end's menus, a single mission launched from them,
-// a career and the scenario editor, played by scripts (golden_game_rig.h)
-// and compared with tests/golden/real/ (golden_trace.h).
+// Golden traces of the whole faithful program: the front end's menus, a
+// single mission launched from them, a career and the scenario editor,
+// played by scripts (golden_game_rig.h) on the original's data or the
+// synthetic install (`golden_data`) and compared with tests/golden/
+// (golden_trace.h).
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -20,10 +21,6 @@
 
 namespace sh::test {
 namespace {
-
-std::vector<std::string> install_header(const Install& install) {
-  return {"install SH.EXE " + hex64(fnv1a64(install.read("SH.EXE")))};
-}
 
 struct GameScript {
   std::string name;
@@ -66,7 +63,7 @@ const std::vector<GameScript>& game_scripts() {
   static const std::vector<GameScript> list = {
       // The menus: the scenario lists and settings, the extras, the career
       // menu.
-      {"real/frontend_menus",
+      {"frontend_menus",
        join({"-40,@main", kSingleMission, "@single", kHistoric, "@historic", "click:300:193,-20,@historic_item",
              kListCancel, kConvoy, "@convoy", "click:206:278,-20,@convoy_crew", kListBegin, "@subclass",
              "click:469:286,-20,@subclass_balao", "click:163:403,-40", kListCancel, "@single_back", kSingleToMain,
@@ -75,20 +72,20 @@ const std::vector<GameScript>& game_scripts() {
              kCareerMenu, "@career", "click:480:342,-40,@main_back"})},
       // HIST01 launched from its list: every station's first frames, a
       // run under time compression, then ABORT.
-      {"real/frontend_hist01",
+      {"frontend_hist01",
        join({"-40", kSingleMission, kHistoric, kListBegin, "@briefing", kBriefingOk, "until:mission,-60,@conn",
              "f2,-40,@scope", "f4,-40,@bridge", "f5,-40,@chart", "f8,-40,@status", "f1,-40,@conn2", "4,-1",
              kCompression32, "-300,@run1", "-300,@run2", kAbort, "until:menu,-40,@single"})},
       // A generated convoy (BALAO) played at the chart, then RETURN TO
       // BASE: the port, the results and the single-mission menu.
-      {"real/frontend_convoy",
+      {"frontend_convoy",
        join({"-40", kSingleMission, kConvoy, kListBegin, "click:469:286,-20,click:472:403,-80,@briefing",
              kBriefingOk, "until:mission,-60,@conn", "f5,-40,4,-1", kCompression32, "-200,@run1", "-200,@run2",
              "-200,@run3", kReturnToBase, "@port", "-100,enter,-100,@results", "enter,-100,@single"})},
       // A new career to its first patrol: the orders, the boat, the base;
       // the patrol under time compression, SAVE CAREER from the game
       // options, RETURN TO BASE, the results, the letter, new equipment.
-      {"real/career",
+      {"career",
        join({"-40", kCareerMenu, "click:480:222,-80,@start", "click:460:289,-10,g,o,l,d,enter,-20,@home_base",
              "click:545:432,-100,@new_submarine", "enter,-100,@base", "click:134:206,-100,@patrol_area",
              "click:531:376,-400,@departure", "enter,-100,@briefing", "click:165:417,until:mission,-60,@conn",
@@ -98,7 +95,7 @@ const std::vector<GameScript>& game_scripts() {
              "enter,-100,@base_back"})},
       // BUILD CUSTOM MISSION: the editor's new scenario, a historical one
       // loaded and saved, then File / Run: the mission played and aborted.
-      {"real/editor",
+      {"editor",
        join({"-40", kSingleMission, kBuildCustom, "until:editor,-20,@new", kEditorFiles, "@files",
              "click:155:94,-30,@load_historical", "click:250:209,-10,click:417:386,-60,@loaded", kEditorFiles,
              "click:155:142,-30,@save_scenario", "g,o,l,d,enter,-30,@saved", kEditorFiles,
@@ -109,29 +106,29 @@ const std::vector<GameScript>& game_scripts() {
 }
 
 TEST_CASE("The faithful program follows its golden traces", "[golden]") {
-  SH_REQUIRE_GAME_DATA(install);
+  const GoldenData data = golden_data();
   for (const GameScript& script : game_scripts()) {
-    DYNAMIC_SECTION(script.name) {
-      GoldenGameRig rig(install);
+    DYNAMIC_SECTION(data.trace_name(script.name)) {
+      GoldenGameRig rig(data.install);
       rig.run(script.steps);
-      check_golden(script.name, rig.trace(), {}, install_header(install));
+      check_golden(data.trace_name(script.name), rig.trace(), {}, data.header);
     }
   }
 }
 
 TEST_CASE("Each improvement alone keeps the simulation of the program's golden traces", "[golden][features]") {
-  SH_REQUIRE_GAME_DATA(install);
+  const GoldenData data = golden_data();
   for (const FlagExpectation& e : kFlagExpectations) {
     if (!e.keeps_simulation) {
       continue;
     }
     for (const GameScript& script : game_scripts()) {
-      DYNAMIC_SECTION(e.name << " " << script.name) {
+      DYNAMIC_SECTION(e.name << " " << data.trace_name(script.name)) {
         Features features;
         features.*e.flag = true;
-        GoldenGameRig rig(install, features);
+        GoldenGameRig rig(data.install, features);
         rig.run(script.steps);
-        check_golden(script.name, rig.trace(), kProgramSimKinds, install_header(install));
+        check_golden(data.trace_name(script.name), rig.trace(), kProgramSimKinds, data.header);
       }
     }
   }
@@ -140,10 +137,9 @@ TEST_CASE("Each improvement alone keeps the simulation of the program's golden t
 // Runs the script of SH_GOLDEN_SCRIPT and prints its trace, for writing
 // new scripts (with SH_SCREENS for the pictures of the checkpoints).
 TEST_CASE("A golden script given in the environment runs", "[.golden_script]") {
-  SH_REQUIRE_GAME_DATA(install);
   const char* steps = std::getenv("SH_GOLDEN_SCRIPT");
   REQUIRE(steps != nullptr);
-  GoldenGameRig rig(install);
+  GoldenGameRig rig(golden_data().install);
   rig.run(steps);
   for (const GoldenLine& l : rig.trace().lines()) {
     std::printf("%s %s %s\n", l.checkpoint.c_str(), l.kind.c_str(), l.value.c_str());

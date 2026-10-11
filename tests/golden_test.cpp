@@ -1,9 +1,10 @@
-// Golden traces of the faithful game on the original's data (SH_DATA):
-// scripted missions with a fixed seed whose simulation, generator, crew
-// messages, UI state, station pictures and save bytes are compared with the
-// traces recorded from main in tests/golden/real/ (golden_trace.h). The
-// traces hold hashes only. They are tied to the install they were recorded
-// on (its SH.EXE): on other data the tests skip.
+// Golden traces of the faithful game: scripted missions with a fixed seed
+// whose simulation, generator, crew messages, UI state, station pictures
+// and save bytes are compared with the traces recorded from main
+// (golden_trace.h): on the original's data (SH_DATA) those of
+// tests/golden/real/, tied to the install they were recorded on (on other
+// data the tests skip); without it, on the synthetic install, those of
+// tests/golden/synthetic/ (`golden_data`). The traces hold hashes only.
 //
 // The extended build runs them with every improvement off and must match;
 // with each improvement on, the simulation's part of the trace must match
@@ -37,11 +38,6 @@
 
 namespace sh::test {
 namespace {
-
-// The header line tying a trace to the install it was recorded on.
-std::vector<std::string> install_header(const Install& install) {
-  return {"install SH.EXE " + hex64(fnv1a64(install.read("SH.EXE")))};
-}
 
 // A scripted run: builds its mission on `game` and plays it on `rig`.
 struct GoldenScript {
@@ -114,7 +110,7 @@ std::unique_ptr<Mission> generated_convoy(const GoldenGame& game) {
 const std::vector<GoldenScript>& scripts() {
   static const std::vector<GoldenScript> list = {
       // Every station in turn, then orders and time compression.
-      {"real/hist01_tour",
+      {"hist01_tour",
        [](const GoldenGame& g) { return Mission::load(g.install, g.tables, "SCEN/HIST01.SCN", seeded(7)); },
        [](GoldenMissionRig& rig) {
          rig.play("-60");
@@ -129,7 +125,7 @@ const std::vector<GoldenScript>& scripts() {
        }},
       // A torpedo fired from the periscope at the first ship, followed on
       // the periscope, the bridge and the chart.
-      {"real/hist01_attack",
+      {"hist01_attack",
        [](const GoldenGame& g) { return Mission::create(g.install, g.tables, hist01_abeam(g.install), seeded(11)); },
        [](GoldenMissionRig& rig) {
          rig.play("-60,f2,-2");
@@ -152,7 +148,7 @@ const std::vector<GoldenScript>& scripts() {
        }},
       // A generated convoy at the chart, at full speed under time
       // compression, then a crash dive.
-      {"real/convoy_generated", generated_convoy,
+      {"convoy_generated", generated_convoy,
        [](GoldenMissionRig& rig) {
          rig.play(std::format("-60,f5,-20,4,-1,{}", kCompression32));
          stretches(rig, "run", 8, 250);
@@ -162,7 +158,7 @@ const std::vector<GoldenScript>& scripts() {
        }},
       // A mission saved, then restored as CONTINUE MISSION restores it
       // and played on under time compression.
-      {"real/hist05_restore",
+      {"hist05_restore",
        [](const GoldenGame& g) { return Mission::load(g.install, g.tables, "SCEN/HIST05.SCN", seeded(5)); },
        [](GoldenMissionRig& rig) {
          rig.play("-200");
@@ -190,31 +186,31 @@ void run_script(const GoldenGame& game, const GoldenScript& script, Features fea
 }
 
 TEST_CASE("The faithful game follows its golden traces", "[golden]") {
-  SH_REQUIRE_GAME_DATA(install);
-  const GoldenGame game(install);
+  const GoldenData data = golden_data();
+  const GoldenGame game(data.install);
   for (const GoldenScript& script : scripts()) {
-    DYNAMIC_SECTION(script.name) {
+    DYNAMIC_SECTION(data.trace_name(script.name)) {
       GoldenTrace trace;
       run_script(game, script, Features::faithful(), trace);
-      check_golden(script.name, trace, {}, install_header(install));
+      check_golden(data.trace_name(script.name), trace, {}, data.header);
     }
   }
 }
 
 TEST_CASE("Each improvement alone keeps the simulation of the golden traces", "[golden][features]") {
-  SH_REQUIRE_GAME_DATA(install);
-  const GoldenGame game(install);
+  const GoldenData data = golden_data();
+  const GoldenGame game(data.install);
   for (const FlagExpectation& e : kFlagExpectations) {
     if (!e.keeps_simulation) {
       continue;
     }
     for (const GoldenScript& script : scripts()) {
-      DYNAMIC_SECTION(e.name << " " << script.name) {
+      DYNAMIC_SECTION(e.name << " " << data.trace_name(script.name)) {
         Features features;
         features.*e.flag = true;
         GoldenTrace trace;
         run_script(game, script, features, trace);
-        check_golden(script.name, trace, kSimKinds, install_header(install));
+        check_golden(data.trace_name(script.name), trace, kSimKinds, data.header);
       }
     }
   }

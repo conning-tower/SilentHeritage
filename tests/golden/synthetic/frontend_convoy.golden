@@ -1,0 +1,135 @@
+# Golden trace "synthetic/frontend_convoy" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=synthetic/frontend_convoy (see tests/golden_trace.h).
+@install synthetic
+briefing fe.place single -1
+briefing fe.rng 967eb0e7
+briefing frame menu 68862b19f174fdf4
+briefing dac 6d166b797de0a4e9
+briefing file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+briefing file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+briefing file.SAVE/SMISSION.SAV 805ee4738f5c74dc
+conn fe.place single -1
+conn fe.rng 967eb0e7
+conn fe.draws 0
+conn sim.time day 13 05:47:02.85 x1/1/2048
+conn sim.player 2465b974a01135af
+conn sim.tdc d44650a51d80725e
+conn sim.deckgun 198db355051d2c8d
+conn sim.extension 358df91fd29d38a1
+conn rng 7a79cb24
+conn msgs -
+conn ui.state 5b173af492ab7f5e
+conn frame conn 0845ec18d842cd29
+conn dac 8614c084117a6c24
+conn file.SAVE/GDETAIL.SAV fa99f9619326b3db
+conn file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+conn file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+conn file.SAVE/SMISSION.SAV 805ee4738f5c74dc
+run1 fe.place single -1
+run1 fe.rng 967eb0e7
+run1 fe.draws 0
+run1 sim.time day 13 05:47:15.40 x1/32/2048
+run1 sim.player f6fe041a2f63a620
+run1 sim.tdc 89b6ae615b4473a6
+run1 sim.deckgun baa3c2f67430ebc8
+run1 sim.extension 1b3207cb83808a4b
+run1 rng 7a79cb24
+run1 draws 0
+run1 msgs -
+run1 ui.state 15f9781c88538765
+run1 frame chart f4dffb3841933663
+run1 dac 4a8fe7d714322b1e
+run1 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run1 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run1 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run1 file.SAVE/SMISSION.SAV 805ee4738f5c74dc
+run2 fe.place single -1
+run2 fe.rng 967eb0e7
+run2 fe.draws 0
+run2 sim.time day 13 05:47:25.40 x1/32/2048
+run2 sim.player 5c94554a2d381b06
+run2 sim.tdc 89e7adcca3e2112c
+run2 sim.deckgun 0bb78175b11df486
+run2 sim.extension 60a8b71b2e5b548f
+run2 rng 7a79cb24
+run2 draws 0
+run2 msgs -
+run2 ui.state d9334835f972aab7
+run2 frame chart 3ad7eb2ae6007aef
+run2 dac 4a8fe7d714322b1e
+run2 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run2 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run2 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run2 file.SAVE/SMISSION.SAV 805ee4738f5c74dc
+run3 fe.place single -1
+run3 fe.rng 967eb0e7
+run3 fe.draws 0
+run3 sim.time day 13 05:47:35.40 x1/32/2048
+run3 sim.player 8592daac6657b851
+run3 sim.tdc 17f879d5af8e10c0
+run3 sim.deckgun 6c66bfaadf08863a
+run3 sim.extension 4049ce4e1290a98b
+run3 rng 7a79cb24
+run3 draws 0
+run3 msgs -
+run3 ui.state 83b3fd4df371ce86
+run3 frame chart 3690f0d1ce46de24
+run3 dac 4a8fe7d714322b1e
+run3 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run3 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run3 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run3 file.SAVE/SMISSION.SAV 805ee4738f5c74dc
+port fe.place single -1
+port fe.rng 967eb0e7
+port fe.draws 0
+port sim.time day 13 05:47:35.45 x1/32/2048
+port sim.player f6fe041a2f63a620
+port sim.tdc 0a3fb00969632e50
+port sim.deckgun 97bf327fdb580247
+port sim.extension 6d526b94811ca9fc
+port rng 7a79cb24
+port draws 0
+port msgs -
+port ui.state 34587b4991e49d2d
+port frame chart 2c98181b3fc5d641
+port dac d3bef64b9f10054d
+port file.SAVE/GDETAIL.SAV fa99f9619326b3db
+port file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+port file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+port file.SAVE/SMISSION.SAV 805ee4738f5c74dc
+results fe.place single -1
+results fe.rng 967eb0e7
+results fe.draws 0
+results sim.time day 13 05:47:40.40 x1/32/2048
+results sim.player 1f19b28d7453395a
+results sim.tdc 89e7adcca3e2112c
+results sim.deckgun 0bb78175b11df486
+results sim.extension 6a4d69970ef6c313
+results rng 7a79cb24
+results draws 0
+results msgs -
+results ui.state 96673d0ee46dcaab
+results frame chart e7e93de4c2d9d1ce
+results dac 4a8fe7d714322b1e
+results file.SAVE/GDETAIL.SAV fa99f9619326b3db
+results file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+results file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+results file.SAVE/SMISSION.SAV 805ee4738f5c74dc
+single fe.place single -1
+single fe.rng 967eb0e7
+single fe.draws 0
+single sim.time day 13 05:47:45.45 x1/1/2048
+single sim.player 5c94554a2d381b06
+single sim.tdc 8e0b13b373db71b6
+single sim.deckgun 198db355051d2c8d
+single sim.extension 5458e67fea3a084a
+single rng 7a79cb24
+single draws 0
+single msgs -
+single ui.state 6fe480ae2c01cf55
+single frame chart 9720aaad58109345
+single dac 4a8fe7d714322b1e
+single file.SAVE/GDETAIL.SAV fa99f9619326b3db
+single file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+single file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+single file.SAVE/SMISSION.SAV 805ee4738f5c74dc

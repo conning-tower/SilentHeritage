@@ -1,0 +1,231 @@
+# Golden trace "synthetic/career" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=synthetic/career (see tests/golden_trace.h).
+@install synthetic
+start fe.place career -1
+start fe.rng 00000001
+start frame menu 0ba140c31afba651
+start dac 5e0c9700a258fa3e
+start file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+home_base fe.place career -1
+home_base fe.rng 2781e494
+home_base fe.draws 3
+home_base frame menu 57c491d4b0de5444
+home_base dac a65f284b38b1b1a6
+home_base file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+home_base file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+new_submarine fe.place career -1
+new_submarine fe.rng d9e2b600
+new_submarine fe.draws 4
+new_submarine frame menu c5f87c043ec06376
+new_submarine dac af4799d8515004b0
+new_submarine file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+new_submarine file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+new_submarine file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+base fe.place base 0
+base fe.rng d9e2b600
+base fe.draws 0
+base frame menu cf1e665f3b8906a5
+base dac 0f15ae933a5c65d8
+base file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+base file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+base file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+patrol_area fe.place base 0
+patrol_area fe.rng 6a5827df
+patrol_area fe.draws ?
+patrol_area frame menu 19fa8651cdf99060
+patrol_area dac a65f284b38b1b1a6
+patrol_area file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+patrol_area file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+patrol_area file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+departure fe.place base 0
+departure fe.rng 09b933d7
+departure fe.draws 8
+departure frame menu 374ea8e775166f55
+departure dac 3c394c99c7662b93
+departure file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+departure file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+departure file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+briefing fe.place base 0
+briefing fe.rng 40f0c4c4
+briefing fe.draws 1
+briefing frame menu 1be36f7359792560
+briefing dac 5939bb3e9dad783b
+briefing file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+briefing file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+briefing file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+conn fe.place base 0
+conn fe.rng 40f0c4c4
+conn fe.draws 0
+conn sim.time day 28 06:23:02.85 x1/1/2048
+conn sim.player a485e9bb5b4cc907
+conn sim.tdc d44650a51d80725e
+conn sim.deckgun 531003952820d866
+conn sim.extension 327b87ba4f24a782
+conn rng 3c53516d
+conn msgs -
+conn ui.state bb173f4008bd5564
+conn frame conn 4765dd07a4faaf6e
+conn dac 8614c084117a6c24
+conn file.SAVE/GDETAIL.SAV fa99f9619326b3db
+conn file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+conn file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+conn file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+run1 fe.place base 0
+run1 fe.rng 40f0c4c4
+run1 fe.draws 0
+run1 sim.time day 28 08:09:58.45 x256/256/2048
+run1 sim.player 7da48cd0739e3b3a
+run1 sim.tdc b4f8e2280e8a8d57
+run1 sim.deckgun 7a33792bb4c7477a
+run1 sim.extension 0765c94e2f1bc5b2
+run1 rng 8478915a
+run1 draws 297
+run1 msgs -
+run1 ui.state f3f39d19f90c8b97
+run1 frame chart 2a0dfd0fed2db0d6
+run1 dac 4a8fe7d714322b1e
+run1 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run1 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run1 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run1 file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+run2 fe.place base 0
+run2 fe.rng 40f0c4c4
+run2 fe.draws 0
+run2 sim.time day 28 09:56:38.45 x256/256/2048
+run2 sim.player fb6a625be5ed4634
+run2 sim.tdc e3bb1edc68dd5e1d
+run2 sim.deckgun 131c82acbd60f898
+run2 sim.extension 221cc83deb4930ca
+run2 rng a5d4d5ba
+run2 draws 800
+run2 msgs -
+run2 ui.state 3604e80973e2bfdd
+run2 frame chart be31e3c231aa2bcb
+run2 dac 4a8fe7d714322b1e
+run2 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run2 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run2 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run2 file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+run3 fe.place base 0
+run3 fe.rng 40f0c4c4
+run3 fe.draws 0
+run3 sim.time day 28 11:43:18.45 x256/256/2048
+run3 sim.player da5b91bf0e89d8ed
+run3 sim.tdc e05e20ae0e2f6f31
+run3 sim.deckgun 04da4952662004a5
+run3 sim.extension dd5e98d0e2cdcc04
+run3 rng 0157e44b
+run3 draws 2081
+run3 msgs -
+run3 ui.state ad5ca525d2f1bd41
+run3 frame chart 27f8476a9fde3654
+run3 dac 4a8fe7d714322b1e
+run3 file.SAVE/GDETAIL.SAV fa99f9619326b3db
+run3 file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+run3 file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run3 file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+options fe.place base 0
+options fe.rng 40f0c4c4
+options fe.draws 0
+options sim.time day 28 11:43:31.25 x256/256/2048
+options sim.player 539eae8259249f2a
+options sim.tdc 464b7bcaf5a46520
+options sim.deckgun 2733c6018b8fc128
+options sim.extension d0b8e4549ee64a14
+options rng 70f02972
+options draws 7
+options msgs -
+options ui.state c0ff874492cb9b90
+options frame chart ffae5354d62378f5
+options dac d3bef64b9f10054d
+options file.SAVE/GDETAIL.SAV fa99f9619326b3db
+options file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+options file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+options file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+save_name fe.place base 0
+save_name fe.rng 40f0c4c4
+save_name fe.draws 0
+save_name sim.time day 28 11:43:31.25 x256/256/2048
+save_name sim.player 539eae8259249f2a
+save_name sim.tdc 464b7bcaf5a46520
+save_name sim.deckgun 2733c6018b8fc128
+save_name sim.extension d0b8e4549ee64a14
+save_name rng 70f02972
+save_name draws 0
+save_name msgs -
+save_name ui.state c0ff874492cb9b90
+save_name frame chart 3f5c7ef830adfa46
+save_name dac d3bef64b9f10054d
+save_name file.SAVE/GDETAIL.SAV fa99f9619326b3db
+save_name file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+save_name file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+save_name file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+saved fe.place base 0
+saved fe.rng 40f0c4c4
+saved fe.draws 0
+saved sim.time day 28 11:56:32.05 x256/256/2048
+saved sim.player 32311b7fd99db768
+saved sim.tdc 7f81def5ce242d53
+saved sim.deckgun 1dbf873c8249b294
+saved sim.extension bf2fc76e7f0faec2
+saved rng b447d1b4
+saved draws 414
+saved msgs -
+saved ui.state 8766bab9c3c46c8b
+saved frame chart 64e437b4c59314c6
+saved dac 4a8fe7d714322b1e
+saved file.SAVE/GDETAIL.SAV fa99f9619326b3db
+saved file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+saved file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+saved file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+saved file.SAVE/ROSTER1.SAV e8dfda8809be67d3
+port fe.place base 0
+port fe.rng 0000760f
+port fe.draws ?
+port frame menu 352a7c16c7984693
+port dac 3c394c99c7662b93
+port file.SAVE/GDETAIL.SAV fa99f9619326b3db
+port file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+port file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+port file.SAVE/ROSTER0.SAV 74282d6ef9488b6c
+port file.SAVE/ROSTER1.SAV e8dfda8809be67d3
+results fe.place base 0
+results fe.rng 2e8f88a5
+results fe.draws 2
+results frame menu f31ea8a7bfd8048a
+results dac 5939bb3e9dad783b
+results file.SAVE/GDETAIL.SAV fa99f9619326b3db
+results file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+results file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+results file.SAVE/ROSTER0.SAV 2957c3b3dc8e49fa
+results file.SAVE/ROSTER1.SAV e8dfda8809be67d3
+letter fe.place base 0
+letter fe.rng 2e8f88a5
+letter fe.draws 0
+letter frame menu cf20df565b0a18cc
+letter dac 5aeae4f12c1bca9d
+letter file.SAVE/GDETAIL.SAV fa99f9619326b3db
+letter file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+letter file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+letter file.SAVE/ROSTER0.SAV 2957c3b3dc8e49fa
+letter file.SAVE/ROSTER1.SAV e8dfda8809be67d3
+equipment fe.place base 0
+equipment fe.rng c758642b
+equipment fe.draws 2
+equipment frame menu a0f73f2d1748d1b9
+equipment dac a65f284b38b1b1a6
+equipment file.SAVE/GDETAIL.SAV fa99f9619326b3db
+equipment file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+equipment file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+equipment file.SAVE/ROSTER0.SAV 2957c3b3dc8e49fa
+equipment file.SAVE/ROSTER1.SAV e8dfda8809be67d3
+base_back fe.place base 0
+base_back fe.rng c758642b
+base_back fe.draws 0
+base_back frame menu c425810cc50996a4
+base_back dac 73afd47ac3ec3d1d
+base_back file.SAVE/GDETAIL.SAV fa99f9619326b3db
+base_back file.SAVE/GOPTION.SAV 31c6e52a7ed670d2
+base_back file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+base_back file.SAVE/ROSTER0.SAV 9ebbcf02ca1ef5d1
+base_back file.SAVE/ROSTER1.SAV e8dfda8809be67d3
