@@ -113,7 +113,10 @@ add_executable(sh_tests
   launcher_icon_test.cpp
   # Golden traces of the faithful game (tests/golden/).
   golden_trace.cpp
+  golden_rig.cpp
+  golden_game_rig.cpp
   golden_test.cpp
+  golden_game_test.cpp
 )
 # The committed golden traces, recorded in place with SH_GOLDEN_RECORD.
 target_compile_definitions(sh_tests PRIVATE SH_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/golden")
@@ -125,6 +128,8 @@ target_link_libraries(sh_tests PRIVATE sh_platform sh_viewer)
 target_link_libraries(sh_tests PRIVATE sh_view)
 # The Android launcher icon tool.
 target_link_libraries(sh_tests PRIVATE sh_launcher_icon)
+# The golden traces of the whole program run the scenario editor.
+target_link_libraries(sh_tests PRIVATE sh_editor)
 # UI and game: the BIOS key tests name SDL keycodes.
 target_link_libraries(sh_tests PRIVATE SDL3::Headers)
 if(NOT CMAKE_CROSSCOMPILING)

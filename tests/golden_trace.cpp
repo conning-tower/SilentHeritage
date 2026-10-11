@@ -80,14 +80,17 @@ void GoldenTrace::add_hash(std::string_view checkpoint, std::string_view kind, s
   add(checkpoint, kind, hex64(fnv1a64(bytes)));
 }
 
-void GoldenTrace::add_random(std::string_view checkpoint, const WatcomRandom& random) {
+void GoldenTrace::add_random(std::string_view checkpoint, const WatcomRandom& random, std::string_view kind,
+                             std::string_view draws) {
   const std::uint32_t state = random.state();
-  add(checkpoint, "rng", std::format("{:08x}", state));
-  if (last_random_) {
-    const std::optional<std::uint64_t> n = draws_between(*last_random_, state);
-    add(checkpoint, "draws", n ? std::to_string(*n) : std::string("?"));
+  add(checkpoint, kind, std::format("{:08x}", state));
+  if (const auto last = last_random_.find(kind); last != last_random_.end()) {
+    const std::optional<std::uint64_t> n = draws_between(last->second, state);
+    add(checkpoint, draws, n ? std::to_string(*n) : std::string("?"));
+    last->second = state;
+  } else {
+    last_random_.emplace(std::string(kind), state);
   }
-  last_random_ = state;
 }
 
 void GoldenTrace::add_frame(std::string_view checkpoint, std::string_view station, const Image8& screen,

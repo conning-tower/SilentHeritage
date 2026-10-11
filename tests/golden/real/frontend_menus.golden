@@ -1,0 +1,92 @@
+# Golden trace "real/frontend_menus" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=real/frontend_menus (see tests/golden_trace.h).
+@install SH.EXE 8a2903db48e2f767
+main fe.place main -1
+main fe.rng 00000001
+main frame menu 80cd7f4644197b1b
+main dac 6867f949b9d322e4
+single fe.place single -1
+single fe.rng 00000001
+single fe.draws 0
+single frame menu bc62dbd84f684db2
+single dac 6867f949b9d322e4
+historic fe.place single -1
+historic fe.rng 00000001
+historic fe.draws 0
+historic frame menu 8b1da7d49487d697
+historic dac 6867f949b9d322e4
+historic_item fe.place single -1
+historic_item fe.rng 00000001
+historic_item fe.draws 0
+historic_item frame menu 4887ec555981cad6
+historic_item dac 6867f949b9d322e4
+convoy fe.place single -1
+convoy fe.rng 00000001
+convoy fe.draws 0
+convoy frame menu fec518c44b6d2d9e
+convoy dac a4f0dee46ad78ef1
+convoy_crew fe.place single -1
+convoy_crew fe.rng 00000001
+convoy_crew fe.draws 0
+convoy_crew frame menu df7ca2360391729c
+convoy_crew dac a4f0dee46ad78ef1
+subclass fe.place single -1
+subclass fe.rng 41c67ea6
+subclass fe.draws 1
+subclass frame menu 732141bfa71e38cb
+subclass dac 6867f949b9d322e4
+subclass file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+subclass_balao fe.place single -1
+subclass_balao fe.rng 41c67ea6
+subclass_balao fe.draws 0
+subclass_balao frame menu 1ed094185c358b38
+subclass_balao dac 6867f949b9d322e4
+subclass_balao file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+single_back fe.place single -1
+single_back fe.rng 41c67ea6
+single_back fe.draws 0
+single_back frame menu 2369e11fc97c67b1
+single_back dac 6867f949b9d322e4
+single_back file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+interviews fe.place main -1
+interviews fe.rng 41c67ea6
+interviews fe.draws 0
+interviews frame menu 8bf34aa429667e8c
+interviews dac 3255cc9137fc3735
+interviews file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+interviews_next fe.place main -1
+interviews_next fe.rng 41c67ea6
+interviews_next fe.draws 0
+interviews_next frame menu 979f3d2c434b70c9
+interviews_next dac 3255cc9137fc3735
+interviews_next file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+subtour fe.place main -1
+subtour fe.rng 41c67ea6
+subtour fe.draws 0
+subtour frame menu 1dd68e2330f4afbc
+subtour dac fc636136fd167884
+subtour file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+subtour_room fe.place main -1
+subtour_room fe.rng 41c67ea6
+subtour_room fe.draws 0
+subtour_room frame menu 3988ba1da5c08e55
+subtour_room dac fc636136fd167884
+subtour_room file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+subtour_text fe.place main -1
+subtour_text fe.rng 41c67ea6
+subtour_text fe.draws 0
+subtour_text frame menu 8adcced5fe9bffa7
+subtour_text dac fc636136fd167884
+subtour_text file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+career fe.place career -1
+career fe.rng 41c67ea6
+career fe.draws 0
+career frame menu 97a2e905b1d01fbb
+career dac 6867f949b9d322e4
+career file.SAVE/SMISSION.SAV 2005ed761f1a0af4
+main_back fe.place main -1
+main_back fe.rng 41c67ea6
+main_back fe.draws 0
+main_back frame menu fb40a882f712d2ca
+main_back dac 6867f949b9d322e4
+main_back file.SAVE/SMISSION.SAV 2005ed761f1a0af4

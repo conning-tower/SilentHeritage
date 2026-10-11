@@ -1,0 +1,102 @@
+# Golden trace "real/editor" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=real/editor (see tests/golden_trace.h).
+@install SH.EXE 8a2903db48e2f767
+new fe.place single -1
+new fe.rng 00000001
+new frame editor 4270212fab5629cd
+new dac 91046878910ea760
+files fe.place single -1
+files fe.rng 00000001
+files fe.draws 0
+files frame editor 674d3b97cb9c1fda
+files dac 468621cbf4247176
+load_historical fe.place single -1
+load_historical fe.rng 00000001
+load_historical fe.draws 0
+load_historical frame editor 8d652e7731fe2ca6
+load_historical dac 468621cbf4247176
+loaded fe.place single -1
+loaded fe.rng 00000001
+loaded fe.draws 0
+loaded frame editor cede781579d89bd6
+loaded dac 91046878910ea760
+save_scenario fe.place single -1
+save_scenario fe.rng 00000001
+save_scenario fe.draws 0
+save_scenario frame editor b297966a3a58f7b0
+save_scenario dac 468621cbf4247176
+saved fe.place single -1
+saved fe.rng 00000001
+saved fe.draws 0
+saved frame editor 3ef282da7f9ffb22
+saved dac 91046878910ea760
+saved file.CUSTOM/GOLD.SCN 03653b11e6c695ee
+realism fe.place single -1
+realism fe.rng 00000001
+realism fe.draws 0
+realism frame menu 0b9d00b844340ff2
+realism dac 6867f949b9d322e4
+realism file.CUSTOM/AEONSCEN.TMP 03653b11e6c695ee
+realism file.CUSTOM/GOLD.SCN 03653b11e6c695ee
+briefing fe.place single -1
+briefing fe.rng 41c67ea6
+briefing fe.draws 1
+briefing frame menu 02978a36631be13f
+briefing dac 6867f949b9d322e4
+briefing file.CUSTOM/AEONSCEN.TMP 03653b11e6c695ee
+briefing file.CUSTOM/GOLD.SCN 03653b11e6c695ee
+briefing file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+conn fe.place single -1
+conn fe.rng 41c67ea6
+conn fe.draws 0
+conn sim.time day 21 03:00:02.85 x1/1/64
+conn sim.player cb0605467d6baef2
+conn sim.tdc cd4db4acd9e4979f
+conn sim.deckgun 58314c6d0abd6c2b
+conn sim.vehicle.0 1 c57a533f39f029fb
+conn sim.vehicle.1 1 ad8665ed1cff133a
+conn sim.vehicle.2 1 d20479b7f43d2781
+conn sim.vehicle.3 1 05fcaae98860b82e
+conn sim.vehicle.4 1 238abd09a89e7acb
+conn sim.vehicle.5 1 845e45c6ad9b3079
+conn sim.vehicle.6 1 4fe87f0db398c1cb
+conn sim.extension 6860397357940e91
+conn rng 7aae88db
+conn msgs -
+conn ui.state a37485794840f440
+conn frame conn ec44620785984f8d
+conn dac a7fa8d6f64f5756c
+conn file.CUSTOM/AEONSCEN.TMP 03653b11e6c695ee
+conn file.CUSTOM/GOLD.SCN 03653b11e6c695ee
+conn file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+run fe.place single -1
+run fe.rng 41c67ea6
+run fe.draws 0
+run sim.time day 21 03:00:12.85 x1/1/64
+run sim.player 7c8584928eb3798b
+run sim.tdc 557d96c2d68f18cd
+run sim.deckgun beb353e9579fc7fa
+run sim.vehicle.0 1 9b744406d45c7087
+run sim.vehicle.1 1 96b459b3de656e90
+run sim.vehicle.2 1 096230cdc1c3cec7
+run sim.vehicle.3 1 78adb1c4c1e8635b
+run sim.vehicle.4 1 a7bf2d9a2b883833
+run sim.vehicle.5 1 82d072aaa0a84580
+run sim.vehicle.6 1 ae754b91d588a5a6
+run sim.extension 18b024890dcde0e9
+run rng 493f66a8
+run draws 17
+run msgs 50(329,-1)
+run ui.state 233be58402cfdfeb
+run frame conn 50f17d4d780e76ca
+run dac a7fa8d6f64f5756c
+run file.CUSTOM/AEONSCEN.TMP 03653b11e6c695ee
+run file.CUSTOM/GOLD.SCN 03653b11e6c695ee
+run file.SAVE/REALISM.SAV ea4003ea1cd2c3cc
+single fe.place single -1
+single fe.rng 0000167e
+single fe.draws ?
+single frame menu 28a43bc057c2ec9f
+single dac 6867f949b9d322e4
+single file.CUSTOM/GOLD.SCN 03653b11e6c695ee
+single file.SAVE/REALISM.SAV ea4003ea1cd2c3cc

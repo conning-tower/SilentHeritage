@@ -27,6 +27,7 @@
 #include "game/mission_save.h"
 #include "game/scengen.h"
 #include "game_data.h"
+#include "golden_flags.h"
 #include "golden_rig.h"
 #include "golden_trace.h"
 #include "sim/geometry.h"
@@ -196,26 +197,6 @@ TEST_CASE("The faithful game follows its golden traces", "[golden]") {
     }
   }
 }
-
-// The improvements and which part of the trace each must keep: the
-// simulation's (`kSimKinds`) for an interface improvement, nothing for one
-// declared to change the simulation.
-struct FlagExpectation {
-  std::string_view name;
-  bool Features::* flag;
-  bool keeps_simulation;
-};
-constexpr FlagExpectation kFlagExpectations[] = {
-    // Its views draw from a render generator of their own, so the game's
-    // generator no longer sees the views' draws.
-    {"wide_screen", &Features::wide_screen, false},
-    {"crew_log", &Features::crew_log, true},
-    {"chart_tools", &Features::chart_tools, true},
-    // The front end's SUB CLASS screen only (not reached by these scripts).
-    {"last_boat", &Features::last_boat, true},
-};
-// Every improvement must be listed above (`Features` holds only flags).
-static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool));
 
 TEST_CASE("Each improvement alone keeps the simulation of the golden traces", "[golden][features]") {
   SH_REQUIRE_GAME_DATA(install);

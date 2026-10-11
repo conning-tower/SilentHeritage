@@ -1,0 +1,182 @@
+# Golden trace "real/career" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=real/career (see tests/golden_trace.h).
+@install SH.EXE 8a2903db48e2f767
+start fe.place career -1
+start fe.rng 00000001
+start frame menu 0b781c0d836593a4
+start dac 6867f949b9d322e4
+home_base fe.place career -1
+home_base fe.rng 2781e494
+home_base fe.draws 3
+home_base frame menu 22f63630684fbacb
+home_base dac 9fd14d5acd8f3a5c
+new_submarine fe.place career -1
+new_submarine fe.rng d9e2b600
+new_submarine fe.draws 4
+new_submarine frame menu 15e6d7358493dc3a
+new_submarine dac 6867f949b9d322e4
+new_submarine file.SAVE/ROSTER1.SAV dac54b9362c331fe
+base fe.place base 1
+base fe.rng d9e2b600
+base fe.draws 0
+base frame menu 4147580264fe196e
+base dac b97ff362cdbde2f7
+base file.SAVE/ROSTER1.SAV dac54b9362c331fe
+patrol_area fe.place base 1
+patrol_area fe.rng 6a5827df
+patrol_area fe.draws ?
+patrol_area frame menu 517781d4048f2022
+patrol_area dac 2ed21f7ac585e8a2
+patrol_area file.SAVE/ROSTER1.SAV dac54b9362c331fe
+departure fe.place base 1
+departure fe.rng f60fafad
+departure fe.draws 10
+departure frame menu a14eb34c2d5ef7ee
+departure dac b383e24dafad49b1
+departure file.SAVE/ROSTER1.SAV dac54b9362c331fe
+briefing fe.place base 1
+briefing fe.rng 5902b2e2
+briefing fe.draws 1
+briefing frame menu d6dbb24db45f4350
+briefing dac 6867f949b9d322e4
+briefing file.SAVE/ROSTER1.SAV dac54b9362c331fe
+conn fe.place base 1
+conn fe.rng 5902b2e2
+conn fe.draws 0
+conn sim.time day 23 06:23:02.85 x1/1/2048
+conn sim.player 11aa2f9020ff3b10
+conn sim.tdc cd4db4acd9e4979f
+conn sim.deckgun 08a114e8843b701f
+conn sim.extension ab40088e91aa32d2
+conn rng 777ce7b5
+conn msgs -
+conn ui.state cfd51c324f42eac6
+conn frame conn 33acebc58ebb2bf4
+conn dac a7fa8d6f64f5756c
+conn file.SAVE/ROSTER1.SAV dac54b9362c331fe
+run1 fe.place base 1
+run1 fe.rng 5902b2e2
+run1 fe.draws 0
+run1 sim.time day 23 08:09:58.45 x256/256/2048
+run1 sim.player 3f1ed904fcf62e63
+run1 sim.tdc 8f81ee7320409636
+run1 sim.deckgun 9a0cc32d56903bdd
+run1 sim.extension 9913424561b851b9
+run1 rng 522574b5
+run1 draws 11008
+run1 msgs 75(-1,-1)
+run1 ui.state 0c3f312ec145736a
+run1 frame chart 11ac153177766cca
+run1 dac 0c9a8e06733e1760
+run1 file.SAVE/ROSTER1.SAV dac54b9362c331fe
+run2 fe.place base 1
+run2 fe.rng 5902b2e2
+run2 fe.draws 0
+run2 sim.time day 23 09:56:38.45 x256/256/2048
+run2 sim.player 1901a5891288ee85
+run2 sim.tdc 9559360a3390a8bc
+run2 sim.deckgun 60b770f08faaacb6
+run2 sim.extension 5dcc0c6413576235
+run2 rng 93321ddb
+run2 draws 12514
+run2 msgs -
+run2 ui.state ccd068065d214fc0
+run2 frame chart 2d56eda89e0f6988
+run2 dac 0c9a8e06733e1760
+run2 file.SAVE/ROSTER1.SAV dac54b9362c331fe
+run3 fe.place base 1
+run3 fe.rng 5902b2e2
+run3 fe.draws 0
+run3 sim.time day 23 11:43:18.45 x256/256/2048
+run3 sim.player 4dd6922becd5debc
+run3 sim.tdc ea71fd97be0cd810
+run3 sim.deckgun 24e313dac837f9db
+run3 sim.extension 4cc8aed0515d3959
+run3 rng c7d50b0b
+run3 draws 14544
+run3 msgs -
+run3 ui.state 619930653b370c88
+run3 frame chart 8dde8cc232a5df0b
+run3 dac 0c9a8e06733e1760
+run3 file.SAVE/ROSTER1.SAV dac54b9362c331fe
+options fe.place base 1
+options fe.rng 5902b2e2
+options fe.draws 0
+options sim.time day 23 11:43:31.25 x256/256/2048
+options sim.player 44e1f806b28b2d64
+options sim.tdc 10fd5821ed2b3461
+options sim.deckgun 1d77e2b36389ae10
+options sim.extension 2497da98633108fd
+options rng c3e5d048
+options draws 33
+options msgs -
+options ui.state 733c2cbdb3160fed
+options frame chart e9055287fc4c88b3
+options dac b0c73a2630760316
+options file.SAVE/ROSTER1.SAV dac54b9362c331fe
+save_name fe.place base 1
+save_name fe.rng 5902b2e2
+save_name fe.draws 0
+save_name sim.time day 23 11:43:31.25 x256/256/2048
+save_name sim.player 44e1f806b28b2d64
+save_name sim.tdc 10fd5821ed2b3461
+save_name sim.deckgun 1d77e2b36389ae10
+save_name sim.extension 2497da98633108fd
+save_name rng c3e5d048
+save_name draws 0
+save_name msgs -
+save_name ui.state 733c2cbdb3160fed
+save_name frame chart 94f46d842982c313
+save_name dac b0c73a2630760316
+save_name file.SAVE/ROSTER1.SAV dac54b9362c331fe
+saved fe.place base 1
+saved fe.rng 5902b2e2
+saved fe.draws 0
+saved sim.time day 23 11:56:32.05 x256/256/2048
+saved sim.player fb05abb8c8ae301b
+saved sim.tdc 70c595680be3a632
+saved sim.deckgun e363a95a3c43d365
+saved sim.extension 13b9f870c9ea9785
+saved rng 0f753d6c
+saved draws 1964
+saved msgs -
+saved ui.state 88aa76dc9f87d8c8
+saved frame chart 48daa0c9e701f7d2
+saved dac 0c9a8e06733e1760
+saved file.SAVE/ROSTER1.SAV dac54b9362c331fe
+saved file.SAVE/ROSTER2.SAV 0ac1d68e8818222e
+port fe.place base 1
+port fe.rng 00007573
+port fe.draws ?
+port frame menu d3a39abb4bee06d8
+port dac b383e24dafad49b1
+port file.SAVE/ROSTER1.SAV dac54b9362c331fe
+port file.SAVE/ROSTER2.SAV 0ac1d68e8818222e
+results fe.place base 1
+results fe.rng 937970a9
+results fe.draws 2
+results frame menu df5ba81679dd8d26
+results dac 6867f949b9d322e4
+results file.SAVE/ROSTER1.SAV 6c97f61212707695
+results file.SAVE/ROSTER2.SAV 0ac1d68e8818222e
+letter fe.place base 1
+letter fe.rng 937970a9
+letter fe.draws 0
+letter frame menu aaa6932a6a2284d1
+letter dac e73419b0a4f8d24b
+letter file.SAVE/ROSTER1.SAV 6c97f61212707695
+letter file.SAVE/ROSTER2.SAV 0ac1d68e8818222e
+equipment fe.place base 1
+equipment fe.rng 937970a9
+equipment fe.draws 0
+equipment frame menu 8ef97cb1be15c037
+equipment dac e8a3a79c57326eae
+equipment file.SAVE/ROSTER1.SAV 6c97f61212707695
+equipment file.SAVE/ROSTER2.SAV 0ac1d68e8818222e
+base_back fe.place base 1
+base_back fe.rng 937970a9
+base_back fe.draws 0
+base_back frame menu df791b9c2c42eb1e
+base_back dac b5974ac87adb1411
+base_back file.SAVE/ROSTER1.SAV 54b41487f6bf47fd
+base_back file.SAVE/ROSTER2.SAV 0ac1d68e8818222e

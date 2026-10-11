@@ -1,0 +1,121 @@
+# Golden trace "real/frontend_convoy" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=real/frontend_convoy (see tests/golden_trace.h).
+@install SH.EXE 8a2903db48e2f767
+briefing fe.place single -1
+briefing fe.rng 967eb0e7
+briefing frame menu f5d061deab7064cd
+briefing dac 6867f949b9d322e4
+briefing file.SAVE/SMISSION.SAV 6d553fed99eddfb6
+conn fe.place single -1
+conn fe.rng 967eb0e7
+conn fe.draws 0
+conn sim.time day 6 23:43:02.85 x1/1/64
+conn sim.player 78c2ad8439b71f83
+conn sim.tdc 10ae78c40ed4a7dc
+conn sim.deckgun 78dd7b72730cb9fa
+conn sim.vehicle.0 1 e67405e8cbae470f
+conn sim.vehicle.1 1 477e5be88a8bc065
+conn sim.vehicle.2 1 91c9c014d1fac37e
+conn sim.vehicle.3 1 495f62052e24c56a
+conn sim.vehicle.4 1 1e01c2b3fbbce3fe
+conn sim.vehicle.5 1 19d09176109f6693
+conn sim.vehicle.6 1 abd530dc6e6d70e5
+conn sim.vehicle.7 1 6919269f1d4cc998
+conn sim.vehicle.8 1 d08f584241632509
+conn sim.extension b562a3699dabf316
+conn rng 99491176
+conn msgs -
+conn ui.state 09c140958dfc9a05
+conn frame conn f2f5f1cb48530bfa
+conn dac 23dfddd7c7cce181
+conn file.SAVE/SMISSION.SAV 6d553fed99eddfb6
+run1 fe.place single -1
+run1 fe.rng 967eb0e7
+run1 fe.draws 0
+run1 sim.time day 6 23:43:26.25 x2/4/64
+run1 sim.player 06c2f4d07b40adc3
+run1 sim.tdc 890ce9a01294db05
+run1 sim.deckgun 4f395b675f98161f
+run1 sim.vehicle.0 1 fde362345dd13447
+run1 sim.vehicle.1 1 ac046ea925672718
+run1 sim.vehicle.2 1 921b91c28870602f
+run1 sim.vehicle.3 1 d01421f253074527
+run1 sim.vehicle.4 1 ea2cea39d5960c09
+run1 sim.vehicle.5 1 40a3c760e11fcaf0
+run1 sim.vehicle.6 1 11dfea9e95309430
+run1 sim.vehicle.7 1 11b43a61c083761c
+run1 sim.vehicle.8 1 488949f97381d244
+run1 sim.extension aa27b85960283b76
+run1 rng f2a006e6
+run1 draws 80
+run1 msgs 50(229,-1)
+run1 ui.state 1090aeef886ab357
+run1 frame chart 744c4b887acf2d77
+run1 dac e51d958e21bfe2d2
+run1 file.SAVE/SMISSION.SAV 6d553fed99eddfb6
+run2 fe.place single -1
+run2 fe.rng 967eb0e7
+run2 fe.draws 0
+run2 sim.time day 6 23:43:46.25 x2/4/64
+run2 sim.player a2892827d3978ff6
+run2 sim.tdc 250eed72a0e3cc2f
+run2 sim.deckgun bcac5283b7623a2a
+run2 sim.vehicle.0 1 d805f31ae35f34a2
+run2 sim.vehicle.1 1 ae088b7541ff2403
+run2 sim.vehicle.2 1 3f0a9aae2945d39f
+run2 sim.vehicle.3 1 31877f2d83334fe7
+run2 sim.vehicle.4 1 3a89cf1df6043426
+run2 sim.vehicle.5 1 43dcbca66761c7f9
+run2 sim.vehicle.6 1 d2e2c45b36e3a40f
+run2 sim.vehicle.7 1 0084f3b0515019f9
+run2 sim.vehicle.8 1 b7778cbc790d70fb
+run2 sim.extension 071efb5ca7ca4bb3
+run2 rng 8352eece
+run2 draws 56
+run2 msgs -
+run2 ui.state 3bbaac2e4e7b13b0
+run2 frame chart 578454c13c0d932d
+run2 dac e51d958e21bfe2d2
+run2 file.SAVE/SMISSION.SAV 6d553fed99eddfb6
+run3 fe.place single -1
+run3 fe.rng 967eb0e7
+run3 fe.draws 0
+run3 sim.time day 6 23:44:06.25 x2/4/64
+run3 sim.player ab074f315732d958
+run3 sim.tdc 8dc0c1ea1fb245a3
+run3 sim.deckgun 86d5257b396ad5ae
+run3 sim.vehicle.0 1 d653a20ab26089b4
+run3 sim.vehicle.1 1 416b7fe2a80eae6e
+run3 sim.vehicle.2 1 1a7253a71b4b6b80
+run3 sim.vehicle.3 1 10c67f3b07a24410
+run3 sim.vehicle.4 1 81de4a7041eff30d
+run3 sim.vehicle.5 1 0963d6bbe3ad2a43
+run3 sim.vehicle.6 1 0e492de46e1f260d
+run3 sim.vehicle.7 1 bdcd3cb96d86758b
+run3 sim.vehicle.8 1 94ed9077dc75d8ab
+run3 sim.extension 3a1ba62cf797b34e
+run3 rng f43889b6
+run3 draws 56
+run3 msgs -
+run3 ui.state 386d4f957c80c019
+run3 frame chart 30ae15512dddf48c
+run3 dac e51d958e21bfe2d2
+run3 file.SAVE/SMISSION.SAV 6d553fed99eddfb6
+port fe.place single -1
+port fe.rng 00002781
+port fe.draws ?
+port frame menu b1b0e2426bc8cb6f
+port dac b383e24dafad49b1
+port file.SAVE/SMISSION.SAV 6d553fed99eddfb6
+results fe.place single -1
+results fe.rng 00002781
+results fe.draws 0
+results frame menu 27e90e9827a9edd7
+results dac 6867f949b9d322e4
+results file.SAVE/SMISSION.SAV 6d553fed99eddfb6
+single fe.place single -1
+single fe.rng 00002781
+single fe.draws 0
+single frame menu ba16d7512f414911
+single dac 6867f949b9d322e4
+single file.SAVE/SMISSION.SAV 6d553fed99eddfb6
