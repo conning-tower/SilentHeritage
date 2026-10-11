@@ -1,0 +1,38 @@
+# Silent Heritage: differences from the original game
+
+Silent Heritage (the default, faithful build) plays the original game: the
+same simulation, rules, screens and limits, original bugs included. The
+differences below make it run on modern machines and touch screens, or
+avoid crashes and data loss. None of them changes the simulation. The
+extended build's improvements are in [EXTENDED.md](EXTENDED.md).
+
+## Running on modern systems
+
+- **Files:** the game reads your own Silent Hunter install, chosen once in a
+  folder dialog (`--setup` to change it), and never writes into it. Saves,
+  options and custom scenarios go to your per-user folder.
+- **Display:** the 640×480 picture is scaled to the window with smoothing
+  (`--sharp` for the original's square pixels). Alt+Enter toggles
+  fullscreen, which keeps the mouse inside the picture.
+- **Keyboard:** keys follow your keyboard layout (AZERTY, QWERTZ, BÉPO...),
+  so each command is on the key that types its letter.
+- **Chart:** edge scrolling reacts to a wider band along the screen's edges.
+
+## Android
+
+- **Touch:** a finger acts as the left mouse button. A floating ORDERS
+  button opens the orders that are keyboard-only in the original (depth
+  orders, firing tubes), and its − and + buttons change the time
+  compression.
+- **Back:** goes back one screen in the menus and quits from the main menu.
+  During a mission and in the scenario editor it acts as Esc.
+- **Text entry:** the system keyboard opens for names and descriptions.
+- **Leaving the app:** the game is kept. The next start resumes where you
+  were.
+
+## Fixes
+
+- **Scenario editor:** several of the original editor's bugs that lose data
+  or corrupt scenarios are fixed. They are listed in
+  [docs/editor-design.md](docs/editor-design.md), "Fixed in the
+  reimplementation".

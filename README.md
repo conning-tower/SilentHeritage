@@ -9,6 +9,10 @@ game. It reads the original files (graphics, sounds, videos, maps,
 scenarios, and the tables and texts stored in `SH.EXE` and `SE.EXE`) directly
 from your install.
 
+It comes in two builds. The default one is faithful to the original; it
+only differs in what [FAITHFUL.md](FAITHFUL.md) lists. The extended build
+adds the improvements and new features of [EXTENDED.md](EXTENDED.md).
+
 ## Disclaimer
 
 This project is not affiliated with or endorsed by MicroProse, Ubisoft, or
@@ -34,7 +38,7 @@ runtime: add `-DCMAKE_TOOLCHAIN_FILE=cmake/mingw-clang.cmake`. Debug builds
 
 Two variants can be built. The default, `-DSH_VARIANT=faithful`, is the
 original game. `-DSH_VARIANT=extended` builds `silent_heritage_extended`,
-which adds improvements beyond the original (listed in `src/core/features.h`).
+which adds improvements beyond the original (listed in `EXTENDED.md`).
 It keeps its own saves, so the two can be installed side by side.
 `--faithful` turns all the improvements off.
 
