@@ -3,6 +3,7 @@
 // the interview player `play_interview_video` (0xa8ef1) with its slider
 // hooks.
 
+#include <algorithm>
 #include <array>
 #include <format>
 
@@ -196,29 +197,37 @@ bool FrontEnd::play_interview_video(int video) {
   d.set_back(d.emplace<ui::Button>(0x140, 0x178, 0x21, exe_string(kStop), [](int) { return kStopResult; }));
   d.emplace<ui::Button>(0x168, 0x178, 0x21, exe_string(kRestart), [](int) { return kRestartResult; });
   d.emplace<ui::GroupBox>(0x128, 0x173, 0x271, 0x19f);
-  // The slider is disabled (+0x2c), so its seek callback (0xa8a67, the
-  // resync flag 0x18a678 read after each frame) never runs.
-  auto& slider = d.emplace<ui::Slider>(0x19a, 0x182, 0xb4, static_cast<int>(smk.frame_count()) - 1, frame_number);
-  slider.disabled = true;
+  // The original creates the slider disabled (+0x2c), so its seek callback
+  // (0xa8a67, the resync flag 0x18a678 read after each frame) never runs;
+  // here it seeks (decoding from the start), in both variants.
+  int seek_to = -1;
+  auto& slider = d.emplace<ui::Slider>(0x19a, 0x182, 0xb4, static_cast<int>(smk.frame_count()) - 1, frame_number,
+                                       [&seek_to](int& frame) { seek_to = frame; });
   d.open();
 
   VideoSound* sound = smk.audio_tracks().empty() ? nullptr : host_.video_sound();
   if (sound != nullptr) {
     sound->start(smk.audio_tracks().front());
   }
+  // vga_set_palette_256: the whole DAC (the menu colours 0..111 are the
+  // videos' too).
+  const auto set_video_palette = [&] {
+    const Palette& p = smk.palette();
+    for (std::size_t i = 0; i < p.colors.size(); ++i) {
+      dac_[i * 3] = static_cast<std::uint8_t>(p.colors[i].r >> 2);
+      dac_[i * 3 + 1] = static_cast<std::uint8_t>(p.colors[i].g >> 2);
+      dac_[i * 3 + 2] = static_cast<std::uint8_t>(p.colors[i].b >> 2);
+    }
+  };
   std::uint32_t start = gui_.ticks();
+  // The frame played at `start` less one (0, after a seek the frame before
+  // the one sought).
+  int start_frame = 0;
   const auto frames = static_cast<int>(smk.frame_count());
   for (int n = 1; n <= frames; ++n) {
     smk.decode_next();
     if (smk.palette_changed()) {
-      // vga_set_palette_256: the whole DAC (the menu colours 0..111 are
-      // the videos' too).
-      const Palette& p = smk.palette();
-      for (std::size_t i = 0; i < p.colors.size(); ++i) {
-        dac_[i * 3] = static_cast<std::uint8_t>(p.colors[i].r >> 2);
-        dac_[i * 3 + 1] = static_cast<std::uint8_t>(p.colors[i].g >> 2);
-        dac_[i * 3 + 2] = static_cast<std::uint8_t>(p.colors[i].b >> 2);
-      }
+      set_video_palette();
     }
     screen_.blit(smk.image(), kPictureX, kPictureY);
     if (sound != nullptr) {
@@ -228,7 +237,8 @@ bool FrontEnd::play_interview_video(int video) {
     frame_number = n;
     // The controls run until the frame is due (SmackWait), events being
     // drained while they are mouse moves.
-    const std::uint64_t due = start + static_cast<std::uint64_t>(n) * smk.frame_duration_us() / 10'000;
+    const std::uint64_t due =
+        start + static_cast<std::uint64_t>(n - start_frame) * smk.frame_duration_us() / 10'000;
     int result = 0;
     while (true) {
       bool moved = false;
@@ -248,9 +258,31 @@ bool FrontEnd::play_interview_video(int video) {
     if (result == kStopResult) {
       break;
     }
+    if (seek_to >= 0) {
+      // Not in the original: the frame the slider was dragged to, its
+      // sound from there.
+      const int target = std::clamp(seek_to + 1, 1, frames);
+      seek_to = -1;
+      smk.rewind();
+      for (int k = 1; k < target; ++k) {
+        smk.decode_next();
+      }
+      if (target > 1) {
+        set_video_palette();
+      }
+      n = target - 1;
+      start = gui_.ticks();
+      start_frame = n;
+      if (sound != nullptr) {
+        sound->stop();
+        sound->start(smk.audio_tracks().front());
+      }
+      continue;
+    }
     if (result == kRestartResult) {
       // SmackGoto(1): the video from its start.
       n = 0;
+      start_frame = 0;
       smk.rewind();
       d.set_result(0);
       start = gui_.ticks();

@@ -42,3 +42,5 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
   or corrupt scenarios are fixed. They are listed in
   [docs/editor-design.md](docs/editor-design.md), "Fixed in the
   reimplementation".
+- **Interviews:** the frame slider under an interview video works: click or
+  drag it to jump to any moment of the video. The original left it inert.

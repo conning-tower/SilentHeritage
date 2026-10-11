@@ -274,6 +274,19 @@ TEST_CASE("INTERVIEWS turns its pages and plays the chosen video", "[extras]") {
   CHECK(is_first_video_picture(host.first_pictures[2], install, 13));
 }
 
+TEST_CASE("The interview slider seeks in the video (not in the original)", "[extras]") {
+  SH_REQUIRE_GAME_DATA(install);
+  FrontEndFixture f(install);
+  ScriptedHost& host = f.host;
+  // BUD\5, its slider clicked at its middle, then STOP.
+  host.script = {kInterviews, kVideoA, kSliderTrack, kStop, kInterviewsMainMenu, kExitToDos};
+  f.front_end.run();
+  CHECK(host.script.empty());
+  // The seek restarts the sound from the new frame.
+  CHECK(host.video.starts == 2);
+  CHECK(host.video.stops == 2);
+}
+
 TEST_CASE("The interviews page is kept between visits", "[extras]") {
   SH_REQUIRE_GAME_DATA(install);
   FrontEndFixture f(install);
