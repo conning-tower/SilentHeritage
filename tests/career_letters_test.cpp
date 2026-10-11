@@ -171,7 +171,7 @@ struct Screens {
 
 }  // namespace
 
-TEST_CASE("Career letter helpers follow the original's calendar and number format", "[career]") {
+TEST_CASE("Career letter helpers follow the original's calendar and number format", "[career][content]") {
   CHECK(gcvt3(100.0 / 24.0) == "4.17");
   CHECK(gcvt3(1.0) == "1");
   CHECK(gcvt3(10.0) == "10");
@@ -191,7 +191,7 @@ TEST_CASE("Career letter helpers follow the original's calendar and number forma
   CHECK(base_art_file(exe, 7, 15) == "SPAC_S.SHP");
 }
 
-TEST_CASE("Career letters build the original texts", "[career]") {
+TEST_CASE("Career letters build the original texts", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   const ui::MenuResources menu = ui::MenuResources::load(install);
@@ -351,7 +351,7 @@ TEST_CASE("Career letters build the original texts", "[career]") {
 }
 
 TEST_CASE("Career patrol screens return the original codes", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Screens s(install);
   const GameTables tables = GameTables::load(install);
   const std::vector<PatrolZone> zones = parse_patrol_zones(install.read("DATA/PZ.DAT"), "PZ.DAT");
