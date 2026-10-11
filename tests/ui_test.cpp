@@ -97,7 +97,6 @@ TEST_CASE("BIOS key words of a US keyboard", "[keys]") {
 }
 
 TEST_CASE("The in-game hotkeys are reachable from the keyboard", "[keys]") {
-  SH_REQUIRE_GAME_EXE();
   // A sample of the control bar hotkeys:
   // after `input_timer_isr` drops the 0xe0 byte, the BIOS word of the key
   // must match the hotkey record.
@@ -209,7 +208,6 @@ TEST_CASE("Event queue and mouse events", "[ui]") {
 }
 
 TEST_CASE("Dialog: clicks, Esc, Tab order, Enter, hotkeys", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   Dialog d(h.gui, 100, 100, 300, 200, kDialogFramed | kDialogCancel);
   d.emplace<Button>(10, 10, 80, "OK", [](int) { return 7; });
@@ -266,7 +264,6 @@ TEST_CASE("Dialog: clicks, Esc, Tab order, Enter, hotkeys", "[ui]") {
 }
 
 TEST_CASE("Back activates the dialog's back control, else acts as Esc", "[ui][back]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   const auto back = [&h] { h.gui.mouse().post_back(0); };
 
@@ -322,7 +319,6 @@ TEST_CASE("Back activates the dialog's back control, else acts as Esc", "[ui][ba
 }
 
 TEST_CASE("Back ends a text edit and goes to the back control", "[ui][back]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   int pumps = 0;
   h.gui.set_pump([&] {
@@ -348,7 +344,6 @@ TEST_CASE("Back ends a text edit and goes to the back control", "[ui][back]") {
 }
 
 TEST_CASE("Dialog without hotspots returns -3", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   Dialog d(h.gui, 0, 0, 100, 100, 0);
   d.emplace<Label>(0, 0, "x");
@@ -357,7 +352,6 @@ TEST_CASE("Dialog without hotspots returns -3", "[ui]") {
 }
 
 TEST_CASE("Dialog restores the screen under it", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   h.screen.fill_rect(0, 0, 640, 480, 0x33);
   Dialog d(h.gui, 20, 30, 100, 50, kDialogFramed | kDialogCancel);
@@ -372,7 +366,6 @@ TEST_CASE("Dialog restores the screen under it", "[ui]") {
 }
 
 TEST_CASE("Button auto-repeat follows the GUI ticks", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   std::vector<int> clicks;
   Dialog d(h.gui, 0, 0, 200, 200, 0);
@@ -405,7 +398,6 @@ TEST_CASE("Button auto-repeat follows the GUI ticks", "[ui]") {
 }
 
 TEST_CASE("List: selection by click, double click, keys", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   std::vector<int> selected;
   std::vector<int> activated;
@@ -461,7 +453,6 @@ TEST_CASE("List: selection by click, double click, keys", "[ui]") {
 }
 
 TEST_CASE("Slider keyboard behaviour", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   int value = 5;
   std::vector<int> changes;
@@ -489,7 +480,6 @@ TEST_CASE("Slider keyboard behaviour", "[ui]") {
 }
 
 TEST_CASE("Button grid neighbour links", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   std::vector<GridCell> cells(4);
   cells[0] = {10, 10, 60, "A", -1, 2, -1, 1, 0, false};
@@ -514,7 +504,6 @@ TEST_CASE("Button grid neighbour links", "[ui]") {
 }
 
 TEST_CASE("Text entry modal edit", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   std::deque<std::uint16_t> keys = {0x1e41, 0x3042, kKeyBackspace, 0x2e43, kKeyHome, 0x2d78, kKeyEnter};
   int pumps = 0;
@@ -541,7 +530,6 @@ TEST_CASE("Text entry modal edit", "[ui]") {
 }
 
 TEST_CASE("Text entry respects its buffer length", "[ui]") {
-  SH_REQUIRE_GAME_EXE();
   Harness h;
   Dialog d(h.gui, 0, 0, 200, 50, kDialogCancel);
   std::deque<std::uint16_t> keys = {0x2e63, 0x2064, 0x1265, kKeyTab};
@@ -564,7 +552,7 @@ TEST_CASE("Text entry respects its buffer length", "[ui]") {
 }
 
 TEST_CASE("Default skin draws a button with the original colours", "[ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   GuiResources res = GuiResources::load(install);
   CHECK(res.small.height() == 15);
   DefaultSkin skin(res);
@@ -635,7 +623,7 @@ TEST_CASE("Default skin draws a button with the original colours", "[ui]") {
 }
 
 TEST_CASE("Default skin: dialog frame, list and slider geometry", "[ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   GuiResources res = GuiResources::load(install);
   DefaultSkin skin(res);
   Image8 img(300, 300, 0xee);
@@ -654,7 +642,7 @@ TEST_CASE("Default skin: dialog frame, list and slider geometry", "[ui]") {
 }
 
 TEST_CASE("Text box word wrap and caret positions", "[ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   GuiResources res = GuiResources::load(install);
   DefaultSkin skin(res);
   Image8 screen(kScreenWidth, kScreenHeight, 0);
@@ -677,7 +665,7 @@ TEST_CASE("Text box word wrap and caret positions", "[ui]") {
 }
 
 TEST_CASE("MENU skin metrics and sprites", "[ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   GuiResources res = GuiResources::load(install);
   const MenuResources menu = MenuResources::load(install);
   MenuSkin skin(res, menu);
@@ -700,7 +688,7 @@ TEST_CASE("MENU skin metrics and sprites", "[ui]") {
 }
 
 TEST_CASE("Mouse cursor counter, drawing and erasing", "[ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Shp cursors = Shp::load(install, "ART/CURSORS.SHP");
   REQUIRE(cursors.frame_count() == 40);
   std::uint32_t tick = 0;
