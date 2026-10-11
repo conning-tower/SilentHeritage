@@ -186,7 +186,7 @@ struct FrontEndFixture {
 
 }  // namespace
 
-TEST_CASE("The interview pages name the BUD videos 1 to 16", "[extras]") {
+TEST_CASE("The interview pages name the BUD videos 1 to 16", "[extras][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   const ShPaths paths = ShPaths::load(install);
@@ -209,7 +209,7 @@ TEST_CASE("The interview pages name the BUD videos 1 to 16", "[extras]") {
 }
 
 TEST_CASE("The interview slider is a disabled progress bar", "[extras]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ui::GuiResources gui_res = ui::GuiResources::load(install);
   const ui::MenuResources menu_res = ui::MenuResources::load(install);
   InterviewSkin skin(gui_res, menu_res);
@@ -256,7 +256,7 @@ TEST_CASE("The interview slider is a disabled progress bar", "[extras]") {
 }
 
 TEST_CASE("INTERVIEWS turns its pages and plays the chosen video", "[extras]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FrontEndFixture f(install);
   ScriptedHost& host = f.host;
   // Page 1 (E..H), page 2, back to page 1; its second video (F = BUD\6),
@@ -275,7 +275,7 @@ TEST_CASE("INTERVIEWS turns its pages and plays the chosen video", "[extras]") {
 }
 
 TEST_CASE("The interview slider seeks in the video (not in the original)", "[extras]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FrontEndFixture f(install);
   ScriptedHost& host = f.host;
   // BUD\5, its slider clicked at its middle, then STOP.
@@ -288,7 +288,7 @@ TEST_CASE("The interview slider seeks in the video (not in the original)", "[ext
 }
 
 TEST_CASE("The interviews page is kept between visits", "[extras]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FrontEndFixture f(install);
   ScriptedHost& host = f.host;
   host.script = {kInterviews, kNextPage, kInterviewsMainMenu, kInterviews, kVideoA, kStop, kInterviewsMainMenu,
@@ -298,7 +298,7 @@ TEST_CASE("The interviews page is kept between visits", "[extras]") {
   CHECK(is_first_video_picture(host.first_pictures[0], install, 5));
 }
 
-TEST_CASE("SUB TOUR shows the parts of each view with their narrations", "[extras]") {
+TEST_CASE("SUB TOUR shows the parts of each view with their narrations", "[extras][content]") {
   SH_REQUIRE_GAME_DATA(install);
   FrontEndFixture f(install);
   ScriptedHost& host = f.host;
@@ -335,7 +335,7 @@ TEST_CASE("SUB TOUR shows the parts of each view with their narrations", "[extra
   CHECK(host.speech_stops == 3 + 1 + 2 + 2);
 }
 
-TEST_CASE("The sub tour labels and parts come from SH.EXE", "[extras]") {
+TEST_CASE("The sub tour labels and parts come from SH.EXE", "[extras][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   const std::vector<SubTourLabel> labels = subtour_labels(exe);
