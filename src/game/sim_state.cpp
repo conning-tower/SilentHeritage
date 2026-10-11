@@ -61,6 +61,7 @@ constexpr std::uint32_t kExtensionVersion = 1;
 constexpr std::uint32_t kSimSection = 0x204d4953;  // "SIM "
 constexpr std::uint32_t kUiSection = 0x20204955;   // "UI  "
 constexpr std::uint32_t kRuleSection = 0x454c5552;  // "RULE"
+constexpr std::uint32_t kCrewLogSection = 0x474f4c43;  // "CLOG"
 
 std::vector<StateRange> group_ranges(ContactGroupKind kind) {
   std::vector<StateRange> r(kGroupBaseRanges.begin(), kGroupBaseRanges.end());
@@ -390,6 +391,8 @@ SimStateFile SimStateFile::parse(ByteReader& in, std::int32_t version, bool log_
         f.ui_extension.assign(data.begin(), data.end());
       } else if (tag == kRuleSection) {
         f.rules_extension.assign(data.begin(), data.end());
+      } else if (tag == kCrewLogSection) {
+        f.crew_log_extension.assign(data.begin(), data.end());
       }
     }
   }
@@ -463,7 +466,8 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     out.i32(static_cast<std::int32_t>(v.cls));
     write_ranges(out, v.image, vehicle_state_layout(v.cls).ranges);
   }
-  if (!sim_extension.empty() || !ui_extension.empty() || !rules_extension.empty()) {
+  if (!sim_extension.empty() || !ui_extension.empty() || !rules_extension.empty() ||
+      !crew_log_extension.empty()) {
     out.bytes(kExtensionMagic);
     out.u32(kExtensionVersion);
     write_section(out, kSimSection, sim_extension);
@@ -472,6 +476,9 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     // stay as they were.
     if (!rules_extension.empty()) {
       write_section(out, kRuleSection, rules_extension);
+    }
+    if (!crew_log_extension.empty()) {
+      write_section(out, kCrewLogSection, crew_log_extension);
     }
   }
   return out.take();
@@ -1083,6 +1090,9 @@ SimStateFile StateIo::capture(Mission& mission, const SimStateParts& parts, cons
     out.x_i32(screen->ui_.auto_red_state);
     out.x_flag(screen->ui_.red_override);
     f.ui_extension = ui_ext.take();
+    if (screen->ui_.features.crew_log) {
+      f.crew_log_extension = screen->bar_.history_.serialize();
+    }
   }
   return f;
 }
@@ -1286,6 +1296,9 @@ void StateIo::restore_session(const SimStateFile& f, const SessionStateParts& se
     bind(in, screen->radio_);
     in.x_i32(screen->ui_.auto_red_state);
     in.x_flag(screen->ui_.red_override);
+  }
+  if (!f.crew_log_extension.empty() && screen->ui_.features.crew_log) {
+    screen->bar_.history_ = CrewLog::parse(f.crew_log_extension);
   }
 }
 

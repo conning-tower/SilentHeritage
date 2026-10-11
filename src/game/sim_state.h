@@ -18,9 +18,11 @@
 //
 // The reimplementation appends its extension after them: "SHRX", u32
 // version, then sections (u32 tag, u32 size, bytes): "SIM " the mission
-// state the original does not save, "UI  " the session's, and "RULE" the
+// state the original does not save, "UI  " the session's, "RULE" the
 // extended variant's rules of the mission (game/mission_rules.h), only when
-// they are not the original's.
+// they are not the original's, and "CLOG" the extended variant's crew log
+// (`Features::crew_log`, game/crew_log.h). Readers skip the sections they
+// do not know.
 //
 // Deviations from the original's bytes: the unused stack and heap bytes it
 // writes (free radio buffer records, unknown fields) are zeros; the TDC's
@@ -120,6 +122,9 @@ struct SimStateFile {
   std::vector<std::uint8_t> sim_extension;
   std::vector<std::uint8_t> ui_extension;
   std::vector<std::uint8_t> rules_extension;
+  // The extended variant's crew log (section "CLOG", `CrewLog::serialize`;
+  // not in the original), empty without `Features::crew_log`.
+  std::vector<std::uint8_t> crew_log_extension;
 
   // Parses the lists at `in` of a file of `version` (`sim_read_state`),
   // then the extension when it follows; with `log_only`, stops after the

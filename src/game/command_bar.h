@@ -17,6 +17,7 @@
 
 #include "assets/crew_messages.h"
 #include "assets/exe_image.h"
+#include "game/crew_log.h"
 #include "sim/context.h"
 #include "game/mission_loop.h"
 #include "game/station.h"
@@ -155,6 +156,9 @@ class ControlBar : public CommandBar {
   // `crew_message_log_reset`.
   void reset_log();
   const CrewMessageLog& log() const { return log_; }
+  // The mission's crew messages with their times (`Features::crew_log`;
+  // empty without it).
+  const CrewLog& history() const { return history_; }
   // The bar text of the message shown.
   std::string current_message() const;
   // The display state 0x11e024 (0 none, 1 shown, 2 ending).
@@ -233,6 +237,7 @@ class ControlBar : public CommandBar {
   StationEnv& env_;
   CrewMessages messages_;
   CrewMessageLog log_;
+  CrewLog history_;
   std::unique_ptr<ui::Dialog> dialog_;
   BarConfig config_;
   bool open_ = false;

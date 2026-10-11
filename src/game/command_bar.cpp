@@ -513,6 +513,11 @@ void ControlBar::crew_message(std::int32_t id, std::int32_t arg1, std::int32_t a
   }
   env_.sound.play_crew_speech(m->sound);
   log_.push(id, arg1, arg2, text);
+  if (env_.ui.features.crew_log) {
+    // The full text: the ring keeps 0x31 characters.
+    const std::string line = format_crew_message(messages_, {id, arg1, arg2, std::string(text)});
+    history_.add(env_.mission.sim().clock(), m->speaker_name, line.substr(m->speaker_name.size() + 2));
+  }
   message_state_ = 1;
   message_drawn_ = false;
   env_.timer(GameTimer::kCrewMessage) = 0;

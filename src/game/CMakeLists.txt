@@ -15,6 +15,7 @@ sh_add_module(sh_game
     # bar, conn, chart, gauges, status, captain's quarters.
     station_env.cpp
     command_bar.cpp
+    crew_log.cpp
     mission_screen.cpp
     engine_sounds.cpp
     stations/conn.cpp
