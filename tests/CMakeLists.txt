@@ -46,6 +46,7 @@ add_executable(sh_tests
   # Control-room stations and the mission screen (command bar, conn, chart,
   # gauges, status, captain's quarters).
   stations_control_test.cpp
+  crew_log_test.cpp
   stations_control_chart_test.cpp
   chart_groups_test.cpp
   chart_weapons_test.cpp

@@ -6,6 +6,7 @@
 #include <string>
 #include <utility>
 
+#include "game/crew_log_view.h"
 #include "game/mission.h"
 #include "gfx/sprite.h"
 #include "gfx/text.h"
@@ -400,6 +401,17 @@ void ControlBar::build(const BarConfig& config) {
   } else {
     clock_field_ = nullptr;
   }
+  if (env_.ui.features.crew_log) {
+    // The message strip and `L` open the crew log (not in the original).
+    const auto open_log = [this](ui::Dialog&, ui::Area&, int, const ui::Event&) {
+      open_crew_log();
+      return 0;
+    };
+    dialog_->emplace<ui::Area>(0, 0, kBarWidth - button_slots_ * kButtonStep - 2, kBarHeight - 1, nullptr, open_log);
+    if (config.hotkeys) {
+      dialog_->emplace<ui::Area>(-1, -1, -1, -1, nullptr, open_log, kCrewLogKey);
+    }
+  }
   int x = kBarWidth - kButtonWidth;
   for (const BarButton& b : config.buttons) {
     dialog_->emplace<SpriteButton>(*this, x, 0, x + kButtonWidth, 0x13, b);
@@ -521,6 +533,12 @@ void ControlBar::crew_message(std::int32_t id, std::int32_t arg1, std::int32_t a
   message_state_ = 1;
   message_drawn_ = false;
   env_.timer(GameTimer::kCrewMessage) = 0;
+}
+
+void ControlBar::open_crew_log() {
+  if (!env_.modals.modal_active()) {
+    sh::open_crew_log(env_, history_, [this] { after_menu(); });
+  }
 }
 
 void ControlBar::post(const std::vector<CrewReport>& reports) {

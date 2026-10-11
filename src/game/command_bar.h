@@ -159,6 +159,9 @@ class ControlBar : public CommandBar {
   // The mission's crew messages with their times (`Features::crew_log`;
   // empty without it).
   const CrewLog& history() const { return history_; }
+  // Opens the crew log (`Features::crew_log`: the message strip's click,
+  // `L`) unless a menu is open.
+  void open_crew_log();
   // The bar text of the message shown.
   std::string current_message() const;
   // The display state 0x11e024 (0 none, 1 shown, 2 ending).

@@ -16,6 +16,7 @@ sh_add_module(sh_game
     station_env.cpp
     command_bar.cpp
     crew_log.cpp
+    crew_log_view.cpp
     mission_screen.cpp
     engine_sounds.cpp
     stations/conn.cpp
