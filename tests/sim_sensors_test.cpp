@@ -163,7 +163,6 @@ TEST_CASE("AI lookouts lose range to crew, aspect and a submerged boat", "[senso
 }
 
 TEST_CASE("The SJ sees a destroyer at 10000 yd but not a sampan", "[sensors]") {
-  SH_REQUIRE_GAME_EXE();
   MissionConditions env;
   env.options = 0x10080;  // SJ, 15000 yd; Limited Visibility.
   Simulation sim(env, kDeepSea);
@@ -230,7 +229,6 @@ TEST_CASE("Escort sonar hears a submarine by its noise, speed and depth", "[sens
 }
 
 TEST_CASE("The lookouts list a ship and the OOD calls it", "[sensors]") {
-  SH_REQUIRE_GAME_EXE();
   Simulation sim(MissionConditions{}, kDeepSea);
   PlayerSub& boat = sim.add(std::make_unique<PlayerSub>(test::gato(), fx::Vec3{kOrigin, 0, kOrigin}, Angle10(0), 0));
   Ship& ship = add_ship(sim, kagero(), {kOrigin + 5000 * kYard, 0, kOrigin}, Angle10(0), Fixed16(), ShipOrder::kNone);
@@ -251,7 +249,6 @@ TEST_CASE("The lookouts list a ship and the OOD calls it", "[sensors]") {
 }
 
 TEST_CASE("The hydrophones hear a ship's screws when submerged", "[sensors]") {
-  SH_REQUIRE_GAME_EXE();
   Simulation sim(MissionConditions{}, kDeepSea);
   sim.add(std::make_unique<PlayerSub>(test::gato(), fx::Vec3{kOrigin, -100 * kUnitsPerFoot, kOrigin}, Angle10(0), 0));
   Ship& ship = add_ship(sim, kagero(), {kOrigin, 0, kOrigin - 1000 * kYard}, Angle10(900), Fixed16::from_int(20),
@@ -278,7 +275,7 @@ TEST_CASE("Player noise follows the shaft power, quartered silent", "[sensors]")
   CHECK(init_thermal_layer(random, 2) / 100 == 2);
 }
 
-TEST_CASE("Ship sensor fields come from SHIPS.DAT", "[sensors]") {
+TEST_CASE("Ship sensor fields come from SHIPS.DAT", "[sensors][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const ShipClass* kagero_dat = tables.find_ship("KAGERO");
