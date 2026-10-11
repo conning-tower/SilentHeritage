@@ -122,7 +122,7 @@ int count_colour(const Image8& image, int x0, int y0, int x1, int y1, std::uint8
 
 }  // namespace
 
-TEST_CASE("The screen shake steps the display start every 6 ticks, then stops", "[gaps]") {
+TEST_CASE("The screen shake steps the display start every 6 ticks, then stops", "[gaps][content]") {
   SH_REQUIRE_GAME_EXE();
   ScreenShake shake;
   std::int32_t timer = 500;
@@ -181,7 +181,7 @@ TEST_CASE("The displayed frame starts at the display start row", "[gaps]") {
   CHECK(displayed_frame(frame, 0).at(1, 1) == 11);
 }
 
-TEST_CASE("A close blast shakes the mission's picture", "[gaps]") {
+TEST_CASE("A close blast shakes the mission's picture", "[gaps][content]") {
   SH_REQUIRE_GAME_DATA(install);
   test::ControlRig rig(install);
   rig.frames(1);
@@ -226,7 +226,7 @@ TEST_CASE("Debris lies on the surface for 1500 s, seen but silent", "[gaps]") {
   CHECK(debris.removed());
 }
 
-TEST_CASE("The 1MC jettisons debris at the submerged boat, and saves keep it", "[gaps]") {
+TEST_CASE("The 1MC jettisons debris at the submerged boat, and saves keep it", "[gaps][content]") {
   SH_REQUIRE_GAME_DATA(install);
   test::ControlRig rig(install);
   rig.frames(1);
@@ -284,7 +284,7 @@ TEST_CASE("The 1MC jettisons debris at the submerged boat, and saves keep it", "
 }
 
 TEST_CASE("On patrol the fuel dial's second needle shows the fuel to get home", "[gaps]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::ControlRig rig(install);
   rig.screen->install(StationId::kGauges,
                       std::make_unique<GaugesStation>(rig.screen->env(), rig.screen->dive_recorder()));
@@ -328,7 +328,7 @@ TEST_CASE("On patrol the fuel dial's second needle shows the fuel to get home", 
   CHECK(dial_pixels() == single);
 }
 
-TEST_CASE("The periscope marks the photo-recon target and lights the in-view lamp", "[gaps]") {
+TEST_CASE("The periscope marks the photo-recon target and lights the in-view lamp", "[gaps][content]") {
   SH_REQUIRE_GAME_DATA(install);
   SessionRig rig(install);
   REQUIRE(rig.frames(20));
