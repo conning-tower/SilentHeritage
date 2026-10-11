@@ -305,7 +305,7 @@ TEST_CASE("launcher icon: the extended mark reaches every layer", "[launcher_ico
   }
 }
 
-TEST_CASE("launcher icon: game-art square", "[launcher_icon]") {
+TEST_CASE("launcher icon: game-art square", "[launcher_icon][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const sh::RgbaBitmap square = sh::game_art_foreground(install);
   REQUIRE(square.width() == 600);
