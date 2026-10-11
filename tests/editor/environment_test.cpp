@@ -131,7 +131,7 @@ TEST_CASE("Class sheet dates are clamped to the war", "[editor][environment]") {
   CHECK(format_month_year(clamp_to_war(8, 1945 - kScenarioYearBase), "/") == "8/45");
 }
 
-TEST_CASE("The environment sky follows the time of day", "[editor][environment]") {
+TEST_CASE("The environment sky follows the time of day", "[editor][environment][content]") {
   SH_REQUIRE_GAME_DATA(install);
   test::EditorFixture fx(install);
   const Scenario& s = fx.scenario;
@@ -165,7 +165,7 @@ TEST_CASE("The environment sky follows the time of day", "[editor][environment]"
 }
 
 TEST_CASE("The environment refresh sets the scenario's light", "[editor][environment]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::EditorFixture fx(install);
   const WorldPoint p = fx.scenario.player().position(fx.scenario.object_env());
   for (std::int32_t hour : {0, 6, 12, 18}) {
