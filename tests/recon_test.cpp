@@ -89,7 +89,7 @@ bool has_message(const MissionEvents& e, std::int32_t id) {
 }  // namespace
 
 TEST_CASE("A recon target in daylight within 2 degrees of the view can be photographed", "[recon]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   ReconRig rig(tables, 3000, Angle10(300));
   rig.aim(0);
@@ -126,7 +126,7 @@ TEST_CASE("A recon target in daylight within 2 degrees of the view can be photog
 }
 
 TEST_CASE("No recon photo at night, beyond the lookouts' range or before the radio report", "[recon]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
 
   SECTION("Light under 30 %") {
@@ -173,7 +173,7 @@ TEST_CASE("No recon photo at night, beyond the lookouts' range or before the rad
 }
 
 TEST_CASE("A minute after the last objective a single mission ends", "[recon]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const auto run_to_end = [](ReconRig& rig, std::int32_t max_steps) {
     std::optional<std::int32_t> over;
@@ -217,7 +217,7 @@ TEST_CASE("A minute after the last objective a single mission ends", "[recon]") 
   }
 }
 
-TEST_CASE("The Tab key photographs the target: crew message, patrol log, then the mission ends", "[recon]") {
+TEST_CASE("The Tab key photographs the target: crew message, patrol log, then the mission ends", "[recon][content]") {
   SH_REQUIRE_GAME_DATA(install);
   test::ControlRig rig(install);
   auto cabin_station = std::make_unique<CabinStation>(rig.screen->env());
@@ -270,7 +270,7 @@ TEST_CASE("The Tab key photographs the target: crew message, patrol log, then th
 }
 
 TEST_CASE("A photographed landmark is logged by its location type", "[recon]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::ControlRig rig(install);
   CabinStation cabin(rig.screen->env());
   Mission& mission = rig.mission();
