@@ -111,12 +111,28 @@ struct Display::Impl {
     }
   }
 
+  // Gives the command button the window's current output size and display
+  // scale: they change with a resize, a fold or unfold, a move to another
+  // display or a rotation, before any touch.
+  void sync_panel_window() {
+    if (panel == nullptr) {
+      return;
+    }
+    int w = 0;
+    int h = 0;
+    SDL_GetRenderOutputSize(renderer, &w, &h);
+    if (w > 0 && h > 0) {
+      panel->set_window(static_cast<float>(w), static_cast<float>(h), SDL_GetWindowDisplayScale(window));
+    }
+  }
+
   // Shows the picture's texture and the command button.
   void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
     SDL_RenderTexture(renderer, texture, nullptr, nullptr);
     if (panel_view && panel_shown) {
+      sync_panel_window();
       panel_view->draw(*panel);
     }
     SDL_RenderPresent(renderer);
@@ -128,10 +144,7 @@ struct Display::Impl {
     if (panel == nullptr || !panel_shown) {
       return std::nullopt;
     }
-    int w = 0;
-    int h = 0;
-    SDL_GetRenderOutputSize(renderer, &w, &h);
-    panel->set_window(static_cast<float>(w), static_cast<float>(h), SDL_GetWindowDisplayScale(window));
+    sync_panel_window();
     // Window points to output pixels.
     const float density = SDL_GetWindowPixelDensity(window);
     PanelInput in;
@@ -275,6 +288,12 @@ std::optional<InputEvent> Display::poll() {
       case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
         impl_->confine_mouse();
+        impl_->sync_panel_window();
+        break;
+      case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+      case SDL_EVENT_DISPLAY_ORIENTATION:
+      case SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED:
+        impl_->sync_panel_window();
         break;
       case SDL_EVENT_KEY_DOWN:
       case SDL_EVENT_KEY_UP:
@@ -367,6 +386,7 @@ void Display::end_text_input() {
 void Display::set_command_panel(CommandPanel& panel, const CommandIcons& icons) {
   impl_->panel_view = std::make_unique<CommandPanelView>(impl_->renderer, icons);
   impl_->panel = &panel;
+  impl_->sync_panel_window();
 }
 
 void Display::show_command_panel(bool shown) {

@@ -141,10 +141,11 @@ struct PanelInput {
 // window's display scale in pixels.
 class CommandPanel {
  public:
-  // The group: ORDERS across its width, "+" and "-" side by side below.
-  static constexpr float kGroupWidthDp = 96;
-  static constexpr float kOrdersHeightDp = 48;
-  static constexpr float kCompressionHeightDp = 48;
+  // The group: ORDERS across its width, "+" and "-" side by side below,
+  // each 44 dp square (the smallest comfortable touch target).
+  static constexpr float kGroupWidthDp = 88;
+  static constexpr float kOrdersHeightDp = 40;
+  static constexpr float kCompressionHeightDp = 44;
   static constexpr float kIconDp = 56;     // a command's touch target
   static constexpr float kGapDp = 6;       // between icons
   static constexpr float kPaddingDp = 8;   // inside the panel

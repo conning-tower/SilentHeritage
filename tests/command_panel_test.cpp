@@ -62,9 +62,9 @@ std::filesystem::path temp_file(const char* name) {
 TEST_CASE("command panel: a tap on the button toggles the panel", "[cmdpanel]") {
   CommandPanel panel = fold_panel();
   const PanelRect b = panel.button_rect();
-  // ORDERS: 96 x 48 dp at 2.625 pixels per dp.
-  CHECK(b.w == 252.0f);
-  CHECK(b.h == 126.0f);
+  // ORDERS: 88 x 40 dp at 2.625 pixels per dp.
+  CHECK(b.w == 231.0f);
+  CHECK(b.h == 105.0f);
   CHECK_FALSE(panel.is_open());
   // A small wobble under the threshold is still a tap.
   CHECK(panel.press(cx(b), cy(b)).consumed);
@@ -106,7 +106,7 @@ TEST_CASE("command panel: + and - under ORDERS type their keys and drag the grou
   const PanelRect g = panel.group_rect();
   const PanelRect orders = panel.button_rect();
   const auto [up, down] = panel.compression_rects();
-  // One rectangle: ORDERS on top, + and - side by side below, 48 dp high.
+  // One rectangle: ORDERS on top, + and - side by side below, 44 dp square.
   CHECK(orders.x == g.x);
   CHECK(orders.y == g.y);
   CHECK(orders.w == g.w);
@@ -115,7 +115,8 @@ TEST_CASE("command panel: + and - under ORDERS type their keys and drag the grou
   CHECK(up.w == g.w / 2);
   CHECK(up.x == down.x + down.w);
   CHECK(down.w == g.w / 2);
-  CHECK(up.h >= 48 * 2.625f);
+  CHECK(up.h == 44 * 2.625f);
+  CHECK(up.w == 44 * 2.625f);
   CHECK(up.y + up.h == g.y + g.h);
   // A tap on + or - gives its command, held it shows pressed; the panel
   // stays closed.
@@ -409,6 +410,88 @@ TEST_CASE("command panel: the display swallows its taps and types its keys", "[c
   REQUIRE(through);
   CHECK(through->type == sh::EventType::kMouseDown);
   CHECK_FALSE(panel.is_open());
+}
+
+TEST_CASE("command panel: a place saved at one window size is kept at another", "[cmdpanel]") {
+  // Saved on the unfolded Pixel Fold, restored folded (and back): at the
+  // same fractions of the window, inside it.
+  const std::filesystem::path file = temp_file("resize.cfg");
+  {
+    CommandPanel unfolded(file);
+    unfolded.set_window(2208, 1840, 2.625f);
+    const PanelRect b = unfolded.button_rect();
+    unfolded.press(cx(b), cy(b));
+    unfolded.move(1100, 700);
+    unfolded.release(1100, 700);
+  }
+  CommandPanel folded(file);
+  folded.set_window(2092, 1080, 2.625f);
+  const PanelRect g = folded.group_rect();
+  CHECK(cx(g) / 2092 == Catch::Approx(folded.rel_x()));
+  CHECK(cy(g) / 1080 == Catch::Approx(folded.rel_y()));
+  CHECK(g.x >= 0);
+  CHECK(g.y >= 0);
+  CHECK(g.x + g.w <= 2092);
+  CHECK(g.y + g.h <= 1080);
+  // Its size follows the window's density, without a touch.
+  CHECK(g.w == CommandPanel::kGroupWidthDp * 2.625f);
+  folded.set_window(1280, 800, 1.5f);
+  CHECK(folded.group_rect().w == CommandPanel::kGroupWidthDp * 1.5f);
+
+  // Saved in a corner of the big window: inside the small one too.
+  {
+    CommandPanel big(file);
+    big.set_window(2208, 1840, 2.625f);
+    const PanelRect b = big.button_rect();
+    big.press(cx(b), cy(b));
+    big.move(2200, 1835);
+    big.release(2200, 1835);
+  }
+  CommandPanel small(file);
+  small.set_window(1080, 600, 2.625f);
+  const PanelRect s2 = small.group_rect();
+  CHECK(s2.x + s2.w <= 1080);
+  CHECK(s2.y + s2.h <= 600);
+  CHECK(s2.x >= 0);
+  CHECK(s2.y >= 0);
+}
+
+TEST_CASE("command panel: the display gives it the window's size before any touch", "[cmdpanel]") {
+  SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "dummy");
+  sh::Display display("test", 2);
+  CommandPanel panel;
+  sh::CommandIcons icons;
+  icons.button = sh::RgbaImage(4, 4, 0xff808080u);
+  icons.compression[0] = icons.compression[1] = sh::RgbaImage(4, 4, 0xff808080u);
+  icons.compression_pressed = icons.compression;
+  for (std::size_t i = 0; i < sh::kPanelCommandCount; ++i) {
+    icons.icons[i] = icons.pressed[i] = sh::RgbaImage(4, 4, 0xffff0000u);
+  }
+  // A panel shown first with its default 640x480 was drawn small and in
+  // the wrong place until the first touch.
+  display.set_command_panel(panel, icons);
+  while (display.poll()) {
+  }
+  const sh::Image8 frame(sh::kScreenWidth, sh::kScreenHeight, 0);
+  const sh::Palette palette{};
+  display.present(frame, palette);
+  // The default place, by the right edge of the 1280x960 window.
+  const float edge = CommandPanel::kGroupWidthDp / 2 + CommandPanel::kMarginDp;
+  CHECK(cx(panel.group_rect()) == 1280 - edge);
+  CHECK(cy(panel.group_rect()) == Catch::Approx(panel.rel_y() * 960));
+  // Resized (a fold, a rotation): the next frame follows.
+  int count = 0;
+  SDL_Window** windows = SDL_GetWindows(&count);
+  REQUIRE(count == 1);
+  REQUIRE(SDL_SetWindowSize(windows[0], 900, 500));
+  SDL_SyncWindow(windows[0]);
+  SDL_free(windows);
+  while (display.poll()) {
+  }
+  display.present(frame, palette);
+  const PanelRect g = panel.group_rect();
+  CHECK(cx(g) == 900 - edge);
+  CHECK(cy(g) == Catch::Approx(panel.rel_y() * 500));
 }
 
 TEST_CASE("command panel: shown only while the mission is in play", "[cmdpanel]") {
