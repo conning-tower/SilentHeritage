@@ -30,6 +30,8 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
     // game as before.
     {"drag_rotate", &Features::drag_rotate, true},
     {"precise_dials", &Features::precise_dials, true},
+    // Reads the boat for the touch panel only.
+    {"panel_status", &Features::panel_status, true},
 };
 // Every improvement must be listed above (`Features` holds only flags).
 static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool));

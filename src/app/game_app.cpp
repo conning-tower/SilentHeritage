@@ -17,6 +17,7 @@
 #include <stdexcept>
 
 #include "app/command_icons.h"
+#include "app/panel_status.h"
 #include "app/sound_system.h"
 #include "assets/exe_image.h"
 #include "assets/game_exe.h"
@@ -29,6 +30,8 @@
 #include "game/frontend_results.h"
 #include "game/game_runner.h"
 #include "game/lifecycle_log.h"
+#include "game/mission.h"
+#include "game/mission_session.h"
 #include "game/resume.h"
 #include "game/resume_keeper.h"
 #include "game/shpath.h"
@@ -247,6 +250,16 @@ class GameApp final : public FrontendHost, public EditorRunner {
     if (command_panel_) {
       // Only over a mission in play, never over the menus.
       display_.show_command_panel(runner_.mission_in_play());
+      if (options_.features.panel_status) {
+        // The live state, read from the mission (not in the original).
+        MissionSession* session = runner_.mission_in_play() ? runner_.session() : nullptr;
+        std::optional<PanelStatus> status;
+        if (session != nullptr) {
+          const Mission& mission = session->screen().mission();
+          status = command_panel_status(mission.player(), mission.player_combat().tubes);
+        }
+        command_panel_->set_status(std::move(status));
+      }
     }
     if (!pending_.empty()) {
       const InputEvent e = pending_.front();

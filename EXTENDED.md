@@ -23,6 +23,9 @@ kept with it.
   show the new value, given when you let go. Drag farther above or below
   the dial, or hold Shift, for finer steps; the right button or Esc
   cancels; the mouse wheel steps the value. A plain click works as before.
+- **Live ORDERS panel:** on touch screens, the ORDERS panel lights the depth
+  order in effect and shows each tube as loaded, reloading (with the time
+  left), empty or damaged.
 
 ## Rules
 

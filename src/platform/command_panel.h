@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace sh {
@@ -45,6 +46,34 @@ enum class PanelCommand : std::uint8_t {
 // The commands of the panel's icons (the first ones).
 inline constexpr std::size_t kPanelCommandCount = 15;
 inline constexpr std::size_t kDepthCommandCount = 5;
+
+// The live state the panel shows (extended `panel_status`, not in the
+// original), read from the game: the depth order in effect lights its
+// plate, each tube's state is its frame and lamp. A tube's `label` is the
+// text under it (the torpedo type, for the torpedo loadouts), the state
+// keeps the frame and lamp.
+enum class TubeState : std::uint8_t {
+  kAbsent,     // the boat has no such tube: hidden, its taps ignored
+  kEmpty,      // grey
+  kReloading,  // amber, with the time left
+  kLoaded,     // green
+  kDamaged,    // red
+};
+struct TubeStatus {
+  TubeState state = TubeState::kAbsent;
+  // The seconds left of a reload.
+  std::int32_t reload_seconds = 0;
+  std::string label;
+  friend bool operator==(const TubeStatus&, const TubeStatus&) = default;
+};
+inline constexpr std::size_t kPanelTubeCount = 10;
+struct PanelStatus {
+  // The depth command whose order is in effect (one of the first
+  // `kDepthCommandCount` commands), if any.
+  std::optional<PanelCommand> depth_order;
+  std::array<TubeStatus, kPanelTubeCount> tubes{};
+  friend bool operator==(const PanelStatus&, const PanelStatus&) = default;
+};
 
 // A key as `InputEvent` carries it: the SDL keycode and modifier mask.
 struct PanelKey {
@@ -150,6 +179,14 @@ class CommandPanel {
   // release then reach the game); returns whether anything changed.
   bool close();
 
+  // Sets the live state shown (none: the plain panel); returns whether
+  // the look changed. A reload's progress is measured against the longest
+  // time left seen since it started.
+  bool set_status(std::optional<PanelStatus> status);
+  const std::optional<PanelStatus>& status() const { return status_; }
+  // The part of tube `tube`'s reload done, 0..1 (0 when not reloading).
+  float reload_progress(std::size_t tube) const;
+
   bool is_open() const { return open_; }
   // The whole group, and its parts: ORDERS, then "+" (right half) and "-"
   // (left half) below it.
@@ -198,6 +235,9 @@ class CommandPanel {
   bool icon_hover_ = false;
   // The group's part pressed: none for ORDERS, else "+" or "-".
   std::optional<PanelCommand> part_;
+  std::optional<PanelStatus> status_;
+  // The longest reload time seen per tube while it reloads.
+  std::array<std::int32_t, kPanelTubeCount> reload_total_{};
 };
 
 }  // namespace sh

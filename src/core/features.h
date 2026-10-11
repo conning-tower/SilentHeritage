@@ -32,6 +32,9 @@ struct Features {
   // counters and torpedo depth) take a pending value by a horizontal drag
   // or the wheel, shown as an amber ghost and given on release.
   bool precise_dials = false;
+  // The touch command panel shows the depth order in effect and each
+  // tube's state.
+  bool panel_status = false;
 
   // Returns the original game's set: no improvement.
   static constexpr Features faithful() { return {}; }
@@ -42,7 +45,8 @@ struct Features {
             .chart_tools = true,
             .last_boat = true,
             .drag_rotate = true,
-            .precise_dials = true};
+            .precise_dials = true,
+            .panel_status = true};
   }
   // Returns the set of this build's variant.
   static constexpr Features for_build() { return edition::kExtended ? extended() : faithful(); }

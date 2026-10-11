@@ -156,9 +156,36 @@ std::array<PanelRect, kPanelCommandCount> CommandPanel::icon_rects() const {
   return out;
 }
 
+bool CommandPanel::set_status(std::optional<PanelStatus> status) {
+  for (std::size_t t = 0; t < kPanelTubeCount; ++t) {
+    if (status && status->tubes[t].state == TubeState::kReloading) {
+      reload_total_[t] = std::max(reload_total_[t], status->tubes[t].reload_seconds);
+    } else {
+      reload_total_[t] = 0;
+    }
+  }
+  if (status == status_) {
+    return false;
+  }
+  status_ = std::move(status);
+  return open_;
+}
+
+float CommandPanel::reload_progress(std::size_t tube) const {
+  if (!status_ || status_->tubes.at(tube).state != TubeState::kReloading || reload_total_.at(tube) <= 0) {
+    return 0;
+  }
+  const auto left = static_cast<float>(status_->tubes[tube].reload_seconds);
+  return std::clamp(1.0f - left / static_cast<float>(reload_total_[tube]), 0.0f, 1.0f);
+}
+
 std::optional<PanelCommand> CommandPanel::icon_at(float x, float y) const {
   const auto rects = icon_rects();
   for (std::size_t i = 0; i < rects.size(); ++i) {
+    const std::size_t first_tube = static_cast<std::size_t>(PanelCommand::kFireTube1);
+    if (status_ && i >= first_tube && status_->tubes[i - first_tube].state == TubeState::kAbsent) {
+      continue;
+    }
     if (rects[i].contains(x, y)) {
       return static_cast<PanelCommand>(i);
     }

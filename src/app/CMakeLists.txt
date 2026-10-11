@@ -6,6 +6,8 @@ sh_add_module(sh_viewer
     command_line.cpp
     # The pictures of the floating command button, from the install.
     command_icons.cpp
+    # The live state the touch command panel shows (extended variant).
+    panel_status.cpp
     # The remembered source of the game files and the start-up choice.
     install_source.cpp
     draw_util.cpp

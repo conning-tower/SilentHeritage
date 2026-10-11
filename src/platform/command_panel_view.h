@@ -3,6 +3,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 
 #include "platform/command_panel.h"
 
@@ -27,6 +28,9 @@ class CommandPanelView {
   void draw(const CommandPanel& panel);
 
  private:
+  // Draws icon `i` in `r` with the panel's live state (extended
+  // `panel_status`); `down` while pressed, `edge` the plate's edge width.
+  void draw_live(const CommandPanel& panel, std::size_t i, const PanelRect& r, bool down, float edge);
   SDL_Renderer* renderer_;
   SDL_Texture* button_ = nullptr;
   std::array<SDL_Texture*, 2> compression_{};
