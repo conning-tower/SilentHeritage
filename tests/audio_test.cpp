@@ -44,7 +44,7 @@ RandFn fixed_rand(std::int32_t value, int* calls = nullptr) {
 
 }  // namespace
 
-TEST_CASE("MEL files parse to the reference values", "[mel]") {
+TEST_CASE("MEL files parse to the reference values", "[mel][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto files = install.list("SFX", ".MEL");
   CHECK(files.size() == 54);
@@ -79,7 +79,7 @@ TEST_CASE("MEL files parse to the reference values", "[mel]") {
   CHECK(contact.pcm.size() == 24643);
 }
 
-TEST_CASE("BNK preload lists parse to the reference values", "[mel]") {
+TEST_CASE("BNK preload lists parse to the reference values", "[mel][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto bank1 = parse_bnk(install.read("SFX/1.BNK"));
   const std::vector<std::int32_t> ids1 = {1, 2, 50, 51, 52, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 90, 91, 92, 93};
@@ -115,7 +115,7 @@ TEST_CASE("MEL and BNK parsers reject malformed data", "[mel]") {
 }
 
 TEST_CASE("Speech RAW files are found in SPEECH or ALT", "[audio]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   CHECK(speech_file_name("CAPT0425") == "CAPT0425.RAW");
   const auto capt = read_speech_raw(install, "CAPT0425.RAW");
   REQUIRE(capt.has_value());
@@ -129,7 +129,7 @@ TEST_CASE("Speech RAW files are found in SPEECH or ALT", "[audio]") {
 }
 
 TEST_CASE("The sample table preloads bank 1 and loads other effects on demand", "[audio]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SampleTable table(&install);
   table.load_bank(1);
   CHECK(table.size() == 19);
@@ -323,7 +323,7 @@ TEST_CASE("Speech plays one clip at 22050 Hz, replacing the previous one", "[aud
 }
 
 TEST_CASE("Crew speech plays the message's RAW clip", "[audio]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SampleTable table(&install);
   MelLayer layer(table, fixed_rand(0));
   CHECK(play_crew_speech(layer, install, SoundOptions{}, "2DEEP"));
