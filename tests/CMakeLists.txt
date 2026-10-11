@@ -108,7 +108,12 @@ add_executable(sh_tests
   display_fullscreen_test.cpp
   # The Android launcher icon tool (tools/).
   launcher_icon_test.cpp
+  # Golden traces of the faithful game (tests/golden/).
+  golden_trace.cpp
+  golden_test.cpp
 )
+# The committed golden traces, recorded in place with SH_GOLDEN_RECORD.
+target_compile_definitions(sh_tests PRIVATE SH_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/golden")
 target_link_libraries(sh_tests PRIVATE sh_core sh_gfx sh_assets sh_audio sh_sim sh_ui sh_game
   Catch2::Catch2WithMain)
 # Main program and asset viewer.

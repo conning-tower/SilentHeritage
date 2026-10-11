@@ -1,0 +1,211 @@
+# Golden trace "real/hist01_attack" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=real/hist01_attack (see tests/golden_trace.h).
+@install SH.EXE 8a2903db48e2f767
+marked sim.time day 16 16:00:18.00 x1/1/64
+marked sim.player f00a71fb4003adb7
+marked sim.tdc 59126d77feba50a4
+marked sim.deckgun a23ce639e4fb5092
+marked sim.vehicle.0 1 90bc72608b2e4dac
+marked sim.vehicle.1 1 dabf55e0c81b8c09
+marked sim.vehicle.2 1 23ad9eb4a0dc52f4
+marked sim.extension 04386a3b715db963
+marked rng 03a3f06a
+marked msgs 56(250,-1),31(-1,-1),31(-1,-1),3(-1,-1)
+marked ui.state 51eeef1d45719dad
+marked frame scope 44f29a85a2812280
+marked dac a6baf2b169ad0cda
+fired sim.time day 16 16:00:18.10 x1/1/32
+fired sim.player b428340f3e34b011
+fired sim.tdc de5ec6d2c3a9282d
+fired sim.deckgun b232a8ac8b4c5f0c
+fired sim.vehicle.0 1 f8177eb296875fdc
+fired sim.vehicle.1 1 41fe78aee6ed3766
+fired sim.vehicle.2 1 43f28e9ef047acc9
+fired sim.vehicle.3 5 15924db23ccc2e48
+fired sim.extension 834af1d71cc882e7
+fired rng 67cd75f8
+fired draws 2
+fired msgs 17(1,-1)
+fired ui.state 99b8dfa9782fe6e3
+fired frame scope e780dca894358529
+fired dac a6baf2b169ad0cda
+scope1 sim.time day 16 16:00:23.10 x1/1/32
+scope1 sim.player 6ea8b92c8dd72dca
+scope1 sim.tdc cde0335d06280135
+scope1 sim.deckgun dc96899599709866
+scope1 sim.vehicle.0 1 69a3f2ee54aaeecb
+scope1 sim.vehicle.1 1 bdc08d086214add6
+scope1 sim.vehicle.2 1 39b4ef93a8f21b2b
+scope1 sim.vehicle.3 5 80613a3298ef4ab7
+scope1 sim.vehicle.4 10 0f7766d3904e41dd
+scope1 sim.vehicle.5 7 d5dc4255bf9062cd
+scope1 sim.extension 7d573a341ba0aeb0
+scope1 rng d50c35b1
+scope1 draws 33
+scope1 msgs -
+scope1 ui.state 8adda5293236c7b9
+scope1 frame scope 15407af011c9dadf
+scope1 dac a6baf2b169ad0cda
+scope2 sim.time day 16 16:00:28.10 x1/1/32
+scope2 sim.player 8a769e25301ef694
+scope2 sim.tdc ae8904dc5fd98e23
+scope2 sim.deckgun bb9249f279f54b4e
+scope2 sim.vehicle.0 1 95684ccf311009ba
+scope2 sim.vehicle.1 1 95e18586e80f18cc
+scope2 sim.vehicle.2 1 bebc43134986f1d5
+scope2 sim.vehicle.3 5 eebc00477cf3228e
+scope2 sim.extension 6670c0fe1f5f5bbe
+scope2 rng 74526091
+scope2 draws 32
+scope2 msgs -
+scope2 ui.state 4d2f64e820653f17
+scope2 frame scope 8c39454767dfc2e8
+scope2 dac a6baf2b169ad0cda
+scope3 sim.time day 16 16:00:33.10 x1/1/32
+scope3 sim.player e584c1985f2e86d3
+scope3 sim.tdc c014b1042623fdf1
+scope3 sim.deckgun 8955099160b8adf8
+scope3 sim.vehicle.0 1 b59c14259f872d01
+scope3 sim.vehicle.1 1 3e41e38cedcd7e05
+scope3 sim.vehicle.2 1 1df8e70bc8d12c77
+scope3 sim.vehicle.3 5 9ec6899af70836fe
+scope3 sim.extension 365b281e07cd8ef6
+scope3 rng de29923a
+scope3 draws 45
+scope3 msgs -
+scope3 ui.state 5aae6e73c3343606
+scope3 frame scope be5d2f456aaf6266
+scope3 dac a6baf2b169ad0cda
+scope4 sim.time day 16 16:00:38.10 x1/1/32
+scope4 sim.player 2d986bff425d3d4c
+scope4 sim.tdc 283deaeb3bbe2d5b
+scope4 sim.deckgun e1f08a8c71c3af3e
+scope4 sim.vehicle.0 1 ed5a35559e9dbd4a
+scope4 sim.vehicle.1 1 ccbade09fdb33d35
+scope4 sim.vehicle.2 1 4ed71b7706c3f0e3
+scope4 sim.vehicle.3 5 3d69ac0aeeb40265
+scope4 sim.extension eac4f972d6b60472
+scope4 rng b1612ca7
+scope4 draws 37
+scope4 msgs -
+scope4 ui.state f52a7aac1e7ea76b
+scope4 frame scope f9009e1bd16fa156
+scope4 dac a6baf2b169ad0cda
+scope5 sim.time day 16 16:00:43.10 x1/1/32
+scope5 sim.player 26f721c4dd661f75
+scope5 sim.tdc 8a5005f4cc8ca3ac
+scope5 sim.deckgun 3059583090dca068
+scope5 sim.vehicle.0 1 08e92a835a8f5a5c
+scope5 sim.vehicle.1 1 8ab596365012bf37
+scope5 sim.vehicle.2 1 3b62af8fc9ef6459
+scope5 sim.vehicle.3 5 d47c6fec1185f038
+scope5 sim.extension 7eba2b4d2245ba6e
+scope5 rng 6aa118a1
+scope5 draws 30
+scope5 msgs -
+scope5 ui.state 7cdbeb749dd7d461
+scope5 frame scope 22c1a6e80e31ffa4
+scope5 dac a6baf2b169ad0cda
+scope6 sim.time day 16 16:00:48.10 x1/1/32
+scope6 sim.player 828a785a19f57e2a
+scope6 sim.tdc d0ec832ab1cfb86f
+scope6 sim.deckgun 1196400882938c76
+scope6 sim.vehicle.0 1 d6d3e8f79c20934e
+scope6 sim.vehicle.1 1 ff4edb397888b4d9
+scope6 sim.vehicle.2 1 772633ab387aa46f
+scope6 sim.vehicle.3 5 4ecc2a93176f7ad7
+scope6 sim.extension 3a1b89ffa67c24c0
+scope6 rng 15531426
+scope6 draws 33
+scope6 msgs -
+scope6 ui.state 0c4b2b618efaefa0
+scope6 frame scope 94d7bc7183923bfa
+scope6 dac a6baf2b169ad0cda
+scope7 sim.time day 16 16:00:53.10 x1/1/32
+scope7 sim.player d723cd10a76784ce
+scope7 sim.tdc ddc2062500477e77
+scope7 sim.deckgun bd35c7d9e6913b74
+scope7 sim.vehicle.0 1 61bd22201b485508
+scope7 sim.vehicle.1 1 3db003d3d98ba383
+scope7 sim.vehicle.2 1 45a7b21082ea8b70
+scope7 sim.vehicle.3 5 0ceb42be4f6ab739
+scope7 sim.extension 1d753a71f01e3460
+scope7 rng aa324e74
+scope7 draws 34
+scope7 msgs -
+scope7 ui.state cb802ea1173ecb96
+scope7 frame scope f1873e124ca34645
+scope7 dac a6baf2b169ad0cda
+scope8 sim.time day 16 16:00:58.10 x1/1/32
+scope8 sim.player f6fe48ac964f4fee
+scope8 sim.tdc 268b6429a1bbe028
+scope8 sim.deckgun 829c3908fff83fea
+scope8 sim.vehicle.0 1 41c130b670ec0ba9
+scope8 sim.vehicle.1 1 82ff1a0a26f3aab9
+scope8 sim.vehicle.2 1 127e65a8e44eac8e
+scope8 sim.vehicle.3 5 866dc10a6892b72f
+scope8 sim.extension 7f8f75f98f0d3676
+scope8 rng 39f911d1
+scope8 draws 13
+scope8 msgs -
+scope8 ui.state 67c0af0e129a8094
+scope8 frame scope 60611ea210ad463d
+scope8 dac a6baf2b169ad0cda
+scope9 sim.time day 16 16:01:03.10 x1/1/64
+scope9 sim.player 8b34e744a35b26d4
+scope9 sim.tdc e9f0ed25ed26c99c
+scope9 sim.deckgun 7ba547c3c0d245e0
+scope9 sim.vehicle.0 1 78eeb030d1548536
+scope9 sim.vehicle.1 1 cf78114e94cfb3d1
+scope9 sim.vehicle.2 1 e91dc29255c2bf3e
+scope9 sim.vehicle.3 9 41547112fd5423a4
+scope9 sim.extension 7a8d4883c65d3aa2
+scope9 rng 576f231a
+scope9 draws 13
+scope9 msgs -
+scope9 ui.state 75429e6f2e46811e
+scope9 frame scope e497cd5243342ac3
+scope9 dac a6baf2b169ad0cda
+scope10 sim.time day 16 16:01:08.10 x1/1/64
+scope10 sim.player 5d72d76abf821b4c
+scope10 sim.tdc d4424efad9c9cd24
+scope10 sim.deckgun 50ec02e4a1c8299c
+scope10 sim.vehicle.0 1 c8c385a55cdcbfcf
+scope10 sim.vehicle.1 1 0f1ecef4a810a771
+scope10 sim.vehicle.2 1 3fb3c6f4945db6a0
+scope10 sim.extension e6e56d6848f63696
+scope10 rng be9fccb1
+scope10 draws 19
+scope10 msgs -
+scope10 ui.state 339c6c272af3a682
+scope10 frame scope a743853250f56b95
+scope10 dac a6baf2b169ad0cda
+bridge sim.time day 16 16:01:13.05 x1/1/64
+bridge sim.player 0fa6a04f4c901d10
+bridge sim.tdc 27a8f4aa53aa5e32
+bridge sim.deckgun 5e1e6ed6f3902af1
+bridge sim.vehicle.0 1 f73f44fdcf21595a
+bridge sim.vehicle.1 1 d6ebfeaa057c1837
+bridge sim.vehicle.2 1 0398f72eaaf36a2d
+bridge sim.extension 474d70c84599d624
+bridge rng 981eff15
+bridge draws 28
+bridge msgs -
+bridge ui.state 013156cdd51b12ad
+bridge frame bridge 3a23b4cf52c62196
+bridge dac 7ef52fcafac49ba2
+chart sim.time day 16 16:01:18.00 x1/1/64
+chart sim.player c47826bc8eb1159a
+chart sim.tdc 7ee28b7b7f43bb11
+chart sim.deckgun 909d77e22a02f30a
+chart sim.vehicle.0 1 2af087a4bf878b33
+chart sim.vehicle.1 1 c7192d78010a70ef
+chart sim.vehicle.2 1 a2c0f314688b70f3
+chart sim.extension 21ae8d72201d2f1f
+chart rng 9970fbcd
+chart draws 8
+chart msgs -
+chart ui.state 684c740bb30631c9
+chart frame chart 71402fea054f6321
+chart dac eac2a4282d4006fc
+end save 467383059f09d331

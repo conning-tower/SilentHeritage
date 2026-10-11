@@ -1,0 +1,159 @@
+# Golden trace "real/convoy_generated" of tests/golden_test.cpp, recorded from the faithful game.
+# Re-record deliberately with SH_GOLDEN_RECORD=real/convoy_generated (see tests/golden_trace.h).
+@install SH.EXE 8a2903db48e2f767
+run1 sim.time day 15 11:27:46.20 x8/32/64
+run1 sim.player 4e17f5d5c2b71da1
+run1 sim.tdc 1ad1e1c3eaf13df2
+run1 sim.deckgun 0d0bf3f616746f2e
+run1 sim.vehicle.0 1 c8fa9a4f7193632f
+run1 sim.vehicle.1 1 8cd27a76f69f0312
+run1 sim.extension f8a9d380f5451acd
+run1 rng aae1e926
+run1 msgs 56(295,-1)
+run1 ui.state 330d995dcea35b1e
+run1 frame chart c438551e51a967c1
+run1 dac e51d958e21bfe2d2
+run2 sim.time day 15 11:29:26.20 x8/32/64
+run2 sim.player 1d44c900273c64aa
+run2 sim.tdc a73e55f0088a0c38
+run2 sim.deckgun a1c413faff4d41d1
+run2 sim.vehicle.0 1 c5204843986b009e
+run2 sim.vehicle.1 1 5e145f6b5f49782d
+run2 sim.extension c74ba8922a86a24f
+run2 rng 9bfc5bff
+run2 draws 105
+run2 msgs -
+run2 ui.state d8685b112e67d121
+run2 frame chart 47bf224f48359c84
+run2 dac e51d958e21bfe2d2
+run3 sim.time day 15 11:31:06.20 x8/32/64
+run3 sim.player 075fdf84fff86f54
+run3 sim.tdc ab106c5b5934b0e0
+run3 sim.deckgun ced1acb8500cf3e8
+run3 sim.vehicle.0 1 30be66508f50fd99
+run3 sim.vehicle.1 1 46f09a633eb4caeb
+run3 sim.extension 926d792f5134aeef
+run3 rng 0960df6d
+run3 draws 106
+run3 msgs -
+run3 ui.state 93bb1f6888919e3b
+run3 frame chart 3f7df29ca511e3d2
+run3 dac e51d958e21bfe2d2
+run4 sim.time day 15 11:32:46.20 x8/32/64
+run4 sim.player 84d06246e5f1bb9c
+run4 sim.tdc 33c94e57cc602a8e
+run4 sim.deckgun 1c03eb68565bfb31
+run4 sim.vehicle.0 1 bff4b2ea62465a9d
+run4 sim.vehicle.1 1 25aca58272ab5d64
+run4 sim.extension 93d8ba3be8acae4c
+run4 rng f8f5831a
+run4 draws 105
+run4 msgs -
+run4 ui.state c7499125f3e68cd1
+run4 frame chart 5b6011a2a509d2b5
+run4 dac e51d958e21bfe2d2
+run5 sim.time day 15 11:34:26.20 x8/32/64
+run5 sim.player cb6b1efd68969b61
+run5 sim.tdc 6b9572240b4ce0d4
+run5 sim.deckgun 81be2c8e719ac46c
+run5 sim.vehicle.0 1 98a41a34838757aa
+run5 sim.vehicle.1 1 40f528cd1464940d
+run5 sim.extension 9f329bbdaada49ec
+run5 rng b0faff63
+run5 draws 105
+run5 msgs -
+run5 ui.state c7551534be7e377d
+run5 frame chart 4a69632cc41a37bf
+run5 dac e51d958e21bfe2d2
+run6 sim.time day 15 11:36:06.20 x8/32/64
+run6 sim.player 2fb901bb93b23c66
+run6 sim.tdc ccb62692a65dca3c
+run6 sim.deckgun d3ff823f02a52ae3
+run6 sim.vehicle.0 1 97dfc2efdcf951a3
+run6 sim.vehicle.1 1 ba577a9d3adb1732
+run6 sim.extension 385126c809a5cb88
+run6 rng 000bbdf1
+run6 draws 106
+run6 msgs -
+run6 ui.state 166e81cb1c8938c1
+run6 frame chart 5d4298acef80bd6d
+run6 dac e51d958e21bfe2d2
+run7 sim.time day 15 11:37:46.20 x8/32/64
+run7 sim.player 92b8e36789f75c10
+run7 sim.tdc 1ad1e1c3eaf13df2
+run7 sim.deckgun 865fef372f5e9955
+run7 sim.vehicle.0 1 e92cc9714dddd27f
+run7 sim.vehicle.1 1 7b8a7f86e0f22de1
+run7 sim.extension 8aa35b3c11d1e1a9
+run7 rng 8c2ac9ce
+run7 draws 105
+run7 msgs -
+run7 ui.state f8f511557f65f605
+run7 frame chart ec1119140f9a4992
+run7 dac e51d958e21bfe2d2
+run8 sim.time day 15 11:39:26.20 x8/32/64
+run8 sim.player 686b31b8cbb1af0c
+run8 sim.tdc a73e55f0088a0c38
+run8 sim.deckgun a3417af6deff44bd
+run8 sim.vehicle.0 1 07f67161317e42c0
+run8 sim.vehicle.1 1 28dddfedd59aec79
+run8 sim.extension 0e4c6bd84ff8f0d2
+run8 rng 85004887
+run8 draws 105
+run8 msgs -
+run8 ui.state 393e33af25a26e04
+run8 frame chart 6c46542f14f4c39f
+run8 dac e51d958e21bfe2d2
+dive1 sim.time day 15 11:39:36.65 x1/1/64
+dive1 sim.player f536bbd2005254f6
+dive1 sim.tdc 7fc9ac1edc92f39d
+dive1 sim.deckgun 0b3c761ff5f0af34
+dive1 sim.vehicle.0 1 87a445b7b84723fe
+dive1 sim.vehicle.1 1 3075557950313a5b
+dive1 sim.extension e9491d15b855c716
+dive1 rng 15466a38
+dive1 draws 13
+dive1 msgs 14(-1,-1)
+dive1 ui.state 27744260f23106ed
+dive1 frame chart a4f32320612d2136
+dive1 dac e51d958e21bfe2d2
+dive2 sim.time day 15 11:39:46.65 x1/1/64
+dive2 sim.player 5577cf0b97414011
+dive2 sim.tdc 13a5e71590c4d7b9
+dive2 sim.deckgun 712b3fb4d6949c56
+dive2 sim.vehicle.0 1 1d1d54ab69e255cf
+dive2 sim.vehicle.1 1 fbbbaae6dcdb2ce0
+dive2 sim.extension 006fc1cf8b51646b
+dive2 rng 82b2086f
+dive2 draws 11
+dive2 msgs 44(-1,-1)
+dive2 ui.state c8f184a4bfb5db46
+dive2 frame chart a86c460b17f5a47b
+dive2 dac e51d958e21bfe2d2
+dive3 sim.time day 15 11:39:56.65 x1/1/64
+dive3 sim.player 271f4ccb6b4da490
+dive3 sim.tdc b564f28f5455e2cf
+dive3 sim.deckgun 712b3fb4d6949c56
+dive3 sim.vehicle.0 1 e72311729bd24d81
+dive3 sim.vehicle.1 1 1344306ade57e503
+dive3 sim.extension 9e21d03d7f9bfd39
+dive3 rng 7e499c14
+dive3 draws 9
+dive3 msgs -
+dive3 ui.state 4381e3d4a4087d67
+dive3 frame chart ef0dc428f6924321
+dive3 dac e51d958e21bfe2d2
+dive4 sim.time day 15 11:40:06.65 x1/1/64
+dive4 sim.player 0ce092579b80889a
+dive4 sim.tdc 7fc9ac1edc92f39d
+dive4 sim.deckgun 712b3fb4d6949c56
+dive4 sim.vehicle.0 1 1f13265066ca15ff
+dive4 sim.vehicle.1 1 0c33405bdb6ca592
+dive4 sim.extension e73f33c8125cb56e
+dive4 rng 1cd459ac
+dive4 draws 8
+dive4 msgs -
+dive4 ui.state e2d780de0ae75d57
+dive4 frame chart e4b5677a62854cf2
+dive4 dac e51d958e21bfe2d2
+end save efc0effba9bcbc68
