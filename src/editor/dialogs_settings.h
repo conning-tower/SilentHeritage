@@ -21,8 +21,10 @@ bool cmd_environment(EditorUi& ui, Scenario& scenario, const EditorOptions& opti
 
 // Edit / Equipment (`cmd_equipment`, SE 0x2904f): surface radar, scope, air
 // radar, bathythermograph; OK repacks the equipment word and updates the
-// visibility (radar range). Returns true on OK.
-bool cmd_equipment(EditorUi& ui, Scenario& scenario, const EditorOptions& options);
+// visibility (radar range). `radar_detector` (not in the original) adds a
+// row for equipment bit 4, limited by date like the others. Returns true
+// on OK.
+bool cmd_equipment(EditorUi& ui, Scenario& scenario, const EditorOptions& options, bool radar_detector = false);
 
 // Edit / Torpedoes (`cmd_torpedoes`, SE 0x29677): a cycle per tube of the
 // player's class and a reload row per torpedo it may carry; OK writes the
@@ -38,8 +40,10 @@ bool cmd_briefing_text(EditorUi& ui, Scenario& scenario);
 // contact and randomize also as the new-scenario defaults), saves
 // SBOPTION.SAV into `saves`, marks the scenario modified when its two
 // flags changed and re-validates the equipment when its limit was switched
-// on. Returns true on OK.
-bool cmd_options(EditorUi& ui, Scenario& scenario, EditorOptions& options, const SaveDir& saves);
+// on. A failed write is reported ("UNABLE TO WRITE TO FILE:") only with
+// `report_write_error` (not in the original). Returns true on OK.
+bool cmd_options(EditorUi& ui, Scenario& scenario, EditorOptions& options, const SaveDir& saves,
+                 bool report_write_error = false);
 
 // Edit / Password (`cmd_set_password`, SE 0x2b327): SET PASSWORD on the
 // decoded password; a new non-empty one is confirmed ("SETTING PASSWORD TO

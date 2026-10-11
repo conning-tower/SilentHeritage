@@ -180,6 +180,26 @@ TEST_CASE("Torpedo choices follow the class and the date", "[editor][loadout]") 
   }
 }
 
+TEST_CASE("Extended: the torpedoes come at their WEAPONS.DAT month", "[editor][loadout][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  test::EditorFixture fx(install);
+  Scenario& s = fx.scenario;
+  const EditorData& data = fx.data;
+  set_scn_text(s.player().rec.sub_class, data.tables.subs[sub_class(data, "GATO")].name);
+  const std::size_t mark18 = choice_of(data, "MARK18-1");
+  for (const bool corrected : {false, true}) {
+    s.set_corrected(corrected);
+    // October 1943 (WEAPONS.DAT 10/1943): SE waits for November.
+    s.header.year = year_of(1943);
+    s.header.month = 9;
+    CHECK(TorpedoForm(s, fx.options).unavailable(mark18) == !corrected);
+    s.header.month = 8;
+    CHECK(TorpedoForm(s, fx.options).unavailable(mark18));
+    s.header.month = 10;
+    CHECK_FALSE(TorpedoForm(s, fx.options).unavailable(mark18));
+  }
+}
+
 TEST_CASE("Reload digits cycle until the racks' total fits", "[editor][loadout]") {
   SH_REQUIRE_GAME_DATA(install);
   test::EditorFixture fx(install);

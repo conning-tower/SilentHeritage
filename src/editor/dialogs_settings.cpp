@@ -23,6 +23,12 @@ constexpr int kButtonWidth = 100;
 
 // Tables of SE.EXE shared by the dialogs.
 constexpr std::uint32_t kDigits = 0x988dc;  // "0" .. "9"
+// Save Scenario's write error, also OPTIONS' with the corrections.
+constexpr std::uint32_t kWriteFailed = 0x913ea;  // "UNABLE TO WRITE TO FILE:"
+constexpr std::uint32_t kWriteFailedTitle = 0x91403;
+// The height of an EQUIPMENT row: the radar detector's (not in the
+// original).
+constexpr int kEquipmentRowH = 44;
 
 // A label in FONT1 (0xa5050), as most of the editor's labels.
 ui::Label& font1_label(EditorUi& ui, ui::Dialog& d, int x, int y, std::uint32_t text) {
@@ -243,10 +249,13 @@ bool cmd_environment(EditorUi& ui, Scenario& scenario, const EditorOptions& opti
   return true;
 }
 
-bool cmd_equipment(EditorUi& ui, Scenario& scenario, const EditorOptions& options) {
+bool cmd_equipment(EditorUi& ui, Scenario& scenario, const EditorOptions& options, bool radar_detector) {
   const SeExe& se = ui.se();
   EquipmentForm form = EquipmentForm::unpack(scenario.header.equipment, scenario.header, options);
-  ui::Dialog d(ui.gui(), 157, 109, 312, 259, kDialogFlags);
+  // The radar detector's row below the bathythermograph's makes the dialog
+  // taller, kept centred (not in the original).
+  const int extra = radar_detector ? kEquipmentRowH : 0;
+  ui::Dialog d(ui.gui(), 157, 109 - extra / 2, 312, 259 + extra, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x90742), ui::return_cancel);
   d.emplace<ui::GroupBox>(12, 48, 300, 121);
   font1_label(ui, d, 20, 62, 0x9074c);
@@ -269,8 +278,16 @@ bool cmd_equipment(EditorUi& ui, Scenario& scenario, const EditorOptions& option
   font1_label(ui, d, 20, 184, 0x9076d);
   cycle(d, 153, 179, 142, ui.strings(0x9bf28, 2),
         [&form, &se](bool advance) { return form.cycle_bathythermograph(se, advance); });
-  d.emplace<ui::Button>(12, 219, kButtonWidth, ui.str(0x9077f), ui::return_cancel);
-  d.emplace<ui::Button>(200, 219, kButtonWidth, ui.str(0x90786), ui::return_accept);
+  if (radar_detector) {
+    // The bathythermograph's row again, with its None / fitted labels.
+    d.emplace<ui::GroupBox>(12, 170 + extra, 300, 209 + extra);
+    d.emplace<ui::Label>(20, 184 + extra, std::string(own_text::kRadarDetector), ui::FontSlot::kCustom, true,
+                         &ui.font1());
+    cycle(d, 153, 179 + extra, 142, ui.strings(0x9bf28, 2),
+          [&form, &se](bool advance) { return form.cycle_radar_detector(se, advance); });
+  }
+  d.emplace<ui::Button>(12, 219 + extra, kButtonWidth, ui.str(0x9077f), ui::return_cancel);
+  d.emplace<ui::Button>(200, 219 + extra, kButtonWidth, ui.str(0x90786), ui::return_accept);
   if (d.run() == ui::kResultCancel) {
     return false;
   }
@@ -368,7 +385,8 @@ bool cmd_briefing_text(EditorUi& ui, Scenario& scenario) {
   return true;
 }
 
-bool cmd_options(EditorUi& ui, Scenario& scenario, EditorOptions& options, const SaveDir& saves) {
+bool cmd_options(EditorUi& ui, Scenario& scenario, EditorOptions& options, const SaveDir& saves,
+                 bool report_write_error) {
   // The working copy 0xa6728..0xa6748; a check box flips its value with ~.
   EditorOptions work = options;
   work.end_on_lost_contact = scenario.header.end_on_lost_contact;
@@ -409,8 +427,13 @@ bool cmd_options(EditorUi& ui, Scenario& scenario, EditorOptions& options, const
   options = work;
   scenario.header.end_on_lost_contact = work.end_on_lost_contact;
   scenario.header.randomize = work.randomize;
-  // As the original, a file that cannot be written goes unreported.
-  options.save(saves);
+  // As the original, a file that cannot be written goes unreported, but
+  // with the corrections (SE's message of a failed scenario save; not in
+  // the original).
+  if (!options.save(saves) && report_write_error) {
+    show_message_box(ui, ui.str(kWriteFailedTitle), ui.str(kWriteFailed),
+                     std::string("SAVE\\") + std::string(EditorOptions::kFileName), "");
+  }
   if (equipment_limited) {
     validate_equipment_by_date(scenario, options);
   }

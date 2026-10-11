@@ -95,7 +95,14 @@ kept with it.
   clicked on the chart, or the player's position.
 - **Routed ships:** every ship can be given Follow Path orders with a plotted
   course.
+- **Boat names by date:** with "Limit by date: Subs", SELECT SUB NAME lists
+  only the boats commissioned by the scenario's date.
+- **Radar detector:** EQUIPMENT has a Radar Detector row, limited by date
+  like the rest.
 - **Hold time:** the airstrike's time over the target is labelled "Hold
   Time" instead of "Flight Delay".
+- **Options file:** the editor says so when it cannot save its OPTIONS.
 - **Reloads:** torpedo reloads from scenarios written by other tools go to
   the right torpedo type.
+- **Torpedo dates:** with "Limit by date: Equipment", the Mark 18 torpedo
+  is available from October 1943, its date in the game, instead of November.

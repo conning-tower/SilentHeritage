@@ -1,6 +1,7 @@
 #include "editor/dialogs_select.h"
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -109,8 +110,9 @@ ColourRemap subpics_remap() {
 }
 
 // `select_sub_name_run` (SE 0x2655f).
-int select_sub_name_run(EditorUi& ui, const EditorData& data, std::int32_t sub_class, ScnChars<31>& name) {
-  const ClassList list = sub_name_list(data, static_cast<std::size_t>(sub_class), scn_text(name));
+int select_sub_name_run(EditorUi& ui, const EditorData& data, std::int32_t sub_class, ScnChars<31>& name,
+                        const std::optional<ScenarioDate>& commissioned_by) {
+  const ClassList list = sub_name_list(data, static_cast<std::size_t>(sub_class), scn_text(name), commissioned_by);
   ui::Dialog d(ui.gui(), 154, 100, 332, 262, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x90893), ui::return_cancel);
   ui::List& rows = add_list(d, 14, 54, 278, list);
@@ -132,7 +134,7 @@ int select_sub_name_run(EditorUi& ui, const EditorData& data, std::int32_t sub_c
 }  // namespace
 
 int select_sub_type(EditorUi& ui, const Scenario& scenario, const EditorOptions& options, std::int32_t& sub_class,
-                    ScnChars<31>& name) {
+                    ScnChars<31>& name, const std::optional<ScenarioDate>& commissioned_by) {
   const EditorData& data = scenario.data();
   ui.palette_grey_out(0x32, kLastGreyed);
   ui.apply_frame_colours(ui.sbchart().frame(sbchart_frame::kSubPicturePalette), kPictureFirstColour, 254);
@@ -190,16 +192,17 @@ int select_sub_type(EditorUi& ui, const Scenario& scenario, const EditorOptions&
     const auto chosen = static_cast<std::int32_t>(entries[static_cast<std::size_t>(selection)]);
     if (chosen != sub_class) {
       sub_class = chosen;
-      result = select_sub_name_run(ui, data, sub_class, name);
+      result = select_sub_name_run(ui, data, sub_class, name, commissioned_by);
     }
   }
   ui.palette_restore_saved(kLastGreyed);
   return result;
 }
 
-int select_sub_name(EditorUi& ui, const EditorData& data, std::int32_t sub_class, ScnChars<31>& name) {
+int select_sub_name(EditorUi& ui, const EditorData& data, std::int32_t sub_class, ScnChars<31>& name,
+                    const std::optional<ScenarioDate>& commissioned_by) {
   ui.palette_grey_out(0x32, kLastGreyed);
-  const int result = select_sub_name_run(ui, data, sub_class, name);
+  const int result = select_sub_name_run(ui, data, sub_class, name, commissioned_by);
   ui.palette_restore_saved(kLastGreyed);
   return result;
 }

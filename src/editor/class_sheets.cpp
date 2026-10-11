@@ -122,13 +122,23 @@ ClassList aircraft_type_list(const EditorData& data, const EditorOptions& option
   return list;
 }
 
-ClassList sub_name_list(const EditorData& data, std::size_t sub_class, std::string_view current_name) {
+ClassList sub_name_list(const EditorData& data, std::size_t sub_class, std::string_view current_name,
+                        const std::optional<ScenarioDate>& commissioned_by) {
   ClassList list;
   // The boats whose CARSUB class byte equals the class's SUBS.DAT +0x24.
   const std::uint32_t class_index = data.tables.subs[sub_class].class_index;
   const std::vector<CarsubBoat>& boats = data.tables.carsub;
+  // CARSUB's years are two-digit (19xx), its months 1-12.
+  const auto commissioned = [&](const CarsubBoat& b) {
+    const std::int32_t y = commissioned_by->year + kScenarioYearBase - 1900;
+    const auto year = static_cast<std::int32_t>(b.avail_year < 100 ? b.avail_year : b.avail_year - 1900);
+    return year < y || (year == y && static_cast<std::int32_t>(b.avail_month) <= commissioned_by->month + 1);
+  };
+  const bool filtered = commissioned_by && std::ranges::any_of(boats, [&](const CarsubBoat& b) {
+                          return b.class_index == class_index && commissioned(b);
+                        });
   for (std::size_t i = 0; i < boats.size(); ++i) {
-    if (boats[i].class_index != class_index) {
+    if (boats[i].class_index != class_index || (filtered && !commissioned(boats[i]))) {
       continue;
     }
     std::string row = str(data, 0x90cb9) + std::to_string(boats[i].hull_number) + str(data, 0x90cd6) + boats[i].name;

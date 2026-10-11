@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 #include "assets/scn_file.h"
 #include "editor/editor_ui.h"
@@ -20,15 +21,18 @@ namespace sh::editor {
 // SUBS.DAT class of the selected row (SE stored the row, an original bug
 // fixed in the source) and, when the class changed, chains to SELECT SUB
 // NAME for it; CANCEL keeps `sub_class`. Returns the dialog result (SELECT
-// SUB NAME's when chained).
+// SUB NAME's when chained). `commissioned_by` filters SELECT SUB NAME as
+// `select_sub_name`'s.
 int select_sub_type(EditorUi& ui, const Scenario& scenario, const EditorOptions& options, std::int32_t& sub_class,
-                    ScnChars<31>& name);
+                    ScnChars<31>& name, const std::optional<ScenarioDate>& commissioned_by = std::nullopt);
 
 // `select_sub_name` (SE 0x26526), the player panel's name button: the
-// CARSUB.DAT boats of SUBS.DAT class `sub_class` (no date filter); SELECT
-// copies the chosen "(SS-<hull>) <name>" into `name`. Returns the dialog
-// result.
-int select_sub_name(EditorUi& ui, const EditorData& data, std::int32_t sub_class, ScnChars<31>& name);
+// CARSUB.DAT boats of SUBS.DAT class `sub_class` (no date filter; with
+// `commissioned_by`, the boats `sub_name_list` keeps, not in the
+// original); SELECT copies the chosen "(SS-<hull>) <name>" into `name`.
+// Returns the dialog result.
+int select_sub_name(EditorUi& ui, const EditorData& data, std::int32_t sub_class, ScnChars<31>& name,
+                    const std::optional<ScenarioDate>& commissioned_by = std::nullopt);
 
 // `select_ship_type` (SE 0x26747) for the SHIPS.DAT class `ship_class`
 // (-1 none), with the classes of the scenario date when "Limit by date:

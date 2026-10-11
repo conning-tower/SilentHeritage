@@ -97,8 +97,9 @@ class TorpedoForm {
 
   // `torpedo_type_unavailable`: a choice the class may not carry (no modern
   // torpedoes and not "MARK10") or, with "Limit by date: Equipment", whose
-  // WEAPONS.DAT month (1-based, compared with the 0-based scenario month)
-  // and year are after the scenario date.
+  // WEAPONS.DAT month (1-based, compared with the 0-based scenario month,
+  // so a month late; converted when the scenario is `corrected`, not in the
+  // original) and year are after the scenario date.
   bool unavailable(std::size_t choice) const;
 
   // Tube `tube`: 0 .. bow - 1 the bow tubes, then the stern tubes.
@@ -123,6 +124,8 @@ class TorpedoForm {
   std::int32_t month_ = 0;
   std::int32_t year_ = 0;
   bool limit_ = false;
+  // The scenario's `corrected`: the torpedoes' months read right.
+  bool corrected_ = false;
   std::array<std::int32_t, 10> tubes_{};  // 0xa678c
   // 0xa67b4 / 0xa67c0: by choice, entry 0 unused.
   std::vector<std::int32_t> aft_;

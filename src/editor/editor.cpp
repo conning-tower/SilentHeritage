@@ -146,6 +146,13 @@ void Editor::close_intro() {
   }
 }
 
+std::optional<ScenarioDate> Editor::names_commissioned_by() const {
+  if (!services_.features.editor_fixes || options_.limit_subs == 0) {
+    return std::nullopt;
+  }
+  return scenario_->date();
+}
+
 ChartHooks Editor::chart_hooks() {
   ChartHooks h;
   h.menu_event = [this](const ui::Event& event) { return menu_event(event); };
@@ -162,10 +169,10 @@ ChartHooks Editor::chart_hooks() {
     ui_.palette_restore_saved(kLastGreyed);
   };
   h.select_sub_type = [this](std::int32_t& sub_class, ScnChars<31>& name) {
-    return select_sub_type(ui_, *scenario_, options_, sub_class, name);
+    return select_sub_type(ui_, *scenario_, options_, sub_class, name, names_commissioned_by());
   };
   h.select_sub_name = [this](std::int32_t sub_class, ScnChars<31>& name) {
-    return select_sub_name(ui_, *data_, sub_class, name);
+    return select_sub_name(ui_, *data_, sub_class, name, names_commissioned_by());
   };
   h.select_ship_type = [this](std::int32_t& ship_class) { select_ship_type(ui_, *scenario_, options_, ship_class); };
   h.select_aircraft_type = [this](std::int32_t& aircraft) {
@@ -315,10 +322,10 @@ void Editor::run_command(MenuCommand command) {
       cmd_torpedoes(ui_, s, options_);
       break;
     case MenuCommand::kEquipment:
-      cmd_equipment(ui_, s, options_);
+      cmd_equipment(ui_, s, options_, services_.features.editor_fixes);
       break;
     case MenuCommand::kOptions:
-      cmd_options(ui_, s, options_, services_.saves);
+      cmd_options(ui_, s, options_, services_.saves, services_.features.editor_fixes);
       break;
     case MenuCommand::kRun:
       if (files_->run()) {

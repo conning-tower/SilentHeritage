@@ -187,4 +187,31 @@ TEST_CASE("The class sheets show the tables' figures", "[editor][select]") {
   }
 }
 
+TEST_CASE("Extended: SELECT SUB NAME keeps the boats commissioned by the date", "[editor][select][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const EditorData& data = test::editor_data(install);
+  const std::size_t gato = *data.find_sub("GATO");
+  const ClassList all = sub_name_list(data, gato, "");
+  // January 1943 (month 0-based, years since 1930).
+  const ScenarioDate jan43{1, 0, 13};
+  const ClassList dated = sub_name_list(data, gato, "", jan43);
+  REQUIRE_FALSE(dated.rows.empty());
+  CHECK(dated.rows.size() < all.rows.size());
+  for (const std::size_t e : dated.entries) {
+    const CarsubBoat& b = data.tables.carsub[e];
+    CHECK((b.avail_year < 43 || (b.avail_year == 43 && b.avail_month <= 1)));
+  }
+  std::size_t commissioned = 0;
+  for (const std::size_t e : all.entries) {
+    const CarsubBoat& b = data.tables.carsub[e];
+    commissioned += b.avail_year < 43 || (b.avail_year == 43 && b.avail_month <= 1) ? 1 : 0;
+  }
+  CHECK(dated.rows.size() == commissioned);
+  // The war's end lists them all; no date is the original's list.
+  CHECK(sub_name_list(data, gato, "", ScenarioDate{15, 7, 15}).rows == all.rows);
+  CHECK(sub_name_list(data, gato, "", std::nullopt).rows == all.rows);
+  // Before any boat of the class: all of them rather than none.
+  CHECK(sub_name_list(data, gato, "", ScenarioDate{1, 0, 5}).rows == all.rows);
+}
+
 }  // namespace sh::editor

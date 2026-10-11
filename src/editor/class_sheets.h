@@ -8,6 +8,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -15,6 +16,7 @@
 #include "assets/fnt.h"
 #include "editor/data.h"
 #include "editor/options.h"
+#include "editor/scenario.h"
 
 namespace sh::editor {
 
@@ -54,8 +56,12 @@ ClassList aircraft_type_list(const EditorData& data, const EditorOptions& option
 
 // `sub_name_list_build`: the CARSUB.DAT boats of SUBS.DAT class `sub_class`
 // as "(SS-<hull>) <name>" (not filtered by date), `entries` their CARSUB
-// indexes; the current row is the one equal to `current_name`.
-ClassList sub_name_list(const EditorData& data, std::size_t sub_class, std::string_view current_name);
+// indexes; the current row is the one equal to `current_name`. With
+// `commissioned_by` (not in the original), only the boats available from
+// that date's month or earlier (CARSUB +24 / +28), or all of the class's
+// boats when none is.
+ClassList sub_name_list(const EditorData& data, std::size_t sub_class, std::string_view current_name,
+                        const std::optional<ScenarioDate>& commissioned_by = std::nullopt);
 
 // One text of a class sheet at (x, y) of the dialog, drawn in FONT1.
 struct SheetText {

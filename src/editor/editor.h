@@ -122,6 +122,10 @@ class Editor {
   void open_intro();
   void close_intro();
   ChartHooks chart_hooks();
+  // The date SELECT SUB NAME's boats are commissioned by: the scenario's
+  // with the corrections and "Limit by date: Subs", else none (not in the
+  // original).
+  std::optional<ScenarioDate> names_commissioned_by() const;
 
   const EditorServices services_;
   const bool started_by_game_;

@@ -7,6 +7,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <cstdint>
+#include <fstream>
 #include <string>
 
 #include "assets/scn_file.h"
@@ -43,6 +44,9 @@ constexpr Point kEquipRadar = at(157, 109, 153, 57, 142, 21);
 constexpr Point kEquipScope = at(157, 109, 153, 90, 142, 21);
 constexpr Point kEquipAirRadar = at(157, 109, 153, 135, 142, 21);
 constexpr Point kEquipOk = at(157, 109, 200, 219, 100, 24);
+// EQUIPMENT with the radar detector's row: 44 pixels taller, 22 higher.
+constexpr Point kEquipDetector = at(157, 87, 153, 223, 142, 21);
+constexpr Point kEquipDetectorOk = at(157, 87, 200, 263, 100, 24);
 constexpr Point kTorpBowTube0 = at(100, 80, 228, 74, 169, 21);
 constexpr Point kTorpOk = at(100, 80, 302, 311, 100, 24);
 constexpr Point kTorpCancel = at(100, 80, 14, 311, 100, 24);
@@ -313,6 +317,69 @@ TEST_CASE("The small boxes return their buttons", "[editor][dialogs]") {
     fx.screenshot("se_about");
     fx.key(ui::kKeyEnter);
     show_about_box(ui);
+  }
+}
+
+TEST_CASE("Extended: EQUIPMENT sets the radar detector, limited by date", "[editor][dialogs][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool limit : {false, true}) {
+    EditorFixture fx(install);
+    Scenario& s = fx.scenario;
+    fx.options.limit_equipment = limit ? -1 : 0;
+    s.header.equipment = 0;
+    const bool in_service = fit_available(fx.data.se, Fit::kRadarDetector, s.header.month, s.header.year);
+    fx.screenshot("se_equipment_detector");
+    click(fx, kEquipDetector);
+    click(fx, kEquipDetectorOk);
+    CHECK(cmd_equipment(fx.ui, s, fx.options, true));
+    CHECK(s.header.equipment == (!limit || in_service ? 0x10u : 0u));
+  }
+  // At the war's end it is in service whatever SE's date.
+  EditorFixture fx(install);
+  Scenario& s = fx.scenario;
+  s.header.month = 7;
+  s.header.year = 1945 - kScenarioYearBase;
+  s.header.equipment = 0;
+  REQUIRE(fit_available(fx.data.se, Fit::kRadarDetector, s.header.month, s.header.year));
+  click(fx, kEquipDetector);
+  click(fx, kEquipDetector);  // back to none
+  click(fx, kEquipDetector);
+  click(fx, kEquipDetectorOk);
+  CHECK(cmd_equipment(fx.ui, s, fx.options, true));
+  CHECK(s.header.equipment == 0x10u);
+}
+
+TEST_CASE("Extended: EQUIPMENT without the row keeps bit 4 as it is", "[editor][dialogs][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  EditorFixture fx(install);
+  Scenario& s = fx.scenario;
+  s.header.month = 0;
+  s.header.year = 1944 - kScenarioYearBase;
+  s.header.equipment = 0x10;
+  click(fx, kEquipDetector);  // nothing there in SE's dialog
+  click(fx, kEquipOk);
+  CHECK(cmd_equipment(fx.ui, s, fx.options));
+  CHECK(s.header.equipment == 0x10u);
+}
+
+TEST_CASE("Extended: OPTIONS reports an SBOPTION.SAV it cannot write", "[editor][dialogs][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const test::TempDir dir;
+  // A directory under a plain file cannot be made.
+  std::ofstream(dir.path() / "FILE") << "x";
+  const SaveDir saves(dir.path() / "FILE" / "SAVE");
+  for (const bool report : {false, true}) {
+    EditorFixture fx(install);
+    bool boxed = false;
+    click(fx, kOptOk);
+    fx.then([&boxed] { boxed = true; });
+    fx.screenshot("se_options_write_error");
+    fx.key(ui::kKeyEnter);
+    CHECK(cmd_options(fx.ui, fx.scenario, fx.options, saves, report));
+    // The message box ran frames for the steps after OK; SE's dialog ended
+    // with OK.
+    CHECK(boxed == report);
+    CHECK(fx.host.script.empty() == report);
   }
 }
 

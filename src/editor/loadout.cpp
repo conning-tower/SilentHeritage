@@ -124,6 +124,7 @@ TorpedoForm::TorpedoForm(const Scenario& scenario, const EditorOptions& options)
       month_(scenario.header.month),
       year_(scenario.header.year),
       limit_(options.limit_equipment != 0),
+      corrected_(scenario.corrected()),
       aft_(choices_.count, 0),
       forward_(choices_.count, 0) {
   if (const std::optional<std::size_t> cls = data_.find_sub(scn_text(scenario.player().rec.sub_class))) {
@@ -186,7 +187,10 @@ bool TorpedoForm::unavailable(std::size_t choice) const {
     return refused;
   }
   const auto torpedo_year = static_cast<std::int32_t>(t->year) - kScenarioYearBase;
-  const auto torpedo_month = static_cast<std::int32_t>(t->month);
+  // SE compares WEAPONS.DAT's 1-based month with the 0-based scenario
+  // month, so each torpedo comes a month late (the MARK18-1 in November
+  // 1943); corrected, its own month (not in the original).
+  const auto torpedo_month = static_cast<std::int32_t>(t->month) - (corrected_ ? 1 : 0);
   return year_ < torpedo_year || (torpedo_year == year_ && month_ < torpedo_month) || refused;
 }
 
