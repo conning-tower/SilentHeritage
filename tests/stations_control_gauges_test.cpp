@@ -64,7 +64,6 @@ TEST_CASE("Gauge instrument values", "[stations]") {
 }
 
 TEST_CASE("The helm strip and the pitch bubble read SH.EXE's tables", "[stations]") {
-  SH_REQUIRE_GAME_EXE();
   CHECK(rudder_step_at(0) == std::nullopt);
   CHECK(rudder_step_at(1) == -7);
   CHECK(rudder_step_at(80) == 0);
@@ -95,7 +94,7 @@ TEST_CASE("The bathythermograph trace cools through the layer", "[stations]") {
   CHECK(deep.back().y == 12 + 200 / 5);
 }
 
-TEST_CASE("The gauges station and its panel order the boat", "[stations]") {
+TEST_CASE("The gauges station and its panel order the boat", "[stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   MissionSetup setup;
   setup.options = 0x200000;  // the bathythermograph page
@@ -156,7 +155,7 @@ TEST_CASE("The gauges station and its panel order the boat", "[stations]") {
 }
 
 TEST_CASE("The nav panel opens on the bridge and chart templates", "[stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
   rig.settle();
@@ -181,7 +180,7 @@ TEST_CASE("The nav panel opens on the bridge and chart templates", "[stations]")
   CHECK(scope.pitch);
 }
 
-TEST_CASE("The nav panel dials redraw only their needles and counters", "[stations][needles]") {
+TEST_CASE("The nav panel dials redraw only their needles and counters", "[stations][needles][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   rig.frames(1);
