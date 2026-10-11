@@ -48,7 +48,7 @@ GameClock clock_at(std::int32_t year, std::int32_t month, std::int32_t day, std:
 
 }  // namespace
 
-TEST_CASE("The Julian day and Delta T follow Meeus", "[sky]") {
+TEST_CASE("The Julian day and Delta T follow Meeus", "[sky][content]") {
   SH_REQUIRE_GAME_EXE();
   // Meeus, examples 7.a and 7.b, and the first Gregorian day.
   CHECK(julian_day(1957, 10, 4.81) == Catch::Approx(2436116.31).margin(1e-6));
@@ -61,7 +61,7 @@ TEST_CASE("The Julian day and Delta T follow Meeus", "[sky]") {
   CHECK(delta_t_seconds(0.1) == Catch::Approx((0.1 * 32.5 + 123.5) * 0.1 + 102.3));
 }
 
-TEST_CASE("The sun's place and day match the original library", "[sky]") {
+TEST_CASE("The sun's place and day match the original library", "[sky][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Ephemeris ephemeris = Ephemeris::load(install);
   Astronomy astronomy(ephemeris);
@@ -93,7 +93,7 @@ TEST_CASE("The sun's place and day match the original library", "[sky]") {
   CHECK(astronomy.sun_rise_set().set_hour == RiseSetTimes::kNeverRises);
 }
 
-TEST_CASE("The moon's place, phase and day match the original library", "[sky]") {
+TEST_CASE("The moon's place, phase and day match the original library", "[sky][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Ephemeris ephemeris = Ephemeris::load(install);
   Astronomy astronomy(ephemeris);
@@ -121,7 +121,7 @@ TEST_CASE("The moon's place, phase and day match the original library", "[sky]")
 }
 
 TEST_CASE("The daily update turns the moon into the clock's phase", "[sky]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = load_hist01(install, tables);
   const Ephemeris ephemeris = Ephemeris::load(install);
@@ -140,7 +140,7 @@ TEST_CASE("The daily update turns the moon into the clock's phase", "[sky]") {
   CHECK(random.rand() == WatcomRandom(1).rand());
 }
 
-TEST_CASE("The light follows the sun and the moon through the day", "[sky]") {
+TEST_CASE("The light follows the sun and the moon through the day", "[sky][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = load_hist01(install, tables);
@@ -171,7 +171,7 @@ TEST_CASE("The light follows the sun and the moon through the day", "[sky]") {
 }
 
 TEST_CASE("A fog day draws its schedule and drifts by the minute", "[sky]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = load_hist01(install, tables);
   const Ephemeris ephemeris = Ephemeris::load(install);
@@ -229,7 +229,7 @@ TEST_CASE("A fog day draws its schedule and drifts by the minute", "[sky]") {
 }
 
 TEST_CASE("With the rules' corrections the fog stays lifted until its return time", "[sky][rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = load_hist01(install, tables);
   const Ephemeris ephemeris = Ephemeris::load(install);
@@ -263,7 +263,7 @@ TEST_CASE("With the rules' corrections the fog stays lifted until its return tim
 }
 
 TEST_CASE("A generated mission starts at dawn, dusk or a random time", "[sky]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = load_hist01(install, tables);
   const Ephemeris ephemeris = Ephemeris::load(install);
@@ -291,7 +291,6 @@ TEST_CASE("A generated mission starts at dawn, dusk or a random time", "[sky]") 
 }
 
 TEST_CASE("A patrol's weather moves one step every few days", "[sky]") {
-  SH_REQUIRE_GAME_EXE();
   MonthWeather odds{100, {0, 0, 0, 100}};  // always fog, overcast
   WatcomRandom random(9);
   PatrolWeather weather;
@@ -327,7 +326,7 @@ TEST_CASE("A patrol's weather moves one step every few days", "[sky]") {
   CHECK(weather.state().days_left <= 3);
 }
 
-TEST_CASE("HIST01's sky after load", "[sky][mission]") {
+TEST_CASE("HIST01's sky after load", "[sky][mission][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = load_hist01(install, tables);
@@ -355,7 +354,7 @@ TEST_CASE("HIST01's sky after load", "[sky][mission]") {
   CHECK(mission->sim().sensors().environment().fog_pct == 0);
 }
 
-TEST_CASE("HIST02 starts in its fog", "[sky][mission]") {
+TEST_CASE("HIST02 starts in its fog", "[sky][mission][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup setup;
