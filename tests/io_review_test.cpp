@@ -151,7 +151,7 @@ TEST_CASE("SHP frame boxes are bounded", "[ioreview]") {
   CHECK(empty.frame(0).width() == 0);
 }
 
-TEST_CASE("SBCHART.SHP's huge-box frame stays an empty frame", "[ioreview]") {
+TEST_CASE("SBCHART.SHP's huge-box frame stays an empty frame", "[ioreview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Shp shp = Shp::load(install, "ART/SBCHART.SHP");
   const SpriteFrame& f = shp.frame(42);
@@ -184,7 +184,7 @@ TEST_CASE("PCX sizes the data cannot hold are rejected", "[ioreview]") {
 }
 
 TEST_CASE("The .WLD grid size is checked before decoding its block", "[ioreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Bytes d = install.read("DATA/WORLD-1.WLD");
   const World w = parse_world(d, "WORLD-1");
   const std::size_t grid = 6 + (w.version >= 6 ? 31 : 0) + 4 + 2 + 24 * w.locations.size();
@@ -195,7 +195,7 @@ TEST_CASE("The .WLD grid size is checked before decoding its block", "[ioreview]
 }
 
 TEST_CASE(".ENV sea fields used as indices and shift are validated", "[ioreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Bytes original = install.read("DATA/ENV-01.ENV");
   REQUIRE_NOTHROW(parse_environment(original, "ENV-01"));
   Bytes d = original;
@@ -206,7 +206,7 @@ TEST_CASE(".ENV sea fields used as indices and shift are validated", "[ioreview]
   CHECK_THROWS_AS(parse_environment(d, "x"), DataError);
 }
 
-TEST_CASE("Smacker audio chunks above the header's maximum are rejected", "[ioreview]") {
+TEST_CASE("Smacker audio chunks above the header's maximum are rejected", "[ioreview][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Bytes d = install.read("CINES/BOT.SMK");
   {
@@ -227,7 +227,7 @@ TEST_CASE("Projected sizes never divide by a wrapped zero", "[ioreview]") {
 }
 
 TEST_CASE("Signed overflows of the saved-mission text and the map longitude", "[ioreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const ExeImage exe(install.read("SH.EXE"));
   const Font font = Font::load(install, "ART/MENU_S.FNT");
   MissionSaveHeader h;
@@ -242,7 +242,7 @@ TEST_CASE("Signed overflows of the saved-mission text and the map longitude", "[
 }
 
 TEST_CASE("Effects load before the lock and speech starts from read PCM", "[ioreview]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SampleTable table(&install);
   MelLayer layer(table, [] { return 0; });
   layer.preload_sfx(10);
