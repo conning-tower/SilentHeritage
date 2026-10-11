@@ -105,7 +105,7 @@ std::size_t torpedo_count(const Mission& mission) {
 }  // namespace
 
 TEST_CASE("TDC dials feed the manual solution and the tube gyros", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Harness h(install);
   Tdc& tdc = h.mission->player_combat().tdc;
   TdcStation station(h.services);
@@ -165,7 +165,7 @@ TEST_CASE("TDC dials feed the manual solution and the tube gyros", "[stations2]"
 }
 
 TEST_CASE("The TDC tube buttons fire the torpedoes", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Harness h(install);
   PlayerCombat& pc = h.mission->player_combat();
   REQUIRE(pc.tubes.content(0) > 0);
@@ -188,7 +188,7 @@ TEST_CASE("The TDC tube buttons fire the torpedoes", "[stations2]") {
 }
 
 TEST_CASE("The scope and TBT show the TDC sub-panels", "[stations2]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Harness h(install);
   for (const auto& [site, file, name] : {std::tuple{TdcPanelSite::kScope, "ART/SCOPE.PCX", "tdc_scope"},
                                          std::tuple{TdcPanelSite::kTbt, "ART/TBT.PCX", "tdc_tbt"}}) {
