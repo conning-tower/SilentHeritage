@@ -12,9 +12,15 @@
 #       the icon cut from the game's art. A local testing build only: it
 #       contains the original game's files, never distribute it.
 #
-# Usage: android/build_apk.sh [--edition=heritage|hunter] [--icon=game|sh-plate]
+# With --variant=extended, the packages are the extended variant's
+# (SH_VARIANT): build/android/SilentHeritageExtended-debug.apk
+# (com.conningtower.silentheritage.extended), and likewise for Silent Hunter,
+# installed next to the faithful ones.
+#
+# Usage: android/build_apk.sh [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate]
 #   --edition  the edition's package to build [heritage]; --edition=hunter
 #              builds the local Silent Hunter testing package
+#   --variant  the variant built [faithful]
 #   --icon     the launcher icon of every package built, instead of each
 #              edition's own; made at build time by tools/make_launcher_icon
 #              (built for the host in build/host-tools): `game` cuts it from
@@ -38,18 +44,20 @@
 set -euo pipefail
 
 editions=(heritage)
+variant=faithful
 icon_override=
 for arg in "$@"; do
   case "${arg}" in
     --edition=heritage | --edition=hunter) editions=("${arg#--edition=}") ;;
+    --variant=faithful | --variant=extended) variant="${arg#--variant=}" ;;
     --icon=game | --icon=sh-plate) icon_override="${arg#--icon=}" ;;
     *)
-      echo "usage: $0 [--edition=heritage|hunter] [--icon=game|sh-plate]" >&2
+      echo "usage: $0 [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate]" >&2
       exit 1
       ;;
   esac
 done
-readonly editions icon_override
+readonly editions variant icon_override
 
 # The packaging of edition $1: whether the game files are embedded, the
 # launcher icon, the package's file name. Its name and applicationId come
@@ -65,9 +73,13 @@ edition_icon() {
   fi
 }
 edition_apk() {
+  local suffix=
+  if [[ "${variant}" == extended ]]; then
+    suffix=Extended
+  fi
   case "$1" in
-    heritage) echo SilentHeritage-debug.apk ;;
-    hunter) echo SilentHunter-debug.apk ;;
+    heritage) echo "SilentHeritage${suffix}-debug.apk" ;;
+    hunter) echo "SilentHunter${suffix}-debug.apk" ;;
   esac
 }
 
@@ -136,9 +148,9 @@ cmake -S "${reimpl}" -B "${host_tools}" -G Ninja -DCMAKE_C_COMPILER=clang -DCMAK
 ninja -C "${host_tools}" make_launcher_icon
 readonly icon_tool="${host_tools}/tools/make_launcher_icon"
 
-# build_native <edition>: the native library of the edition, the game with
-# SDL linked in, as libmain.so (one build directory, reconfigured: only the
-# files of the edition's identity are rebuilt). Sets edition_name,
+# build_native <edition>: the native library of the edition in the variant,
+# the game with SDL linked in, as libmain.so (one build directory,
+# reconfigured: only the files of the edition's identity are rebuilt). Sets edition_name,
 # edition_executable and edition_app_id.
 build_native() {
   local cmake_args
@@ -148,7 +160,7 @@ build_native() {
   fi
   cmake -S "${reimpl}" -B "${native}" -G Ninja \
     -DCMAKE_TOOLCHAIN_FILE="${reimpl}/cmake/android-arm64.cmake" -DSH_ANDROID_NDK="${ndk}" \
-    -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF -DSH_EDITION="$1" "${cmake_args[@]}"
+    -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF -DSH_EDITION="$1" -DSH_VARIANT="${variant}" "${cmake_args[@]}"
   source "${native}/edition.sh"
   ninja -C "${native}" "${edition_executable}"
 }

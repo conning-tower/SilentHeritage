@@ -17,6 +17,7 @@
 #include "assets/shp.h"
 #include "assets/exe_image.h"
 #include "audio/mel_layer.h"
+#include "core/features.h"
 #include "core/install.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
@@ -173,6 +174,9 @@ struct MissionUiState {
   bool debug_labels = false;
   bool debug_routes = false;
   bool debug_bases = false;
+  // The improvements beyond the original the mission runs with (not in
+  // the original).
+  Features features{};
   // The 16 animation tick counters 0x129bc0..0x129bfc, advanced by the
   // 100 Hz game timer while the simulation runs (`game_timer_tick`).
   std::array<std::int32_t, 16> timers{};

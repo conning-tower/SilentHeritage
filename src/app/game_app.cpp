@@ -123,7 +123,8 @@ class GameApp final : public FrontendHost, public EditorRunner {
                  .custom = custom,
                  .sound = &sound_.layer(),
                  .sound_lock = sound_.lock(),
-                 .wait_tick = headless_ ? std::function<void()>() : [] { Display::delay_ms(1); }},
+                 .wait_tick = headless_ ? std::function<void()>() : [] { Display::delay_ms(1); },
+                 .features = options.features},
                 *this),
         pending_(options.keys.begin(), options.keys.end()) {
     if (resume) {

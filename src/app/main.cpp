@@ -106,6 +106,7 @@ int run(const Options& options, const sh::Install& install) {
                           .editor = options.editor,
                           .scaling = options.scaling,
                           .touch_panel = options.touch_panel,
+                          .features = options.faithful ? sh::Features::faithful() : sh::Features::for_build(),
                           .keys = options.keys,
                           .screenshot = {},
                           .frames = options.frames};

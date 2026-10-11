@@ -59,6 +59,8 @@ struct MissionScreenSetup {
   bool debug = false;
   // Held around every call on `sound` when the audio thread renders it.
   SoundLock* sound_lock = nullptr;
+  // The improvements beyond the original the mission runs with.
+  Features features{};
 };
 
 class MissionScreen : private MissionSound,

@@ -32,6 +32,12 @@ runtime: add `-DCMAKE_TOOLCHAIN_FILE=cmake/mingw-clang.cmake`. Debug builds
 (the default) enable ASan and UBSan; under WSLg, set
 `ASAN_OPTIONS=detect_leaks=0`.
 
+Two variants can be built. The default, `-DSH_VARIANT=faithful`, is the
+original game. `-DSH_VARIANT=extended` builds `silent_heritage_extended`,
+which adds improvements beyond the original (listed in `src/core/features.h`).
+It keeps its own saves, so the two can be installed side by side.
+`--faithful` turns all the improvements off.
+
 ## Running
 
     build/release/src/app/silent_heritage [--data <install dir>] [--nointro]

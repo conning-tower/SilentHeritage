@@ -203,7 +203,8 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
                           .sound = services_.sound,
                           .options = options,
                           .detail = detail,
-                          .sound_lock = services_.sound_lock},
+                          .sound_lock = services_.sound_lock,
+                          .features = services_.features},
                          std::move(mission), services_.saves);
   MissionScreen& screen = session.screen();
   // The blocking loops of the in-game dialogs (the SAVE MISSION name

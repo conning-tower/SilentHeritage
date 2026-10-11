@@ -18,6 +18,7 @@
 #include <memory>
 #include <optional>
 
+#include "core/features.h"
 #include "game/frontend.h"
 #include "game/frontend_host.h"
 #include "game/frontend_results.h"
@@ -52,6 +53,8 @@ struct GameRunnerServices {
   // tick); empty to run the frame at once (a headless run whose clock
   // moves when frames are shown).
   std::function<void()> wait_tick;
+  // The improvements beyond the original the missions run with.
+  Features features{};
 };
 
 class GameRunner final : public MissionRunner {

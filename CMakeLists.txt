@@ -40,6 +40,27 @@ else()
   message(FATAL_ERROR "SH_EDITION must be heritage or hunter, not '${SH_EDITION}'")
 endif()
 set(SH_EDITION_PREF_ORG "Conning Tower")
+
+# The variant built, orthogonal to the edition, in core/edition.h and
+# edition.sh:
+#   faithful  the original game, its rules, screens and limits.
+#   extended  the same game with the improvements beyond the original
+#             (core/features.h), under its own name, executable,
+#             application id and per-user folder, so that it installs next
+#             to the faithful build and never shares its saves.
+set(SH_VARIANT faithful CACHE STRING
+  "The variant built: faithful (the original game) or extended (with the improvements of core/features.h)")
+set_property(CACHE SH_VARIANT PROPERTY STRINGS faithful extended)
+if(SH_VARIANT STREQUAL "faithful")
+  set(SH_VARIANT_EXTENDED false)
+elseif(SH_VARIANT STREQUAL "extended")
+  set(SH_VARIANT_EXTENDED true)
+  string(APPEND SH_EDITION_NAME " Extended")
+  string(APPEND SH_EDITION_EXECUTABLE _extended)
+  string(APPEND SH_EDITION_APP_ID .extended)
+else()
+  message(FATAL_ERROR "SH_VARIANT must be faithful or extended, not '${SH_VARIANT}'")
+endif()
 configure_file(src/core/edition.h.in ${CMAKE_CURRENT_BINARY_DIR}/generated/core/edition.h @ONLY)
 configure_file(cmake/edition.sh.in ${CMAKE_CURRENT_BINARY_DIR}/edition.sh @ONLY)
 

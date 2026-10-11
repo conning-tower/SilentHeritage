@@ -50,6 +50,7 @@ MissionScreen::MissionScreen(MissionScreenSetup setup, std::unique_ptr<Mission> 
       loop_(*mission_, stations_, MissionLoopHooks{*this, *this, bar_, *this, this}) {
   // The UI part of `init_simulation` (0x4f078).
   ui_.debug = setup.debug;
+  ui_.features = setup.features;
   stations_.select(StationId::kConn);
   install(StationId::kConn, std::make_unique<ConnStation>(env_));
   install(StationId::kChart, std::make_unique<ChartStation>(env_));

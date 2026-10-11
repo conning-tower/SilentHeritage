@@ -68,6 +68,8 @@ TEST_CASE("The command line starts the game, the viewer or the editor", "[app]")
   CHECK_FALSE(game.intro);
   CHECK_FALSE(game.editor);
   CHECK_FALSE(game.viewer);
+  CHECK_FALSE(game.faithful);
+  CHECK(parse_command_line(Args{"--faithful"}).faithful);
 
   const CommandLine editor = parse_command_line(Args{"--editor", "--data", "source", "--save", "/tmp/sh"});
   CHECK(editor.editor);

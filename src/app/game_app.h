@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "core/features.h"
 #include "core/install.h"
 #include "platform/display.h"
 
@@ -29,6 +30,8 @@ struct GameAppOptions {
   // Shows the floating command button of touch screens
   // (platform/command_panel.h), its place kept in the save directory.
   bool touch_panel = false;
+  // The improvements beyond the original the game runs with.
+  Features features = Features::for_build();
   // Keys pressed one per frame from the start.
   std::vector<InputEvent> keys;
   // Screenshot mode: runs headless (SDL dummy drivers, a 60 Hz virtual
