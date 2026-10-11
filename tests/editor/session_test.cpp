@@ -216,7 +216,7 @@ bool is_submarine(const ShipClass& c) { return c.ship_type == ShipType::kSubmari
 }  // namespace
 
 TEST_CASE("A scenario with every object built, saved, loaded, run and played", "[editor][session]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session s(install);
   EditorRig& rig = s.rig;
   rig.screenshot("qa_start");
@@ -453,7 +453,7 @@ TEST_CASE("A scenario with every object built, saved, loaded, run and played", "
   }
 }
 
-TEST_CASE("Every historical scenario loads and saves as a custom one", "[editor][session]") {
+TEST_CASE("Every historical scenario loads and saves as a custom one", "[editor][session][content]") {
   // Load Historical, row N, then Save Scenario as HNN: version 7 files come
   // back byte for byte; older ones as the editor's own load and save of the
   // same files in the same order give them (records regrouped, the reload
