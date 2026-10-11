@@ -122,7 +122,7 @@ Expected expected_grounding(WatcomRandom r, std::int32_t speed,
 TEST_CASE(
     "With Run Aground on, touching bottom damages the boat as the original",
     "[aground]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   bool tube_case = false;
   bool system_case = false;
@@ -181,7 +181,7 @@ TEST_CASE(
 }
 
 TEST_CASE("With Run Aground off, touching bottom does no damage", "[aground]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   ShoalFloor floor;
   Boat b(tables, floor, 0, 3);
@@ -204,7 +204,7 @@ TEST_CASE("With Run Aground off, touching bottom does no damage", "[aground]") {
 
 TEST_CASE("The boat grinds on the bottom while the screen shakes",
           "[aground]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   ShoalFloor floor;
   Boat b(tables, floor, option::kRunAground, 5);
