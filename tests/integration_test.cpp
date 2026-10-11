@@ -187,7 +187,7 @@ Angle10 relative_bearing(const Mission& mission, const Vehicle& target) {
 }
 
 TEST_CASE("The station hotkeys open every station of a mission", "[integ]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SessionRig rig(install);
   REQUIRE(rig.frames(60));
   CHECK(rig.screen().stations().current() == StationId::kConn);
@@ -208,7 +208,7 @@ TEST_CASE("The station hotkeys open every station of a mission", "[integ]") {
 }
 
 TEST_CASE("The command bar's option changes are saved to the save directory", "[integ]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SessionRig rig(install);
   CHECK(rig.session->world().options().ship_wakes);
   rig.detail.ship_wakes = kOptionOff;
@@ -222,7 +222,7 @@ TEST_CASE("The command bar's option changes are saved to the save directory", "[
   CHECK(GameOptions::load(rig.saves).speech_volume == 33);
 }
 
-TEST_CASE("A torpedo fired from the periscope at a marked ship runs to it", "[integ]") {
+TEST_CASE("A torpedo fired from the periscope at a marked ship runs to it", "[integ][content]") {
   SH_REQUIRE_GAME_DATA(install);
   SessionRig rig(install, hist01_abeam(install));
   REQUIRE(rig.frames(60));
@@ -260,7 +260,7 @@ TEST_CASE("A torpedo fired from the periscope at a marked ship runs to it", "[in
 }
 
 TEST_CASE("The fire control senses targets from their sensor slots", "[integ]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SessionRig rig(install);
   REQUIRE(rig.frames(60));
   Mission& mission = rig.mission();
@@ -287,7 +287,7 @@ TEST_CASE("The fire control senses targets from their sensor slots", "[integ]") 
   CHECK(combat.sensing(ship).track_time.raw() == tracked);
 }
 
-TEST_CASE("A surfaced enemy submarine is marked from the periscope and the chart", "[integ]") {
+TEST_CASE("A surfaced enemy submarine is marked from the periscope and the chart", "[integ][content]") {
   SH_REQUIRE_GAME_DATA(install);
   SessionRig rig(install, hist01_with_surfaced_sub(install));
   REQUIRE(rig.frames(60));
@@ -330,7 +330,7 @@ TEST_CASE("A surfaced enemy submarine is marked from the periscope and the chart
   CHECK(combat.tdc.locked());
 }
 
-TEST_CASE("The results list a damaged enemy submarine still afloat and score the player's share", "[integ]") {
+TEST_CASE("The results list a damaged enemy submarine still afloat and score the player's share", "[integ][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const std::unique_ptr<Mission> mission = Mission::create(install, tables, hist01_with_surfaced_sub(install), {});
@@ -366,7 +366,7 @@ TEST_CASE("The results list a damaged enemy submarine still afloat and score the
 }
 
 TEST_CASE("A downed pilot's raft is a TDC target, and a deck-gun target on the other side", "[integ]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SessionRig rig(install);
   REQUIRE(rig.frames(60));
   Mission& mission = rig.mission();
@@ -411,7 +411,7 @@ TEST_CASE("A downed pilot's raft is a TDC target, and a deck-gun target on the o
 }
 
 TEST_CASE("A generated convoy mission starts at its time of day, moved out from the target", "[integ]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   GeneratorParams params;
   params.day = 15;
