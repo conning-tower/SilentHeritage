@@ -324,6 +324,9 @@ struct TdcPanelContext {
     std::uint8_t best = 0;
     int best_d = 1 << 30;
     for (const std::uint8_t a : marking_colours()) {
+      if (a == 0xff) {
+        continue;  // a glyph table's transparent value
+      }
       const auto v = static_cast<std::size_t>(a) * 3;
       const int d = std::abs(pal[v] * 4 - level) + std::abs(pal[v + 1] * 4 - level) + std::abs(pal[v + 2] * 4 - level);
       if (d < best_d) {

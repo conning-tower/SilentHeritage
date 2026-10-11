@@ -255,6 +255,17 @@ TEST_CASE("The Mark 27 dims the dials a bearing-only solution leaves out", "[tor
   CHECK(pc.tdc.bearing_only());
   const double homing = mean_grey(rig.screen().screen(), rig.screen().dac(), 320, 19, 385, 37);
   CHECK(homing < straight * 0.7);
+  // The lit label of the selected type, the knob's top one ("MK27"):
+  // white pixels left of the knob (46,379)-(104,437).
+  int lit = 0;
+  const VgaPalette& dac = rig.screen().dac();
+  for (int y = 379; y < 392; ++y) {
+    for (int x = 0; x < 46; ++x) {
+      const auto u = static_cast<std::size_t>(rig.screen().screen().at(x, y)) * 3;
+      lit += dac[u] > 55 && dac[u + 1] > 55 && dac[u + 2] > 55 ? 1 : 0;
+    }
+  }
+  CHECK(lit > 20);
   rig.save("torpedo_tdc_mark27");
 }
 
