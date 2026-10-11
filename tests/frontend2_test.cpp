@@ -84,7 +84,7 @@ constexpr std::uint32_t kExpert = 0x61a8;
 
 }  // namespace
 
-TEST_CASE("The SUB CLASS list keeps the classes in service at the date", "[frontend2]") {
+TEST_CASE("The SUB CLASS list keeps the classes in service at the date", "[frontend2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   // SUBS.DAT service dates: Gato from April 1942, Balao from July 1943,
@@ -211,7 +211,7 @@ TEST_CASE("Mission results: fates, the player's share of damage and the career m
   CHECK_FALSE(returns_to_port(1));
 }
 
-TEST_CASE("The results summary lays out the record in columns", "[frontend2]") {
+TEST_CASE("The results summary lays out the record in columns", "[frontend2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   const Font font = Font::load(install, "ART/MENU_S.FNT");
@@ -233,7 +233,7 @@ TEST_CASE("The results summary lays out the record in columns", "[frontend2]") {
   CHECK(font.text_width(first.substr(0, first.find("June"))) < 0x50 + font.glyph_width(1));
 }
 
-TEST_CASE("BESTMISS.SAV parses, round-trips and ranks like the original", "[frontend2]") {
+TEST_CASE("BESTMISS.SAV parses, round-trips and ranks like the original", "[frontend2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const std::vector<std::uint8_t> data = install.read("SAVE/BESTMISS.SAV");
   const std::optional<BestMissionsTable> table = BestMissionsTable::parse(data);
@@ -358,7 +358,7 @@ class ResultsHost final : public FrontendHost, public MissionRunner {
 
 }  // namespace
 
-TEST_CASE("A finished mission shows its results and enters the best missions", "[frontend2]") {
+TEST_CASE("A finished mission shows its results and enters the best missions", "[frontend2][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;
   const ShPaths paths = ShPaths::load(install);
