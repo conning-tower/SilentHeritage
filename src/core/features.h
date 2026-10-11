@@ -22,11 +22,16 @@ struct Features {
   bool crew_log = false;
   // The chart's annotation tools: marks, lines and notes drawn on the map.
   bool chart_tools = false;
+  // The SUB CLASS screen of the encounters selects the class last chosen
+  // when it is in service at the date, instead of the first.
+  bool last_boat = false;
 
   // Returns the original game's set: no improvement.
   static constexpr Features faithful() { return {}; }
   // Returns every improvement.
-  static constexpr Features extended() { return {.wide_screen = true, .crew_log = true, .chart_tools = true}; }
+  static constexpr Features extended() {
+    return {.wide_screen = true, .crew_log = true, .chart_tools = true, .last_boat = true};
+  }
   // Returns the set of this build's variant.
   static constexpr Features for_build() { return edition::kExtended ? extended() : faithful(); }
 

@@ -21,6 +21,7 @@
 
 #include "assets/pal.h"
 #include "assets/shp.h"
+#include "core/features.h"
 #include "core/image.h"
 #include "core/random.h"
 #include "game/frontend_host.h"
@@ -150,6 +151,8 @@ struct FrontendServices {
   // The CUSTOM directory the scenario editor writes (the player's over the
   // install's); null: the install's CUSTOM\ only.
   const SaveDir* custom = nullptr;
+  // The improvements beyond the original the screens run with.
+  Features features{};
 };
 
 // The MENU skin with the list metrics the scenario screens change.
@@ -346,6 +349,7 @@ class FrontEnd {
   FrontendHost& host_;
   MissionRunner& runner_;
   const SaveDir* custom_;
+  const Features features_;
   EditorRunner* editor_ = nullptr;
   std::unique_ptr<ui::Dialog> status_popup_;  // 0x120670
 
@@ -383,6 +387,9 @@ class FrontEnd {
   // 0x10e22c: the SUB CLASS screen shows the statistics (else the
   // description); kept between visits.
   bool subsel_statistics_ = true;
+  // The class last chosen on the SUB CLASS screen, for `Features::last_boat`
+  // (not in the original).
+  std::string subsel_last_class_;
   // The CONTINUE MISSION list position (0x18a65c selection, 0x18a660 top
   // row) and the save chosen (its header, 0x122238).
   int saves_selection_ = 0;

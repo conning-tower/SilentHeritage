@@ -210,6 +210,7 @@ FrontEnd::FrontEnd(const FrontendServices& services, FrontendHost& host, Mission
       host_(host),
       runner_(runner),
       custom_(services.custom),
+      features_(services.features),
       screen_(kScreenWidth, kScreenHeight),
       gui_res_(ui::GuiResources::load(install_)),
       menu_res_(ui::MenuResources::load(install_)),

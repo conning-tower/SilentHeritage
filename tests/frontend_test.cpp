@@ -383,6 +383,51 @@ TEST_CASE("The menus lead to a convoy encounter request", "[frontend]") {
   CHECK(g.sub_class == "S CLASS");
 }
 
+TEST_CASE("With last_boat, the SUB CLASS screen selects the class last chosen", "[frontend]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  // The seventh class in service in August 1944 (GATO), in the list at
+  // (0x174, 0x7f) of the dialog at (69, 39); the row height of the MENU
+  // skin's metrics (0x10c37e).
+  const int row_height = exe.u16(0x10c37e);
+  const ScriptedHost::Step gato_row =
+      ScriptedHost::click(69 + 0x174 + 20, 39 + 0x7f + 1 + 6 * row_height + row_height / 2);
+  // Runs two convoy encounters, GATO chosen for the first and SELECT
+  // pressed at once for the second, the date moved to January 1942 (before
+  // the Gato) in between when `before_gato`.
+  const auto run = [&](bool last_boat, bool before_gato) {
+    const TempDir dir;
+    const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+    ScriptedHost host;
+    Features features;
+    features.last_boat = last_boat;
+    FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .features = features}, host,
+                       host, 1234);
+    front_end.set_play_intro(false);
+    if (before_gato) {
+      host.on_run = [&saves](const MissionRequest&) {
+        EncounterSettings e = EncounterSettings::load(saves);
+        e.year = 12;
+        e.month = 0;
+        REQUIRE(e.save(saves));
+      };
+    }
+    host.script = {kSingleMission, kConvoy, kBegin, gato_row, kSubSelect,
+                   kConvoy,        kBegin,  kSubSelect, kMainMenu, kExitToDos};
+    front_end.run();
+    CHECK(host.script.empty());
+    std::vector<std::string> classes;
+    for (const MissionRequest& r : host.requests) {
+      classes.push_back(r.generator.sub_class);
+    }
+    return classes;
+  };
+  CHECK(run(false, false) == std::vector<std::string>{"GATO", "S CLASS"});
+  CHECK(run(true, false) == std::vector<std::string>{"GATO", "GATO"});
+  CHECK(run(true, true) == std::vector<std::string>{"GATO", "S CLASS"});
+}
+
 TEST_CASE("Alt-Q asks EXIT TO DOS? and YES ends the game", "[frontend]") {
   SH_REQUIRE_GAME_DATA(install);
   const TempDir dir;

@@ -399,8 +399,9 @@ int run_game(const GameAppOptions& options, const Install& install) {
   // alone.
   const bool resume = !options.screenshot && !options.editor;
   GameApp app(options, install, paths, exe, saves, custom, resume);
-  FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .custom = &custom}, app,
-                     app.runner(), static_cast<std::uint32_t>(std::time(nullptr)));
+  FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .custom = &custom,
+                      .features = options.features},
+                     app, app.runner(), static_cast<std::uint32_t>(std::time(nullptr)));
   app.set_front_end(front_end);
   front_end.set_play_intro(options.play_intro);
   front_end.set_editor(&app);
