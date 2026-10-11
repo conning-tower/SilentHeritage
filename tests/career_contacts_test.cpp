@@ -99,7 +99,7 @@ GameClock clock_on(std::int32_t year, std::int32_t month, std::int32_t day) {
 
 }  // namespace
 
-TEST_CASE("Contact groups: routes spawn their groups on their timers", "[career]") {
+TEST_CASE("Contact groups: routes spawn their groups on their timers", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   f.zone.bases.clear();
@@ -153,7 +153,7 @@ TEST_CASE("Contact groups: routes spawn their groups on their timers", "[career]
 }
 
 TEST_CASE("Contact groups: route group kinds follow the convoy chance", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // -1: never a convoy (0 still gives one on a roll of 0).
   for (const std::int32_t pct : {100, -1}) {
     Fixture f(install);
@@ -197,7 +197,7 @@ TEST_CASE("Contact groups: route group kinds follow the convoy chance", "[career
 }
 
 TEST_CASE("An alert route's patrol keeps the zone's size only with the corrections", "[career][rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Fixture f(install);
   const std::size_t month = 14;  // Feb 1943
   for (std::uint32_t seed = 1; seed < 200; ++seed) {
@@ -243,7 +243,7 @@ TEST_CASE("An alert route's patrol keeps the zone's size only with the correctio
 }
 
 TEST_CASE("Anchored crews follow the campaign month only with the corrections", "[career][rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool fixed : {false, true}) {
     Fixture f(install);
     f.zone.routes.clear();
@@ -283,7 +283,7 @@ TEST_CASE("Anchored crews follow the campaign month only with the corrections", 
 }
 
 TEST_CASE("Contact groups: the bases spawn anchored ships and patrols", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   f.zone.routes.clear();
   f.zone.zone.sampan_density = 0;
@@ -332,7 +332,7 @@ TEST_CASE("Contact groups: the bases spawn anchored ships and patrols", "[career
   CHECK(of_kind(groups, ContactGroupKind::kAnchored).size() == anchored.size());
 }
 
-TEST_CASE("Contact groups: sampans in open water", "[career]") {
+TEST_CASE("Contact groups: sampans in open water", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   f.zone.routes.clear();
@@ -370,7 +370,7 @@ TEST_CASE("Contact groups: sampans in open water", "[career]") {
 }
 
 TEST_CASE("Contact groups: anchored ships materialize in range and leave when lost", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   f.zone.routes.clear();
   f.zone.zone.sampan_density = 0;
@@ -435,7 +435,7 @@ TEST_CASE("Contact groups: anchored ships materialize in range and leave when lo
   }
 }
 
-TEST_CASE("Contact groups: a patrol mostly sunk is finished", "[career]") {
+TEST_CASE("Contact groups: a patrol mostly sunk is finished", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
   f.zone.routes.clear();
@@ -474,7 +474,7 @@ TEST_CASE("Contact groups: a patrol mostly sunk is finished", "[career]") {
 }
 
 TEST_CASE("Contact groups: a convoy materializes with its escorts on a free group id", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Fixture f(install);
   f.zone.bases.clear();
   f.zone.owners.clear();
