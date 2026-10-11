@@ -89,6 +89,9 @@ class Vehicle {
   // Slot +0x34: the range (yd) within which the player's detection marks
   // the vehicle's contact group (ship: its sighting range +0x1f4).
   virtual std::int32_t comms_range_yd() const { return 0; }
+  // Slot +0x2c: a hull hostile to the player of side `player_side`
+  // (`0x11a9b0`), listed by the mission results while afloat.
+  virtual bool is_hostile(std::int32_t /*player_side*/) const { return false; }
   // Slot +0x58: the player's hydrophones listening to it, once per frame.
   virtual void hydrophone_check(SimContext& /*ctx*/) {}
   // Slot +0x64: whether the SJ/SD radars can see it.

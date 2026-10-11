@@ -5,6 +5,7 @@
 // convoy mission (start time and boat placement).
 
 #include <catch2/catch_test_macros.hpp>
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdint>
@@ -22,6 +23,7 @@
 #include "audio/mel_layer.h"
 #include "audio/sample_table.h"
 #include "core/fixed_math.h"
+#include "game/frontend_results.h"
 #include "game/headless.h"
 #include "game/mission.h"
 #include "game/mission_session.h"
@@ -326,6 +328,41 @@ TEST_CASE("A surfaced enemy submarine is marked from the periscope and the chart
   chart->click(p.x, p.y);
   CHECK(combat.tdc.target() == &sub);
   CHECK(combat.tdc.locked());
+}
+
+TEST_CASE("The results list a damaged enemy submarine still afloat and score the player's share", "[integ]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  const std::unique_ptr<Mission> mission = Mission::create(install, tables, hist01_with_surfaced_sub(install), {});
+  REQUIRE(mission->enemy_subs().size() == 1);
+  EnemySub& sub = *mission->enemy_subs().front();
+  REQUIRE(sub.setup().ship_class != nullptr);
+  const ShipClass& cls = *sub.setup().ship_class;
+  REQUIRE(sub.side() != mission->player().side());
+  // Half its hull gone, all of it the player's doing.
+  sub.setup().hit_points = static_cast<std::int32_t>(cls.hull_strength) / 2;
+  sub.setup().damage = 0;
+
+  // mission_compute_results: every hostile hull afloat (slot +0x2c), the
+  // submarine's fields read through slot +0xa0.
+  const MissionOutcome o = mission_outcome(*mission, 0x11, {});
+  REQUIRE(o.afloat.size() == mission->ships().size() + 1);
+  const auto it = std::find_if(o.afloat.begin(), o.afloat.end(),
+                               [&](const AfloatVessel& a) { return a.class_name == cls.name; });
+  REQUIRE(it != o.afloat.end());
+  CHECK(it->type == static_cast<std::int32_t>(cls.ship_type));
+  CHECK(it->tonnage == static_cast<std::int32_t>(cls.displacement_tons));
+  CHECK(it->hit_points == sub.setup().hit_points);
+  const MissionResults r = compute_mission_results(o, 0);
+  const auto damaged = std::find_if(r.sunk.begin(), r.sunk.end(), [&](const SunkListEntry& e) {
+    return e.log.type == static_cast<std::int32_t>(cls.ship_type) && e.status == SunkStatus::kDamaged;
+  });
+  REQUIRE(damaged != r.sunk.end());
+  CHECK(damaged->damage_pct == 50);
+
+  // Sinking, it is no longer listed.
+  sub.set_sinking();
+  CHECK(mission_outcome(*mission, 0x11, {}).afloat.size() == mission->ships().size());
 }
 
 TEST_CASE("A downed pilot's raft is a TDC target, and a deck-gun target on the other side", "[integ]") {

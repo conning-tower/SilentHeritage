@@ -49,8 +49,8 @@ struct AfloatVessel {
   std::string class_name;          // SHIPS.DAT +0
   std::int32_t tonnage = 0;        // SHIPS.DAT +0xc4
   std::int32_t hull_strength = 0;  // SHIPS.DAT +0x6c
-  std::int32_t hit_points = 0;     // ship +0x3a4
-  // The damage not done by the player (ship +0x4dc).
+  std::int32_t hit_points = 0;     // ship +0x3a4, enemy sub +0xa2c
+  // The damage not done by the player (ship +0x4dc, enemy sub +0xb3c).
   std::int32_t other_damage = 0;
   LogAngle latitude;
   LogAngle longitude;

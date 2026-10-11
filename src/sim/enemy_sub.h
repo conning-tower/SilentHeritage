@@ -114,6 +114,8 @@ class EnemySub : public Vehicle {
   Angle10 heading() const override { return motion_.heading; }
   Fixed16 speed() const override { return motion_.speed; }
   std::int32_t comms_range_yd() const override { return ai_.sighting_range_yd; }
+  // `veh_side_is_hostile` (0x7ff32).
+  bool is_hostile(std::int32_t player_side) const override { return side() != player_side; }
   // `enemy_sub_hydrophone_check` (0x7022b): heard only while surfaced.
   void hydrophone_check(SimContext& ctx) override;
   bool is_radar_target() const override { return true; }

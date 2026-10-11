@@ -102,6 +102,8 @@ class Ship : public Vehicle {
   Fixed16 speed() const override;
   // Its sighting range from the player's periscope height (+0x1f4).
   std::int32_t comms_range_yd() const override;
+  // `veh_side_is_hostile` (0x7ff32).
+  bool is_hostile(std::int32_t player_side) const override { return side() != player_side; }
   // `ship_hydrophone_check` (sonar.h).
   void hydrophone_check(SimContext& ctx) override;
   bool is_radar_target() const override { return true; }

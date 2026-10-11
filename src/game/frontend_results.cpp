@@ -1,12 +1,15 @@
 #include "game/frontend_results.h"
 
 #include <format>
+#include <memory>
 
 #include "assets/exe_image.h"
 #include "assets/fnt.h"
 #include "core/fixed_math.h"
 #include "game/mission.h"
 #include "game/options_realism.h"
+#include "sim/enemy_sub.h"
+#include "sim/ship.h"
 #include "ui/menu_skin.h"
 
 namespace sh {
@@ -174,20 +177,35 @@ MissionOutcome mission_outcome(const Mission& mission, std::int32_t end_code,
   o.hull_damage_pct = mission.player_combat().damage.hull_pct();
   o.system_damage_pct = mission.player_combat().damage.damage_pct();
   o.patrol_log.assign(patrol_log.begin(), patrol_log.end());
-  // The vehicles whose `is_hostile` slot answers (ships here) and that
-  // are not sinking.
-  for (const Ship* ship : mission.ships()) {
-    const ShipClass* cls = ship->setup().ship_class;
-    if (ship->side() == player.side() || ship->sinking() || cls == nullptr) {
+  // The vehicles whose `is_hostile` slot answers (ships and enemy
+  // submarines) and that are not sinking; slot +0xa0 picks the class
+  // fields read.
+  for (const std::unique_ptr<Vehicle>& v : mission.sim().vehicles()) {
+    if (!v->is_hostile(player.side()) || v->sinking()) {
       continue;
     }
-    const fx::Vec3 p = ship->position();
+    const ShipClass* cls = nullptr;
+    std::int32_t hit_points = 0;
+    std::int32_t other_damage = 0;
+    if (const auto* sub = dynamic_cast<const EnemySub*>(v.get())) {
+      cls = sub->setup().ship_class;
+      hit_points = sub->setup().hit_points;
+      other_damage = sub->setup().damage;
+    } else if (const auto* ship = dynamic_cast<const Ship*>(v.get())) {
+      cls = ship->setup().ship_class;
+      hit_points = ship->setup().hit_points;
+      other_damage = ship->setup().damage;
+    }
+    if (cls == nullptr) {
+      continue;
+    }
+    const fx::Vec3 p = v->position();
     o.afloat.push_back({.type = static_cast<std::int8_t>(cls->ship_type),
                         .class_name = cls->name,
                         .tonnage = static_cast<std::int32_t>(cls->displacement_tons),
                         .hull_strength = static_cast<std::int32_t>(cls->hull_strength),
-                        .hit_points = ship->setup().hit_points,
-                        .other_damage = ship->setup().damage,
+                        .hit_points = hit_points,
+                        .other_damage = other_damage,
                         .latitude = log_angle(world.latitude_at(p.z)),
                         .longitude = log_angle(world.longitude_at(p.x))});
   }
