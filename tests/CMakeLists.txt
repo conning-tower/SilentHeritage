@@ -28,6 +28,7 @@ add_executable(sh_tests
   # Sensors and ship AI.
   sim_sensors_test.cpp
   sim_ai_test.cpp
+  sonar_reacquire_test.cpp
   # Aircraft and enemy submarines.
   sim_air_test.cpp
   # Simulation regressions (draw order, original quirks).

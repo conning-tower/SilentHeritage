@@ -25,6 +25,7 @@ constexpr std::int32_t kMinute = 0x3c0000;
 constexpr std::int32_t kThrustPerHp = 0x2260000;  // 550 x 65536.
 constexpr std::int32_t kForgetAge = 0x1e00000;    // 480 s.
 constexpr std::int32_t kDeepY = -0x360;           // 54 ft.
+constexpr std::int32_t kScrewsReportTicks = 18000;  // 3 min in hundredths.
 // Spread offsets of a salvo, degrees (0x103018).
 constexpr std::array<std::int32_t, 5> kSpread = {0, -5, 5, -10, 10};
 
@@ -782,7 +783,10 @@ void EnemySub::hydrophone_check(SimContext& ctx) {
         if (!was_heard && report_timer_ == 0) {
           ctx.crew_message(cls->screw_sound == ScrewSound::kHighSpeed ? 41 : 42, relative / 10);
           ctx.clock.reset_compression();
-          report_timer_ = 18000;
+          report_timer_ = kScrewsReportTicks;
+        }
+        if (ctx.env.rules.quiet_sonar_reacquire && report_timer_ > 0) {
+          report_timer_ = kScrewsReportTicks;
         }
       }
     }

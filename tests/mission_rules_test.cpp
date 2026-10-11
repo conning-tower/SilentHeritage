@@ -68,8 +68,8 @@ TEST_CASE("Mission rules round-trip through their RULE section and EXTENDED.CFG 
     CHECK(decode_mission_rules(encode_mission_rules(rules)) == rules);
     CHECK(parse_mission_rules_config(mission_rules_config(rules)) == rules);
   }
-  CHECK(encode_mission_rules(fixed()) == section({{"fix_obvious_errors", 1}}));
-  CHECK(mission_rules_config(fixed()) == "rule.fix_obvious_errors = 1\n");
+  CHECK(encode_mission_rules(fixed()) == section({{"fix_obvious_errors", 1}, {"quiet_sonar_reacquire", 0}}));
+  CHECK(mission_rules_config(fixed()) == "rule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 0\n");
 }
 
 TEST_CASE("Mission rules skip unknown keys and keep the defaults of missing ones", "[rules]") {

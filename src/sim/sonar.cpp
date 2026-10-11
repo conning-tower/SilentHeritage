@@ -17,6 +17,9 @@ namespace {
 
 // 550.0 in 16.16: thrust over it is the engines' "hp".
 constexpr std::int32_t kThrustPerHp = 0x2260000;
+// 3 minutes in hundredths: the least time between two screws reports of a
+// ship.
+constexpr std::int32_t kScrewsReportTicks = 18000;
 
 // Returns the engine output of a thrust, in the classes' 16.16 power units.
 std::int32_t thrust_hp(std::int32_t thrust) { return fx::div(fx::abs(thrust), kThrustPerHp); }
@@ -102,7 +105,10 @@ void ship_hydrophone_check(Ship& ship, SimContext& ctx) {
           if (!was_heard && !pinged && ai.heard.report_timer == 0) {
             ctx.crew_message(ai.cls.screw == ScrewSound::kHighSpeed ? 41 : 42, relative / 10);
             ctx.clock.reset_compression();
-            ai.heard.report_timer = 18000;
+            ai.heard.report_timer = kScrewsReportTicks;
+          }
+          if (ctx.env.rules.quiet_sonar_reacquire && ai.heard.report_timer > 0) {
+            ai.heard.report_timer = kScrewsReportTicks;
           }
         }
         if (pinged) {

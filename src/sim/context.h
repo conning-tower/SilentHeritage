@@ -44,6 +44,12 @@ struct MissionRules {
   // The corrections of the original's plain rule errors, on by default in
   // the extended variant (pending; no rule reads it yet).
   bool fix_obvious_errors = false;
+  // The sound man calls a ship's screws (#41, #42) and resets the time
+  // compression only when the ship has not been heard for 3 minutes since
+  // it was last called, not each time its screws fade out and back in:
+  // every frame a called ship is heard restarts its report timer. Detection
+  // and the random draws are unchanged.
+  bool quiet_sonar_reacquire = false;
 
   friend bool operator==(const MissionRules&, const MissionRules&) = default;
 };
@@ -55,8 +61,9 @@ struct MissionRuleField {
 };
 
 // The saved fields of `MissionRules`; keys must stay as they are once saved.
-inline const std::array<MissionRuleField, 1> kMissionRuleFields{{
+inline const std::array<MissionRuleField, 2> kMissionRuleFields{{
     {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
+    {"quiet_sonar_reacquire", &MissionRules::quiet_sonar_reacquire},
 }};
 
 // Scenario conditions and player options.
