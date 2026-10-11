@@ -28,7 +28,7 @@ void put_u32(std::vector<std::uint8_t>& out, std::uint32_t v) {
 
 }  // namespace
 
-TEST_CASE("SUBS.DAT decodes the Gato class", "[dat]") {
+TEST_CASE("SUBS.DAT decodes the Gato class", "[dat][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto tables = GameTables::load(install);
   REQUIRE(tables.subs.size() == 9);
@@ -94,7 +94,7 @@ TEST_CASE("SUBS.DAT decodes the Gato class", "[dat]") {
   CHECK(tables.subs[1].end_month == 3);  // Barracuda
 }
 
-TEST_CASE("SHIPS.DAT decodes classes and the motion coefficients", "[dat]") {
+TEST_CASE("SHIPS.DAT decodes classes and the motion coefficients", "[dat][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto tables = GameTables::load(install);
   REQUIRE(tables.ships.size() == 55);
@@ -169,7 +169,7 @@ TEST_CASE("SHIPS.DAT decodes classes and the motion coefficients", "[dat]") {
   CHECK(tables.find_ship("NOPE") == nullptr);
 }
 
-TEST_CASE("WEAPONS.DAT decodes torpedoes with their run model, and guns", "[dat]") {
+TEST_CASE("WEAPONS.DAT decodes torpedoes with their run model, and guns", "[dat][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto tables = GameTables::load(install);
   REQUIRE(tables.weapons.torpedoes.size() == 6);
@@ -223,7 +223,7 @@ TEST_CASE("WEAPONS.DAT decodes torpedoes with their run model, and guns", "[dat]
   CHECK(tables.weapons.guns[0].reload_time_s == 4);
 }
 
-TEST_CASE("The rosters: CARSUB, IJNSHIPS, AIRCRAFT, CMDLIST, HOMEPORT", "[dat]") {
+TEST_CASE("The rosters: CARSUB, IJNSHIPS, AIRCRAFT, CMDLIST, HOMEPORT", "[dat][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto tables = GameTables::load(install);
 
@@ -304,7 +304,7 @@ TEST_CASE("The rosters: CARSUB, IJNSHIPS, AIRCRAFT, CMDLIST, HOMEPORT", "[dat]")
   CHECK(tables.home_ports[9].name == "Guam");
 }
 
-TEST_CASE("RMSG.DAT holds the radio-message templates", "[dat]") {
+TEST_CASE("RMSG.DAT holds the radio-message templates", "[dat][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto tables = GameTables::load(install);
   REQUIRE(tables.radio_messages.size() == 3);
@@ -354,7 +354,7 @@ TEST_CASE("DAT framing errors throw DataError", "[dat]") {
   }
 }
 
-TEST_CASE("Ephemeris files give Meeus' example 25.b", "[ephemeris]") {
+TEST_CASE("Ephemeris files give Meeus' example 25.b", "[ephemeris][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const auto index = parse_planets_ndx(install.read("PLANETS.NDX"));
   const PlanetIndex& earth_index = index[static_cast<std::size_t>(PlanetBody::kEarth)];
@@ -386,7 +386,7 @@ TEST_CASE("Ephemeris parsing rejects malformed files", "[ephemeris]") {
   CHECK(parse_planet_theory(std::vector<std::uint8_t>(24, 0), one).series[0][0].size() == 1);
 }
 
-TEST_CASE("SH.EXE is mapped and relocated at its linear addresses", "[exe]") {
+TEST_CASE("SH.EXE is mapped and relocated at its linear addresses", "[exe][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ExeImage exe = ExeImage::load(install);
   CHECK(exe.base() == 0x10000);
@@ -406,7 +406,7 @@ TEST_CASE("SH.EXE is mapped and relocated at its linear addresses", "[exe]") {
   CHECK_THROWS_AS(exe.u8(0xfff), DataError);
 }
 
-TEST_CASE("Crew messages come from SH.EXE", "[exe]") {
+TEST_CASE("Crew messages come from SH.EXE", "[exe][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const CrewMessages messages(ExeImage::load(install));
   REQUIRE(messages.all().size() == 77);
