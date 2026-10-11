@@ -41,7 +41,7 @@ std::size_t choice_of(const EditorData& data, std::string_view short_name) {
 }  // namespace
 
 TEST_CASE("Equipment fits follow SE's dates", "[editor][loadout]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const SeExe& se = test::editor_data(install).se;
   // SD Jan 1942, SJa Aug 1942, SJ-1 Aug 1943, PPI Jul 1943, bit 4 May 1944,
   // bathythermograph Mar 1943 (the manual has other dates).
@@ -60,7 +60,7 @@ TEST_CASE("Equipment fits follow SE's dates", "[editor][loadout]") {
 }
 
 TEST_CASE("Equipment cycles skip the fits not yet in service", "[editor][loadout]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const SeExe& se = test::editor_data(install).se;
 
   SECTION("January 1942: no surface radar yet, the SD is") {
@@ -107,7 +107,7 @@ TEST_CASE("The equipment word is unpacked and repacked", "[editor][loadout]") {
 }
 
 TEST_CASE("Equipment is re-validated by date", "[editor][loadout]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::EditorFixture fx(install);
   Scenario& s = fx.scenario;
   s.header.month = 8;
@@ -133,7 +133,7 @@ TEST_CASE("Equipment is re-validated by date", "[editor][loadout]") {
 }
 
 TEST_CASE("Torpedo choices follow the class and the date", "[editor][loadout]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::EditorFixture fx(install);
   Scenario& s = fx.scenario;
   const EditorData& data = fx.data;
@@ -201,7 +201,7 @@ TEST_CASE("Extended: the torpedoes come at their WEAPONS.DAT month", "[editor][l
 }
 
 TEST_CASE("Reload digits cycle until the racks' total fits", "[editor][loadout]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::EditorFixture fx(install);
   Scenario& s = fx.scenario;
   const EditorData& data = fx.data;
