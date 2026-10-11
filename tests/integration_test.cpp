@@ -30,6 +30,7 @@
 #include "game/shpath.h"
 #include "game/stations/chart.h"
 #include "game_data.h"
+#include "sim/aircraft_strike.h"
 #include "sim/enemy_sub.h"
 #include "sim/geometry.h"
 #include "sim/torpedo.h"
@@ -325,6 +326,51 @@ TEST_CASE("A surfaced enemy submarine is marked from the periscope and the chart
   chart->click(p.x, p.y);
   CHECK(combat.tdc.target() == &sub);
   CHECK(combat.tdc.locked());
+}
+
+TEST_CASE("A downed pilot's raft is a TDC target, and a deck-gun target on the other side", "[integ]") {
+  SH_REQUIRE_GAME_DATA(install);
+  SessionRig rig(install);
+  REQUIRE(rig.frames(60));
+  Mission& mission = rig.mission();
+  const fx::Vec3 own = mission.player().position();
+  DownedPilot& pilot = mission.sim().add(std::make_unique<DownedPilot>(
+      fx::Vec3{own.x + 1000 * kUnitsPerYard, 0, own.z}, Angle10(0), mission.air_theatre()));
+  REQUIRE(rig.frames(60));
+  PlayerCombat& combat = mission.player_combat();
+  REQUIRE(pilot.visual_height() > 0);
+  REQUIRE(combat.sensing(pilot).line_of_sight);
+
+  // `pilot_is_surface_target` (slot +0x54): the periscope's pick on its
+  // bearing locks the TDC on the raft, and its tracking time (slot +0x84)
+  // reaches the solution.
+  rig.key(0x3c00);  // F2: the periscope
+  REQUIRE(rig.screen().stations().current() == StationId::kScope);
+  combat.view_bearing = relative_bearing(mission, pilot);
+  rig.key(0x3920);
+  CHECK(combat.tdc.target() == &pilot);
+  CHECK(combat.tdc.locked());
+  rig.frames(300);
+  CHECK(combat.tdc.target() == &pilot);
+  CHECK(pilot.track_time() > 0);
+  CHECK(combat.sensing(pilot).track_time.raw() == pilot.track_time());
+  CHECK(combat.tdc.quality() > 0);
+  // pilot_max_speed: 0, the solution's speed is nil.
+  CHECK(target_state(pilot, combat.sensing(pilot)).max_speed_kts == 0);
+
+  // `deckgun_pick_target_on_bearing` skips the rafts of the player's side
+  // (slot +0x74), not the others'.
+  DeckGun& gun = combat.deck_gun;
+  const SimContext ctx = mission.sim().context();
+  const DeckGun::Mount& mount = gun.mount(gun.selected());
+  const fx::Vec3 p = pilot.position();
+  gun.mount(gun.selected()).train = fx::angle_sub(fx::heading_from_delta(p.x - mount.x, p.z - mount.z),
+                                                  mission.player().heading());
+  gun.pick_target_on_bearing(combat.own_boat(mission.player(), ctx), mission.sim().vehicles(), combat.sensing);
+  CHECK(gun.target() == nullptr);
+  pilot.set_side(mission.player().side() + 1);
+  gun.pick_target_on_bearing(combat.own_boat(mission.player(), ctx), mission.sim().vehicles(), combat.sensing);
+  CHECK(gun.target() == &pilot);
 }
 
 TEST_CASE("A generated convoy mission starts at its time of day, moved out from the target", "[integ]") {

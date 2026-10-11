@@ -58,7 +58,7 @@ struct TargetState {
 };
 
 // Returns the target state of `target` from its slots; the maximum speed
-// is a ship class's (uncapped otherwise).
+// is a ship or submarine class's (uncapped without a class, 0 for others).
 TargetState target_state(const Vehicle& target, const TargetSensing& sensing);
 
 // The own boat as the fire-control code sees it.
@@ -67,6 +67,7 @@ struct OwnBoat {
   std::int32_t length_ft = 0;     // SUBS.DAT +148 (`0x11b1b4`).
   std::uint32_t options = 0;      // `0x11a85c`
   std::int32_t crew = 0;          // `0x11ac2b`, 0..2 (2 best).
+  std::int32_t side = 0;          // `0x11a9b0`, the player's side (+0xc0).
 };
 
 // The output of `tdc_estimate_solution` (0x7bd2e).

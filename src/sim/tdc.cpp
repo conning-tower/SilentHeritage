@@ -54,15 +54,18 @@ TargetState target_state(const Vehicle& target, const TargetSensing& sensing) {
   s.heading = target.heading();
   s.speed = target.speed();
   s.track_time = sensing.track_time;
-  // ship_max_speed: atoi of the class's ASCII top speed; uncapped for
-  // other vehicles and ships without a class. enemy_sub_max_speed
-  // (0x19ba0): the submerged speed once its y is below 0.
-  s.max_speed_kts = 0x7fff;
+  // Slot +0x24. ship_max_speed: atoi of the class's ASCII top speed
+  // (uncapped for ships without a class). enemy_sub_max_speed (0x19ba0):
+  // the submerged speed once its y is below 0. pilot_max_speed (0x19748)
+  // and veh_default_max_speed: 0.
+  s.max_speed_kts = 0;
   if (const auto* ship = dynamic_cast<const Ship*>(&target)) {
+    s.max_speed_kts = 0x7fff;
     if (const ShipClass* cls = ship->setup().ship_class) {
       s.max_speed_kts = std::atoi(cls->top_speed_kts.c_str());
     }
   } else if (const auto* sub = dynamic_cast<const EnemySub*>(&target)) {
+    s.max_speed_kts = 0x7fff;
     if (const ShipClass* cls = sub->setup().ship_class) {
       const std::string& speed = sub->position().y < 0 ? cls->submerged_speed_kts : cls->top_speed_kts;
       s.max_speed_kts = std::atoi(speed.c_str());

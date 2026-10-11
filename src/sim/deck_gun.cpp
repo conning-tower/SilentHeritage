@@ -255,8 +255,9 @@ void DeckGun::pick_target_on_bearing(const OwnBoat& own, const std::vector<std::
   Vehicle* best = nullptr;
   std::uint32_t best_distance = 0;
   for (const std::unique_ptr<Vehicle>& v : vehicles) {
-    // Slot +0x54: surface targets only (as the TDC's pick).
-    if (!v->is_surface_target() || v->removed() || v->sinking()) {
+    // Slot +0x54: surface targets only (as the TDC's pick), but not the
+    // player's side's rafts (slot +0x74).
+    if (!v->is_surface_target() || (v->is_pilot() && v->side() == own.side) || v->removed() || v->sinking()) {
       continue;
     }
     const TargetSensing s = sensing ? sensing(*v) : TargetSensing{};

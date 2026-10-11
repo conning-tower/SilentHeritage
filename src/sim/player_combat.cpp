@@ -33,7 +33,7 @@ PlayerCombat::PlayerCombat(const GameTables& tables, const SubClass& boat)
       : tubes(boat), damage(boat), deck_gun(boat), tables_(&tables), boat_(&boat) {}
 
 OwnBoat PlayerCombat::own_boat(const PlayerSub& sub, const SimContext& ctx) const {
-  return {sub.motion(), static_cast<std::int32_t>(boat_->length_ft), ctx.env.options, crew};
+  return {sub.motion(), static_cast<std::int32_t>(boat_->length_ft), ctx.env.options, crew, sub.side()};
 }
 
 TorpedoVehicle* PlayerCombat::fire_tube(SimContext& ctx, PlayerSub& sub, std::size_t tube) {

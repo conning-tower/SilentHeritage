@@ -135,8 +135,13 @@ class DownedPilot : public Vehicle {
   bool is_contact() const override { return true; }
   bool sighted() const override { return visible_; }
   void mark_sighted(const GameClock& clock) override;
+  // `pilot_add_contact_time` (0x894dd), +0xe4.
   std::int32_t add_track_time(std::int32_t dt, bool selected) override;
+  std::int32_t track_time() const override { return track_time_; }
   void refresh_sighted() override { visible_ = age_ < 0x10000 && last_x_ >= 0; }
+  // `pilot_is_surface_target` (0x19720): the raft's top above the water,
+  // so the TDC picks it (the deck gun skips the player's side's rafts).
+  bool is_surface_target() const override { return visual_height() > 0; }
 
   // The radioed position (+0xec/+0xf0).
   std::int32_t reported_x() const { return reported_x_; }
