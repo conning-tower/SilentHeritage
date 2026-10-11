@@ -9,6 +9,7 @@
 #include "core/error.h"
 #include "game/command_bar.h"
 #include "game/mission.h"
+#include "game/mission_rules.h"
 #include "game/mission_screen.h"
 #include "game/patrol.h"
 #include "game/radio_room.h"
@@ -59,6 +60,7 @@ constexpr std::array<std::uint8_t, 4> kExtensionMagic = {'S', 'H', 'R', 'X'};
 constexpr std::uint32_t kExtensionVersion = 1;
 constexpr std::uint32_t kSimSection = 0x204d4953;  // "SIM "
 constexpr std::uint32_t kUiSection = 0x20204955;   // "UI  "
+constexpr std::uint32_t kRuleSection = 0x454c5552;  // "RULE"
 
 std::vector<StateRange> group_ranges(ContactGroupKind kind) {
   std::vector<StateRange> r(kGroupBaseRanges.begin(), kGroupBaseRanges.end());
@@ -386,6 +388,8 @@ SimStateFile SimStateFile::parse(ByteReader& in, std::int32_t version, bool log_
         f.sim_extension.assign(data.begin(), data.end());
       } else if (tag == kUiSection) {
         f.ui_extension.assign(data.begin(), data.end());
+      } else if (tag == kRuleSection) {
+        f.rules_extension.assign(data.begin(), data.end());
       }
     }
   }
@@ -459,11 +463,16 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     out.i32(static_cast<std::int32_t>(v.cls));
     write_ranges(out, v.image, vehicle_state_layout(v.cls).ranges);
   }
-  if (!sim_extension.empty() || !ui_extension.empty()) {
+  if (!sim_extension.empty() || !ui_extension.empty() || !rules_extension.empty()) {
     out.bytes(kExtensionMagic);
     out.u32(kExtensionVersion);
     write_section(out, kSimSection, sim_extension);
     write_section(out, kUiSection, ui_extension);
+    // Not written for the original's rules: the faithful variant's files
+    // stay as they were.
+    if (!rules_extension.empty()) {
+      write_section(out, kRuleSection, rules_extension);
+    }
   }
   return out.take();
 }
@@ -1057,6 +1066,9 @@ SimStateFile StateIo::capture(Mission& mission, const SimStateParts& parts, cons
     }
   }
   f.sim_extension = ext.take();
+  if (mission.conditions_.rules != MissionRules{}) {
+    f.rules_extension = encode_mission_rules(mission.conditions_.rules);
+  }
 
   // The session (extension "UI  ").
   if (MissionScreen* screen = session.screen; screen != nullptr) {
@@ -1082,6 +1094,9 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
   Simulation& sim = *mission.sim_;
   ByteReader ext_reader(f.sim_extension, "state extension");
   ByteReader* ext = f.sim_extension.empty() ? nullptr : &ext_reader;
+  const MissionRules rules = f.rules_extension.empty() ? MissionRules{} : decode_mission_rules(f.rules_extension);
+  mission.conditions_.rules = rules;
+  sim.env_.rules = rules;
   VehicleLinks links;
   {
     StateIn in(f.player, ext, links);

@@ -107,6 +107,9 @@ struct MissionSetup {
   // The boat's fuel at the start (the record's +0x48, 0x126060); -1 fills
   // the tank.
   std::int32_t player_fuel = -1;
+  // The extended variant's rules of the mission (the original's by
+  // default); a saved mission takes those of its save instead.
+  MissionRules rules;
   // A career patrol (`init_simulation` in career mode, options bit 0):
   // the patrol's part of the set-up (game/patrol.h); null for a single
   // mission. Must outlive the build.

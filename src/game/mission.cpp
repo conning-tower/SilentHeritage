@@ -176,6 +176,7 @@ void Mission::build(const Install& install, MissionSetup& setup, const MissionSt
   torpedoes_ = scenario_torpedo_load(h);
   conditions_.options = (setup.options & ~option::kEquipmentMask) | equipment_options(h.equipment);
   conditions_.speech = setup.speech;
+  conditions_.rules = setup.rules;
   conditions_.sea_state = static_cast<std::int32_t>(h.sea_state);
   conditions_.weather = static_cast<std::int32_t>(h.weather);
   conditions_.fog = h.fog;

@@ -6,6 +6,7 @@ sh_add_module(sh_game
     class_params.cpp
     headless.cpp
     mission.cpp
+    mission_rules.cpp
     mission_loop.cpp
     screen_shake.cpp
     torpedo_load.cpp

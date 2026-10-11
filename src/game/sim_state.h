@@ -18,7 +18,9 @@
 //
 // The reimplementation appends its extension after them: "SHRX", u32
 // version, then sections (u32 tag, u32 size, bytes): "SIM " the mission
-// state the original does not save, "UI  " the session's.
+// state the original does not save, "UI  " the session's, and "RULE" the
+// extended variant's rules of the mission (game/mission_rules.h), only when
+// they are not the original's.
 //
 // Deviations from the original's bytes: the unused stack and heap bytes it
 // writes (free radio buffer records, unknown fields) are zeros; the TDC's
@@ -113,9 +115,11 @@ struct SimStateFile {
   std::vector<StateImage> routes;         // 0x1c each (0x1191e8)
   std::vector<Group> groups;              // 0x119248
   std::vector<Unit> vehicles;             // 0x129cec but the player (version 4+)
-  // The extension sections ("SIM ", "UI  "), empty when the file has none.
+  // The extension sections ("SIM ", "UI  ", "RULE"), empty when the file
+  // has none.
   std::vector<std::uint8_t> sim_extension;
   std::vector<std::uint8_t> ui_extension;
+  std::vector<std::uint8_t> rules_extension;
 
   // Parses the lists at `in` of a file of `version` (`sim_read_state`),
   // then the extension when it follows; with `log_only`, stops after the
@@ -152,7 +156,9 @@ SimStateFile capture_sim_state(Mission& mission, const SimStateParts& parts, con
 // `sim_read_state`'s simulation part over `mission`, built for the save
 // with its boat and no other unit (game/mission_save.h): the boat's state,
 // the TDC and deck gun, the routes and contact groups (into `parts`), the
-// vehicles with their links, then the "SIM " extension when present.
+// vehicles with their links, then the "SIM " extension when present. The
+// mission's rules become those of the "RULE" section, the original's
+// without one.
 // Throws `DataError` when a vehicle's class is missing.
 void restore_sim_state(Mission& mission, const SimStateFile& file, const SimStateParts& parts);
 

@@ -20,6 +20,7 @@
 #include "core/install.h"
 #include "game/frontend.h"
 #include "game/frontend_best.h"
+#include "game/mission_rules.h"
 #include "game/options_realism.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
@@ -426,6 +427,30 @@ TEST_CASE("With last_boat, the SUB CLASS screen selects the class last chosen", 
   CHECK(run(false, false) == std::vector<std::string>{"GATO", "S CLASS"});
   CHECK(run(true, false) == std::vector<std::string>{"GATO", "GATO"});
   CHECK(run(true, true) == std::vector<std::string>{"GATO", "S CLASS"});
+}
+
+TEST_CASE("New single missions take their rules from EXTENDED.CFG only with extended_rules", "[frontend][rules]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  const auto rules_of_mission = [&](bool extended_rules) {
+    const TempDir dir;
+    const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+    const std::string_view config = "rule.fix_obvious_errors = 1\n";
+    REQUIRE(saves.write(kExtendedConfigName,
+                        {reinterpret_cast<const std::uint8_t*>(config.data()), config.size()}));
+    ScriptedHost host;
+    FrontEnd front_end(
+        {.install = install, .paths = paths, .exe = exe, .saves = saves, .extended_rules = extended_rules}, host,
+        host, 1234);
+    front_end.set_play_intro(false);
+    host.script = {kSingleMission, kHistoric, kBegin, kMainMenu, kExitToDos};
+    front_end.run();
+    REQUIRE(host.requests.size() == 1);
+    return host.requests.front().rules;
+  };
+  CHECK(rules_of_mission(false) == MissionRules{});
+  CHECK(rules_of_mission(true).fix_obvious_errors);
 }
 
 TEST_CASE("Alt-Q asks EXIT TO DOS? and YES ends the game", "[frontend]") {

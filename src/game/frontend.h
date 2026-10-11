@@ -91,6 +91,9 @@ struct MissionRequest {
   GameOptions game_options;
   // The game's random generator as the front end leaves it.
   WatcomRandom random;
+  // The extended variant's rules of a new mission (sim/context.h); a saved
+  // or resumed mission keeps those of its save.
+  MissionRules rules;
   // A mission restarted from `SAVE\MISS<n>.SAV` (`continue_mission_loop`,
   // the options word in saved-mission mode with the save's realism): its
   // number, -1 for a new mission.
@@ -153,6 +156,9 @@ struct FrontendServices {
   const SaveDir* custom = nullptr;
   // The improvements beyond the original the screens run with.
   Features features{};
+  // New single missions take their rules from EXTENDED.CFG
+  // (game/mission_rules.h); false: the original's rules.
+  bool extended_rules = false;
 };
 
 // The MENU skin with the list metrics the scenario screens change.
@@ -350,6 +356,7 @@ class FrontEnd {
   MissionRunner& runner_;
   const SaveDir* custom_;
   const Features features_;
+  const bool extended_rules_;
   EditorRunner* editor_ = nullptr;
   std::unique_ptr<ui::Dialog> status_popup_;  // 0x120670
 

@@ -32,6 +32,9 @@ struct GameAppOptions {
   bool touch_panel = false;
   // The improvements beyond the original the game runs with.
   Features features = Features::for_build();
+  // New single missions take their rules from EXTENDED.CFG
+  // (game/mission_rules.h); false: the original's rules.
+  bool extended_rules = edition::kExtended;
   // Keys pressed one per frame from the start.
   std::vector<InputEvent> keys;
   // Screenshot mode: runs headless (SDL dummy drivers, a 60 Hz virtual

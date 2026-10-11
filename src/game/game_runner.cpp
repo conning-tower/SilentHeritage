@@ -80,8 +80,9 @@ GameRunner::GameRunner(GameRunnerServices services, FrontendHost& host)
 GameRunner::~GameRunner() = default;
 
 MissionSetup GameRunner::setup_for(std::uint32_t options, const GameOptions& game_options,
-                                   const WatcomRandom& random) const {
+                                   const WatcomRandom& random, const MissionRules& rules) const {
   MissionSetup setup;
+  setup.rules = rules;
   setup.options = options;
   setup.speech = game_options.speech != 0;
   setup.auto_sj = game_options.auto_sj_radar != 0;
@@ -99,7 +100,7 @@ std::int32_t GameRunner::run(const MissionRequest& request) {
   if (!tables_) {
     tables_ = std::make_unique<GameTables>(GameTables::load(services_.install));
   }
-  MissionSetup setup = setup_for(request.options, request.game_options, request.random);
+  MissionSetup setup = setup_for(request.options, request.game_options, request.random, request.rules);
   if (request.resume != nullptr) {
     // The mission of the resume snapshot, restored like a saved one.
     const ResumeSnapshot& resume = *request.resume;
@@ -158,7 +159,7 @@ std::int32_t GameRunner::run_patrol(const PatrolRequest& request, PatrolResult& 
   if (!tables_) {
     tables_ = std::make_unique<GameTables>(GameTables::load(services_.install));
   }
-  MissionSetup setup = setup_for(request.options, request.game_options, request.random);
+  MissionSetup setup = setup_for(request.options, request.game_options, request.random, request.rules);
   Patrol patrol(services_.install, *tables_, *request.career, request.plan);
   MissionRequest mission_request;
   mission_request.game_options = request.game_options;

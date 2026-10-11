@@ -18,6 +18,7 @@
 #include "core/byte_reader.h"
 #include "core/install.h"
 #include "game/mission.h"
+#include "game/mission_rules.h"
 #include "game/options_realism.h"
 #include "game/resume.h"
 #include "game/shpath.h"
@@ -211,6 +212,7 @@ FrontEnd::FrontEnd(const FrontendServices& services, FrontendHost& host, Mission
       runner_(runner),
       custom_(services.custom),
       features_(services.features),
+      extended_rules_(services.extended_rules),
       screen_(kScreenWidth, kScreenHeight),
       gui_res_(ui::GuiResources::load(install_)),
       menu_res_(ui::MenuResources::load(install_)),
@@ -814,6 +816,9 @@ std::int32_t FrontEnd::run_mission(const MissionRequest& base) {
   std::uint32_t options = options_ & ~option::kModeMask;
   if (base.saved_mission < 0 && base.resume == nullptr) {
     RealismFile::load(saves_, options);
+    if (extended_rules_) {
+      request.rules = load_mission_rules(saves_);
+    }
   } else {
     options |= option::kModeSavedMission;
   }

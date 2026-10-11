@@ -7,7 +7,9 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "core/random.h"
@@ -33,6 +35,30 @@ struct MapExtent {
   std::int32_t max_z = 0;
 };
 
+// The rule and simulation changes of the extended variant (not in the
+// original), fixed for a mission: set when it is created and saved with it
+// (game/mission_rules.h). The defaults are the original's rules.
+//
+// A rule added here adds its saved field to `kMissionRuleFields`.
+struct MissionRules {
+  // The corrections of the original's plain rule errors, on by default in
+  // the extended variant (pending; no rule reads it yet).
+  bool fix_obvious_errors = false;
+
+  friend bool operator==(const MissionRules&, const MissionRules&) = default;
+};
+
+// A saved field of `MissionRules`: its stable key and its member.
+struct MissionRuleField {
+  std::string_view key;
+  std::variant<bool MissionRules::*, std::int32_t MissionRules::*> member;
+};
+
+// The saved fields of `MissionRules`; keys must stay as they are once saved.
+inline const std::array<MissionRuleField, 1> kMissionRuleFields{{
+    {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
+}};
+
 // Scenario conditions and player options.
 struct MissionConditions {
   std::int32_t sea_state = 0;            // 0x125f64, 0..2.
@@ -50,6 +76,8 @@ struct MissionConditions {
   // (game/screen_shake.h). The mission screen keeps it current; the boat
   // grinds on the bottom while it runs.
   bool screen_shaking = false;
+  // The extended variant's rules of the mission.
+  MissionRules rules;
 
   // Returns the sailing model of realism bits 4-5 (0..2).
   std::int32_t sailing_model() const { return static_cast<std::int32_t>((options & option::kSailingModelMask) >> 4); }

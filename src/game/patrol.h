@@ -226,6 +226,9 @@ struct PatrolRequest {
   GameOptions game_options;
   // The game's generator as the career leaves it.
   WatcomRandom random;
+  // The extended variant's rules of a new patrol (sim/context.h); a patrol
+  // resumed from the roster keeps those of its save.
+  MissionRules rules;
 };
 
 // What a played patrol returns besides its end code.

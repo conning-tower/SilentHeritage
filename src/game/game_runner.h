@@ -100,8 +100,9 @@ class GameRunner final : public MissionRunner {
   // session part (logs, pages, station) is restored on the screen.
   std::int32_t play(const MissionRequest& request, std::unique_ptr<Mission> mission, Patrol* patrol = nullptr,
                     const SimStateFile* restored = nullptr);
-  // Returns the set-up of a mission of `request`'s options.
-  MissionSetup setup_for(std::uint32_t options, const GameOptions& game_options, const WatcomRandom& random) const;
+  // Returns the set-up of a mission of `request`'s options and rules.
+  MissionSetup setup_for(std::uint32_t options, const GameOptions& game_options, const WatcomRandom& random,
+                         const MissionRules& rules) const;
   // Shows the mission's screen from the screen shake's display start.
   void present(const MissionScreen& screen);
 
