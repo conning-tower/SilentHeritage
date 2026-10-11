@@ -129,7 +129,7 @@ TEST_CASE("With the rules' corrections a boat low on fuel is interned only nearl
 }
 
 TEST_CASE("the patrol scenario comes from the career", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::vector<PatrolZone> zones = load_zones(install);
   Career career = test_career();
@@ -163,7 +163,7 @@ TEST_CASE("the patrol scenario comes from the career", "[career]") {
   CHECK(career.record.raids_this_patrol == 0);
 }
 
-TEST_CASE("a patrol starts in the home port's harbour when the map has it", "[career]") {
+TEST_CASE("a patrol starts in the home port's harbour when the map has it", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const std::vector<PatrolZone> zones = load_zones(install);
   const ZoneData zone = ZoneData::load(install, zones.at(13));  // Java Sea
@@ -176,7 +176,7 @@ TEST_CASE("a patrol starts in the home port's harbour when the map has it", "[ca
   CHECK(start.heading == zone.owners.at(2).harbor_heading);
 }
 
-TEST_CASE("a patrol from elsewhere starts in deep water near an open edge", "[career]") {
+TEST_CASE("a patrol from elsewhere starts in deep water near an open edge", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const std::vector<PatrolZone> zones = load_zones(install);
   const PatrolZone& malaysia = zones.at(9);  // open south and east
@@ -199,7 +199,7 @@ TEST_CASE("a patrol from elsewhere starts in deep water near an open edge", "[ca
   }
 }
 
-TEST_CASE("With the rules' corrections a patrol starts only from the zone's open edges", "[career][rules]") {
+TEST_CASE("With the rules' corrections a patrol starts only from the zone's open edges", "[career][rules][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const std::vector<PatrolZone> zones = load_zones(install);
   const World world = parse_world(install.read("DATA/WORLD-10.WLD"), "WORLD-10.WLD");
@@ -235,7 +235,7 @@ TEST_CASE("With the rules' corrections a patrol starts only from the zone's open
 }
 
 TEST_CASE("a career patrol runs headless", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::vector<PatrolZone> zones = load_zones(install);
   Career career = test_career();
