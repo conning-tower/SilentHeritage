@@ -44,3 +44,6 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
   reimplementation".
 - **Interviews:** the frame slider under an interview video works: click or
   drag it to jump to any moment of the video. The original left it inert.
+- **Hunter groups:** an anti-submarine patrol on an alerted convoy route is
+  capped at 6 ships; with more, the original game hangs when it comes into
+  sight.

@@ -183,6 +183,20 @@ void check_scenario(const Fixture& f, const GeneratedMission& g, const Generator
 
 }  // namespace
 
+TEST_CASE("An oversized patrol (size 3) is capped at 6 ships instead of hanging", "[scengen]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  GeneratorParams params;
+  params.patrol_size = 3;
+  params.year = 13;
+  params.month = 5;
+  Scenario scenario;
+  WatcomRandom random(5);
+  ScenarioGenerator gen(tables, params, scenario, random, 0);
+  gen.build_patrol({100000, 100000}, Angle10(0), false, false);
+  CHECK(scenario.ships.size() == 6);
+}
+
 TEST_CASE("Torpedo load by boat and date", "[scengen]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);

@@ -669,7 +669,17 @@ PatrolBox ScenarioGenerator::build_patrol(WorldPoint at, Angle10 heading, bool t
     scenario_.ships.clear();
   }
   const auto size = static_cast<std::size_t>(params_.patrol_size);
-  std::int32_t count = draw_size(random_, kPatrolSizes.at(size), kPatrolSizes.at(size + 1));
+  std::int32_t count = 0;
+  if (size + 1 >= kPatrolSizes.size()) {
+    // Deviation from the original (a hang): an alert-route patrol of size 3
+    // (game/patrol_contacts.cpp, the original's fall-through) reads past
+    // the table into the next one, for 7..12 ships, and the 7th never finds
+    // a free sector of 6. Here its draw is made and the count capped at 6.
+    random_.rand();
+    count = 6;
+  } else {
+    count = draw_size(random_, kPatrolSizes.at(size), kPatrolSizes.at(size + 1));
+  }
   if (tight && count == 1) {
     count = 2;
   }
