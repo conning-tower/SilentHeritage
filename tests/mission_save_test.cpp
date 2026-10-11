@@ -191,7 +191,7 @@ TEST_CASE("the MISSn.SAV header keeps its fields at the original offsets", "[sav
 }
 
 TEST_CASE("a restored historical mission continues as the saved one", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup setup;
   setup.options = RealismFile::kDefaultBits;
@@ -235,7 +235,7 @@ namespace sh {
 namespace {
 
 TEST_CASE("a restored encounter continues as the saved one with weapons in flight", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   GeneratorParams params;
   params.day = 15;
@@ -288,7 +288,7 @@ TEST_CASE("a restored encounter continues as the saved one with weapons in fligh
 }
 
 TEST_CASE("a restored historical mission continues at a high time compression", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup setup;
   setup.options = RealismFile::kDefaultBits;
@@ -326,7 +326,7 @@ Career patrol_career() {
 }
 
 TEST_CASE("a career saved on patrol resumes the saved patrol", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const std::vector<PatrolZone> zones = parse_patrol_zones(install.read("DATA/PZ.DAT"), "PZ.DAT");
   Career career = patrol_career();
@@ -396,7 +396,7 @@ namespace sh {
 namespace {
 
 TEST_CASE("a save without the extension restores what the original restores", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   MissionSetup setup;
   setup.options = RealismFile::kDefaultBits;
@@ -470,7 +470,7 @@ TEST_CASE("the save directory lists, numbers and deletes the mission saves", "[s
   std::filesystem::remove_all(dir);
 }
 
-TEST_CASE("the original install has no mission saved in play", "[save]") {
+TEST_CASE("the original install has no mission saved in play", "[save][content]") {
   SH_REQUIRE_GAME_DATA(install);
   // SAVE holds no MISSn.SAV, and ROSTER0.SAV was saved in port: no state
   // lists follow its log.
@@ -548,7 +548,7 @@ constexpr ScriptedHost::Step kYes{0x1579, 0, 0};
 constexpr ScriptedHost::Step kEnter{0x1c0d, 0, 0};
 
 TEST_CASE("CONTINUE MISSION deletes a save and begins another", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_continue_test";
   std::filesystem::remove_all(dir);
   const ShPaths paths = ShPaths::load(install);
@@ -584,7 +584,7 @@ TEST_CASE("CONTINUE MISSION deletes a save and begins another", "[save]") {
 }
 
 TEST_CASE("CONTINUE MISSION without saves tells so", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_continue_none_test";
   std::filesystem::remove_all(dir);
   const ShPaths paths = ShPaths::load(install);
@@ -667,7 +667,7 @@ struct SaveRig {
 };
 
 TEST_CASE("SAVE MISSION in play writes MISS0.SAV, then overwrites it", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_save_command_test";
   std::filesystem::remove_all(dir);
   SaveRig rig(install, dir);
@@ -716,7 +716,7 @@ namespace sh {
 namespace {
 
 TEST_CASE("SAVE CAREER on patrol writes a roster that resumes the patrol", "[save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const std::filesystem::path dir = std::filesystem::temp_directory_path() / "sh_save_career_test";
   std::filesystem::remove_all(dir);
   SaveRig rig(install, dir);
