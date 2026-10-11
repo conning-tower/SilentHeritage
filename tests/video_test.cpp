@@ -157,7 +157,7 @@ constexpr Reference kReferences[] = {
 
 }  // namespace
 
-TEST_CASE("Smacker videos decode exactly like ffmpeg", "[smk]") {
+TEST_CASE("Smacker videos decode exactly like ffmpeg", "[smk][content]") {
   SH_REQUIRE_GAME_DATA(install);
   for (const Reference& ref : kReferences) {
     INFO(ref.path);
@@ -189,7 +189,7 @@ TEST_CASE("Smacker videos decode exactly like ffmpeg", "[smk]") {
   }
 }
 
-TEST_CASE("Smacker headers of every video", "[smk]") {
+TEST_CASE("Smacker headers of every video", "[smk][content]") {
   SH_REQUIRE_GAME_DATA(install);
   // Interview frame counts, BUD/1.SMK to BUD/16.SMK.
   constexpr std::uint32_t kBudFrames[] = {1771, 750, 945, 736, 616, 872, 709, 1131,
