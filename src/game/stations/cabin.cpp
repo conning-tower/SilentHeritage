@@ -4,6 +4,7 @@
 #include <cctype>
 #include <utility>
 
+#include "assets/exe_tables.h"
 #include "assets/game_exe.h"
 #include "game/command_bar.h"
 #include "game/mission.h"
@@ -56,7 +57,6 @@ struct NameTable {
   std::uint32_t address;
   std::int32_t count;
 };
-constexpr NameTable kMonthNames{0x10e910, 12};
 constexpr NameTable kWeekdayNames{0x10e970, 7};
 constexpr NameTable kWeatherNames{0x10e98c, 4};
 constexpr NameTable kSeaNames{0x10e99c, 3};
@@ -294,7 +294,7 @@ std::string format_radio_message(const RadioMessage& message, std::string_view t
         break;
       case RadioPlaceholder::kMonthName: {
         const std::int32_t m = next();
-        out += table_name(game_exe(), kMonthNames, m);
+        out += exe_month_name(game_exe(), m);
         break;
       }
       case RadioPlaceholder::kBaseName:
@@ -376,7 +376,7 @@ std::vector<std::string> calendar_lines(const GameClock& clock, const Sky& sky, 
   std::vector<std::string> lines;
   lines.push_back(table_name(exe, kWeekdayNames, clock.weekday()));
   lines.push_back(std::to_string(clock.day()));
-  lines.push_back(table_name(exe, kMonthNames, clock.month()) + str(text::kMonthYearGap) +
+  lines.push_back(exe_month_name(exe, clock.month()) + str(text::kMonthYearGap) +
                   std::to_string(clock.year() + kCalendarBaseYear));
   const auto time = [](std::string label, std::int32_t h, std::int32_t m) {
     return upper(std::move(label) + padded(h, 2) + ":" + padded(m, 2));
@@ -718,7 +718,7 @@ void CabinStation::draw_patrol_log() {
     }
     total += e.tonnage;
     if (log_pages_ == log_page_) {
-      const std::string month = table_name(env_.exe, kMonthNames, e.month);
+      const std::string month = exe_month_name(env_.exe, e.month);
       gui_draw_text(vp, x, y, f,
                     month + " " + std::to_string(e.day) + " " + std::to_string(e.year + kCalendarBaseYear),
                     &identity);
@@ -804,7 +804,7 @@ void CabinStation::draw_radio_log() {
     gui_draw_text(vp, x, 0x26, f, env_.exe.c_string(text::kMessageNumber), &identity);
     gui_draw_text(vp, x + 0x3f, 0x26, f, std::to_string(i + 1), &identity);
     gui_draw_text(vp, x, 0x40, f, env_.exe.c_string(text::kDate), &identity);
-    const std::string month = table_name(env_.exe, kMonthNames, m.month);
+    const std::string month = exe_month_name(env_.exe, m.month);
     gui_draw_text(vp, x + 0x28, 0x40, f,
                   month + " " + std::to_string(m.day) + ", " + std::to_string(m.year + kCalendarBaseYear), &identity);
     gui_draw_text(vp, x, 0x4d, f, env_.exe.c_string(text::kTime), &identity);

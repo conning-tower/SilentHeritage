@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "assets/exe_image.h"
+#include "assets/exe_tables.h"
 #include "assets/fnt.h"
 #include "assets/pcx.h"
 #include "assets/shp.h"
@@ -28,7 +29,6 @@ namespace {
 
 // SH.EXE addresses.
 namespace addr {
-constexpr std::uint32_t kMonths = 0x10e910;      // char*[12] "January"..
 constexpr std::uint32_t kStatuses = 0x10eac0;    // char*[7] "", "In Port"..
 constexpr std::uint32_t kShipTypes = 0x10ea04;   // {char*, char*}[24] "Aircraft Carrier"..
 constexpr std::uint32_t kBaseYear = 0x10e3a4;    // i32 1930
@@ -62,10 +62,6 @@ constexpr std::size_t kPucFrame = 7;
 constexpr std::size_t kDoneFrame = 8;
 constexpr std::size_t kDonePressedFrame = 9;
 constexpr std::size_t kStarFrame = 10;
-
-std::string month_name(const ExeImage& exe, std::int32_t month) {
-  return std::string(exe.string_pointer(addr::kMonths + static_cast<std::uint32_t>(month) * 4));
-}
 
 std::string full_year(const ExeImage& exe, std::int32_t year) { return std::to_string(year + exe.i32(addr::kBaseYear)); }
 
@@ -250,7 +246,7 @@ void top_commanders_screen(CareerUi& ui, const CareerRecord& record, std::span<c
   ui.gui().set_skin(ui.menu_skin());
   const Viewport vp = Viewport::full(ui.screen());
   const GlyphColourTable& identity = ui.gui_resources().identity;
-  const std::string date = month_name(exe, record.month) + " " + std::to_string(record.day) + ", " +
+  const std::string date = exe_month_name(exe, record.month) + " " + std::to_string(record.day) + ", " +
                            full_year(exe, record.year);
   gui_draw_text(vp, (kScreenWidth - chalk.text_width(date)) / 2, 0x25, chalk, date, &identity);
   gui_draw_text(vp, 0x21, 0x4b, chalk, exe.c_string(0xfb0f5), &identity);
@@ -287,7 +283,7 @@ void top_commanders_screen(CareerUi& ui, const CareerRecord& record, std::span<c
 
 std::vector<std::string> view_career_fields(const CareerRecord& r, const ExeImage& exe) {
   // view_career_format_text (0x8fc23)
-  return {month_name(exe, r.month) + " " + std::to_string(r.day) + " " + full_year(exe, r.year),
+  return {exe_month_name(exe, r.month) + " " + std::to_string(r.day) + " " + full_year(exe, r.year),
           std::string(exe.string_pointer(addr::kStatuses + static_cast<std::uint32_t>(r.status) * 4)),
           r.boat,
           r.class_title,
@@ -399,7 +395,7 @@ int draw_logbook_page(CareerUi& ui, const Font& font, std::span<const SunkListEn
     if (pages == page) {
       const PatrolLogEntry& l = e.log;
       gui_draw_text(vp, kLeft, y, font,
-                    month_name(exe, l.month) + " " + std::to_string(l.day) + " " + full_year(exe, l.year), &identity);
+                    exe_month_name(exe, l.month) + " " + std::to_string(l.day) + " " + full_year(exe, l.year), &identity);
       gui_draw_text(vp, kLeft, y2, font, two_digits(l.hour) + ":" + two_digits(l.minute), &identity);
       gui_draw_text(vp, 0xaa, y, font, log_position(l), &identity);
       if (l.type == PatrolLogEntry::kRescuedPilot) {

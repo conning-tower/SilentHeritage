@@ -44,6 +44,17 @@ inline void check_exe_table(bool ok, std::string_view what, std::uint32_t addres
   }
 }
 
+// The month names of SH.EXE (`char*[12]`, "January".."December").
+inline constexpr std::uint32_t kExeMonthNames = 0x10e910;
+
+// Returns the name of `month` (0-based) from SH.EXE's month table, empty
+// when out of range.
+inline std::string exe_month_name(const ExeImage& exe, std::int32_t month) {
+  return month >= 0 && month < 12
+             ? std::string(exe.string_pointer(kExeMonthNames + 4 * static_cast<std::uint32_t>(month)))
+             : std::string();
+}
+
 // `count` int32 entries at linear address `address` of the process-wide
 // SH.EXE (`game_exe`), read on each access.
 struct ExeIntTable {
