@@ -82,7 +82,7 @@ int changed(const Image8& a, const Image8& b, int x, int y, int r) {
 
 }  // namespace
 
-TEST_CASE("The chart view's map is the chart's declared size", "[chartweapons]") {
+TEST_CASE("The chart view's map is the chart's declared size", "[chartweapons][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const World world = parse_world(install.read("DATA/WORLD-1.WLD"), "WORLD-1.WLD");
   // The rows hold one more column than world_load_awld_chart's declared
@@ -113,7 +113,7 @@ TEST_CASE("The chart view's map is the chart's declared size", "[chartweapons]")
 }
 
 TEST_CASE("Torpedoes keep the crew's sighting for the chart", "[chartweapons]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   TorpedoVehicle t(*tables.find_torpedo("MARK14"), nullptr, fx::Vec3{0, -48, 0}, Angle10(0), Angle10(0),
                    Fixed16::from_int(31), 0, Angle10(0), 10);
@@ -125,7 +125,7 @@ TEST_CASE("Torpedoes keep the crew's sighting for the chart", "[chartweapons]") 
 }
 
 TEST_CASE("Realistic charts off: shells, debris, splashes and depth charges", "[chartweapons]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   Simulation& sim = rig.mission().sim();
@@ -173,7 +173,7 @@ TEST_CASE("Realistic charts off: shells, debris, splashes and depth charges", "[
 }
 
 TEST_CASE("Realistic charts off: torpedo boxes and tracks", "[chartweapons]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   Simulation& sim = rig.mission().sim();
@@ -207,7 +207,7 @@ TEST_CASE("Realistic charts off: torpedo boxes and tracks", "[chartweapons]") {
 }
 
 TEST_CASE("Realistic charts off: the escorts' sonar wedge", "[chartweapons]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
   Ship* ship = rig.mission().ships().front();
@@ -245,7 +245,7 @@ TEST_CASE("Realistic charts off: the escorts' sonar wedge", "[chartweapons]") {
   CHECK(rig.screen->screen().at(p.x, p.y) == sea);
 }
 
-TEST_CASE("The downed pilot's report zoomed out", "[chartweapons]") {
+TEST_CASE("The downed pilot's report zoomed out", "[chartweapons][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig);
