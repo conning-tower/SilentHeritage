@@ -159,38 +159,12 @@ class GameApp final : public FrontendHost, public EditorRunner {
     }
     if (options.touch_panel) {
       command_panel_ = std::make_unique<CommandPanel>(saves.dir() / "CMDPANEL.CFG");
-      CommandIconArt art(install, paths);
-      display_.set_command_panel(*command_panel_, build_command_icons(art));
+      display_.set_command_panel(*command_panel_, build_command_icons(CommandIconArt(install, paths)));
       display_.show_command_panel(false);
-      if (options.features.torpedo_types) {
-        icon_art_.emplace(std::move(art));
-      }
     }
   }
 
   MissionRunner& runner() { return runner_; }
-
-  // Redraws the tube icons whose load changed, with the extended variant's
-  // torpedo types (not in the original).
-  void mark_tube_icons() {
-    if (!icon_art_ || !runner_.mission_in_play() || runner_.session() == nullptr) {
-      return;
-    }
-    std::array<TubeMark, kTubeIconCount> marks = tube_marks(runner_.session()->screen().mission().player_combat());
-    if (options_.features.panel_status) {
-      // The live panel's label strips show the type (not in the icon).
-      for (TubeMark& m : marks) {
-        m.label.clear();
-      }
-    }
-    for (std::size_t t = 0; t < marks.size(); ++t) {
-      if (marks[t] != tube_marks_[t]) {
-        tube_marks_[t] = marks[t];
-        display_.set_command_icon(kDepthCommandCount + t, icon_art_->typed_tube_icon(t, false, marks[t]),
-                                  icon_art_->typed_tube_icon(t, true, marks[t]));
-      }
-    }
-  }
   // The front end whose GUI the missions use; must be set before a run.
   void set_front_end(FrontEnd& front_end) { runner_.set_front_end(front_end); }
 
@@ -295,7 +269,6 @@ class GameApp final : public FrontendHost, public EditorRunner {
         }
         command_panel_->set_status(std::move(status));
       }
-      mark_tube_icons();
     }
     if (!pending_.empty()) {
       const InputEvent e = pending_.front();
@@ -448,10 +421,6 @@ class GameApp final : public FrontendHost, public EditorRunner {
   std::optional<ResumeKeeper> keeper_;
   // The floating command button (outlives the display that shows it).
   std::unique_ptr<CommandPanel> command_panel_;
-  // The extended variant's tube icons marked with their torpedo types (not
-  // in the original): their art and the marks shown.
-  std::optional<CommandIconArt> icon_art_;
-  std::array<TubeMark, kTubeIconCount> tube_marks_{};
   Display display_;
   SoundSystem sound_;
   GameRunner runner_;

@@ -10,6 +10,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "app/command_icons.h"
@@ -134,21 +135,6 @@ TEST_CASE("The Mark 18-1, 18-2 and 27 pictures differ and keep off the original 
   CHECK_THROWS_AS(art.picture(7, false), std::out_of_range);
 }
 
-TEST_CASE("The tube button marking: the bezel ring and its notches", "[torpedo_ui]") {
-  // A 31-pixel button: the centre is lamp, the rim bezel.
-  CHECK_FALSE(on_button_bezel(15, 15, 31, 31));
-  CHECK(on_button_bezel(15, 0, 31, 31));
-  CHECK(on_button_bezel(0, 15, 31, 31));
-  CHECK(on_button_notch(kMark18_1Id, 15, 1, 31));
-  CHECK_FALSE(on_button_notch(kMark18_1Id, 15, 20, 31));
-  CHECK(on_button_notch(kMark18_2Id, 11, 1, 31));
-  CHECK(on_button_notch(kMark18_2Id, 19, 1, 31));
-  CHECK_FALSE(on_button_notch(kMark18_2Id, 15, 1, 31));
-  CHECK_FALSE(on_button_notch(kMark14Id, 15, 1, 31));
-  CHECK(torpedo_short_label("MARK18-2") == "MK18-2");
-  CHECK(torpedo_short_label("MARK27") == "MK27");
-}
-
 // ------------------------------------------------------------ status page
 
 TEST_CASE("The status page shows a card per type carried at the start, which stays", "[torpedo_ui]") {
@@ -207,33 +193,102 @@ TEST_CASE("Moving a torpedo frames its type's card", "[torpedo_ui]") {
 
 // ------------------------------------------------------------ TDC
 
-TEST_CASE("The TDC marks the tube buttons by type only with the feature", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
-  std::vector<Image8> shots;
-  for (const Features& f : {Features::faithful(), Features::extended()}) {
-    TorpedoRig rig(install, test::mixed_scenario(install, false), f, test::torpedo_rules(false));
-    rig.frames(1);
-    rig.settle();
-    rig.key(kKeyTdc);
-    rig.settle();
-    rig.frames(4);
-    rig.save(f == Features::faithful() ? "torpedo_tdc_faithful" : "torpedo_tdc_marked");
-    shots.push_back(rig.screen().screen());
-  }
-  // The tube column on the right (x 590..640): the bezels differ, the
-  // rest of the station does not.
-  int differ_tubes = 0;
-  int differ_elsewhere = 0;
-  for (int y = 0; y < 450; ++y) {
-    for (int x = 0; x < kScreenWidth; ++x) {
-      if (shots[0].at(x, y) != shots[1].at(x, y)) {
-        ++(x >= 590 ? differ_tubes : differ_elsewhere);
-      }
+namespace {
+
+// Returns the TDC station's screen with `scenario`, `features` and `rules`,
+// the torpedo type `index` selected.
+Image8 tdc_screen(const Install& install, Scenario scenario, Features features, MissionRules rules, std::int32_t index,
+                  std::string_view name) {
+  TorpedoRig rig(install, std::move(scenario), features, rules);
+  rig.mission().player_combat().tdc.set_type_index(index);
+  rig.frames(1);
+  rig.settle();
+  rig.key(kKeyTdc);
+  rig.settle();
+  rig.frames(4);
+  rig.save(name);
+  return rig.screen().screen();
+}
+
+// The pixels of the knob's labels, left of the knob (46,379)-(104,437).
+std::vector<std::uint8_t> knob_labels(const Image8& screen) {
+  std::vector<std::uint8_t> out;
+  for (int y = 379; y <= 437; ++y) {
+    for (int x = 0; x < 46; ++x) {
+      out.push_back(screen.at(x, y));
     }
   }
-  CHECK(differ_tubes > 200);
-  // Elsewhere: only the type knob's labels.
-  CHECK(differ_elsewhere < 600);
+  return out;
+}
+
+}  // namespace
+
+TEST_CASE("The knob's labels are the table's names in the art's lettering", "[torpedo_ui]") {
+  SH_REQUIRE_GAME_DATA(install);
+  // The original's table (February 1944: MARK10, MARK14, MARK18-1).
+  const Image8 faithful =
+      tdc_screen(install, test::mixed_scenario(install, false), Features::faithful(), {}, 1, "torpedo_tdc_faithful");
+  const Image8 extended =
+      tdc_screen(install, test::mixed_scenario(install, false), Features::extended(), {}, 1, "torpedo_tdc_feature");
+  // The labels are written ("MARK18-1" is longer than the art's "MARK18");
+  // the rest of the station, the tube buttons included, is the original's.
+  CHECK(knob_labels(extended) != knob_labels(faithful));
+  int differ = 0;
+  for (int y = 0; y < kScreenHeight; ++y) {
+    for (int x = 0; x < kScreenWidth; ++x) {
+      const bool labels = x < 46 && y >= 379 && y <= 437;
+      differ += !labels && extended.at(x, y) != faithful.at(x, y) ? 1 : 0;
+    }
+  }
+  CHECK(differ == 0);
+  // "MARK10" and "MARK14" drawn from the art's own letters: their pixels
+  // are the art's.
+  for (int y = 379 + 26; y < 379 + 26 + 7; ++y) {
+    for (int x = 46 - 41; x < 46 - 41 + 33; ++x) {
+      CHECK(extended.at(x, y) == faithful.at(x, y));
+    }
+  }
+  // The selected type changes the knob, not its labels (no highlight).
+  const Image8 other =
+      tdc_screen(install, test::mixed_scenario(install, false), Features::extended(), {}, 2, "torpedo_tdc_feature_other");
+  CHECK(knob_labels(other) == knob_labels(extended));
+}
+
+TEST_CASE("Under the torpedo rules the knob holds the types carried", "[torpedo_ui]") {
+  SH_REQUIRE_GAME_DATA(install);
+  for (const bool feature : {false, true}) {
+    TorpedoRig rig(install, test::mixed_scenario(install, false), feature ? Features::extended() : Features::faithful(),
+                   test::torpedo_rules(false));
+    const auto& types = rig.mission().player_combat().torpedo_types;
+    CHECK(types[0].name == "MARK14");
+    CHECK(types[1].name == "MARK18-1");
+    CHECK(types[2].name == "MARK18-2");
+  }
+}
+
+TEST_CASE("With fewer than three types the knob stops on those only", "[torpedo_ui]") {
+  SH_REQUIRE_GAME_DATA(install);
+  // Two types (Mark 14 and 18-2): slots 0 and 1; slot 2 an unavailable
+  // straight runner.
+  Scenario sc = test::mixed_scenario(install, false);
+  for (std::size_t t = 0; t < sc.header.tube_torpedoes.size(); ++t) {
+    sc.header.tube_torpedoes[t] = t % 2 == 0 ? 2 : 4;
+  }
+  sc.header.reloads = {};
+  sc.header.reloads[0] = {4, 4, 10};
+  sc.header.reloads[1].type = -1;
+  TorpedoRig rig(install, std::move(sc), Features::extended(), test::torpedo_rules(false));
+  const auto& types = rig.mission().player_combat().torpedo_types;
+  CHECK(types[0].available);
+  CHECK(types[1].available);
+  CHECK_FALSE(types[2].available);
+  Tdc& tdc = rig.mission().player_combat().tdc;
+  std::set<std::int32_t> stops;
+  for (int i = 0; i < 6; ++i) {
+    tdc.cycle_type(rig.mission().player_combat().torpedo_types);
+    stops.insert(tdc.type_index());
+  }
+  CHECK(stops == std::set<std::int32_t>{0, 1});
 }
 
 TEST_CASE("The Mark 27 dims the dials a bearing-only solution leaves out", "[torpedo_ui]") {
@@ -255,49 +310,22 @@ TEST_CASE("The Mark 27 dims the dials a bearing-only solution leaves out", "[tor
   CHECK(pc.tdc.bearing_only());
   const double homing = mean_grey(rig.screen().screen(), rig.screen().dac(), 320, 19, 385, 37);
   CHECK(homing < straight * 0.7);
-  // The lit label of the selected type, the knob's top one ("MK27"):
-  // white pixels left of the knob (46,379)-(104,437).
-  int lit = 0;
-  const VgaPalette& dac = rig.screen().dac();
-  for (int y = 379; y < 392; ++y) {
-    for (int x = 0; x < 46; ++x) {
-      const auto u = static_cast<std::size_t>(rig.screen().screen().at(x, y)) * 3;
-      lit += dac[u] > 55 && dac[u + 1] > 55 && dac[u + 2] > 55 ? 1 : 0;
-    }
-  }
-  CHECK(lit > 20);
   rig.save("torpedo_tdc_mark27");
 }
 
 // ------------------------------------------------------------ touch panel
 
-TEST_CASE("The touch panel's tube icons: the marks of the load and their pictures", "[torpedo_ui]") {
+TEST_CASE("The touch panel's label strips name the tubes' torpedo types", "[torpedo_ui]") {
   SH_REQUIRE_GAME_DATA(install);
   TorpedoRig rig(install, test::mixed_scenario(install, false), Features::extended(), test::torpedo_rules(false));
   PlayerCombat& pc = rig.mission().player_combat();
   pc.tubes.set_tube(1, -4);
+  pc.tubes.clear(2);
   const std::array<TubeMark, kTubeIconCount> marks = tube_marks(pc);
   CHECK(marks[0] == TubeMark{3, false, "18-1"});
   CHECK(marks[1] == TubeMark{4, true, "18-2"});
+  CHECK(marks[2] == TubeMark{});
   CHECK(marks[4] == TubeMark{2, false, "14"});
-  const CommandIconArt art(install, ShPaths::load(install));
-  const RgbaImage plain = art.tube_icon(0, false);
-  const RgbaImage marked = art.typed_tube_icon(0, false, marks[0]);
-  const RgbaImage empty = art.typed_tube_icon(0, false, TubeMark{});
-  REQUIRE(marked.width == marked.height);
-  // The lamp (the button's centre) is the original's.
-  const int ox = (marked.width - 31) / 2;
-  const int px = (plain.width - 31) / 2;
-  CHECK(marked.at(ox + 15, 15) == plain.at(px + 15, px + 15));
-  // The bezel's top differs, an empty tube's does not.
-  CHECK(marked.at(ox + 6, 3) != plain.at(px + 6, px + 3));
-  CHECK(empty.at(ox + 6, 3) == plain.at(px + 6, px + 3));
-  // The label under the button.
-  bool label = false;
-  for (int x = 0; x < marked.width; ++x) {
-    label = label || (marked.at(x, marked.height - 3) >> 24) != 0;
-  }
-  CHECK(label);
 }
 
 // The screenshots of the design note: run explicitly with
@@ -345,7 +373,32 @@ TEST_CASE("Torpedo type screenshots", "[.torpedo_screens]") {
     rig.key(0x3d00);  // F3: the TBT
     rig.settle();
     rig.frames(6);
-    rig.save("torpedo_tbt_marked");
+    rig.save("torpedo_tbt_mixed");
+  }
+  // One and two types aboard, under the torpedo rules: the knob's slots
+  // hold the types carried, the others unavailable (no label).
+  for (const auto& [types, name] : {std::pair{std::array<std::int32_t, 2>{4, 4}, "torpedo_tdc_one_type"},
+                                    std::pair{std::array<std::int32_t, 2>{2, 4}, "torpedo_tdc_two_types"}}) {
+    Scenario sc = test::mixed_scenario(install, false);
+    for (std::size_t t = 0; t < sc.header.tube_torpedoes.size(); ++t) {
+      sc.header.tube_torpedoes[t] = types[t % 2];
+    }
+    sc.header.reloads = {};
+    sc.header.reloads[0] = {types[1], 4, 10};
+    sc.header.reloads[1].type = -1;
+    tdc_screen(install, std::move(sc), Features::extended(), test::torpedo_rules(false), 0, name);
+  }
+  // The original game's boats with one type (an S-boat's Mark 10) or two:
+  // its own rendering, for comparison.
+  for (const auto& [scen, name] : {std::pair{"SCEN/HIST06.SCN", "torpedo_tdc_original_one_type"}}) {
+    Scenario sc = parse_scenario(install.read(scen), scen);
+    TorpedoRig rig(install, std::move(sc), Features::faithful(), {});
+    rig.frames(1);
+    rig.settle();
+    rig.key(kKeyTdc);
+    rig.settle();
+    rig.frames(4);
+    rig.save(name);
   }
 }
 

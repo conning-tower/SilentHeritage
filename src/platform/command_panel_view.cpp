@@ -143,15 +143,6 @@ CommandPanelView::CommandPanelView(SDL_Renderer* renderer, const CommandIcons& i
   }
 }
 
-void CommandPanelView::set_icon(std::size_t index, const RgbaImage& icon, const RgbaImage& pressed) {
-  SDL_Texture* normal = upload(renderer_, icon);
-  SDL_Texture* down = upload(renderer_, pressed);
-  SDL_DestroyTexture(icons_.at(index));
-  SDL_DestroyTexture(pressed_.at(index));
-  icons_[index] = normal;
-  pressed_[index] = down;
-}
-
 CommandPanelView::~CommandPanelView() {
   SDL_DestroyTexture(button_);
   for (std::size_t i = 0; i < 2; ++i) {

@@ -4,8 +4,12 @@
 #include <array>
 #include <cstdlib>
 #include <format>
+#include <initializer_list>
+#include <map>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #include "assets/game_exe.h"
 #include "assets/pcx.h"
@@ -295,18 +299,17 @@ struct TdcPanelContext {
   Mission& mission() { return services.mission(); }
   Tdc& tdc() { return services.mission().player_combat().tdc; }
 
-  // The extended variant's torpedo types (not in the original): marked
-  // tube buttons and the type knob's labels written from its table, which
-  // the torpedo rules fill with other types than the original's.
-  bool marks_types() const { return services.features.torpedo_types; }
+  // The type knob's labels written from the TDC table, in the art's
+  // lettering (not in the original): with the extended variant's torpedo
+  // types, or the torpedo rules, which fill the table with other types
+  // than the original's.
   bool extended_knob() {
     const MissionRules& rules = mission().sim().conditions().rules;
-    return marks_types() || rules.mixed_mark18 || rules.mark27;
+    return services.features.torpedo_types || rules.mixed_mark18 || rules.mark27;
   }
-  // The palette entries a marking may use: the site's static ones (the
-  // scope's and TBT's overlay, 160..255; all on the TDC station) but the
-  // unused placeholders (the TBT's hold the type colours,
-  // `add_tbt_type_colours`).
+  // The palette entries the extended variant's drawings may use: the
+  // site's static ones (the scope's and TBT's overlay, 160..255; all on the
+  // TDC station) but the unused placeholders.
   std::vector<std::uint8_t> marking_colours() const {
     const VgaPalette& pal = services.palette();
     std::vector<std::uint8_t> out;
@@ -480,16 +483,7 @@ class TubeButton final : public PanelControl {
     const TorpedoTubes& tubes = ctx_.mission().player_combat().tubes;
     const bool ready = tubes.content(tube_) > 0 && tubes.damage(tube_).flags == 0;
     const std::int32_t frame = ready ? ready_frame_ : ready_frame_ + 1;
-    const std::int32_t content = tubes.content(tube_);
-    if (ctx_.marks_types() && content != 0 && static_cast<std::size_t>(frame) < ctx_.sprites.frame_count()) {
-      // The bezel in the type's colour (not in the original), dimmed while
-      // loading.
-      draw_marked_button(dialog.gfx(), ctx_.sprites.frame(static_cast<std::size_t>(frame)), box_.x0, box_.y0,
-                         static_cast<std::uint32_t>(std::abs(content)), content < 0, ctx_.services.palette(),
-                         ctx_.marking_colours());
-    } else {
-      ctx_.draw_frame(dialog.gfx(), frame, box_.x0, box_.y0);
-    }
+    ctx_.draw_frame(dialog.gfx(), frame, box_.x0, box_.y0);
     add_sprite_dirty(dialog, frame);
     return true;
   }
@@ -1011,8 +1005,86 @@ class RunTimer final : public PanelControl {
 // int32[3] x at 0x10fa48, int32[3] y at 0x10fa54.
 constexpr std::uint32_t kTypeLabelDx = 0x10fa48;
 constexpr std::uint32_t kTypeLabelDy = 0x10fa54;
-// The width of the extended variant's type labels ("MK18-2").
-constexpr int kTypeLabelWidth = 44;
+
+// Draws `name` ("MARK18-2", "MARK27") in the lettering of the art's type
+// labels, their letters and digits cut from the frames `label_frame` +
+// 0..2 and "2", "7" and "-" drawn alike, right-aligned on `right` (but
+// from x 1 of the screen at the least) with its top at `top` (not in the
+// original).
+void draw_knob_label(const Viewport& vp, const Shp& sprites, std::int32_t label_frame, const std::string& name,
+                     int right, int top) {
+  // A glyph: its columns of 7 rows, each a bit mask (bit 0 the top row).
+  using Glyph = std::vector<std::uint8_t>;
+  constexpr int kRows = 7;
+  const auto cut = [&](std::int32_t frame, int x0, int x1) {
+    Glyph g;
+    const DecodedFrame d = sprites.frame(static_cast<std::size_t>(frame)).decode();
+    for (int x = x0; x < x1 && x < d.image.width(); ++x) {
+      std::uint8_t column = 0;
+      for (int y = 0; y < kRows && y < d.image.height(); ++y) {
+        column |= static_cast<std::uint8_t>(d.opaque.at(x, y) != 0 ? 1 << y : 0);
+      }
+      g.push_back(column);
+    }
+    return g;
+  };
+  const auto drawn = [](std::initializer_list<const char*> rows) {
+    Glyph g(std::string_view(*rows.begin()).size(), 0);
+    int y = 0;
+    for (const char* row : rows) {
+      for (std::size_t x = 0; x < g.size(); ++x) {
+        g[x] |= static_cast<std::uint8_t>(row[x] == '#' ? 1 << y : 0);
+      }
+      ++y;
+    }
+    return g;
+  };
+  // The art's columns: M 0..4, A 6..10, R 12..16, K 18..21, "1" 25..27,
+  // the last digit 29..32 (0, 4 or 8 by frame).
+  std::map<char, Glyph> glyphs{{'M', cut(label_frame, 0, 5)},       {'A', cut(label_frame, 6, 11)},
+                               {'R', cut(label_frame, 12, 17)},      {'K', cut(label_frame, 18, 22)},
+                               {'1', cut(label_frame, 25, 28)},      {'0', cut(label_frame, 29, 33)},
+                               {'4', cut(label_frame + 1, 29, 33)},  {'8', cut(label_frame + 2, 29, 33)}};
+  glyphs['2'] = drawn({".##.", "#..#", "...#", "..#.", ".#..", "#...", "####"});
+  glyphs['7'] = drawn({"####", "...#", "..#.", "..#.", ".#..", ".#..", ".#.."});
+  glyphs['-'] = drawn({"...", "...", "...", "###", "...", "...", "..."});
+  // The art's spacing: 1 column between letters, 3 before the number.
+  std::vector<int> xs;
+  int width = 0;
+  for (std::size_t i = 0; i < name.size(); ++i) {
+    if (i != 0) {
+      width += i == 4 ? 3 : 1;
+    }
+    xs.push_back(width);
+    const auto it = glyphs.find(name[i]);
+    width += it == glyphs.end() ? 3 : static_cast<int>(it->second.size());
+  }
+  // The art's ink: its first opaque pixel.
+  const DecodedFrame art = sprites.frame(static_cast<std::size_t>(label_frame)).decode();
+  std::uint8_t ink = 0;
+  for (int i = 0; i < art.image.width() * art.image.height(); ++i) {
+    if (art.opaque.pixels()[static_cast<std::size_t>(i)] != 0) {
+      ink = art.image.pixels()[static_cast<std::size_t>(i)];
+      break;
+    }
+  }
+  // Right-aligned, but kept on the screen (a long name at the TDC
+  // station's left edge).
+  const int left = std::max(right - width, 1 - vp.x0);
+  for (std::size_t i = 0; i < name.size(); ++i) {
+    const auto it = glyphs.find(name[i]);
+    if (it == glyphs.end()) {
+      continue;
+    }
+    for (std::size_t x = 0; x < it->second.size(); ++x) {
+      for (int y = 0; y < kRows; ++y) {
+        if ((it->second[x] >> y & 1) != 0) {
+          ui::put_pixel(vp, left + xs[i] + static_cast<int>(x), top + y, ink);
+        }
+      }
+    }
+  }
+}
 
 }  // namespace
 
@@ -1295,40 +1367,23 @@ void TdcPanels::Impl::open_torpedo_panel() {
   watch(depth, [&tdc] { return tdc.depth_ft(); });
   watch(speed, [&tdc] { return tdc.speed_setting(); });
   watch(type, [&tdc] { return tdc.type_index(); });
-  if (ctx.extended_knob()) {
-    // The labels written from the table's names (not in the original: its
-    // baked MARK10 / MARK14 / MARK18) in the original's places, the
-    // selected type lit.
-    const Box& b = l.torpedo_type.box;
-    const int h = ctx.labels.height();
-    for (std::int32_t k = 0; k < 3; ++k) {
-      const TorpedoChoice& c = pc.torpedo_types[static_cast<std::size_t>(k)];
-      if (!c.available) {
-        continue;
-      }
-      const auto u = static_cast<std::uint32_t>(k);
-      const std::int32_t frame = l.torpedo_type.frame + 3 + k;
-      const int width = static_cast<std::size_t>(frame) < ctx.sprites.frame_count()
-                            ? ctx.sprites.frame(static_cast<std::size_t>(frame)).width()
-                            : 0;
-      const int right = b.x0 - game_exe().i32(kTypeLabelDx + 4 * u) + width - 1;
-      const int y = b.y0 + game_exe().i32(kTypeLabelDy + 4 * u) - 1;
-      const std::string text = torpedo_short_label(c.name);
-      auto& label = torpedo->emplace<TextLabel>(
-          ctx, Box{right - kTypeLabelWidth + 1, y, right, y + h - 1}, [text] { return text; },
-          [this, &tdc, k] { return ctx.ink(tdc.type_index() == k ? 250 : 140); });
-      watch(label, [&tdc, k] { return tdc.type_index() == k ? 1 : 0; });
-    }
-    torpedo->open();
-    return;
-  }
   torpedo->open();
   // The labels of the available torpedo types beside the type button.
+  const bool written = ctx.extended_knob();
   for (std::size_t k = 0; k < 3; ++k) {
     if (pc.torpedo_types[k].available) {
-      ctx.draw_frame(torpedo->gfx(), l.torpedo_type.frame + 3 + static_cast<std::int32_t>(k),
-                     l.torpedo_type.box.x0 - game_exe().i32(kTypeLabelDx + 4 * static_cast<std::uint32_t>(k)),
-                     l.torpedo_type.box.y0 + game_exe().i32(kTypeLabelDy + 4 * static_cast<std::uint32_t>(k)));
+      const std::int32_t frame = l.torpedo_type.frame + 3 + static_cast<std::int32_t>(k);
+      const int x = l.torpedo_type.box.x0 - game_exe().i32(kTypeLabelDx + 4 * static_cast<std::uint32_t>(k));
+      const int y = l.torpedo_type.box.y0 + game_exe().i32(kTypeLabelDy + 4 * static_cast<std::uint32_t>(k));
+      if (written && static_cast<std::size_t>(frame) < ctx.sprites.frame_count()) {
+        // Not in the original: the type's name in the art's lettering,
+        // right-aligned on the art's label.
+        const SpriteFrame& art = ctx.sprites.frame(static_cast<std::size_t>(frame));
+        draw_knob_label(torpedo->gfx(), ctx.sprites, l.torpedo_type.frame + 3, pc.torpedo_types[k].name,
+                        x + art.x0 + art.width(), y + art.y0);
+      } else {
+        ctx.draw_frame(torpedo->gfx(), frame, x, y);
+      }
     }
   }
 }

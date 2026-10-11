@@ -14,7 +14,6 @@ namespace sh {
 
 class CommandPanel;
 struct CommandIcons;
-struct RgbaImage;
 
 enum class EventType : std::uint8_t {
   kQuit,
@@ -124,8 +123,6 @@ class Display {
   // (`panel_command_key`, without scancode). Throws std::runtime_error if
   // SDL cannot make its textures.
   void set_command_panel(CommandPanel& panel, const CommandIcons& icons);
-  // Replaces the icon of panel command `index` (`CommandPanelView::set_icon`).
-  void set_command_icon(std::size_t index, const RgbaImage& icon, const RgbaImage& pressed);
   // Shows or hides the command panel set (shown at first). Hiding it
   // closes it; hidden, it is not drawn and takes no input.
   void show_command_panel(bool shown);

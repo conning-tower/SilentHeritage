@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "editor/data.h"
@@ -120,6 +121,9 @@ class TorpedoForm {
   // most three types (game/torpedo_load.h); `cycle_tube` and
   // `cycle_reload` skip such a choice or count.
   bool adds_fourth_type(std::size_t choice, std::int32_t except_tube, std::int32_t except_row) const;
+  // Returns whether a cycle skipped a fourth type since the last call, and
+  // forgets it (the dialog then explains the limit).
+  bool take_refused_fourth() { return std::exchange(refused_fourth_, false); }
   // `reload_aft_over_capacity` / `reload_fwd_over_capacity`.
   bool over_capacity(bool aft) const;
 
@@ -136,6 +140,7 @@ class TorpedoForm {
   // 0xa67b4 / 0xa67c0: by choice, entry 0 unused.
   std::vector<std::int32_t> aft_;
   std::vector<std::int32_t> forward_;
+  bool refused_fourth_ = false;
 };
 
 }  // namespace sh::editor

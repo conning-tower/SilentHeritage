@@ -5,6 +5,8 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <cstdlib>
+#include <filesystem>
 #include <string>
 
 #include "editor/data.h"
@@ -111,20 +113,70 @@ TEST_CASE("The extended TORPEDOES refuses a fourth type", "[editor][torpedo_type
   CHECK(f.cycle_tube(1, true) == kMark18_1);
   CHECK(f.cycle_tube(1, true) == kMark18_2);
   // Mark 14, 18-1 and 18-2 aboard: the Mark 27 and Mark 10 are skipped.
+  CHECK_FALSE(f.take_refused_fourth());
   CHECK(f.cycle_tube(2, true) == kMark18_1);
   CHECK(f.cycle_tube(2, true) == kMark18_2);
+  CHECK_FALSE(f.take_refused_fourth());
   CHECK(f.cycle_tube(2, true) == 0);
+  // Past the 18-2: the Mark 27 skipped, the dialog told to explain.
+  CHECK(f.take_refused_fourth());
+  CHECK_FALSE(f.take_refused_fourth());
   CHECK(f.cycle_tube(2, true) == kMark14);
+  CHECK(f.take_refused_fourth());
   CHECK(f.adds_fourth_type(kMark27, -1, -1));
   CHECK(f.adds_fourth_type(kMark10, -1, -1));
   CHECK_FALSE(f.adds_fourth_type(kMark18_2, -1, -1));
   // Nor can a reload row bring one aboard.
   CHECK(f.cycle_reload(true, kMark27, false, true) == 0);
   CHECK(f.reloads(true, kMark27) == 0);
+  CHECK(f.take_refused_fourth());
   // The only 18-2 may give its place to the Mark 27.
   CHECK(f.cycle_tube(1, true) == kMark27);
   CHECK_FALSE(f.adds_fourth_type(kMark27, -1, -1));
   CHECK(f.adds_fourth_type(kMark18_2, -1, -1));
+}
+
+TEST_CASE("The extended TORPEDOES explains the three-type limit in a message box", "[editor][torpedo_types]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ExtendedFixture fx(install, true);
+  Scenario& s = fx.scenario;
+  set_scn_text(s.player().rec.sub_class, "GATO");
+  s.header.month = 0;
+  s.header.year = 1945 - kScenarioYearBase;
+  s.reset_torpedo_load();
+  // Tube 1: Mark 18-1, tube 2: Mark 18-2 (Mark 14 elsewhere).
+  {
+    TorpedoForm f(s, fx.options);
+    f.cycle_tube(0, true);
+    f.cycle_tube(1, true);
+    f.cycle_tube(1, true);
+    f.commit(s);
+  }
+  // The GATO's dialog (5 rows: 22 px higher): tube 3 is the third bow
+  // cycle button at (100 + 228, 58 + 74 + 2 x 22).
+  const int x = 100 + 228 + 80;
+  const int y = 58 + 74 + 2 * 22 + 10;
+  bool shown = false;
+  const auto click = [&fx](int cx, int cy) {
+    fx.host.script.emplace_back([cx, cy](ui::Gui& gui) { gui.mouse().update(cx, cy, ui::kButtonLeft, 0); });
+    fx.host.script.emplace_back([cx, cy](ui::Gui& gui) { gui.mouse().update(cx, cy, 0, 0); });
+  };
+  // 14 -> 18-1 -> 18-2 -> EMPTY (the Mark 27 refused).
+  click(x, y);
+  click(x, y);
+  click(x, y);
+  fx.host.script.emplace_back([&](ui::Gui& gui) {
+    // The message box over the dialog: its text in the screen.
+    shown = true;
+    const char* dir = std::getenv("SH_SCREENSHOT_DIR");
+    if (dir != nullptr && *dir != '\0') {
+      save_bmp(std::filesystem::path(dir) / "se_torpedoes_type_limit.bmp", gui.screen(), to_palette(fx.ui.dac()));
+    }
+    gui.mouse().post_key(0x1c0d, 0);
+  });
+  fx.host.script.emplace_back([](ui::Gui& gui) { gui.mouse().post_key(0x011b, 0); });
+  CHECK_FALSE(cmd_torpedoes(fx.ui, s, fx.options));
+  CHECK(shown);
 }
 
 }  // namespace sh::editor

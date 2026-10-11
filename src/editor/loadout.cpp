@@ -205,8 +205,11 @@ std::int32_t TorpedoForm::cycle_tube(std::size_t tube, bool advance) {
     if (choice == 0) {
       break;
     }
-    advance = unavailable(static_cast<std::size_t>(choice)) ||
-              adds_fourth_type(static_cast<std::size_t>(choice), static_cast<std::int32_t>(tube), -1);
+    const bool fourth =
+        !unavailable(static_cast<std::size_t>(choice)) &&
+        adds_fourth_type(static_cast<std::size_t>(choice), static_cast<std::int32_t>(tube), -1);
+    refused_fourth_ = refused_fourth_ || fourth;
+    advance = unavailable(static_cast<std::size_t>(choice)) || fourth;
   }
   return choice;
 }
@@ -249,9 +252,10 @@ std::int32_t TorpedoForm::cycle_reload(bool aft, std::size_t choice, bool tens, 
       digit = next(digit, 10);
       count = count / 10 * 10 + digit;
     }
-    advance = over_capacity(aft) ||
-              (count > 0 && (aft ? forward_ : aft_)[choice] == 0 &&
-               adds_fourth_type(choice, -1, static_cast<std::int32_t>(choice)));
+    const bool fourth = count > 0 && (aft ? forward_ : aft_)[choice] == 0 &&
+                        adds_fourth_type(choice, -1, static_cast<std::int32_t>(choice));
+    refused_fourth_ = refused_fourth_ || fourth;
+    advance = over_capacity(aft) || fourth;
   }
   return digit;
 }

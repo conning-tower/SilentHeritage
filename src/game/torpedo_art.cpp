@@ -1,7 +1,6 @@
 #include "game/torpedo_art.h"
 
 #include <algorithm>
-#include <cmath>
 #include <stdexcept>
 #include <vector>
 
@@ -180,115 +179,6 @@ void TorpedoArt::draw(const Viewport& vp, const TorpedoPicture& p, int x, int y,
         target.set(dx, dy, p.image.at(i, j));
       }
     }
-  }
-}
-
-Rgb torpedo_type_colour(std::uint32_t id) {
-  switch (id) {
-    case kMark10Id:
-      return {0x94, 0xac, 0xa8};
-    case kMark14Id:
-      return {0xd4, 0xc4, 0x74};
-    case kMark18_1Id:
-      return {0x70, 0x9c, 0xc8};
-    case kMark18_2Id:
-      return {0xfc, 0x8c, 0x00};
-    case kMark27Id:
-      return {0x40, 0xc8, 0x60};
-    default:
-      return {0x90, 0x90, 0x90};
-  }
-}
-
-bool on_button_bezel(int x, int y, int w, int h) {
-  // The lamp fills the inner 72 % of the button's radius.
-  const float dx = static_cast<float>(x) + 0.5f - static_cast<float>(w) / 2;
-  const float dy = static_cast<float>(y) + 0.5f - static_cast<float>(h) / 2;
-  const float r = static_cast<float>(std::min(w, h)) / 2;
-  return std::sqrt(dx * dx + dy * dy) >= r * 0.72f;
-}
-
-bool on_button_notch(std::uint32_t id, int x, int y, int w) {
-  if (y >= w / 5) {
-    return false;
-  }
-  const int cx = w / 2;
-  if (id == kMark18_1Id) {
-    return x == cx || x == cx - 1;
-  }
-  if (id == kMark18_2Id) {
-    return x == cx - 4 || x == cx - 3 || x == cx + 3 || x == cx + 4;
-  }
-  return false;
-}
-
-std::string torpedo_short_label(const std::string& name) {
-  return name.starts_with("MARK") ? "MK" + name.substr(4) : name;
-}
-
-void draw_marked_button(const Viewport& vp, const SpriteFrame& frame, int x, int y, std::uint32_t id, bool dim,
-                        const VgaPalette& palette, std::span<const std::uint8_t> allowed) {
-  if (!vp.valid() || allowed.empty()) {
-    return;
-  }
-  const auto near_allowed = [&](Rgbf c) {
-    std::uint8_t best = allowed.front();
-    float best_d = 1e30f;
-    for (const std::uint8_t i : allowed) {
-      const float d = distance(colour8(palette, i), c);
-      if (d < best_d) {
-        best_d = d;
-        best = i;
-      }
-    }
-    return best;
-  };
-  const Rgb tint = torpedo_type_colour(id);
-  const float k = dim ? 0.5f : 1.0f;
-  std::array<std::uint8_t, 256> ring{};
-  for (int i = 0; i < 256; ++i) {
-    ring[static_cast<std::size_t>(i)] =
-        near_allowed(scaled(tint, std::min(1.3f, lightness(colour8(palette, i)) * 1.6f) * k));
-  }
-  const std::uint8_t notch = near_allowed({250 * k, 250 * k, 250 * k});
-  const DecodedFrame d = frame.decode();
-  const int w = d.image.width();
-  const int h = d.image.height();
-  Image8& target = *vp.bitmap;
-  const ClipRect clip = vp.clip();
-  for (int j = 0; j < h; ++j) {
-    for (int i = 0; i < w; ++i) {
-      if (d.opaque.at(i, j) == 0) {
-        continue;
-      }
-      std::uint8_t c = d.image.at(i, j);
-      const Rgb src = colour8(palette, c);
-      const bool lamp = src.r > 2 * src.g && src.r > 2 * src.b;
-      if (!lamp && on_button_bezel(i, j, w, h)) {
-        c = on_button_notch(id, i, j, w) ? notch : ring[c];
-      }
-      const int dx = vp.x0 + x + frame.x0 + i;
-      const int dy = vp.y0 + y + frame.y0 + j;
-      if (clip.contains(dx, dy)) {
-        target.set(dx, dy, c);
-      }
-    }
-  }
-}
-
-void add_tbt_type_colours(VgaPalette& palette) {
-  static constexpr std::array<std::uint8_t, 6> kEntries{223, 238, 239, 240, 241, 242};
-  static constexpr std::array<Rgb, 6> kColours{Rgb{0x38, 0x50, 0x70}, Rgb{0xa8, 0xc8, 0xf0}, Rgb{0x80, 0x40, 0x00},
-                                              Rgb{0xfc, 0xa8, 0x30}, Rgb{0x18, 0x60, 0x28}, Rgb{0x70, 0xe8, 0x90}};
-  for (std::size_t i = 0; i < kEntries.size(); ++i) {
-    const int e = kEntries[i];
-    if (!placeholder(colour8(palette, e))) {
-      continue;
-    }
-    const auto u = static_cast<std::size_t>(e) * 3;
-    palette[u] = static_cast<std::uint8_t>(kColours[i].r >> 2);
-    palette[u + 1] = static_cast<std::uint8_t>(kColours[i].g >> 2);
-    palette[u + 2] = static_cast<std::uint8_t>(kColours[i].b >> 2);
   }
 }
 

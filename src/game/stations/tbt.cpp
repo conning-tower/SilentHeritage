@@ -7,7 +7,6 @@
 #include "core/install.h"
 #include "game/mission.h"
 #include "game/stations/nav_panel.h"
-#include "game/torpedo_art.h"
 #include "gfx/sprite.h"
 #include "sim/player_combat.h"
 #include "ui/draw.h"
@@ -105,10 +104,6 @@ void TbtStation::open() {
   const Install& install = s_.install();
   background_ = load_pcx(install, "ART/TBT.PCX");
   s_.screen().blit(background_.image, 0, 0);
-  if (s_.features.torpedo_types) {
-    // The tube buttons' type colours (not in the original).
-    add_tbt_type_colours(background_.palette);
-  }
   s_.palette() = background_.palette;
   pcx_palette_ = background_.palette;
   s_.shade_palette(&pcx_palette_);

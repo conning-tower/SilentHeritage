@@ -241,6 +241,14 @@ constexpr int kReloadRowHeight = 22;
 constexpr std::array<int, 6> kTubeNumberY{80, 101, 123, 145, 167, 189};
 constexpr std::uint32_t kTubeNumbers = 0x91269;  // "1", "2", .. "10", 2 bytes apart
 
+// The extended variant's message (not in the original) when a cycle of
+// TORPEDOES skipped a fourth torpedo type.
+void explain_type_limit(EditorUi& ui, TorpedoForm& form) {
+  if (form.take_refused_fourth()) {
+    show_message_box(ui, "TORPEDOES", "A boat carries at most", "three torpedo types.", "");
+  }
+}
+
 }  // namespace
 
 bool cmd_environment(EditorUi& ui, Scenario& scenario, const EditorOptions& options) {
@@ -340,7 +348,11 @@ bool cmd_torpedoes(EditorUi& ui, Scenario& scenario, const EditorOptions& option
     const int x = aft ? 31 : 228;
     const int number_x = aft ? 17 : 214;
     const auto tube = static_cast<std::size_t>(i);
-    cycle(d, x, 74 + row * 22, 169, choices, [&form, tube](bool advance) { return form.cycle_tube(tube, advance); });
+    cycle(d, x, 74 + row * 22, 169, choices, [&form, &ui, tube](bool advance) {
+      const std::int32_t choice = form.cycle_tube(tube, advance);
+      explain_type_limit(ui, form);
+      return choice;
+    });
     const std::string number(se.str(kTubeNumbers + static_cast<std::uint32_t>(i) * 2));
     font1_field(ui, d, number_x, kTubeNumberY[static_cast<std::size_t>(row)], number_x + 10,
                 kTubeNumberY[static_cast<std::size_t>(row)] + 9, [number] { return number; }, TextAlign::kRight);
@@ -356,9 +368,13 @@ bool cmd_torpedoes(EditorUi& ui, Scenario& scenario, const EditorOptions& option
     for (const bool aft : {true, false}) {
       const int x = aft ? 154 : 352;
       d.emplace<ui::Label>(aft ? 27 : 225, y + 4, choices[c]);
-      cycle(d, x, y, 16, digits, [&form, aft, c](bool advance) { return form.cycle_reload(aft, c, true, advance); });
-      cycle(d, x + 18, y, 16, digits,
-            [&form, aft, c](bool advance) { return form.cycle_reload(aft, c, false, advance); });
+      for (const bool tens : {true, false}) {
+        cycle(d, tens ? x : x + 18, y, 16, digits, [&form, &ui, aft, c, tens](bool advance) {
+          const std::int32_t digit = form.cycle_reload(aft, c, tens, advance);
+          explain_type_limit(ui, form);
+          return digit;
+        });
+      }
     }
   }
   if (d.run() == ui::kResultCancel) {

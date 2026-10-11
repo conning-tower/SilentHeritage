@@ -32,9 +32,9 @@ kept with it.
   ghost needle and given when you let go.
 - **Live ORDERS panel:** the touch ORDERS panel shows the depth order in
   effect and each tube's state.
-- **Torpedo types:** each torpedo type has its own look, the Mark 18-1 blue
-  and the 18-2 orange, and the status page and the tube buttons of the TDC,
-  TBT, periscope and touch panel show the types aboard.
+- **Torpedo types:** each torpedo type has its own picture, the Mark 18-1
+  blue and the 18-2 orange; the status page shows the types you sailed with,
+  and the touch ORDERS panel names each tube's type.
 
 ## Rules
 
@@ -116,4 +116,4 @@ kept with it.
 - **Torpedo dates:** with "Limit by date: Equipment", the Mark 18 torpedo
   is available from October 1943, its date in the game, instead of November.
 - **Torpedo choices:** TORPEDOES offers the Mark 18-2 and the Mark 27, and
-  refuses a fourth torpedo type.
+  explains that a boat carries at most three torpedo types.

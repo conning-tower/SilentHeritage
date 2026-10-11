@@ -13,7 +13,6 @@
 #include "assets/pcx.h"
 #include "assets/shp.h"
 #include "game/stations/nav_panel.h"
-#include "game/torpedo_art.h"
 #include "gfx/viewport.h"
 #include "ui/skin.h"
 
@@ -369,7 +368,6 @@ struct CommandIconArt::Data {
   Shp gauge_sprites;          // GAUGES.SHP
   Font digits;                // DIGITS.FNT, the gauges' counters
   Font brass;                 // MENU_H.FNT
-  Font labels;                // GUI_1.FNT: the tube types' labels
   Font arrows;                // MENU_B.FNT
   NeedleDial depth_dial;
 
@@ -558,7 +556,6 @@ CommandIconArt::CommandIconArt(const Install& install, const ShPaths& paths) : d
   d.gauge_sprites = Shp::load(install, art("GAUGES.SHP"));
   d.digits = Font::load(install, art("DIGITS.FNT"));
   d.brass = Font::load(install, art("MENU_H.FNT"));
-  d.labels = Font::load(install, art("GUI_1.FNT"));
   d.arrows = Font::load(install, art("MENU_B.FNT"));
   d.depth_dial = NeedleDial::read(ExeImage::load(install), kDepthDialTemplate);
   const VgaPalette& p = d.menu_palette;
@@ -616,52 +613,6 @@ std::array<TubeMark, kTubeIconCount> tube_marks(const PlayerCombat& combat) {
         m.label = c.name.starts_with("MARK") ? c.name.substr(4) : c.name;
       }
     }
-  }
-  return out;
-}
-
-RgbaImage CommandIconArt::typed_tube_icon(std::size_t tube, bool pressed, const TubeMark& mark) const {
-  constexpr int kSize = 40;
-  const DecodedFrame d = data_->tdc_sprites.frame(tube * 2 + (pressed ? 1 : 0)).decode();
-  const Rgb tint = torpedo_type_colour(mark.weapon_id);
-  const float dim = mark.loading ? 0.5f : 1.0f;
-  const auto tinted = [&](float l) {
-    return argb(static_cast<std::uint8_t>(std::min(255.0f, tint.r * l * dim)),
-                static_cast<std::uint8_t>(std::min(255.0f, tint.g * l * dim)),
-                static_cast<std::uint8_t>(std::min(255.0f, tint.b * l * dim)));
-  };
-  const int w = d.image.width();
-  const int h = d.image.height();
-  RgbaImage button(w, h);
-  for (int y = 0; y < h; ++y) {
-    for (int x = 0; x < w; ++x) {
-      if (d.opaque.at(x, y) == 0) {
-        continue;
-      }
-      std::uint32_t c = vga_colour(data_->tdc_palette, d.image.at(x, y));
-      const int r = channel(c, 16);
-      const int g = channel(c, 8);
-      const int b = channel(c, 0);
-      const bool lamp = r > 2 * g && r > 2 * b;
-      if (mark.weapon_id != 0 && !lamp && on_button_bezel(x, y, w, h)) {
-        c = on_button_notch(mark.weapon_id, x, y, w)
-                ? argb(static_cast<std::uint8_t>(250 * dim), static_cast<std::uint8_t>(250 * dim),
-                       static_cast<std::uint8_t>(250 * dim))
-                : tinted(std::min(1.3f, (0.3f * r + 0.59f * g + 0.11f * b) / 255.0f * 1.6f));
-      }
-      button.at(x, y) = c;
-    }
-  }
-  RgbaImage out(kSize, kSize);
-  blit(out, button, (kSize - w) / 2, 0);
-  if (mark.weapon_id != 0 && !mark.label.empty()) {
-    RgbaImage label = trim(text_rgba(data_->labels, mark.label, data_->menu_palette));
-    for (std::uint32_t& p : label.pixels) {
-      if (channel(p, 24) != 0) {
-        p = tinted(1.25f);
-      }
-    }
-    blit(out, label, (kSize - label.width) / 2, kSize - label.height);
   }
   return out;
 }

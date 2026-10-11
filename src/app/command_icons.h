@@ -65,9 +65,9 @@ struct CommandIconDesign {
   ButtonIconStyle button = ButtonIconStyle::kOrdersPlate;
 };
 
-// A tube's load as its panel icon shows it (not in the original): the
-// WEAPONS.DAT id (0: empty), whether it is still loading, and the type's
-// label ("18-2").
+// A tube's torpedo type for the touch panel's label strip (not in the
+// original): the WEAPONS.DAT id (0: empty), whether it is still loading,
+// and the type's label ("18-2").
 struct TubeMark {
   std::uint32_t weapon_id = 0;
   bool loading = false;
@@ -99,11 +99,6 @@ class CommandIconArt {
   // Returns the fire button of tube `tube` (0..9): ready, or pressed (the
   // fired frame).
   RgbaImage tube_icon(std::size_t tube, bool pressed) const;
-  // Returns the fire button of tube `tube` marked with `mark` (not in the
-  // original): the bezel in the type's colour with its notches (darker
-  // while loading), the type's label under it; an empty tube's is the
-  // plain button. The icon is square.
-  RgbaImage typed_tube_icon(std::size_t tube, bool pressed, const TubeMark& mark) const;
   // Returns the floating button in `style`.
   RgbaImage button_icon(ButtonIconStyle style) const;
   // Returns the time compression button "+" (`up`) or "-": a riveted
