@@ -88,7 +88,7 @@ void set_briefing(ScnHeader& header, std::string_view text) {
 }  // namespace
 
 TEST_CASE("A saved scenario is listed and loads back byte for byte", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   set_briefing(rig.fx.scenario.header, "My own patrol");
   rig.fx.scenario.modified = true;
@@ -119,7 +119,7 @@ TEST_CASE("A saved scenario is listed and loads back byte for byte", "[editor][f
 }
 
 TEST_CASE("Saving over an existing name asks first", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   rig.files.name = "OLD";
 
@@ -143,7 +143,7 @@ TEST_CASE("Saving over an existing name asks first", "[editor][file]") {
 }
 
 TEST_CASE("Delete Scenario removes a file after a confirmation", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   rig.files.name = "MINE";
   REQUIRE(rig.custom.write("MINE.SCN", write_scn_file(rig.fx.scenario.save())));
@@ -173,7 +173,7 @@ TEST_CASE("Delete Scenario removes a file after a confirmation", "[editor][file]
 }
 
 TEST_CASE("New and Load ask to save a modified scenario", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   rig.fx.scenario.header.hour = 3;
   rig.fx.scenario.modified = true;
@@ -190,7 +190,7 @@ TEST_CASE("New and Load ask to save a modified scenario", "[editor][file]") {
 }
 
 TEST_CASE("A scenario's password is asked on load", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   rig.fx.scenario.header.password = encode_scn_password("Secret", sh::test::se_password_key(install));
   rig.fx.scenario.header.hour = 5;
@@ -222,7 +222,7 @@ TEST_CASE("A scenario's password is asked on load", "[editor][file]") {
 }
 
 TEST_CASE("Run writes AEONSCEN.TMP as Save writes a scenario", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   rig.fx.scenario.header.minute = 42;
   rig.fx.scenario.modified = true;
@@ -240,7 +240,7 @@ TEST_CASE("Run writes AEONSCEN.TMP as Save writes a scenario", "[editor][file]")
 }
 
 TEST_CASE("The range and size checks ask before saving and running", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   rig.fx.scenario.header.end_on_lost_contact = -1;
   // The player alone: no ship in range.
@@ -255,7 +255,7 @@ TEST_CASE("The range and size checks ask before saving and running", "[editor][f
 }
 
 TEST_CASE("Write errors are reported", "[editor][file]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   if (std::filesystem::exists("/dev/full")) {
     const std::vector<std::uint8_t> bytes(10000, 1);
     CHECK(write_scenario_file("/dev/full", bytes) == WriteResult::kDiskFull);
@@ -299,7 +299,7 @@ TEST_CASE("A scenario is written whole or not at all, under a UTF-8 path", "[edi
 TEST_CASE("Listing the scenarios keeps the current briefing", "[editor][file]") {
   // Regression test for the original bug "scenario lists overwrite the
   // briefing" (SE left the last listed file's briefing and version).
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   FilesRig rig(install);
   set_briefing(rig.fx.scenario.header, "Mine");
   const ScnHeader before = rig.fx.scenario.header;
