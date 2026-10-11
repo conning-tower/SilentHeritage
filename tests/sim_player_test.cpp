@@ -38,7 +38,6 @@ struct Mission {
 }  // namespace
 
 TEST_CASE("The telegraph spreads its power over the engines", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   Mission m(kSurfaced, 5);
   CHECK(m.boat.diesel_mode());
   for (const EngineRoom& room : m.boat.engines()) {
@@ -78,7 +77,6 @@ TEST_CASE("Submerged the motors drive the boat", "[sim][player]") {
 }
 
 TEST_CASE("The boat dives to the ordered depth and holds it", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   Mission m(kSurfaced, 3);
   m.run(60);
   SimContext ctx = m.sim.context();
@@ -108,7 +106,6 @@ TEST_CASE("The boat dives to the ordered depth and holds it", "[sim][player]") {
 }
 
 TEST_CASE("Fuel burns with diesel power and the battery with motor power squared", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   Mission diesel(kSurfaced, 5);
   diesel.run(1000);
   // Full power: SUBS.DAT +272 = 7209 / 65536 per second.
@@ -128,7 +125,6 @@ TEST_CASE("Fuel burns with diesel power and the battery with motor power squared
 }
 
 TEST_CASE("Idle diesels recharge the battery on the surface", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   Mission m(kSurfaced, 0);
   m.boat.set_battery(300);
   m.run(1000);
@@ -142,7 +138,6 @@ TEST_CASE("Idle diesels recharge the battery on the surface", "[sim][player]") {
 }
 
 TEST_CASE("Air lasts about a day submerged", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   Mission m(kAt100ft, 1);
   const std::int32_t full = m.boat.air();
   CHECK(full >= 1000);
@@ -158,7 +153,6 @@ TEST_CASE("Air lasts about a day submerged", "[sim][player]") {
 }
 
 TEST_CASE("The helm sets the rudder, capped by steering damage", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   Mission m(kSurfaced, 3);
   m.boat.set_helm(3);
   m.run(0.2);
@@ -177,7 +171,6 @@ TEST_CASE("The helm sets the rudder, capped by steering damage", "[sim][player]"
 }
 
 TEST_CASE("The boat follows its route and stops at the last waypoint", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   Mission m(kSurfaced, 3);
   Route route;
   route.count = 2;
@@ -196,7 +189,6 @@ TEST_CASE("The boat follows its route and stops at the last waypoint", "[sim][pl
 }
 
 TEST_CASE("At the map edge the boat turns back", "[sim][player]") {
-  SH_REQUIRE_GAME_EXE();
   MissionConditions env;
   env.map = MapExtent{0x200000, 0x200000};
   Mission m({0x200000 - 0x70000, 0, 0x100000}, 3, env);
