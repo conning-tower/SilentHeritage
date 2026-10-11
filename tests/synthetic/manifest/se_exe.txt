@@ -1,8 +1,19 @@
 # The layout of an original executable (tests/synthetic/exe_manifest.h): synthetic text, layout numbers.
 object 10000 76e52 2005
 object 90000 85660 2003
+str 1bc46 "s,"
+str 1bce0 "ne"
+str 1bdf3 "rt"
+str 90214 "GUI_L.FNT"
+str 9021e "GUI_M.FNT"
+str 90228 "GUI_1.FNT"
+str 90232 "GUISPR.SHP"
 str 90320 "Bladbyfs"
+str 90329 "Vwgcnkid"
+str 90332 "Elkvdbh"
+str 9033a "Ilgwd"
 str 90340 "Renumn"
+str 90347 "Uloac"
 str 90398 "0"
 str 9039a "1"
 str 9039c "2"
@@ -13,6 +24,19 @@ str 903a4 "6"
 str 903a6 "7"
 str 903a8 "8"
 str 903aa "9"
+str 903d5 "Ogoeehh lv glombrh 386AC rsweuu"
+str 903f5 "Yarlrko VBP ykuon"
+str 90407 "LBEH aphwif kfs kevaegi (eiu /L sacgvv)"
+str 9042f "Fvtww vbi gbeoghmgu"
+str 90443 "Subw pye hmrwm"
+str 90452 "Hvbnptyse wvif vulivos"
+str 90469 "Dudvfd chrp bfic"
+str 9047a "Ikfegr nrfm fykv"
+str 9048b "Efaieg cdghvkvhht sudcgy"
+str 904a4 "New Lwnuem Lndvpp"
+str 904b6 "Wmpbcww del acwoy"
+str 904c8 "Snphgmp oykatbd alf"
+str 904dc "Kooutiy ugfhrycedko unev"
 str 906e0 "VGYGDB EEKL"
 str 906ec "AK"
 str 906ef "CGDSKV"
@@ -113,7 +137,7 @@ str 90c87 "\x22"
 str 90cb9 "(KO-"
 str 90cd6 ") "
 str 90ce5 "ANWYBE GCVM PLKC"
-str 90d56 "hpmduu.ukw"
+str 90d56 "idbook.cat"
 str 90d85 "Oirfksb:"
 str 90d9a " diom"
 str 90da0 "Ewgm:"
@@ -449,6 +473,7 @@ str 92dca "Ufpa Ymgg"
 str 92dd4 "Aopv 2/3"
 str 92ddd "Obtp 1/3"
 str 92de6 "Tnoynd t peekirpu"
+str 92df8 "Ulevpl et giatcs"
 str 92e09 "Yybhyp mealwacw #\x01"
 str 92e1c "Pcmulb fpk dlpn gk ygt hcutsn"
 str 92e3a "Apglkn ldr ycufvb fu ilg klynmp vgrp"
@@ -480,6 +505,10 @@ str 93080 "MARK14"
 str 93087 "MARK10"
 str 9315f "BRHRH"
 str 93220 "RBLP"
+str 93877 "Dhnw Hhr 1"
+str 93882 "Pveo Kmi 2"
+str 9388d "Lswcbnhsof"
+str 93898 "Bymy/Wofchts Aomom"
 str 938ab "Rfhlpue"
 str 938b3 "Ssiohfyd"
 str 938bc "Lroii"
@@ -492,6 +521,25 @@ str 938dd "Mmfgflaov"
 str 938e7 "Tgcuowf"
 str 938ef "Ocgnavsn"
 str 938f8 "Dnrosviw"
+str 93901 "HIAEIWM"
+str 93909 "WYLEVORH"
+str 93912 "OUIAO"
+str 93918 "TOPHF"
+str 9391e "GHP"
+str 93922 "RYHW"
+str 93927 "KRDH"
+str 9392c "SWVPBP"
+str 93933 "SCFNUIPVI"
+str 9393d "VCSRUUD"
+str 93945 "LORILCIC"
+str 9394e "VKCRWMDN"
+str 93957 "Cflvvv"
+str 9395e "Wlypyml"
+str 93966 "Veufyadbh"
+str 93970 "Tdnhswfr"
+str 93979 "Hdugbi"
+str 93980 "Gvwrvtlh"
+str 93989 "Nemlol"
 str 93990 "Igblb"
 str 93996 "Ymnfar Epwkap"
 str 939a4 "Mhdapo Ersnak"
@@ -506,6 +554,20 @@ str 939e1 "100-199 ohvy"
 str 939ee "200-299 fegf"
 str 939fb "300-399 cytd"
 str 93a08 "400-499 ivka"
+str 93a16 "Doypke vb n bilke ssnauy!"
+str 93a30 "Ptlytl rc orbt vm unenoh!"
+str 93a4a "Ntdong vr kyktaitc siob psfmnkd!"
+str 93a6b "Mlgudm io v yshgsbd!"
+str 93a80 "Tuvgap ki r scykg frc!"
+str 93a97 "Vlpwcn gl w dabf!"
+str 93aa9 "Ruglfke htrw lsend anaaoh."
+str 93ac4 "Bldtidepwk hgoe!"
+str 93ad5 "Pawauve uawc."
+str 93ae3 "Dlmd"
+str 93ae8 "Ywrchph"
+str 93af0 "Hctkoio"
+str 93af8 "Uvodacil"
+str 93b01 "Fyl"
 str 93b05 "HK"
 str 93b08 "Gtrgecuc Notkmmw"
 str 93b19 "ARU"
@@ -526,6 +588,8 @@ str 93b93 "RP"
 str 93b96 "Ubibam Lkuhwkaan"
 str 93ba7 "SE"
 str 93baa "Fwcyhb Rdnde"
+str 93bb7 "CW"
+str 93bba "Yfg Awkcoy"
 str 93bc5 "VM"
 str 93bc8 "Yuhcserbs"
 str 93bd2 "RB"
@@ -551,17 +615,80 @@ str 93c84 "Oewhcb"
 str 93c8b "Ckgkngs"
 str 93c93 "Igntvfh Cnuhlp"
 str 93ca2 "Yswb Nbimbb"
+str 93cae "Inbcuk Rnwhyp"
+str 93cbd "Ol Uups"
+str 93cc5 "Ia Vpstdf"
+str 93ccf "Hobtonfc"
+str 93cd8 "Gnotmrr"
+str 93ce0 "Stkeneoo yu Dbil"
+str 93cf1 "Aolbclss"
+str 93cfb "CE Nlgew (LBm)\x0a"
+str 93d0b "Iblbeysc IC Yomdp (AI-1)\x0a"
+str 93d26 "OU Miffi\x0a"
+str 93d31 "Hdkv Pychyhyd Vblgfmtid (ROO)\x0a"
+str 93d51 "Ebympgadkfeckohe\x0a"
+str 93d63 "Akremapbckv"
+str 93d6f "Mfskbt kl Ccfngf"
+str 93d80 "Vtgesvcg"
+str 93d89 "Pbgtgmfr - Mbl lh Ugm"
+str 93d9f "Vsrsvan"
+str 93da7 "Kuueuyo"
+str 93daf "Ohgd"
+str 93db4 "Wdppb"
+str 93dba "Mvfnoeh"
+str 93dc2 "Hluvi"
+str 93dc8 "Ptby"
+str 93dcd "Ipikw"
+str 93dd3 "Gyybwnua"
+str 93ddc "Rfmvp"
+str 93de2 "SbgYcfpGknvoyk"
+str 93df1 "RftMhgVdr"
+str 93dfb "PkuLfuYiNadUvt"
+str 93e0a "Sbpn Mmwmf 42"
+str 93e18 "Pdkbytth"
+str 93e21 "Yehvwkyu"
+str 93e2a "Fdprrrn"
+str 93e32 "Kmhf"
+str 93e37 "Sctc"
+str 93e3c "Rpey Tdbcalapwk"
+str 93e4c "Mbbieuedvc Espbgsbimu"
+str 93e62 "Pfeh"
+str 93e67 "Kuhps Ybsfv"
 str 98308 "1.00"
 str 98350 ".SCN"
 str 983b4 "ART\x5c"
+str 9bc30 "Ti\x0a"
 str 9bc78 "SUBPICS.SHP"
 str 9bc84 "AIRPICS.SHP"
 str 9f194 "SPAC_A.SHP"
 str 9f20b "SPAC_H.SHP"
 str 9f21c "SPAC_I.SHP"
 str 9f2c6 "SPAC_S.SHP"
+ptr 29a00 91269
+ptr 29a06 9126b
+ptr 29a0c 9126d
+ptr 29a12 9126f
+ptr 29a18 91271
+ptr 29a1e 91273
+ptr 29a24 91275
+ptr 29a2a 91277
+ptr 29a30 91279
+ptr 29a36 9127b
+ptr 981f8 90214
+ptr 981fc 9021e
+ptr 98200 90228
+ptr 98204 90232
+ptr 98238 a4e18
+ptr 98260 9031f
 ptr 98264 90320
+ptr 98268 90329
+ptr 9826c 90332
+ptr 98270 9033a
 ptr 98274 90340
+ptr 98278 90347
+ptr 982e8 a4794
+ptr 98300 97b48
+ptr 988c8 a4df0
 ptr 988dc 90398
 ptr 988e0 9039a
 ptr 988e4 9039c
@@ -572,6 +699,28 @@ ptr 988f4 903a4
 ptr 988f8 903a6
 ptr 988fc 903a8
 ptr 98900 903aa
+ptr 98908 903d2
+ptr 98910 903d3
+ptr 98918 903d4
+ptr 98920 903d5
+ptr 98928 903f5
+ptr 98930 90407
+ptr 98938 9042f
+ptr 98940 90443
+ptr 98948 90452
+ptr 98950 90469
+ptr 98958 9047a
+ptr 98960 9048b
+ptr 98968 904a4
+ptr 98970 904b6
+ptr 98978 904c8
+ptr 98980 904dc
+ptr 9bbfc 1bc46
+ptr 9bc00 1bce0
+ptr 9bc08 1bdf3
+ptr 9bc44 9bc30
+ptr 9bc5c a63f8
+ptr 9bc6c a63f8
 ptr 9bccc 91973
 ptr 9bcdc 91991
 ptr 9bcec 9199a
@@ -653,6 +802,34 @@ ptr 9bf20 91ba4
 ptr 9bf24 91bac
 ptr 9bf28 91bb0
 ptr 9bf2c 91bb3
+ptr 9bf30 a7c98
+ptr 9bf34 a7ccc
+ptr 9bf38 a7d00
+ptr 9bf3c a7d34
+ptr 9bf40 a7d68
+ptr 9bf44 a7d9c
+ptr 9bf58 a7ea0
+ptr 9bf5c a7ed8
+ptr 9bf60 a7f10
+ptr 9bf64 a7f48
+ptr 9bf68 a7f80
+ptr 9bf6c a7fb8
+ptr 9c040 29a17
+ptr 9c044 29a1d
+ptr 9c048 29a23
+ptr 9c04c 29a29
+ptr 9c050 29a2f
+ptr 9c054 29a35
+ptr 9c058 29a3b
+ptr 9c05c 29a45
+ptr 9c060 29a4d
+ptr 9c064 29a55
+ptr 9c068 29a5d
+ptr 9c06c 29a65
+ptr 9c070 29a6d
+ptr 9c074 29a75
+ptr 9c078 29a7d
+ptr 9c07c 29a85
 ptr 9c08c 91bb7
 ptr 9c0b4 91bba
 ptr 9e640 92c7f
@@ -693,6 +870,7 @@ ptr 9e6fc 92dca
 ptr 9e700 92dd4
 ptr 9e704 92ddd
 ptr 9e70c 92de6
+ptr 9e710 92df8
 ptr 9e714 92e09
 ptr 9e718 92e1c
 ptr 9e71c 92e3a
@@ -713,9 +891,19 @@ ptr 9e754 92ee6
 ptr 9e758 92eea
 ptr 9e75c 92eed
 ptr 9e760 92ef0
+ptr 9e764 92ef4
+ptr 9e768 92ef5
+ptr 9e76c aad38
 ptr 9e774 92ef6
 ptr 9e778 92f09
 ptr 9e77c 92f1d
+ptr 9e790 a505c
+ptr 9e7a0 3f426
+ptr 9e7b8 a505c
+ptr 9eec8 93877
+ptr 9eee4 93882
+ptr 9ef00 9388d
+ptr 9ef1c 93898
 ptr 9ef38 938ab
 ptr 9ef3c 938b3
 ptr 9ef40 938bc
@@ -728,6 +916,25 @@ ptr 9ef58 938dd
 ptr 9ef5c 938e7
 ptr 9ef60 938ef
 ptr 9ef64 938f8
+ptr 9ef68 93901
+ptr 9ef6c 93909
+ptr 9ef70 93912
+ptr 9ef74 93918
+ptr 9ef78 9391e
+ptr 9ef7c 93922
+ptr 9ef80 93927
+ptr 9ef84 9392c
+ptr 9ef88 93933
+ptr 9ef8c 9393d
+ptr 9ef90 93945
+ptr 9ef94 9394e
+ptr 9ef98 93957
+ptr 9ef9c 9395e
+ptr 9efa0 93966
+ptr 9efa4 93970
+ptr 9efa8 93979
+ptr 9efac 93980
+ptr 9efb0 93989
 ptr 9efb4 93990
 ptr 9efb8 93996
 ptr 9efbc 939a4
@@ -742,6 +949,21 @@ ptr 9efdc 939e1
 ptr 9efe0 939ee
 ptr 9efe4 939fb
 ptr 9efe8 93a08
+ptr 9efec 93a15
+ptr 9eff0 93a16
+ptr 9eff4 93a30
+ptr 9eff8 93a4a
+ptr 9effc 93a6b
+ptr 9f000 93a80
+ptr 9f004 93a97
+ptr 9f008 93aa9
+ptr 9f00c 93ac4
+ptr 9f010 93ad5
+ptr 9f014 93ae3
+ptr 9f018 93ae8
+ptr 9f01c 93af0
+ptr 9f020 93af8
+ptr 9f024 93b01
 ptr 9f028 93b05
 ptr 9f02c 93b08
 ptr 9f030 93b19
@@ -762,6 +984,8 @@ ptr 9f068 93b93
 ptr 9f06c 93b96
 ptr 9f070 93ba7
 ptr 9f074 93baa
+ptr 9f078 93bb7
+ptr 9f07c 93bba
 ptr 9f080 93bc5
 ptr 9f084 93bc8
 ptr 9f088 93bd2
@@ -787,6 +1011,91 @@ ptr 9f0d4 93c84
 ptr 9f0d8 93c8b
 ptr 9f0dc 93c93
 ptr 9f0e0 93ca2
+ptr 9f0e4 93cae
+ptr 9f0e8 93cbc
+ptr 9f0ec 93cbd
+ptr 9f0f0 93cc5
+ptr 9f0f4 93ccf
+ptr 9f0f8 93cd8
+ptr 9f0fc 93ce0
+ptr 9f100 93cf1
+ptr 9f104 93cfa
+ptr 9f108 93cfb
+ptr 9f10c 93d0b
+ptr 9f110 93d25
+ptr 9f114 93d26
+ptr 9f118 93d30
+ptr 9f11c 93d31
+ptr 9f120 93d50
+ptr 9f124 93d51
+ptr 9f128 93d63
+ptr 9f12c 93d6f
+ptr 9f130 93d80
+ptr 9f134 93d89
+ptr 9f138 93d9f
+ptr 9f13c 93da7
+ptr 9f140 93daf
+ptr 9f144 93db4
+ptr 9f148 93dba
+ptr 9f14c 93dc2
+ptr 9f150 93dc8
+ptr 9f154 93dcd
+ptr 9f158 93dd3
+ptr 9f15c 93ddc
+ptr 9f160 93de2
+ptr 9f164 93df1
+ptr 9f168 93dfb
+ptr 9f16c 93e0a
+ptr 9f170 93e18
+ptr 9f174 93e21
+ptr 9f178 93e2a
+ptr 9f17c 93e32
+ptr 9f180 93e37
+ptr 9f184 93e3c
+ptr 9f188 93e4c
+ptr 9f18c 93e62
+ptr 9f190 93e67
+u8 29a17 b8
+u8 29a1d b8
+u8 29a23 b8
+u8 29a29 b8
+u8 29a2f b8
+u8 29a35 b8
+u8 29a3b 52
+u8 29a3c 31
+u8 29a3d d2
+u8 29a45 52
+u8 29a46 ba
+u8 29a4d 52
+u8 29a4e ba
+u8 29a55 52
+u8 29a56 ba
+u8 29a5d 52
+u8 29a5e ba
+u8 29a65 52
+u8 29a66 ba
+u8 29a6d 52
+u8 29a6e ba
+u8 29a75 52
+u8 29a76 ba
+u8 29a7d 52
+u8 29a7e ba
+u8 29a85 52
+u8 29a86 ba
+u8 3f426 c3
+u8 9031f 0
+u8 903d2 0
+u8 903d3 0
+u8 903d4 0
+u8 92ef4 0
+u8 92ef5 0
+u8 93a15 0
+u8 93cbc 0
+u8 93cfa 0
+u8 93d25 0
+u8 93d30 0
+u8 93d50 0
+u8 97b48 3
 u32 9bc94 0
 u8 9bc98 7
 u8 9bc99 55
@@ -946,3 +1255,21 @@ u32 9f2b1 2a
 u32 9f2c2 2b
 u32 9f2d3 2c
 u32 9f2e4 2710
+u8 a4794 0
+u8 a4df0 0
+u8 a4e18 0
+u8 a505c 0
+u8 a63f8 0
+u8 a7c98 0
+u8 a7ccc 0
+u8 a7d00 0
+u8 a7d34 0
+u8 a7d68 0
+u8 a7d9c 0
+u8 a7ea0 0
+u8 a7ed8 0
+u8 a7f10 0
+u8 a7f48 0
+u8 a7f80 0
+u8 a7fb8 0
+u8 aad38 0

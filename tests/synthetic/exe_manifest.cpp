@@ -14,12 +14,22 @@ namespace sh::test {
 
 namespace {
 
-// Returns whether `text` is a file name or path (kept as it is): no spaces,
-// upper-case letters, digits and file-name punctuation, with a dot, a
-// backslash or a digit.
+// Returns whether `text` is a file name or path (kept as it is): either a
+// name with a 1..3 character extension (any case), or upper-case letters,
+// digits and file-name punctuation with a dot, a backslash or a digit.
 bool identifier(std::string_view text) {
   if (text.empty() || text.size() > 40) {
     return false;
+  }
+  if (const std::size_t dot = text.rfind('.'); dot != std::string_view::npos && dot > 0 && text.size() - dot >= 2 &&
+                                                 text.size() - dot <= 4) {
+    const bool name_chars = std::ranges::all_of(text, [](char c) {
+      const auto u = static_cast<unsigned char>(c);
+      return std::isalnum(u) || std::string_view("._-\\:?*").find(c) != std::string_view::npos;
+    });
+    if (name_chars) {
+      return true;
+    }
   }
   bool marker = false;
   for (const char c : text) {
@@ -161,6 +171,61 @@ ExeManifest extract_exe_manifest(const ExeImage& image, const std::set<TracedRea
     const std::uint32_t value = bytes == 1 ? image.u8(address) : bytes == 2 ? image.u16(address) : image.u32(address);
     m.values.push_back({address, bytes, value});
   }
+  // The string pointers next to those read (the other entries of their
+  // tables, which other data or inputs reach), with their strings.
+  constexpr std::uint32_t kNeighbourhood = 64;
+  std::set<std::uint32_t> near;
+  for (const auto& [address, size, kind] : reads) {
+    const auto lo = std::ranges::lower_bound(sources, address > kNeighbourhood ? address - kNeighbourhood : 0);
+    for (auto it = lo; it != sources.end() && *it <= address + kNeighbourhood; ++it) {
+      near.insert(*it);
+    }
+    // A whole table of pointers (consecutive words) around a pointer read.
+    if (std::ranges::binary_search(sources, address)) {
+      for (std::uint32_t a = address; std::ranges::binary_search(sources, a); a += 4) {
+        near.insert(a);
+      }
+      for (std::uint32_t a = address; a >= 4 && std::ranges::binary_search(sources, a); a -= 4) {
+        near.insert(a);
+      }
+    }
+  }
+  const auto printable_string = [&image, &outside](std::uint32_t at) {
+    if (outside(at, 1)) {
+      return false;
+    }
+    for (std::uint32_t a = at; a < image.end(); ++a) {
+      const std::uint8_t c = image.u8(a);
+      if (c == 0) {
+        return a > at;
+      }
+      if ((c < 0x20 && c != '\n' && c != '\r' && c != '\t') || c > 0x7e) {
+        return false;
+      }
+    }
+    return false;
+  };
+  for (const std::uint32_t source : near) {
+    if (pointer_done.contains(source) || in_rule(source) || in_string(source) || outside(source, 4)) {
+      continue;
+    }
+    const std::uint32_t target = image.u32(source);
+    if (!printable_string(target) || in_rule(target)) {
+      continue;
+    }
+    if (!string_ends.contains(target)) {
+      if (in_string(target)) {
+        continue;
+      }
+      const std::string_view text = image.c_string(target);
+      string_ends[target] = target + static_cast<std::uint32_t>(text.size() + 1);
+      m.strings.push_back({target, synthetic_text(text, target)});
+    }
+    pointer_done.insert(source);
+    m.pointers.push_back({source, target});
+  }
+  std::ranges::sort(m.strings, {}, &ExeManifest::String::address);
+  std::ranges::sort(m.pointers, {}, &ExeManifest::Pointer::address);
   return m;
 }
 #endif

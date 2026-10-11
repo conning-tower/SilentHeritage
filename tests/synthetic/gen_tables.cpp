@@ -1,11 +1,16 @@
-// The game tables of the synthetic install (DATA/*.DAT): classes invented
-// from a few archetypes, their numbers from rules (the motion model's power
-// from the top speed, sizes from the type), in service over the whole war.
+// The game tables of the synthetic install (DATA/*.DAT): the classes,
+// weapons, ports and zones of the table manifest (their names, kinds and
+// dates; synthetic/table_manifest.h), their numbers from rules (sizes and
+// speeds from the ship type's archetype, the motion model's power from the
+// top speed).
 #include <cmath>
+#include <cstdio>
+#include <map>
 #include <format>
 
 #include "assets/dat_tables.h"
 #include "synthetic/generators.h"
+#include "synthetic/table_manifest.h"
 #include "synthetic/table_encoders.h"
 
 namespace sh::test::synth {
@@ -52,41 +57,59 @@ constexpr ShipArchetype kShipArchetypes[] = {
     {ShipType::kDestroyerEscort, ShipRole::kEscort, "DE", 2, 300, 27, 80, 3, 5, 60},
     {ShipType::kKaibokan, ShipRole::kEscort, "KB", 2, 250, 19, 70, 2, 5, 120},
     {ShipType::kSubmarine, ShipRole::kSubmarine, "SS", 2, 330, 23, 60, 1, 5, 18},
-    {static_cast<ShipType>(12), ShipRole::kMerchant, "AK", 1, 400, 12, 90, 0, 0, 0},
-    {static_cast<ShipType>(13), ShipRole::kMerchant, "AP", 1, 420, 14, 90, 1, 4, 0},
-    {static_cast<ShipType>(14), ShipRole::kMerchant, "AO", 1, 480, 13, 110, 0, 0, 0},
-    {static_cast<ShipType>(15), ShipRole::kMerchant, "AKL", 1, 300, 11, 70, 0, 0, 0},
-    {static_cast<ShipType>(16), ShipRole::kMerchant, "AKS", 1, 350, 10, 80, 1, 3, 0},
-    {static_cast<ShipType>(17), ShipRole::kMerchant, "ATR", 1, 450, 15, 100, 0, 0, 0},
-    {static_cast<ShipType>(18), ShipRole::kMerchant, "ATC", 1, 260, 10, 60, 0, 0, 0},
-    {static_cast<ShipType>(19), ShipRole::kMerchant, "AKV", 1, 380, 12, 85, 0, 0, 0},
-    {static_cast<ShipType>(20), ShipRole::kMerchant, "AKX", 1, 340, 11, 75, 0, 0, 0},
+    {static_cast<ShipType>(12), ShipRole::kMerchant, "AK", 1, 400, 16, 90, 0, 0, 0},
+    {static_cast<ShipType>(13), ShipRole::kMerchant, "AP", 1, 420, 17, 90, 1, 4, 0},
+    {static_cast<ShipType>(14), ShipRole::kMerchant, "AO", 1, 480, 16, 110, 0, 0, 0},
+    {static_cast<ShipType>(15), ShipRole::kMerchant, "AKL", 1, 300, 15, 70, 0, 0, 0},
+    {static_cast<ShipType>(16), ShipRole::kMerchant, "AKS", 1, 350, 15, 80, 1, 3, 0},
+    {static_cast<ShipType>(17), ShipRole::kMerchant, "ATR", 1, 450, 18, 100, 0, 0, 0},
+    {static_cast<ShipType>(18), ShipRole::kMerchant, "ATC", 1, 260, 15, 60, 0, 0, 0},
+    {static_cast<ShipType>(19), ShipRole::kMerchant, "AKV", 1, 380, 16, 85, 0, 0, 0},
+    {static_cast<ShipType>(20), ShipRole::kMerchant, "AKX", 1, 340, 15, 75, 0, 0, 0},
     {ShipType::kSampan, ShipRole::kSmallCraft, "SMP", 1, 50, 7, 10, 0, 0, 0},
 };
 
-ShipClass ship_class(const ShipArchetype& a, int k, const std::string& index_name, const Model::ShipClassNames& names) {
+bool s_is_merchant(const TableRecord& r) {
+  return static_cast<ShipRole>(r.number("role")) == ShipRole::kMerchant;
+}
+
+bool s_role_is_sub(const TableRecord& r) { return static_cast<ShipRole>(r.number("role")) == ShipRole::kSubmarine; }
+
+const ShipArchetype& archetype(ShipType type) {
+  for (const ShipArchetype& a : kShipArchetypes) {
+    if (a.type == type) {
+      return a;
+    }
+  }
+  return kShipArchetypes[11];  // an unknown type: a merchant
+}
+
+ShipClass ship_class(const TableRecord& r, int k) {
+  const ShipArchetype& a = archetype(static_cast<ShipType>(r.number("type")));
+  k %= 4;
   const double scale = 1.0 + 0.08 * k;
   const auto length = static_cast<std::uint32_t>(a.length_ft * scale);
   const auto beam = static_cast<std::uint32_t>(length / (a.role == ShipRole::kSmallCraft ? 4 : 9));
   const auto draft = static_cast<std::uint32_t>(beam / 3 + 2);
   const auto tons = static_cast<std::uint32_t>(length * beam * draft / 90);
-  const double speed = a.speed_kts - k;
+  // Merchants all make 15 knots, the generator's fast convoys' minimum.
+  const double speed = s_is_merchant(r) ? a.speed_kts : a.speed_kts - k;
   const double c = 0.0015 + length / 150000.0;
   const double b = 0.032;
-  const bool sub = a.role == ShipRole::kSubmarine;
+  const bool sub = s_role_is_sub(r);
   ShipClass s;
-  s.index_name = index_name;
-  s.name = names.name;
-  s.ship_type = a.type;
-  s.role = a.role;
-  s.sprite1 = names.sprite;
-  s.sprite2 = names.silhouette;
-  s.idbook_picture = names.idbook;
-  s.start_year = 1930 + static_cast<std::uint32_t>(k);
-  s.start_month = 1;
-  s.end_year = 1945;
-  s.end_month = 12;
-  s.selection_weight = a.role == ShipRole::kMerchant ? -1 : 10 + 5 * k;
+  s.index_name = r.text("index");
+  s.name = r.text("name");
+  s.ship_type = static_cast<ShipType>(r.number("type"));
+  s.role = static_cast<ShipRole>(r.number("role"));
+  s.sprite1 = r.text("sprite1");
+  s.sprite2 = r.text("sprite2");
+  s.idbook_picture = r.text("idbook");
+  s.start_year = static_cast<std::uint32_t>(r.number("start_year"));
+  s.start_month = static_cast<std::uint32_t>(r.number("start_month"));
+  s.end_year = static_cast<std::uint32_t>(r.number("end_year"));
+  s.end_month = static_cast<std::uint32_t>(r.number("end_month"));
+  s.selection_weight = s.role == ShipRole::kMerchant ? -1 : 10 + 5 * (k % 4);
   s.render_size = length * 0x1000;
   s.bow_wave_size = beam * 0x2000;
   s.category = static_cast<std::uint32_t>(a.type);
@@ -97,8 +120,9 @@ ShipClass ship_class(const ShipArchetype& a, int k, const std::string& index_nam
   s.depth_charges = static_cast<std::uint32_t>(a.depth_charges);
   s.dc_racks = a.depth_charges > 0 ? 2 : 0;
   s.dc_throwers = a.depth_charges > 0 ? 2 + static_cast<std::uint32_t>(k) : 0;
-  s.has_sonar = a.role == ShipRole::kEscort;
-  s.main_gun_count = static_cast<std::uint32_t>(a.guns);
+  s.has_sonar = s.role == ShipRole::kEscort;
+  s.main_gun_count = s.role == ShipRole::kMerchant ? static_cast<std::uint32_t>(r.number("armed"))
+                                                    : static_cast<std::uint32_t>(a.guns);
   s.main_gun_caliber_in = a.guns > 0 ? std::to_string(a.caliber_in) : "";
   s.gun_mounts = {a.guns > 0, a.guns > 1};
   s.gun_id = a.guns > 0 ? static_cast<std::uint32_t>(1 + (a.caliber_in > 5 ? 2 : 0)) : 0;
@@ -122,25 +146,36 @@ ShipClass ship_class(const ShipArchetype& a, int k, const std::string& index_nam
   return s;
 }
 
-// The boat classes of the player, from the oldest to the newest.
-std::vector<SubClass> sub_classes(const Context& context) {
+// The boat classes of the player, in the manifest's order (the oldest
+// first); their numbers grow with the order.
+std::vector<SubClass> sub_classes() {
   std::vector<SubClass> out;
-  const std::vector<const FileManifest*> profiles = context.entries("ART/P_", "shp");
-  for (int k = 0; k < 9; ++k) {
+  int k = 0;
+  for (const TableRecord* r : table_records("SUBS.DAT")) {
     SubClass s;
-    s.index_name = std::format("SYN-{}", static_cast<char>('A' + k));
-    s.name = s.index_name;
-    s.display_name = std::format("SYNTHETIC {}", static_cast<char>('A' + k));
-    s.class_index = static_cast<std::uint32_t>(k);
-    s.picture_frame = static_cast<std::uint8_t>(k % 8);
-    s.sprite_silhouette = std::format("SUB-{}.SHP", 1 + k % 8);
-    s.sprite_profile = profiles.empty() ? "" : profiles[static_cast<std::size_t>(k) % profiles.size()]->path.substr(4);
-    // In service from before the war (the older ones) or a later year,
-    // to the war's end.
-    s.intro_month = 1 + static_cast<std::uint32_t>(k % 12);
-    s.intro_year = k < 5 ? 1930 + static_cast<std::uint32_t>(k) : 1937 + static_cast<std::uint32_t>(k);
-    s.end_month = 10;
-    s.end_year = 1945;
+    s.index_name = r->text("index");
+    s.name = r->text("name");
+    s.display_name = r->text("display");
+    s.class_index = static_cast<std::uint32_t>(r->number("class_index"));
+    s.picture_frame = static_cast<std::uint8_t>(r->number("picture"));
+    s.sprite_silhouette = r->text("silhouette");
+    s.sprite_profile = r->text("profile");
+    s.intro_month = static_cast<std::uint32_t>(r->number("intro_month"));
+    s.intro_year = static_cast<std::uint32_t>(r->number("intro_year"));
+    s.end_month = static_cast<std::uint32_t>(r->number("end_month"));
+    s.end_year = static_cast<std::uint32_t>(r->number("end_year"));
+    // The fields SUBS.DAT's parser leaves in `raw`: the career's use of the
+    // class and its last month, the endurance figures of the SUB CLASS sheet.
+    const auto put = [&s](std::size_t offset, std::int64_t v) {
+      for (std::size_t i = 0; i < 4; ++i) {
+        s.raw[offset + i] = static_cast<std::uint8_t>(static_cast<std::uint64_t>(v) >> (8 * i));
+      }
+    };
+    put(0x58, r->number("career"));
+    put(0x5c, r->number("career_end_month"));
+    put(0x60, r->number("career_end_year"));
+    put(0x6c, k == 0 ? -1 : 30 + 10 * k);
+    put(0x70, 5);
     const int length = 230 + 12 * k;
     const double surface_kts = 14.5 + 0.8 * k;
     const double submerged_kts = 8.0 + 0.15 * k;
@@ -195,6 +230,7 @@ std::vector<SubClass> sub_classes(const Context& context) {
       s.compartment_rects[i] = {x, 200, x + 24, 260};
     }
     out.push_back(std::move(s));
+    ++k;
   }
   return out;
 }
@@ -207,23 +243,24 @@ std::vector<AircraftType> aircraft_types(Context& context) {
     int bombs;
     int torpedoes;
   };
-  constexpr Archetype kTypes[] = {{AircraftRole::kDiveBomber, 240, 2, 1, 0},
+  // By role: fighter, torpedo bomber, dive bomber, level bomber.
+  constexpr Archetype kTypes[] = {{AircraftRole::kFighter, 330, 4, 0, 0},
                                   {AircraftRole::kTorpedoBomber, 230, 1, 0, 1},
-                                  {AircraftRole::kFighter, 330, 4, 0, 0},
-                                  {AircraftRole::kTorpedoBomber, 270, 2, 1, 1},
+                                  {AircraftRole::kDiveBomber, 240, 2, 1, 0},
                                   {AircraftRole::kLevelBomber, 280, 4, 4, 0}};
   std::vector<AircraftType> out;
-  for (std::size_t i = 0; i < std::size(kTypes); ++i) {
-    const Archetype& a = kTypes[i];
+  std::size_t i = 0;
+  for (const TableRecord* r : table_records("AIRCRAFT.DAT")) {
+    const Archetype& a = kTypes[static_cast<std::size_t>(r->number("role")) % std::size(kTypes)];
     AircraftType t;
-    t.index_name = std::format("AIR-{}", i + 1);
-    t.name = t.index_name;
-    t.long_name = std::format("SYNTHETIC AIRCRAFT {}", i + 1);
+    t.index_name = r->text("index");
+    t.name = r->text("name");
+    t.long_name = r->text("long_name");
     t.name2 = t.long_name;
-    t.role = a.role;
-    t.sprite = std::format("AIR{}.SHP", i + 1);
-    t.intro_year = 1937;
-    t.end_year = 1945;
+    t.role = static_cast<AircraftRole>(r->number("role"));
+    t.sprite = r->text("sprite");
+    t.intro_year = static_cast<std::uint32_t>(r->number("intro_year"));
+    t.end_year = static_cast<std::uint32_t>(r->number("end_year"));
     t.start_month = 1;
     t.end_month = 12;
     t.render_size = 0x40000;
@@ -242,6 +279,7 @@ std::vector<AircraftType> aircraft_types(Context& context) {
     context.model.aircraft_sprites.push_back(t.sprite);
     context.model.aircraft.push_back(t.index_name);
     out.push_back(std::move(t));
+    ++i;
   }
   return out;
 }
@@ -249,30 +287,31 @@ std::vector<AircraftType> aircraft_types(Context& context) {
 // The torpedoes the code names (MARK10, MARK14, MARK18-1, MARK18-2, the
 // Japanese TYPE95-1) and their run models.
 Weapons weapons() {
-  struct Spec {
-    const char* name;
-    Nation nation;
-    std::uint32_t year, month;
-    std::uint32_t slow_kts, fast_kts, long_yd, short_yd;
-    TorpedoPropulsion propulsion;
-  };
-  constexpr Spec kTorpedoes[] = {
-      {"MARK10", Nation::kUs, 1930, 1, 30, 36, 3500, 3500, TorpedoPropulsion::kSteam},
-      {"MARK14", Nation::kUs, 1931, 1, 31, 46, 9000, 4500, TorpedoPropulsion::kSteam},
-      {"MARK18-1", Nation::kUs, 1943, 10, 29, 29, 4000, 4000, TorpedoPropulsion::kElectric},
-      {"MARK18-2", Nation::kUs, 1944, 8, 29, 29, 4000, 4000, TorpedoPropulsion::kElectric},
-      {"TYPE95-1", Nation::kJapan, 1935, 1, 45, 49, 13000, 6500, TorpedoPropulsion::kOxygen},
-  };
   Weapons w;
-  std::uint32_t id = 1;
-  for (const Spec& s : kTorpedoes) {
+  for (const TableRecord* r : table_records("WEAPONS.DAT")) {
+    // Speeds and ranges by kind: the Japanese oxygen torpedoes fast and
+    // long, the electric ones ("18") slow and single-speed, the others
+    // steam, two speeds.
+    const std::string& name = r->text("torpedo");
+    const auto nation = static_cast<Nation>(r->number("nation"));
+    const bool electric = name.find("18") != std::string::npos;
+    const TorpedoPropulsion propulsion = nation == Nation::kJapan ? TorpedoPropulsion::kOxygen
+                                         : electric               ? TorpedoPropulsion::kElectric
+                                                                  : TorpedoPropulsion::kSteam;
+    const std::uint32_t slow = nation == Nation::kJapan ? 45 : electric ? 29 : 31;
+    const std::uint32_t fast = nation == Nation::kJapan ? 49 : electric ? 29 : 46;
+    const std::uint32_t long_yd = nation == Nation::kJapan ? 13000 : electric ? 4000 : 9000;
+    const std::uint32_t short_yd = slow == fast ? long_yd : long_yd / 2;
+    const struct {
+      std::uint32_t slow_kts, fast_kts, long_yd, short_yd;
+    } s{slow, fast, long_yd, short_yd};
     Torpedo t;
-    t.short_name = s.name;
-    t.long_name = std::string("SYN ") + s.name;
-    t.id = id++;
-    t.nation = s.nation;
-    t.month = s.month;
-    t.year = s.year;
+    t.short_name = name;
+    t.long_name = r->text("long_name");
+    t.id = static_cast<std::uint32_t>(r->number("id"));
+    t.nation = nation;
+    t.month = static_cast<std::uint32_t>(r->number("month"));
+    t.year = static_cast<std::uint32_t>(r->number("year"));
     t.range_long_yd = s.long_yd;
     t.range_short_yd = s.short_yd;
     t.speed_low_kts = s.slow_kts;
@@ -281,8 +320,8 @@ Weapons weapons() {
     t.warhead_lb = 600;
     t.length_ft = 20;
     t.beam_ft = 2;
-    t.propulsion = s.propulsion;
-    t.mk14_18_flag = s.nation == Nation::kUs ? 1 : 0;
+    t.propulsion = propulsion;
+    t.mk14_18_flag = nation == Nation::kUs ? 1 : 0;
     t.speed_settings = s.slow_kts == s.fast_kts ? 1 : 2;
     t.displacement = 1;
     t.reach_ft = {100, 100};
@@ -317,39 +356,34 @@ Weapons weapons() {
 }  // namespace
 
 void generate_tables(Context& context) {
-  // Ship classes and their sprite names.
+  // Ship classes; the k-th of a type is a little bigger and slower.
   std::vector<ShipClass> ships;
-  int number = 1;
-  for (const ShipArchetype& a : kShipArchetypes) {
-    for (int k = 0; k < a.classes; ++k, ++number) {
-      Model::ShipClassNames names{.name = std::format("SYN {} {}", a.code, k + 1),
-                                  .sprite = std::format("SHIP{:02}.SHP", number),
-                                  .silhouette = std::format("SHIP{:02}S.SHP", number),
-                                  .idbook = std::format("SHIP{:02}.SHP", number)};
-      ships.push_back(ship_class(a, k, std::format("{}-{}", a.code, k + 1), names));
-      context.model.ships.push_back(names);
-      const std::string& index_name = ships.back().index_name;
-      switch (a.role) {
-        case ShipRole::kMerchant:
-          context.model.merchants.push_back(index_name);
-          break;
-        case ShipRole::kEscort:
-          context.model.escorts.push_back(index_name);
-          break;
-        case ShipRole::kWarship:
-          context.model.warships.push_back(index_name);
-          break;
-        case ShipRole::kSubmarine:
-          context.model.enemy_subs.push_back(index_name);
-          break;
-        default:
-          break;
-      }
+  std::map<std::int64_t, int> of_type;
+  for (const TableRecord* r : table_records("SHIPS.DAT")) {
+    ships.push_back(ship_class(*r, of_type[r->number("type")]++));
+    const ShipClass& c = ships.back();
+    context.model.ships.push_back(
+        {.name = c.name, .sprite = c.sprite1, .silhouette = c.sprite2, .idbook = c.idbook_picture});
+    switch (c.role) {
+      case ShipRole::kMerchant:
+        context.model.merchants.push_back(c.index_name);
+        break;
+      case ShipRole::kEscort:
+        context.model.escorts.push_back(c.index_name);
+        break;
+      case ShipRole::kWarship:
+        context.model.warships.push_back(c.index_name);
+        break;
+      case ShipRole::kSubmarine:
+        context.model.enemy_subs.push_back(c.index_name);
+        break;
+      default:
+        break;
     }
   }
   context.files["DATA/SHIPS.DAT"] = encode_ships_dat(ships);
 
-  const std::vector<SubClass> subs = sub_classes(context);
+  const std::vector<SubClass> subs = sub_classes();
   for (const SubClass& s : subs) {
     context.model.boats.emplace_back(s.index_name, s.intro_year);
   }
@@ -357,14 +391,15 @@ void generate_tables(Context& context) {
   context.files["DATA/AIRCRAFT.DAT"] = encode_aircraft_dat(aircraft_types(context));
   context.files["DATA/WEAPONS.DAT"] = encode_weapons_dat(weapons());
 
-  // Boats of each class, a new one every few months.
+  // Twelve boats of each class, in a run per class (the career's table),
+  // from the class's first year (1941 at the earliest) a month apart.
   std::vector<CarsubBoat> boats;
-  for (std::uint32_t i = 0; i < 120; ++i) {
-    const SubClass& c = subs[i % subs.size()];
+  for (std::uint32_t i = 0; i < 12 * subs.size(); ++i) {
+    const SubClass& c = subs[i / 12];
     CarsubBoat b;
     b.name = std::format("Boat {}", i + 1);
     b.hull_number = 100 + i;
-    b.avail_year = std::max<std::uint32_t>(41, c.intro_year - 1900 + i / 40);
+    b.avail_year = std::max<std::uint32_t>(41, std::min<std::uint32_t>(45, c.intro_year - 1900));
     b.avail_month = 1 + i % 12;
     b.end_year = 45;
     b.end_month = 10;
@@ -404,23 +439,30 @@ void generate_tables(Context& context) {
   }
   context.files["DATA/CMDLIST.DAT"] = encode_cmdlist_dat(commanders);
 
-  // Three home ports, one per command, open all war.
+  // The home ports of the manifest, with their dates and commands.
   std::vector<HomePort> ports;
-  for (int i = 0; i < 3; ++i) {
+  int i = 0;
+  for (const TableRecord* r : table_records("HOMEPORT.DAT")) {
+    const auto date = [](const std::string& text) {
+      PortDate d;
+      std::sscanf(text.c_str(), "%d/%d/%d", &d.year, &d.month, &d.day);
+      return d;
+    };
     HomePort p;
-    p.name = std::format("Port {}", static_cast<char>('A' + i));
+    p.name = r->text("name");
     p.flags = 1;
-    p.open_date = {0, 1, 1941};
-    p.close_date = {11, 31, 1946};
+    p.open_date = date(r->text("open"));
+    p.close_date = date(r->text("close"));
     p.transfer_weight.fill(10);
     for (std::size_t z = 0; z < HomePort::kZones; ++z) {
-      p.zone_weight[z].fill(z < 15 && static_cast<int>(z % 3) == i ? 10 : (z < 15 ? 2 : 0));
+      p.zone_weight[z].fill(z < 15 ? (static_cast<int>(z % 3) == i % 3 ? 10 : 2) : 0);
       p.zone_distance_nm[z] = 1500 + 200 * static_cast<std::int32_t>(z);
     }
-    p.command = static_cast<SubCommand>(i);
-    p.map_point = {100 + 150 * i, 150 + 40 * i};
+    p.command = static_cast<SubCommand>(r->number("command"));
+    p.map_point = {100 + 60 * (i % 8), 120 + 50 * (i / 8)};
     p.label_offset = {8, -8};
     ports.push_back(std::move(p));
+    ++i;
   }
   context.files["DATA/HOMEPORT.DAT"] = encode_homeport_dat(ports);
 

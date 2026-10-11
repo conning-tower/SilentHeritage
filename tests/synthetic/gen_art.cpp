@@ -122,16 +122,11 @@ std::vector<std::uint8_t> font_file(const FileManifest& m) {
   return encode_fnt(glyphs, height);
 }
 
-// A `.CAT` whose members take the frame structures of the manifest's
-// archive in turn, named `names`.
-std::vector<std::uint8_t> cat_file(const FileManifest& m, const std::vector<std::string>& names) {
-  if (m.sprites.empty()) {
-    throw std::runtime_error(m.path + ": archive manifest without members");
-  }
+// A `.CAT` of the manifest's members (names and frame structures).
+std::vector<std::uint8_t> cat_file(const FileManifest& m) {
   std::vector<CatMember> members;
-  for (std::size_t i = 0; i < names.size(); ++i) {
-    const SpriteManifest& s = m.sprites[i % m.sprites.size()];
-    members.push_back({names[i], sprite_file(s, name_hash(names[i]))});
+  for (const SpriteManifest& s : m.sprites) {
+    members.push_back({s.name, sprite_file(s, name_hash(s.name))});
   }
   return encode_cat(members);
 }
@@ -162,19 +157,10 @@ void generate_art(Context& context) {
       context.files[m->path] = font_file(*m);
     }
   }
-  // The archives of the classes' models (generate_tables names them).
-  std::vector<std::string> ships;
-  std::vector<std::string> idbook;
-  for (const Model::ShipClassNames& s : context.model.ships) {
-    ships.push_back(s.sprite);
-    if (!s.silhouette.empty()) {
-      ships.push_back(s.silhouette);
-    }
-    idbook.push_back(s.idbook);
+  // The archives of the classes' models.
+  for (const FileManifest* m : context.entries("ART/", "cat")) {
+    context.files[m->path] = cat_file(*m);
   }
-  context.files["ART/3DSHIPS.CAT"] = cat_file(context.entry("ART/3DSHIPS.CAT"), ships);
-  context.files["ART/IDBOOK.CAT"] = cat_file(context.entry("ART/IDBOOK.CAT"), idbook);
-  context.files["ART/3DAIR.CAT"] = cat_file(context.entry("ART/3DAIR.CAT"), context.model.aircraft_sprites);
 }
 
 }  // namespace sh::test::synth

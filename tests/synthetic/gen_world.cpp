@@ -15,13 +15,13 @@
 #include "assets/world.h"
 #include "synthetic/encoders.h"
 #include "synthetic/generators.h"
+#include "synthetic/table_manifest.h"
 #include "synthetic/table_encoders.h"
 
 namespace sh::test::synth {
 
 namespace {
 
-constexpr int kMaps = 15;
 constexpr std::uint8_t kDeepest = 0x00;
 constexpr std::uint8_t kChartWater = 128;  // 16 depth shades from here
 constexpr std::uint8_t kChartLand = 144;   // 16 height shades from here
@@ -63,7 +63,7 @@ std::uint8_t terrain(double x, double y, std::uint32_t seed) {
 
 VgaPalette::value_type six(double v) { return static_cast<std::uint8_t>(std::clamp(v, 0.0, 1.0) * 63); }
 
-MapPlan make_map(const FileManifest& m, int number) {
+MapPlan make_map(const FileManifest& m, int number, const std::string& region) {
   const auto& n = m.numbers;
   if (n.size() < 8) {
     throw std::runtime_error(m.path + ": map manifest too short");
@@ -71,7 +71,7 @@ MapPlan make_map(const FileManifest& m, int number) {
   MapPlan plan;
   World& w = plan.world;
   w.version = static_cast<std::uint8_t>(n[0]);
-  w.region_name = std::format("Synthetic Sea {}", number);
+  w.region_name = region;
   w.scale_shift = static_cast<std::uint32_t>(n[1]);
   plan.cell = 0x10000 >> w.scale_shift;
   const auto gw = static_cast<std::int32_t>(n[3]);
@@ -234,18 +234,18 @@ std::vector<ConvoyRoute> make_routes(const MapPlan& plan, int number) {
   return routes;
 }
 
-PatrolZone make_zone(int number, const std::string& routes) {
+PatrolZone make_zone(int number, const TableRecord& r) {
   PatrolZone z;
-  z.name = std::format("Synthetic Sea {}", number);
-  z.world = std::format("WORLD-{}.WLD", number);
-  z.routes = routes;
-  z.bases = base_file_name(number);
+  z.name = r.text("name");
+  z.world = r.text("world");
+  z.routes = r.text("routes");
+  z.bases = r.text("bases");
   z.first_year = 1941;
   z.last_year = 1945;
   z.first_month = 12;
   z.last_month = 9;
   z.year_weight.fill(5);
-  z.command = static_cast<Command>(number % 3);
+  z.command = static_cast<Command>(r.number("command"));
   const int i = number - 1;
   z.orders_rect = {20 + (i % 5) * 110, 20 + (i / 5) * 110, 100 + (i % 5) * 110, 100 + (i / 5) * 110};
   z.start_edges.fill(1);
@@ -363,26 +363,24 @@ std::vector<std::uint8_t> environment_file(const FileManifest& m, int number) {
 }  // namespace
 
 void generate_world(Context& context) {
+  // The maps, one per zone of the manifest (its world, routes and bases
+  // files).
   std::vector<PatrolZone> zones;
-  std::vector<const FileManifest*> route_files = context.entries("DATA/", "size");
-  std::erase_if(route_files, [](const FileManifest* f) { return !f->path.ends_with(".CR"); });
-  for (int number = 1; number <= kMaps; ++number) {
-    const std::string path = std::format("DATA/WORLD-{}.WLD", number);
-    const MapPlan plan = make_map(context.entry(path), number);
-    Model::MapInfo info{.world = path.substr(5), .deep_points = {}};
+  int number = 0;
+  for (const TableRecord* r : table_records("PZ.DAT")) {
+    ++number;
+    const std::string path = "DATA/" + r->text("world");
+    const MapPlan plan = make_map(context.entry(path), number, r->text("name"));
+    Model::MapInfo info{.world = r->text("world"), .deep_points = {}};
     SynthRandom random(name_hash(path));
     for (const auto& c : deep_cells(plan, 64, random, plan.world.grid.width / 8)) {
       info.deep_points.push_back(plan.point(c[0], c[1]));
     }
     context.model.maps.push_back(std::move(info));
     context.files[path] = encode_world(plan.world);
-    context.files["DATA/" + base_file_name(number)] = encode_bases(make_bases(plan, number));
-    const std::string routes = route_files.empty() ? std::format("ROUTES{}.CR", number)
-                                                   : route_files[static_cast<std::size_t>(number - 1) %
-                                                                 route_files.size()]
-                                                         ->path.substr(5);
-    context.files["DATA/" + routes] = encode_routes(make_routes(plan, number));
-    zones.push_back(make_zone(number, routes));
+    context.files["DATA/" + r->text("bases")] = encode_bases(make_bases(plan, number));
+    context.files["DATA/" + r->text("routes")] = encode_routes(make_routes(plan, number));
+    zones.push_back(make_zone(number, *r));
   }
   context.files["DATA/PZ.DAT"] = encode_patrol_zones(zones);
 
@@ -395,7 +393,7 @@ void generate_world(Context& context) {
     }
     context.files[m->path] = encode_objects(objects);
   }
-  int number = 1;
+  number = 1;
   for (const FileManifest* m : context.entries("DATA/", "env")) {
     context.files[m->path] = environment_file(*m, number++);
   }

@@ -7,6 +7,7 @@ add_library(sh_test_support STATIC
   synthetic/table_encoders.cpp
   # The structure of the original's files.
   synthetic/manifest.cpp
+  synthetic/table_manifest.cpp
   # The synthetic install and its generators.
   synthetic/procedural.cpp
   synthetic/synthetic_install.cpp

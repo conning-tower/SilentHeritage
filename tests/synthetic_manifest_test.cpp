@@ -14,6 +14,7 @@
 #include "synthetic/exe_rules.h"
 #include "synthetic/le_writer.h"
 #include "synthetic/manifest.h"
+#include "synthetic/table_manifest.h"
 
 namespace sh::test {
 namespace {
@@ -24,6 +25,9 @@ TEST_CASE("The file manifest is extracted from the install", "[.synthetic_manife
   std::ofstream out(manifest_path(), std::ios::trunc);
   out << format_manifest(extract_manifest(install));
   REQUIRE(out.good());
+  std::ofstream tables(manifest_path().parent_path() / "tables.txt", std::ios::trunc);
+  tables << format_table_manifest(extract_table_manifest(install));
+  REQUIRE(tables.good());
 }
 
 TEST_CASE("The committed file manifest reads back and describes the install", "[synthetic]") {
@@ -31,6 +35,7 @@ TEST_CASE("The committed file manifest reads back and describes the install", "[
   CHECK(parse_manifest(format_manifest(manifest)) == manifest);
   CHECK(manifest.contains("ART/CONN.PCX"));
   SH_REQUIRE_GAME_DATA(install);
+  CHECK(extract_table_manifest(install) == committed_table_manifest());
   const Manifest extracted = extract_manifest(install);
   CHECK(extracted.size() == manifest.size());
   for (const auto& [path, m] : extracted) {
