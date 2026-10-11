@@ -54,7 +54,7 @@ struct ScopeRig {
 
 }  // namespace
 
-TEST_CASE("The ID book pages print the SHIPS.DAT characteristics", "[idbook]") {
+TEST_CASE("The ID book pages print the SHIPS.DAT characteristics", "[idbook][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const ExeImage exe = ExeImage::load(install);
@@ -105,7 +105,7 @@ TEST_CASE("The ID book pages print the SHIPS.DAT characteristics", "[idbook]") {
 }
 
 TEST_CASE("The ID book pages run over SHIPS.DAT but its last class", "[idbook]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   StationEnv& env = rig.screen->env();
   REQUIRE(env.tables.ships.size() == 55);
@@ -155,7 +155,7 @@ TEST_CASE("The ID book pages run over SHIPS.DAT but its last class", "[idbook]")
 }
 
 TEST_CASE("The periscope's ID panel turns the pages with its hotspots", "[idbook]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ScopeRig scope(rig);
   StationEnv& env = rig.screen->env();
@@ -202,7 +202,7 @@ TEST_CASE("The periscope's ID panel turns the pages with its hotspots", "[idbook
 }
 
 TEST_CASE("The captain's ID book opens from its cover and closes on it", "[idbook]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   StationEnv& env = rig.screen->env();
   auto owned = std::make_unique<CabinStation>(env);
@@ -250,7 +250,7 @@ TEST_CASE("The captain's ID book opens from its cover and closes on it", "[idboo
 }
 
 TEST_CASE("With the rules' corrections a tab clicked on the cover opens the book", "[idbook][rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool fixed : {false, true}) {
     ControlRig rig(install);
     StationEnv& env = rig.screen->env();
