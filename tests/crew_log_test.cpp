@@ -173,7 +173,7 @@ TEST_CASE("The crew log's CLOG section round-trips", "[crewlog][save]") {
 
 // --- In the mission -------------------------------------------------------
 
-TEST_CASE("The bar records each crew message with its game time and full text", "[crewlog]") {
+TEST_CASE("The bar records each crew message with its game time and full text", "[crewlog][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ControlRig rig(install);
   start(rig, true);
@@ -198,7 +198,7 @@ TEST_CASE("The bar records each crew message with its game time and full text", 
 }
 
 TEST_CASE("The message strip and L open the crew log over the paused mission", "[crewlog]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   start(rig, true);
   for (int i = 0; i < 8; ++i) {
@@ -284,7 +284,7 @@ TEST_CASE("The message strip and L open the crew log over the paused mission", "
 }
 
 TEST_CASE("The crew log is saved in a CLOG section and restored with the session", "[crewlog][save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   start(rig, true);
   script(rig);
@@ -311,7 +311,7 @@ TEST_CASE("The crew log is saved in a CLOG section and restored with the session
 
 TEST_CASE("Without crew_log the bar records nothing and neither the strip nor L opens a log",
           "[crewlog][faithful]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   start(rig, false);
   script(rig);
@@ -329,7 +329,7 @@ TEST_CASE("Without crew_log the bar records nothing and neither the strip nor L 
 }
 
 TEST_CASE("crew_log leaves the pixels, the simulation and the saved bytes as without it", "[crewlog][faithful]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig off(install);
   ControlRig on(install);
   start(off, false);
