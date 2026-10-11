@@ -53,7 +53,7 @@ TEST_CASE("SHPATH.INI is read like load_shpath_ini", "[app]") {
     CHECK(p.dir(GameDir::kData) == "DATA\\");
   }
   SECTION("the shipped file") {
-    SH_REQUIRE_GAME_DATA(install);
+    SH_REQUIRE_INSTALL(install);
     const ShPaths p = ShPaths::load(install);
     CHECK(p.dir(GameDir::kBud) == "BUD\\");
     CHECK(p.dir(GameDir::kSave) == "SAVE\\");
@@ -138,7 +138,7 @@ TEST_CASE("Sprite palette recipes follow the traced screens", "[app]") {
   CHECK(font_palette_pcx("GUI_S") == "MENUBGND.PCX");
 }
 
-TEST_CASE("Palette builder reproduces the 3D view and chart palettes", "[app]") {
+TEST_CASE("Palette builder reproduces the 3D view and chart palettes", "[app][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
   PaletteBuilder builder(install, paths);
