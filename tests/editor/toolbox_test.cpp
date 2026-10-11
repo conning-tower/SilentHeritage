@@ -96,7 +96,7 @@ TEST_CASE("Toolbox digit and time cycles", "[editor]") {
 }
 
 TEST_CASE("Toolbox player panel: heading, engine, crew, depth digits, presets", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   PlayerSub& p = rig.scenario.player();
   const SubClass& cls = rig.data.tables.subs[*rig.data.find_sub(scn_text(p.rec.sub_class))];
@@ -160,7 +160,7 @@ TEST_CASE("Toolbox player panel: heading, engine, crew, depth digits, presets", 
 }
 
 TEST_CASE("Toolbox player class and name through the selection dialogs", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   PlayerSub& p = rig.scenario.player();
   const std::size_t current = *rig.data.find_sub(scn_text(p.rec.sub_class));
@@ -195,7 +195,7 @@ TEST_CASE("Toolbox player class and name through the selection dialogs", "[edito
 }
 
 TEST_CASE("Toolbox ship panel: speed to the top speed, damage, crew of both parts", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   Vessel& v = add_selected(rig, ship_class(rig.data, ShipType::kDestroyer), open_water(rig));
   const std::int32_t top = rig.scenario.ship_max_speed(v);
@@ -234,7 +234,7 @@ TEST_CASE("Toolbox ship panel: speed to the top speed, damage, crew of both part
   CHECK(v.sub.heading == 90);
 }
 
-TEST_CASE("Toolbox enemy sub panel: depth above the bottom, orders None / Patrol only", "[editor]") {
+TEST_CASE("Toolbox enemy sub panel: depth above the bottom, orders None / Patrol only", "[editor][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install);
   Vessel& s = add_selected(rig, ship_class(rig.data, ShipType::kSubmarine), open_water(rig), Vessel::Kind::kSubmarine);
@@ -262,7 +262,7 @@ TEST_CASE("Toolbox enemy sub panel: depth above the bottom, orders None / Patrol
   CHECK(rig.chart->panel() == EditorPanel::kPlotCourse);
 }
 
-TEST_CASE("Toolbox ship orders by role, convoys and their leader", "[editor]") {
+TEST_CASE("Toolbox ship orders by role, convoys and their leader", "[editor][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
@@ -376,7 +376,7 @@ TEST_CASE("Toolbox ship orders by role, convoys and their leader", "[editor]") {
 }
 
 TEST_CASE("Toolbox convoy cycle: the convoys with a leader", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   const auto at = open_water(rig);
   const std::size_t merchant = role_class(rig.data, ShipRole::kMerchant);
@@ -402,7 +402,7 @@ TEST_CASE("Toolbox convoy cycle: the convoys with a leader", "[editor]") {
   CHECK(escort.ship.alert == 0);
 }
 
-TEST_CASE("Toolbox aircraft panel: mission, bombs, guns, regenerate", "[editor]") {
+TEST_CASE("Toolbox aircraft panel: mission, bombs, guns, regenerate", "[editor][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
@@ -484,7 +484,7 @@ TEST_CASE("Toolbox aircraft panel: mission, bombs, guns, regenerate", "[editor]"
 }
 
 TEST_CASE("Toolbox add tools: ship or sub, aircraft, airstrike with SELECT A CITY", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install);
   ChartScreen& chart = *rig.chart;
   // ADD SHIP: cancelled, a surface class, a submarine class.
@@ -571,7 +571,7 @@ TEST_CASE("Toolbox add tools: ship or sub, aircraft, airstrike with SELECT A CIT
 }
 
 TEST_CASE("Extended: cancelling SELECT SHIP TYPE leaves the scenario unmodified", "[editor][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool fixes : {false, true}) {
     Features features;
     features.editor_fixes = fixes;
@@ -774,7 +774,7 @@ TEST_CASE("Extended: the airstrike's hold time is labelled Hold Time", "[editor]
 }
 
 TEST_CASE("Extended: no memory budget, no gauge, never too large", "[editor][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool unlimited : {false, true}) {
     Features features;
     features.editor_no_size_limit = unlimited;
@@ -804,7 +804,7 @@ TEST_CASE("Extended: no memory budget, no gauge, never too large", "[editor][ext
 }
 
 TEST_CASE("Toolbox panels render like the original's", "[editor]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install, "SCEN/HIST01.SCN");
   rig.gui.mouse().update(600, 440, 0, 0);
   rig.frames(3);
