@@ -33,7 +33,8 @@
 // upper-case letter adds Shift), optionally prefixed by "shift+" or
 // "alt+"; "-" waits one frame and "-N" N frames; "click:X:Y" clicks the
 // left button at (X, Y) (press and release on two frames), "rclick:X:Y"
-// the right one.
+// the right one, "drag:X1:Y1:X2:Y2" drags with the left button over 11
+// frames, "move:X:Y" moves the mouse.
 // `--screenshot` runs N frames (default 2) on SDL's dummy video and
 // audio drivers with a 60 Hz virtual clock, saves the last frame as an 8-bit
 // BMP and exits; with the wide screen, also the window as shown (the side

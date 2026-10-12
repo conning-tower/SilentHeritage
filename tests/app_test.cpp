@@ -88,6 +88,23 @@ TEST_CASE("The command line starts the game, the viewer or the editor", "[app]")
   CHECK(keys.keys[2].x == 70);
   CHECK(keys.keys[5].type == EventType::kKeyUp);
 
+  // A drag from (100, 50) to (180, 10) over 11 frames, then a move.
+  const CommandLine drag = parse_command_line(Args{"--keys", "drag:100:50:180:10,move:5:6"});
+  REQUIRE(drag.keys.size() == 12);
+  CHECK(drag.keys[0].type == EventType::kMouseMove);
+  CHECK(drag.keys[1].type == EventType::kMouseDown);
+  CHECK(drag.keys[1].x == 100);
+  CHECK(drag.keys[5].type == EventType::kMouseMove);
+  CHECK(drag.keys[5].x == 140);
+  CHECK(drag.keys[5].y == 30);
+  CHECK(drag.keys[10].type == EventType::kMouseUp);
+  CHECK(drag.keys[10].x == 180);
+  CHECK(drag.keys[10].y == 10);
+  CHECK(drag.keys[11].type == EventType::kMouseMove);
+  CHECK(drag.keys[11].y == 6);
+
+  CHECK_THROWS_AS(parse_command_line(Args{"--keys", "drag:1:2:3"}), std::runtime_error);
+  CHECK_THROWS_AS(parse_command_line(Args{"--keys", "click:1:2:3"}), std::runtime_error);
   CHECK_THROWS_AS(parse_command_line(Args{"--editor", "--viewer"}), std::runtime_error);
   CHECK_THROWS_AS(parse_command_line(Args{"--keys", "rclick:10"}), std::runtime_error);
   CHECK_THROWS_AS(parse_command_line(Args{"--data"}), std::runtime_error);

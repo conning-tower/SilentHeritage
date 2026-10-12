@@ -67,18 +67,46 @@ InputEvent parse_key(std::string_view spec) {
   throw std::runtime_error(std::format("unknown key name '{}'", spec));
 }
 
+// Returns the `count` integers of "A:B:..." (`at`), or throws naming `key`.
+std::vector<int> parse_coordinates(std::string_view key, std::string_view at, std::size_t count) {
+  std::vector<int> out;
+  std::size_t pos = 0;
+  while (out.size() < count && pos <= at.size()) {
+    const std::size_t colon = std::min(at.find(':', pos), at.size());
+    int v = 0;
+    if (std::from_chars(at.data() + pos, at.data() + colon, v).ec != std::errc{}) {
+      break;
+    }
+    out.push_back(v);
+    pos = colon + 1;
+  }
+  if (out.size() != count || pos <= at.size()) {
+    throw std::runtime_error(std::format("bad mouse step '{}'", key));
+  }
+  return out;
+}
+
 // Appends the press and release of `button` at "X:Y" (`at`).
 void add_click(std::vector<InputEvent>& keys, std::string_view key, std::string_view at, MouseButton button) {
-  const std::size_t colon = at.find(':');
-  int x = 0;
-  int y = 0;
-  if (colon == std::string_view::npos || std::from_chars(at.data(), at.data() + colon, x).ec != std::errc{} ||
-      std::from_chars(at.data() + colon + 1, at.data() + at.size(), y).ec != std::errc{}) {
-    throw std::runtime_error(std::format("bad click '{}'", key));
-  }
+  const std::vector<int> p = parse_coordinates(key, at, 2);
   for (const EventType type : {EventType::kMouseDown, EventType::kMouseUp}) {
-    keys.push_back(InputEvent{.type = type, .x = x, .y = y, .button = button});
+    keys.push_back(InputEvent{.type = type, .x = p[0], .y = p[1], .button = button});
   }
+}
+
+// Appends a left-button drag from "X1:Y1" to "X2:Y2" (`at`): a move to the
+// start, the press, a move on each of `kDragSteps` frames, the release.
+void add_drag(std::vector<InputEvent>& keys, std::string_view key, std::string_view at) {
+  constexpr int kDragSteps = 8;
+  const std::vector<int> p = parse_coordinates(key, at, 4);
+  keys.push_back(InputEvent{.type = EventType::kMouseMove, .x = p[0], .y = p[1]});
+  keys.push_back(InputEvent{.type = EventType::kMouseDown, .x = p[0], .y = p[1], .button = MouseButton::kLeft});
+  for (int i = 1; i <= kDragSteps; ++i) {
+    keys.push_back(InputEvent{.type = EventType::kMouseMove,
+                              .x = p[0] + (p[2] - p[0]) * i / kDragSteps,
+                              .y = p[1] + (p[3] - p[1]) * i / kDragSteps});
+  }
+  keys.push_back(InputEvent{.type = EventType::kMouseUp, .x = p[2], .y = p[3], .button = MouseButton::kLeft});
 }
 
 }  // namespace
@@ -153,6 +181,11 @@ CommandLine parse_command_line(std::span<const std::string_view> args) {
           add_click(o.keys, key, key.substr(6), MouseButton::kLeft);
         } else if (key.starts_with("rclick:")) {
           add_click(o.keys, key, key.substr(7), MouseButton::kRight);
+        } else if (key.starts_with("drag:")) {
+          add_drag(o.keys, key, key.substr(5));
+        } else if (key.starts_with("move:")) {
+          const std::vector<int> p = parse_coordinates(key, key.substr(5), 2);
+          o.keys.push_back(InputEvent{.type = EventType::kMouseMove, .x = p[0], .y = p[1]});
         } else if (key.starts_with('-')) {
           int frames = 1;
           if (key.size() > 1 &&
