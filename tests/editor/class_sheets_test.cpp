@@ -187,7 +187,7 @@ TEST_CASE("The class sheets show the tables' figures", "[editor][select][content
   }
 }
 
-TEST_CASE("Extended: SELECT SUB NAME keeps the boats commissioned by the date", "[editor][select][extended]") {
+TEST_CASE("Extended: SELECT SUB NAME keeps the boats commissioned by the date", "[editor][select][extended][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const EditorData& data = test::editor_data(install);
   const std::size_t gato = *data.find_sub("GATO");
