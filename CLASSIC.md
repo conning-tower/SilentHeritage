@@ -1,19 +1,18 @@
 # Silent Heritage: differences from the original game
 
-Silent Heritage (the default, faithful build) plays the original game: the
+Silent Heritage, the classic version, plays the original game: the
 same simulation, rules, screens and limits, original bugs included. The
 differences below make it run on modern machines and touch screens, or
 avoid crashes and data loss. None of them changes the simulation. The
-extended build's improvements are in [EXTENDED.md](EXTENDED.md).
+improvements of Silent Heritage Extended are in [EXTENDED.md](EXTENDED.md).
 
 ## Running on modern systems
 
 - **Files:** the game reads your own Silent Hunter install, chosen once in a
-  folder dialog (`--setup` to change it), and never writes into it. Saves,
+  folder dialog, and never writes into it. Saves,
   options and custom scenarios go to your per-user folder.
-- **Display:** the 640×480 picture is scaled to the window with smoothing
-  (`--sharp` for the original's square pixels). Alt+Enter toggles
-  fullscreen, which keeps the mouse inside the picture.
+- **Display:** the 640×480 picture is scaled to the window with smoothing.
+  Alt+Enter toggles fullscreen, which keeps the mouse inside the picture.
 - **Keyboard:** keys follow your keyboard layout (AZERTY, QWERTZ, BÉPO...),
   so each command is on the key that types its letter.
 - **Chart:** in a window, edge scrolling reacts to a wider band along the
@@ -28,7 +27,7 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
   compression. The button can be dragged anywhere; it keeps its place
   relative to the screen when the window changes (folding or unfolding a
   phone, a resize), always stays inside it, and has its right size from the
-  start; `--no-orders-button` hides it.
+  start.
 - **Chart:** dragging the map with a finger scrolls it, and the pointer no
   longer scrolls it at the screen's edges.
 - **Back:** goes back one screen in the menus and quits from the main menu.

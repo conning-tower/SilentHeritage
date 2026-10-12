@@ -14,8 +14,8 @@ Unzip the folder anywhere and start @EXECUTABLE@.exe.
 On the first start, the game asks for the folder of your Silent Hunter
 install (the one holding SH.EXE and DATA) and remembers it; `--setup` asks
 again, `--data <folder>` gives it on the command line. Saves go to
-%APPDATA%\Conning Tower\@NAME@\, never into the install. The project's
-page describes the other options.
+%APPDATA%\Conning Tower\@NAME@\, never into the install. BUILD.md, on the
+project's page, describes the other options.
 
 The program is not signed yet: Windows SmartScreen may show "Windows
 protected your PC" on its first start. Click "More info", then "Run anyway".

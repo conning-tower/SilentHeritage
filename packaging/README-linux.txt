@@ -14,8 +14,8 @@ Running
 On the first start, the game asks for the folder of your Silent Hunter
 install (the one holding SH.EXE and DATA) and remembers it; `--setup` asks
 again, `--data <folder>` gives it on the command line. Saves go to
-~/.local/share/Conning Tower/@NAME@/, never into the install. The
-project's page describes the other options.
+~/.local/share/Conning Tower/@NAME@/, never into the install. BUILD.md, on the
+project's page, describes the other options.
 
 The program needs only the system's C library (glibc 2.35 or later, as in
 Ubuntu 22.04 and Debian 12): SDL, linked in, uses the X11 or Wayland

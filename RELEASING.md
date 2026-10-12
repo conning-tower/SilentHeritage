@@ -21,7 +21,7 @@ Everything is done by the repository's workflows (`.github/workflows`):
      and the Android version code.
   Nothing is public until the draft is published by hand.
 
-The packages, for the faithful (`SilentHeritage-…`) and the extended
+The packages, for the classic (`SilentHeritage-…`) and the extended
 (`SilentHeritageExtended-…`) variants:
 
 | Platform | File | Built by |
@@ -126,10 +126,9 @@ your computer. Google's steps change; follow the console.
 
 ## A release
 
-1. In `CHANGELOG.md`, rename `## [Unreleased]` to the version and date,
-   e.g. `## [1.0.0] - 2026-11-02`, and start a new empty `## [Unreleased]`
-   section above it. A pre-release needs its own section too
-   (`## [1.0.0-beta.1] - …`).
+1. In `CHANGELOG.md`, add the version's section at the top, e.g.
+   `## [1.0.0] - 2026-11-02`, with its changes. A pre-release needs its own
+   section too (`## [1.0.0-beta.1] - …`).
 2. Commit and push to `main`; wait for `ci` to pass.
 3. Tag and push the tag:
 

@@ -1,9 +1,8 @@
 # Silent Heritage Extended: improvements and new features
 
-The extended build (`-DSH_VARIANT=extended`) is the same game with
-improvements beyond the original. It installs next to the faithful build,
-keeps its own saves, and `--faithful` turns all its improvements off. It
-also has every change of [FAITHFUL.md](FAITHFUL.md).
+Silent Heritage Extended is the same game with improvements beyond the
+original. It installs next to the classic version and keeps its own saves.
+It also has every change of [CLASSIC.md](CLASSIC.md).
 
 Interface improvements never change the simulation. Rule changes and fixes
 of the original's bugs are set when a mission or a career starts, and are
@@ -51,8 +50,7 @@ kept with it.
   screens are shown in the middle, framed by the menus' brass, the TDC's wood
   or, at the TBT, its own panel continued; the frame follows fades and the
   red light. At every station the command bar runs across the whole screen,
-  the clock at the left edge and the buttons at the right. `--window
-  1708x960` opens a window of that size.
+  the clock at the left edge and the buttons at the right.
 
 ## Rules
 
