@@ -416,6 +416,18 @@ void ChartStation::update_map_pointer() {
   tools_mouse_ = {x, y};
 }
 
+void ChartStation::update_tool_cursor() {
+  if (click_mode_ == ChartClickMode::kSelectTarget || pointer_.active() || panels_.dragging() ||
+      env_.modals.modal_active()) {
+    return;
+  }
+  const ui::Mouse& mouse = env_.gui.mouse();
+  const bool on_map = !panels_.hovered() && mouse.x() >= view_.x0() && mouse.x() <= view_.x1() &&
+                      mouse.y() >= view_.y0() && mouse.y() <= view_.y1();
+  // The plot's cursor is the tools' cross too.
+  set_cursor(on_map ? kToolCursor : kDefaultCursor);
+}
+
 void ChartStation::drag_map(ChartPointer::Step step, std::int32_t x, std::int32_t y) {
   if (step == ChartPointer::Step::kDragBegin) {
     panning_ = pointer_.button() != ui::kButtonLeft || click_mode_ != ChartClickMode::kAnnotate || !drag_tool(tool_);
@@ -575,6 +587,9 @@ void ChartStation::ask_note(geom::WorldXZ at) {
                          [&entry](int) { return entry.text.empty() ? 0 : ui::kResultAccept; });
   ui::TextEntry* text = &entry;
   const ChartInk ink = ink_;
+  // The ordinary pointer over the dialog (`update_tool_cursor` puts the
+  // cross back after it).
+  set_cursor(kDefaultCursor);
   env_.modals.run_modal(std::move(d), ModalFrame::kGrey, [this, text, at, ink](int result) {
     if (result == ui::kResultAccept && !text->text.empty()) {
       annotations_.add({.kind = ChartAnnotation::Kind::kNote, .ink = ink, .points = {at}, .text = text->text});

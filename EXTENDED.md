@@ -15,7 +15,9 @@ kept with it.
 - **Chart tools:** the chart's TOOLS button opens a toolbox to draw on the
   map (pencil, lines labelled with range and bearing, range circles, marks,
   notes, a ruler, an eraser and undo), and the drawings follow the map at
-  every zoom and are kept with saved missions.
+  every zoom and are kept with saved missions. The tool's cross pointer
+  shows only over the map, the ordinary pointer over the toolbox and the
+  command bar.
 - **Chart scrolling and zoom:** drag the chart with the mouse or a finger to
   scroll it, and zoom smoothly with the mouse wheel or a two-finger pinch.
 - **Command bar on the chart:** the chart shows the command bar like the

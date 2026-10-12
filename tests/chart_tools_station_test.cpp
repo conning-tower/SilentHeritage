@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -319,6 +320,68 @@ TEST_CASE("The extended chart shows the command bar and links its panels", "[cha
   rig.click(kBarConn[0], kBarConn[1]);
   rig.frames(5);
   CHECK(rig.screen->stations().current() == StationId::kConn);
+}
+
+TEST_CASE("The tools' cross shows over the map only, the pointer over the bar and the panels", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  constexpr auto kPointer = static_cast<std::size_t>(ui::CursorId::kPointer);
+  constexpr auto kCross = static_cast<std::size_t>(ui::CursorId::kCross);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  const auto cursor_at = [&](std::array<int, 2> at) {
+    rig.gui.mouse().update(at[0], at[1], 0, 0);
+    rig.frames(2);
+    return rig.gui.mouse().cursor_frame();
+  };
+  // Opened over the panel where TOOLS was.
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  REQUIRE(chart.click_mode() == ChartClickMode::kAnnotate);
+  CHECK(rig.gui.mouse().cursor_frame() == kPointer);
+  CHECK(cursor_at({400, 100}) == kCross);
+  CHECK(cursor_at(kBarConn) == kPointer);
+  CHECK(cursor_at({300, 0x1cb + 2}) == kPointer);
+  CHECK(cursor_at({400, 100}) == kCross);
+  CHECK(cursor_at(tool_button(ChartTool::kPencil)) == kPointer);
+  // A drag of the map ends with the cross on the map.
+  drag(rig, {400, 100}, {420, 120}, ui::kButtonMiddle);
+  CHECK(rig.gui.mouse().cursor_frame() == kCross);
+  // The note's dialog, opened by a click on the map, gets the pointer
+  // (seen from its editing loop, which Esc then leaves).
+  chart.select_tool(ChartTool::kNote);
+  std::optional<std::size_t> in_dialog;
+  rig.gui.set_pump([&rig, &in_dialog] {
+    ++rig.tick;
+    if (!in_dialog) {
+      in_dialog = rig.gui.mouse().cursor_frame();
+      rig.gui.mouse().post_key(0x011b, 0);  // Esc
+    }
+  });
+  rig.click(400, 100);
+  rig.frames(5);
+  CHECK(in_dialog == kPointer);
+  CHECK_FALSE(rig.screen->env().modals.modal_active());
+  CHECK(cursor_at({400, 100}) == kCross);
+
+  // Plotting a course too.
+  chart.exit_annotating();
+  chart.start_plotting();
+  rig.frames(2);
+  REQUIRE(chart.click_mode() == ChartClickMode::kPlot);
+  CHECK(cursor_at({400, 100}) == kCross);
+  CHECK(cursor_at(kBarConn) == kPointer);
+}
+
+TEST_CASE("The original chart shows the plotting cross over its bar", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, false);
+  chart.start_plotting();
+  rig.frames(2);
+  REQUIRE(chart.click_mode() == ChartClickMode::kPlot);
+  rig.gui.mouse().update(300, 0x1cb + 10, 0, 0);
+  rig.frames(2);
+  CHECK(rig.gui.mouse().cursor_frame() == static_cast<std::size_t>(ui::CursorId::kCross));
 }
 
 TEST_CASE("The narrower MAP CONTROLS keeps the shared panels on the map", "[charttools]") {

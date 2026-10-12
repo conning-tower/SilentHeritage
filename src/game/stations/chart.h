@@ -195,6 +195,11 @@ class ChartStation : public Station, private PanelSuspender {
   // pointer's click or drag, the pinch, the eraser's highlight and the
   // line tool's rubber band.
   void update_map_pointer();
+  // Every frame on the extended chart while plotting or annotating: the
+  // cross over the map, the ordinary pointer over the open panel and the
+  // command bar (the original shows the cross over its bar, which has no
+  // button). Left alone during a drag or a modal dialog.
+  void update_tool_cursor();
   void tools_click(std::int32_t x, std::int32_t y);
   // Sets `zoom` keeping the chart point under viewport pixel (`x`, `y`),
   // or centred on the boat when following it.

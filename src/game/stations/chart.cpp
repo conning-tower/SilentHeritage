@@ -555,6 +555,9 @@ void ChartStation::view_update() {
   if (env_.ui.features.chart_tools || pointer_.active()) {
     update_map_pointer();
   }
+  if (full_bar()) {
+    update_tool_cursor();
+  }
   if (dirty_) {
     redraw_map();
   } else if (!zoom_box_.is_open()) {
@@ -1505,7 +1508,8 @@ void ChartStation::mouse_moved(std::int32_t x, std::int32_t y) {
   // next waypoint while plotting, and the zoom box hint on the bar.
   if (click_mode_ == ChartClickMode::kSelectTarget) {
     hover_info(x, y);
-  } else {
+  } else if (!full_bar()) {
+    // The extended chart's: `update_tool_cursor`.
     set_cursor(kPlotCursor);
   }
   if (click_mode_ == ChartClickMode::kPlot && !zoom_box_.is_open()) {
