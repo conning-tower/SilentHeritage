@@ -189,7 +189,7 @@ TEST_CASE("Wide layout: the menus are centred on a wide screen", "[wide]") {
 }
 
 TEST_CASE("Wide screen: the widest chart stays on the map, or centres a narrower map", "[wide]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (int n = 1; n <= 15; ++n) {
     const std::string name = std::format("WORLD-{}.WLD", n);
     const World world = parse_world(install.read("DATA/" + name), name);
