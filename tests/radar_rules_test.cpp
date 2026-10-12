@@ -164,7 +164,6 @@ TEST_CASE("The rules read from EXTENDED.CFG", "[radar_rules]") {
 // --------------------------------------------------------------- ST radar
 
 TEST_CASE("With the ST the SJ works below radar depth with the periscope raised", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   // At 60 ft: below the radar depth (48 ft), at periscope depth (65 ft).
   for (const bool st : {false, true}) {
     Rig rig(kSj | (st ? sensor_option::kStPeriscopeRadar : 0u), MissionRules{}, 0, 15, 60);
@@ -211,7 +210,6 @@ TEST_CASE("With the ST the SJ works below radar depth with the periscope raised"
 }
 
 TEST_CASE("Through the ST the SJ sees a destroyer from periscope depth", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   for (const bool st : {false, true}) {
     Rig rig(kSj | 0x80u | (st ? sensor_option::kStPeriscopeRadar : 0u), MissionRules{}, 0, 15, 60);
     rig.sim.sensors().environment().fog_pct = 100;
@@ -228,7 +226,7 @@ TEST_CASE("Through the ST the SJ sees a destroyer from periscope depth", "[radar
 }
 
 TEST_CASE("A single mission fits the ST from November 1944 with its rule", "[radar_rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const auto options = [&](std::int32_t month, std::int32_t year, std::uint32_t equipment, bool rule) {
     Scenario s = parse_scenario(install.read("SCEN/HIST01.SCN"), "HIST01");
@@ -255,7 +253,6 @@ TEST_CASE("A single mission fits the ST from November 1944 with its rule", "[rad
 // ---------------------------------------------------------------- APR-1
 
 TEST_CASE("The APR-1 hears radars within their range and the radio horizon", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   Rig rig(kSd | sensor_option::kApr1Detector, rules_with(&MissionRules::apr1), 5, 14);
   SensorEnvironment& env = rig.sim.sensors().environment();
   env.light_pct = 20;  // Night: the ships transmit.
@@ -293,7 +290,6 @@ TEST_CASE("The APR-1 hears radars within their range and the radio horizon", "[r
 }
 
 TEST_CASE("The APR-1's operator reports new and stronger transmissions", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   Rig rig(kSd | sensor_option::kApr1Detector, rules_with(&MissionRules::apr1), 5, 14);
   SensorEnvironment& env = rig.sim.sensors().environment();
   env.light_pct = 20;
@@ -332,7 +328,6 @@ TEST_CASE("The APR-1's operator reports new and stronger transmissions", "[radar
 }
 
 TEST_CASE("Without its rule or its fit the APR-1 says nothing", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   for (const auto& [options, rules] : {std::pair{kSd | sensor_option::kApr1Detector, MissionRules{}},
                                        std::pair{kSd, rules_with(&MissionRules::apr1)}}) {
     Rig rig(options, rules, 5, 14);
@@ -346,7 +341,7 @@ TEST_CASE("Without its rule or its fit the APR-1 says nothing", "[radar_rules]")
   }
 }
 
-TEST_CASE("The APR-1 report shows its suffix after the original text", "[radar_rules]") {
+TEST_CASE("The APR-1 report shows its suffix after the original text", "[radar_rules][content]") {
   SH_REQUIRE_GAME_EXE();
   const CrewMessages messages(game_exe());
   CHECK(format_crew_message(messages, {61, -1, -1, ": strong"}) ==
@@ -369,7 +364,6 @@ TEST_CASE("The APR-1 report shows its suffix after the original text", "[radar_r
 // ------------------------------------------------- escort radar detectors
 
 TEST_CASE("Escorts carry radar detectors from 1944, not all of them", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   Simulation sim(MissionConditions{}, kDeepSea);
   std::vector<Ship*> escorts;
   for (int i = 0; i < 400; ++i) {
@@ -415,7 +409,6 @@ Ship& detecting_escort(Rig& rig) {
 }  // namespace
 
 TEST_CASE("A detector's bearing is off by a fixed error, up to 45 degrees at first", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   Simulation sim(MissionConditions{}, kDeepSea);
   const Ship& a = add_ship(sim, destroyer(), {kOrigin, 0, kOrigin});
   const Ship& b = add_ship(sim, destroyer(), {kOrigin + 5000 * kYard, 0, kOrigin});
@@ -441,7 +434,6 @@ TEST_CASE("A detector's bearing is off by a fixed error, up to 45 degrees at fir
 }
 
 TEST_CASE("The detectors' bearing narrows while the boat's radar keeps transmitting", "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   // 45 deg at first, 10 deg after 3 minutes heard, evenly in between.
   CHECK(detector_error_limit(0) == 450);
   CHECK(detector_error_limit(90 * kSecond) == 275);
@@ -489,7 +481,6 @@ TEST_CASE("The detectors' bearing narrows while the boat's radar keeps transmitt
 
 TEST_CASE("An escort with a detector searches along a coarse bearing for the boat's SD or SJ, not the ST",
           "[radar_rules]") {
-  SH_REQUIRE_GAME_EXE();
   const MissionRules rules = rules_with(&MissionRules::detectable_radar);
   {
     // SD on: heard; the escort is alerted and searches toward a point at
@@ -593,7 +584,7 @@ TEST_CASE("The original's equipment dates are unchanged", "[radar_rules][content
   CHECK((equipment_on_date(7, 15) & static_cast<std::uint32_t>(Equipment::kStRadar)) == 0);
 }
 
-TEST_CASE("The ST's picture is the SD's with a periscope head and an ST label", "[radar_rules]") {
+TEST_CASE("The ST's picture is the SD's with a periscope head and an ST label", "[radar_rules][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Shp equip = Shp::load(install, "ART/EQUIP.SHP");
   const Image8 st = st_radar_picture(equip);
@@ -631,7 +622,7 @@ TEST_CASE("The ST's picture is the SD's with a periscope head and an ST label", 
 }
 
 TEST_CASE("The APR-1's state is saved with its rule only", "[radar_rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const auto save = [&](const MissionRules& rules) {
     Scenario s = parse_scenario(install.read("SCEN/HIST01.SCN"), "HIST01");
@@ -659,7 +650,7 @@ TEST_CASE("The APR-1's state is saved with its rule only", "[radar_rules]") {
   CHECK(plain_back->sim().sensors().apr1().state() == Apr1Receiver::State{});
 }
 
-TEST_CASE("The briefing lists the APR-1 and the ST after the original's equipment", "[radar_rules]") {
+TEST_CASE("The briefing lists the APR-1 and the ST after the original's equipment", "[radar_rules][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const ExeImage exe = ExeImage::load(install);
