@@ -277,7 +277,7 @@ TEST_CASE("a career patrol runs headless", "[career]") {
 
 }  // namespace
 TEST_CASE("A career with the extended rules mixes the Mark 18s on patrol", "[career][rules][torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   GameTables tables = GameTables::load(install);
   add_extended_torpedoes(tables);
   const std::vector<PatrolZone> zones = load_zones(install);
