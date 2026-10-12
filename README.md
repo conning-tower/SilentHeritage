@@ -27,8 +27,8 @@ The [releases](https://github.com/conning-tower/SilentHeritage/releases)
 hold the packages of both builds, the faithful one (`SilentHeritage-…`) and
 the extended one (`SilentHeritageExtended-…`), which install side by side:
 
-- Android 7.0 or later: `…-<version>.apk` (phones and tablets, Chromebooks).
-- Linux, x86_64 or aarch64, glibc 2.35 or later: `…-<arch>.AppImage`
+- Android 7.0 or later: `…-<version>-android.apk` (phones and tablets, Chromebooks).
+- Linux, x86_64 or aarch64, glibc 2.35 or later: `…-linux-<arch>.AppImage`
   (`chmod +x` and run it), or `…-linux-<arch>.tar.gz` (the program, its
   menu entry and its icon).
 - Windows 10 or later, x64: `…-windows-x64.zip`. The program is not signed

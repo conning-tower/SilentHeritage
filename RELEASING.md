@@ -26,8 +26,8 @@ The packages, for the faithful (`SilentHeritage-…`) and the extended
 
 | Platform | File | Built by |
 |---|---|---|
-| Android 7.0+ (arm64-v8a, x86_64) | `…-<version>.apk` | `android/build_apk.sh --unsigned`, then `android/sign_apk.sh` |
-| Linux x86_64, aarch64 (glibc 2.35+) | `…-<version>-linux-<arch>.tar.gz`, `…-<version>-<arch>.AppImage` | `packaging/build_desktop.sh linux`, in Ubuntu 22.04 |
+| Android 7.0+ (arm64-v8a, x86_64) | `…-<version>-android.apk` | `android/build_apk.sh --unsigned`, then `android/sign_apk.sh` |
+| Linux x86_64, aarch64 (glibc 2.35+) | `…-<version>-linux-<arch>.tar.gz`, `…-<version>-linux-<arch>.AppImage` | `packaging/build_desktop.sh linux`, in Ubuntu 22.04 |
 | Windows x64 | `…-<version>-windows-x64.zip` | `packaging/build_desktop.sh windows` (mingw-w64 cross build) |
 
 Versions: the version name is the tag without its `v`; the Android version

@@ -3,7 +3,7 @@
 # extended, see CMakeLists.txt), into dist/:
 #   linux    SilentHeritage-<version>-linux-<arch>.tar.gz: the executable, its
 #            .desktop file and icon, README.txt and the licences; and
-#            SilentHeritage-<version>-<arch>.AppImage, the same as a single
+#            SilentHeritage-<version>-linux-<arch>.AppImage, the same as a single
 #            file (<arch> the host's: x86_64 or aarch64).
 #   windows  SilentHeritage-<version>-windows-x64.zip: the executable (its
 #            icon, version and manifest in its resources), README.txt and
@@ -186,7 +186,7 @@ package_linux() {
   rm -f "${dir}/image.squashfs"
   # (mksquashfs stamps every file and the image SOURCE_DATE_EPOCH.)
   mksquashfs "${appdir}" "${dir}/image.squashfs" -root-owned -noappend -comp zstd -quiet
-  local appimage="${dist}/${name}-${arch}.AppImage"
+  local appimage="${dist}/${name}-linux-${arch}.AppImage"
   cat "$(appimage_runtime "${arch}")" "${dir}/image.squashfs" > "${appimage}"
   chmod 755 "${appimage}"
 }
