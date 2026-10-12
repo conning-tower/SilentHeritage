@@ -228,8 +228,11 @@ TEST_CASE("The knob's labels are the table's names in the art's lettering", "[to
   // The original's table (February 1944: MARK10, MARK14, MARK18-1).
   const Image8 faithful =
       tdc_screen(install, test::mixed_scenario(install, false), Features::faithful(), {}, 1, "torpedo_tdc_faithful");
+  // The original command bar, so that only the torpedo display differs.
+  Features features = Features::extended();
+  features.command_bar = Features::faithful().command_bar;
   const Image8 extended =
-      tdc_screen(install, test::mixed_scenario(install, false), Features::extended(), {}, 1, "torpedo_tdc_feature");
+      tdc_screen(install, test::mixed_scenario(install, false), features, {}, 1, "torpedo_tdc_feature");
   // The labels are written ("MARK18-1" is longer than the art's "MARK18");
   // the rest of the station, the tube buttons included, is the original's.
   CHECK(knob_labels(extended) != knob_labels(faithful));
