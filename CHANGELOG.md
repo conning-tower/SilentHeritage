@@ -8,6 +8,11 @@ whose version has no section (RELEASING.md). The versions follow
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-12
+
+The first release: the whole game, in the variant faithful to the original
+(FAITHFUL.md) and in the extended one (EXTENDED.md).
+
 ### Added
 
 - Release packages, built and published by the repository's workflows:
