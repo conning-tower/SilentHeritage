@@ -165,7 +165,7 @@ std::int32_t signed_tenths(Angle10 a) { return a.tenths() > 1800 ? a.tenths() - 
 // ------------------------------------------------------------ the loads
 
 TEST_CASE("The original swaps every Mark 18-1 for the 18-2 at its date", "[torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const SubClass& gato = *tables.find_sub("GATO");
   // August 1944 (the 18-2's month, 1-based 8).
@@ -177,7 +177,7 @@ TEST_CASE("The original swaps every Mark 18-1 for the 18-2 at its date", "[torpe
 }
 
 TEST_CASE("Mixed Mark 18: half the 18-1 change in the first three months, all after", "[torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const SubClass& gato = *tables.find_sub("GATO");
   const auto total = static_cast<std::ptrdiff_t>(gato.bow_tubes + gato.stern_tubes + gato.bow_reloads +
@@ -231,7 +231,7 @@ TEST_CASE("Mixed Mark 18: half the 18-1 change in the first three months, all af
 }
 
 TEST_CASE("Three types at most: the oldest straight runner becomes the newest", "[torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = extended_tables(install);
   const SubClass& gato = *tables.find_sub("GATO");
   // September 1944: Mark 14 in the tubes, 18-1 in the bow racks (half of
@@ -265,7 +265,7 @@ TEST_CASE("Three types at most: the oldest straight runner becomes the newest", 
 }
 
 TEST_CASE("The types carried, in id order", "[torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);
   const SubClass& gato = *tables.find_sub("GATO");
   TorpedoLoad load = uniform_load(0, 0);
@@ -278,7 +278,7 @@ TEST_CASE("The types carried, in id order", "[torpedo_types]") {
 }
 
 TEST_CASE("Generated loads: the real Mark 18-2 mix and the Mark 27, with the same draws", "[torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = extended_tables(install);
   const SubClass& gato = *tables.find_sub("GATO");
   // September 1944: a seed of the mixed outcome (Mark 14 and "18-2").
@@ -355,7 +355,7 @@ TEST_CASE("The Mark 27's supply dates by command", "[torpedo_types]") {
   CHECK_FALSE(mark27_in_service(13, 11, SubCommand::kComSubPac));
 }
 
-TEST_CASE("The Mark 27 record runs 5000 yd at 12 kn", "[torpedo_types]") {
+TEST_CASE("The Mark 27 record runs 5000 yd at 12 kn", "[torpedo_types][content]") {
   SH_REQUIRE_GAME_DATA(install);
   GameTables tables = GameTables::load(install);
   CHECK(tables.find_torpedo("MARK27") == nullptr);
@@ -386,7 +386,7 @@ TEST_CASE("The Mark 27 record runs 5000 yd at 12 kn", "[torpedo_types]") {
 
 // ------------------------------------------------------------ fire control
 
-TEST_CASE("Auto mode fires a tube on its own type's solution when the table lists it", "[torpedo_types][tdc]") {
+TEST_CASE("Auto mode fires a tube on its own type's solution when the table lists it", "[torpedo_types][tdc][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   // A freighter 1500 yd north crossing east at 10 kn; the knob on the
@@ -419,7 +419,7 @@ TEST_CASE("Auto mode fires a tube on its own type's solution when the table list
   }
 }
 
-TEST_CASE("Mark 27 knob, straight runner in the tube", "[torpedo_types][tdc]") {
+TEST_CASE("Mark 27 knob, straight runner in the tube", "[torpedo_types][tdc][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = extended_tables(install);
   Engagement e(tables, 14, 8, mark27_table());
@@ -458,7 +458,7 @@ TEST_CASE("Mark 27 knob, straight runner in the tube", "[torpedo_types][tdc]") {
 }
 
 TEST_CASE("Straight runner knob, Mark 27 in the tube", "[torpedo_types][tdc]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = extended_tables(install);
   Engagement e(tables, 14, 8, mark27_table());
   e.combat.tdc.set_type_index(0);
@@ -491,7 +491,7 @@ TEST_CASE("Straight runner knob, Mark 27 in the tube", "[torpedo_types][tdc]") {
 }
 
 TEST_CASE("The Mark 27's solution: the lead, the bearing, or no intercept", "[torpedo_types][tdc]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = extended_tables(install);
   Engagement e(tables, 14, 8, mark27_table());
   e.combat.tdc.set_type_index(2);
@@ -543,7 +543,7 @@ TEST_CASE("The Mark 27's solution: the lead, the bearing, or no intercept", "[to
 }
 
 TEST_CASE("The original's table has no bearing-only solution", "[torpedo_types][tdc]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = extended_tables(install);
   Engagement e(tables, 14, 8, original_table());
   e.combat.tdc.set_type_index(2);
@@ -560,7 +560,7 @@ TEST_CASE("The original's table has no bearing-only solution", "[torpedo_types][
 
 // ------------------------------------------------------------ the homing
 
-TEST_CASE("The Mark 27 homes on the loudest screws in its cone after 400 yd", "[torpedo_types][homing]") {
+TEST_CASE("The Mark 27 homes on the loudest screws in its cone after 400 yd", "[torpedo_types][homing][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = extended_tables(install);
   const Torpedo& mk27 = *tables.find_torpedo("MARK27");
@@ -591,7 +591,7 @@ TEST_CASE("The Mark 27 homes on the loudest screws in its cone after 400 yd", "[
   CHECK(escort.setup().hit_points < strength);
 }
 
-TEST_CASE("The Mark 27 ignores stopped screws, and its own boat for two minutes", "[torpedo_types][homing]") {
+TEST_CASE("The Mark 27 ignores stopped screws, and its own boat for two minutes", "[torpedo_types][homing][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = extended_tables(install);
   const Torpedo& mk27 = *tables.find_torpedo("MARK27");
@@ -634,7 +634,7 @@ TEST_CASE("The Mark 27 ignores stopped screws, and its own boat for two minutes"
 // ------------------------------------------------------------ saves
 
 TEST_CASE("The torpedo state is saved under the torpedo rules only, and comes back", "[torpedo_types][save]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const GameTables tables = extended_tables(install);
   const auto make = [&](const MissionRules& rules) {
     Scenario sc = test::mixed_scenario(install, true);
@@ -707,7 +707,7 @@ TEST_CASE("The torpedo state is saved under the torpedo rules only, and comes ba
 // ------------------------------------------------------------ messages
 
 TEST_CASE("The extended crew message comes after the original's table", "[torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const CrewMessages messages(ExeImage::load(install));
   CHECK(messages.all().size() == 77);
   CHECK(std::ranges::none_of(messages.all(), [](const CrewMessage& m) { return m.id == 0x80; }));
