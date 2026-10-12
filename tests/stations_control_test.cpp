@@ -439,7 +439,7 @@ TEST_CASE("Extended: GAME OPTIONS' EXTENDED page switches the interface at once"
 
 TEST_CASE("Extended: the in-mission EXTENDED page sets the command bar and the window at once",
           "[stations][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(2);
   rig.settle();
