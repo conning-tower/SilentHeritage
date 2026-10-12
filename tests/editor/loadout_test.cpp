@@ -181,7 +181,7 @@ TEST_CASE("Torpedo choices follow the class and the date", "[editor][loadout]") 
 }
 
 TEST_CASE("Extended: the torpedoes come at their WEAPONS.DAT month", "[editor][loadout][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   test::EditorFixture fx(install);
   Scenario& s = fx.scenario;
   const EditorData& data = fx.data;
