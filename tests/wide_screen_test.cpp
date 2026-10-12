@@ -116,7 +116,7 @@ TEST_CASE("Wide screen: mouse positions are those of the frame shown", "[wide]")
 }
 
 TEST_CASE("Wide screen: the GUI's screen is resized in place with the mouse's bounds", "[wide]") {
-  SH_REQUIRE_GAME_DATA(install);  // the skin's tables
+  SH_REQUIRE_INSTALL(install);  // the skin's tables
   static_cast<void>(install);
   Image8 screen(kScreenWidth, kScreenHeight, 0);
   ui::GuiResources resources{};
