@@ -102,6 +102,8 @@ jobs:
       - name: Build the packages
         run: |
           export JAVA_HOME="${JAVA_HOME_17_X64}"
+          # The NDK build_apk.sh names, not the runner's default one.
+          export ANDROID_NDK_HOME="${ANDROID_HOME}/ndk/29.0.14206865"
           android/build_apk.sh --unsigned
           android/build_apk.sh --unsigned --variant=extended
           mkdir -p dist
