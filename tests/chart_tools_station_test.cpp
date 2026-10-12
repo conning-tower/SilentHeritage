@@ -128,7 +128,7 @@ bool has_tag(const std::vector<std::uint8_t>& bytes, std::string_view tag) {
 }  // namespace
 
 TEST_CASE("TOOLS opens the chart toolbox and Esc, a right click or EXIT close it", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.click(kToolsButton[0], kToolsButton[1]);
@@ -156,7 +156,7 @@ TEST_CASE("TOOLS opens the chart toolbox and Esc, a right click or EXIT close it
 }
 
 TEST_CASE("The extended chart selects a target on the release", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   REQUIRE(!rig.mission().ships().empty());
@@ -175,7 +175,7 @@ TEST_CASE("The extended chart selects a target on the release", "[charttools]") 
 }
 
 TEST_CASE("Dragging the chart scrolls it and stops following the boat", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   const fx::Vec3 sub = rig.mission().player().position();
@@ -204,7 +204,7 @@ TEST_CASE("Dragging the chart scrolls it and stops following the boat", "[chartt
 }
 
 TEST_CASE("The wheel zooms continuously about the pointer", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.gui.mouse().update(400, 150, 0, 0);
@@ -253,7 +253,7 @@ TEST_CASE("The wheel zooms continuously about the pointer", "[charttools]") {
 }
 
 TEST_CASE("Two fingers pinch the chart about their middle", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.screen->env().options.chart_follow_sub = 1;
@@ -288,7 +288,7 @@ TEST_CASE("Two fingers pinch the chart about their middle", "[charttools]") {
 }
 
 TEST_CASE("The extended chart shows the command bar and links its panels", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.save("charttools_bar");
@@ -322,7 +322,7 @@ TEST_CASE("The extended chart shows the command bar and links its panels", "[cha
 }
 
 TEST_CASE("The narrower MAP CONTROLS keeps the shared panels on the map", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   // MAP CONTROLS (0xe0 wide) dragged to the right edge; the toolbox, wider,
@@ -335,7 +335,7 @@ TEST_CASE("The narrower MAP CONTROLS keeps the shared panels on the map", "[char
 }
 
 TEST_CASE("The chart tools draw, erase and undo", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   const fx::Vec3 sub = rig.mission().player().position();
@@ -418,7 +418,7 @@ TEST_CASE("The chart tools draw, erase and undo", "[charttools]") {
 }
 
 TEST_CASE("CLEAR asks before erasing the chart", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.click(kToolsButton[0], kToolsButton[1]);
@@ -446,7 +446,7 @@ TEST_CASE("CLEAR asks before erasing the chart", "[charttools]") {
 }
 
 TEST_CASE("The note tool asks for the note", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.click(kToolsButton[0], kToolsButton[1]);
@@ -490,7 +490,7 @@ TEST_CASE("The note tool asks for the note", "[charttools]") {
 }
 
 TEST_CASE("Chart annotations are kept in the CHRT section of the state", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   SimStateFile saved;
   std::vector<ChartAnnotation> drawn;
   {
@@ -524,7 +524,7 @@ TEST_CASE("Chart annotations are kept in the CHRT section of the state", "[chart
 }
 
 TEST_CASE("The chart tools leave the simulation alone", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig used(install);
   ControlRig idle(install);
   ChartStation& chart = open_chart(used, true);
@@ -555,7 +555,7 @@ TEST_CASE("The chart tools leave the simulation alone", "[charttools]") {
 }
 
 TEST_CASE("The extended chart's scale is in nautical miles", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, true);
   rig.save("charttools_scale_1x");
@@ -569,7 +569,7 @@ TEST_CASE("The extended chart's scale is in nautical miles", "[charttools]") {
   CHECK(rig.screen_image.at(bar_x + s.length + 2, bar_y) == 6);
 }
 
-TEST_CASE("The nautical bar is drawn as CHART.SHP's at full length", "[charttools]") {
+TEST_CASE("The nautical bar is drawn as CHART.SHP's at full length", "[charttools][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const ShPaths paths = ShPaths::load(install);
   const Shp sprites = Shp::load(install, paths.path(GameDir::kArt, "CHART.SHP"));
@@ -584,7 +584,7 @@ TEST_CASE("The nautical bar is drawn as CHART.SHP's at full length", "[charttool
 // --- With the switch off ---------------------------------------------------------
 
 TEST_CASE("The original chart ignores the wheel and mouse drags", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig scripted(install);
   ControlRig plain(install);
   ChartStation& chart = open_chart(scripted, false);
@@ -625,7 +625,7 @@ TEST_CASE("The original chart ignores the wheel and mouse drags", "[charttools]"
 }
 
 TEST_CASE("The original chart keeps its panel and scale", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   open_chart(rig, false);
   // No TOOLS button: the panel's grey where it would be.
@@ -645,7 +645,7 @@ TEST_CASE("The original chart keeps its panel and scale", "[charttools]") {
 }
 
 TEST_CASE("The original chart keeps its clock, time compression and CONN", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   ChartStation& chart = open_chart(rig, false);
   rig.click(kOriginalCompression[0], kOriginalCompression[1]);
@@ -684,7 +684,7 @@ void finger_drag(ControlRig& rig, std::array<int, 2> from, std::array<int, 2> to
 }  // namespace
 
 TEST_CASE("A finger drags the original chart and taps on the release", "[charttools]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ControlRig touched(install);
   ControlRig moused(install);
   ChartStation& chart = open_chart(touched, false);
