@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <deque>
 #include <format>
-#include <fstream>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -111,8 +111,8 @@ struct Display::Impl {
   std::unique_ptr<CommandPanelView> panel_view;
   bool panel_shown = true;
   bool fullscreen = false;
-  // Where the fullscreen state is saved (empty: not saved).
-  std::filesystem::path fullscreen_file;
+  // Called after each Alt+Enter.
+  std::function<void(bool)> fullscreen_toggled;
   // The Enter key of the Alt+Enter being held: its repeats and release are
   // dropped.
   std::optional<SDL_Keycode> toggle_key;
@@ -145,15 +145,6 @@ struct Display::Impl {
     }
     fullscreen = on;
     confine_mouse();
-    if (!fullscreen_file.empty()) {
-      std::error_code ec;
-      std::filesystem::create_directories(fullscreen_file.parent_path(), ec);
-      std::ofstream out(fullscreen_file, std::ios::trunc);
-      out << (on ? 1 : 0) << '\n';
-      if (!out.flush()) {
-        SDL_Log("%s: cannot save the fullscreen state", edition::kExecutable);
-      }
-    }
   }
 
   // Gives the command button the window's current output size and display
@@ -316,10 +307,16 @@ struct Display::Impl {
   }
 };
 
-Display::Display(std::string_view title, int scale, Scaling scaling, bool wide, int window_w, int window_h)
+Display::Display(std::string_view title, int scale, Scaling scaling, bool wide, int window_w, int window_h,
+                 bool fullscreen)
     : impl_(std::make_unique<Impl>()) {
   impl_->wide = wide;
   SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
+  if (fullscreen) {
+    // Created fullscreen: no window shown first.
+    flags |= SDL_WINDOW_FULLSCREEN;
+    impl_->fullscreen = true;
+  }
 #ifdef SDL_PLATFORM_ANDROID
   // Landscape only (either way up); the resizable window follows the
   // screen as a foldable folds and unfolds. Fullscreen hides the system
@@ -351,9 +348,9 @@ Display::Display(std::string_view title, int scale, Scaling scaling, bool wide, 
   if (impl_->texture == nullptr) {
     sdl_fail("SDL_CreateTexture");
   }
-  impl_->scale_mode = scaling == Scaling::kSharp ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR;
-  SDL_SetTextureScaleMode(impl_->texture, impl_->scale_mode);
+  set_scaling(scaling);
   impl_->fit_screen();
+  impl_->confine_mouse();
   // The game draws its own mouse. SDL only hides the cursor over its own
   // windows, so the OS cursor stays visible outside.
   SDL_HideCursor();
@@ -493,6 +490,9 @@ std::optional<InputEvent> Display::poll() {
         if (e.type == SDL_EVENT_KEY_DOWN && is_fullscreen_toggle(e.key)) {
           if (!e.key.repeat) {
             impl_->set_fullscreen(!impl_->fullscreen);
+            if (impl_->fullscreen_toggled) {
+              impl_->fullscreen_toggled(impl_->fullscreen);
+            }
           }
           impl_->toggle_key = e.key.key;
           break;
@@ -672,16 +672,26 @@ void Display::set_fullscreen(bool fullscreen) {
 #endif
 }
 
-void Display::remember_fullscreen(std::filesystem::path file) {
-#ifndef SDL_PLATFORM_ANDROID
-  int saved = 0;
-  if (std::ifstream in(file); in >> saved && saved == 1) {
-    impl_->set_fullscreen(true);
+void Display::on_fullscreen_toggled(std::function<void(bool)> changed) {
+  impl_->fullscreen_toggled = std::move(changed);
+}
+
+void Display::set_scaling(Scaling scaling) {
+  // Every texture of the picture, and those made from now on.
+  impl_->scale_mode = scaling == Scaling::kSharp ? SDL_SCALEMODE_NEAREST : SDL_SCALEMODE_LINEAR;
+  const auto apply = [this](SDL_Texture* t) {
+    if (t != nullptr) {
+      SDL_SetTextureScaleMode(t, impl_->scale_mode);
+    }
+  };
+  apply(impl_->texture);
+  apply(impl_->bottom_texture);
+  for (SDL_Texture* t : impl_->side_textures) {
+    apply(t);
   }
-  impl_->fullscreen_file = std::move(file);
-#else
-  (void)file;
-#endif
+  for (SDL_Texture* t : impl_->side_pictures) {
+    apply(t);
+  }
 }
 
 std::uint64_t Display::ticks_ms() { return SDL_GetTicks(); }

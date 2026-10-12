@@ -217,7 +217,7 @@ Rect DefaultSkin::button(const Viewport& gfx, int x, int y, int w, std::string_v
 }
 
 Rect DefaultSkin::check_box(const Viewport& gfx, int x, int y, bool pressed, bool checked, bool focused,
-                            std::string_view s) {
+                            bool disabled, std::string_view s) {
   // gui_draw_check_box (0x41504)
   const GuiColours& c = res_.colours;
   const int lw = metrics().check_box_label_width;
@@ -228,7 +228,9 @@ Rect DefaultSkin::check_box(const Viewport& gfx, int x, int y, bool pressed, boo
     raised_box(gfx, lx, y, lw, h, pressed, checked);
     const int tw = f.text_width(s);
     const int tx = (lw - tw) / 2;
-    text(gfx, (pressed ? lx + 1 : lx) + tx, (pressed ? y + 1 : y) + 4, f, s, res_.table);
+    // A disabled check box's label as a disabled radio button's (not in
+    // the original, whose check boxes are never disabled).
+    text(gfx, (pressed ? lx + 1 : lx) + tx, (pressed ? y + 1 : y) + 4, f, s, disabled ? res_.identity : res_.table);
     const std::uint8_t fc = checked ? (focused ? c.a[2] : c.a[1]) : (focused ? c.b[2] : c.b[1]);
     gui_focus_rect(gfx, lx + tx - 2, y + 2, tw + 4, h - 4, fc, true);
   }

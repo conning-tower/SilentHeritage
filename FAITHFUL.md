@@ -34,6 +34,8 @@ extended build's improvements are in [EXTENDED.md](EXTENDED.md).
 - **Back:** goes back one screen in the menus and quits from the main menu.
   During a mission and in the scenario editor it acts as Esc.
 - **Text entry:** the system keyboard opens for names and descriptions.
+- **Pointer:** the game's mouse pointer is not drawn, since your finger
+  points.
 - **Leaving the app:** the game is kept. The next start resumes where you
   were.
 - **Sound:** when the system cuts the sound output (a call, the screen

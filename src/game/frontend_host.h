@@ -4,11 +4,13 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <span>
 #include <stdexcept>
 #include <string_view>
 
 #include "assets/pal.h"
+#include "core/display_config.h"
 #include "core/error.h"
 #include "core/image.h"
 #include "core/side_fill.h"
@@ -90,6 +92,12 @@ class FrontendHost {
   // wide window; not in the original); null for none, the default. It must
   // stay valid while set.
   virtual void set_bottom_strip(const Image8* /*strip*/) {}
+  // Not in the original: the window's settings for the extended options
+  // pages, nothing when they are not shown there. None by default.
+  virtual std::optional<DisplayOptions> display_options() const { return std::nullopt; }
+  // Applies `settings` to the window at once and keeps them for the next
+  // launches (those the player cannot change are ignored).
+  virtual void set_display_settings(const DisplaySettings& /*settings*/) {}
 };
 
 // The mission layer, called where the original calls `mission_main_loop`

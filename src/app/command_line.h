@@ -17,7 +17,8 @@
 // instead: `--open Category/Item#frame` opens an item directly (e.g.
 // "Sprites/3DSHIPS.CAT:ABOAS.SHP#2").
 // `--sharp` scales the picture to the window with nearest-neighbour pixels
-// (the original's sharp pixels) instead of the default bilinear smoothing.
+// (the original's sharp pixels) instead of the default bilinear smoothing,
+// whatever the extended options page's SMOOTHING says.
 // `--touch-panel` shows the floating command button of touch screens
 // (always on under Android; platform/command_panel.h).
 // `--no-orders-button` hides that floating button (Android included, where

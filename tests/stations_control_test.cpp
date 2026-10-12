@@ -4,6 +4,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -419,21 +420,73 @@ TEST_CASE("Extended: GAME OPTIONS' EXTENDED page switches the interface at once"
       CHECK(features == Features{});
       continue;
     }
-    // The page (rows 0x17 apart from 0x32): WIDE SCREEN greyed, CREW
-    // MESSAGE LOG switched on at once.
+    // The page (rows 0x17 apart from 0x32): WIDE SCREEN greyed, the
+    // command bar's next layout at once.
     const int h = 0x50 + static_cast<int>(kFeatureOptions.size()) * 0x17;
     const int y0 = (kScreenHeight - h) / 2;
     rig.click(0x9d + 0x36 + 8, y0 + 0x32 + 8);
     CHECK_FALSE(features.wide_screen);
-    rig.click(0x9d + 0x36 + 8, y0 + 0x32 + 0x17 + 8);
-    CHECK(features.crew_log);
+    rig.click(0x9d + 0x36 + 60, y0 + 0x32 + 0x17 + 8);
+    CHECK(features.command_bar == CommandBarStyle::kBarOrders);
     CHECK(saved.empty());
     rig.key(0x011b);
     rig.frames(2);
     CHECK(rig.screen->in_play());
     REQUIRE(saved.size() == 1);
-    CHECK(saved[0].crew_log);
+    CHECK(saved[0].command_bar == CommandBarStyle::kBarOrders);
   }
+}
+
+TEST_CASE("Extended: the in-mission EXTENDED page sets the command bar and the window at once",
+          "[stations][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  ControlRig rig(install);
+  rig.frames(2);
+  rig.settle();
+  std::vector<Features> saved;
+  rig.screen->bar().on_features_changed = [&saved](const Features& f) { saved.push_back(f); };
+  std::vector<DisplaySettings> applied;
+  std::optional<DisplayOptions> display =
+      DisplayOptions{.settings = {.fullscreen = false, .smoothing = true}, .fullscreen_fixed = false};
+  rig.screen->bar().display_options = [&display] { return display; };
+  rig.screen->bar().on_display_changed = [&applied](const DisplaySettings& s) { applied.push_back(s); };
+  Features& features = rig.screen->env().ui.features;
+  features.command_bar = CommandBarStyle::kOriginal;
+  const auto open_page = [&rig] {
+    rig.key(0x1800);
+    REQUIRE_FALSE(rig.screen->in_play());
+    rig.click(0x9d + 0xab + 60, 0x1c + 0x171 + 12);
+  };
+  // The page: the improvements' rows 0x17 apart from 0x32, the command bar
+  // second; the window's two rows 0x18 below them.
+  const int h = 0x50 + static_cast<int>(kFeatureOptions.size()) * 0x17 + 0x18 + 2 * 0x17;
+  const int y0 = (kScreenHeight - h) / 2;
+  const int display_y = y0 + 0x32 + static_cast<int>(kFeatureOptions.size()) * 0x17 + 0x18;
+  open_page();
+  rig.click(0x9d + 0x36 + 60, y0 + 0x32 + 0x17 + 8);
+  CHECK(features.command_bar == CommandBarStyle::kOrdersButton);
+  rig.click(0x9d + 0x36 + 8, display_y + 8);
+  REQUIRE(applied.size() == 1);
+  CHECK(applied[0] == DisplaySettings{.fullscreen = true, .smoothing = true});
+  rig.click(0x9d + 0x36 + 8, display_y + 0x17 + 8);
+  REQUIRE(applied.size() == 2);
+  CHECK(applied[1] == DisplaySettings{.fullscreen = true, .smoothing = false});
+  rig.key(0x011b);
+  rig.frames(2);
+  CHECK(rig.screen->in_play());
+  REQUIRE(saved.size() == 1);
+  CHECK(saved[0].command_bar == CommandBarStyle::kOrdersButton);
+
+  // Android and --sharp: both greyed, clicks change nothing.
+  display = DisplayOptions{
+      .settings = {.fullscreen = true, .smoothing = true}, .fullscreen_fixed = true, .smoothing_fixed = true};
+  open_page();
+  rig.click(0x9d + 0x36 + 8, display_y + 8);
+  rig.click(0x9d + 0x36 + 8, display_y + 0x17 + 8);
+  CHECK(applied.size() == 2);
+  rig.key(0x011b);
+  rig.frames(2);
+  CHECK(rig.screen->in_play());
 }
 
 }  // namespace sh

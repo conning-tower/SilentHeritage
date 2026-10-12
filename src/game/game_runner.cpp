@@ -201,7 +201,7 @@ void GameRunner::present(const MissionScreen& screen) {
     // The command bar across the window, with the pointer over it.
     bar_shown_ = ui.bar_strip;
     const ui::Mouse& mouse = front_end_->gui().mouse();
-    if (mouse.shown() && mouse.cursor_sprites() != nullptr) {
+    if (mouse.shown() && mouse.draws_cursor() && mouse.cursor_sprites() != nullptr) {
       draw_sprite_clipped(Viewport::full(bar_shown_), mouse.cursor_sprites()->frame(mouse.cursor_frame()),
                           mouse.x() + ui.bar_offset, mouse.y() - kCommandBarTop);
     }
@@ -245,6 +245,11 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
   MissionScreen& screen = session.screen();
   if (host_.has_orders_panel()) {
     screen.bar().on_orders = [this](const ui::Rect& button) { host_.open_orders_panel(button); };
+  }
+  if (services_.extended_config) {
+    // The EXTENDED page's window settings (not in the original).
+    screen.bar().display_options = [this] { return host_.display_options(); };
+    screen.bar().on_display_changed = [this](const DisplaySettings& s) { host_.set_display_settings(s); };
   }
   // The blocking loops of the in-game dialogs (the SAVE MISSION name
   // entry) show the mission's screen with its palette.

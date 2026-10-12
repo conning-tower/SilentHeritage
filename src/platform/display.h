@@ -4,7 +4,7 @@
 
 #include <array>
 #include <cstdint>
-#include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string_view>
@@ -112,12 +112,12 @@ enum class TextInputKind : std::uint8_t { kText, kDigits };
 class Display {
  public:
   // Opens a window `scale` times the original size (or `window_w` x
-  // `window_h` when given). `wide`: the screen follows the window's aspect
-  // (`screen_width`) and narrower frames are shown centred between the side
-  // fill; else it is 640x480 letterboxed. Throws std::runtime_error if SDL
-  // fails.
+  // `window_h` when given), or fullscreen with `fullscreen`. `wide`: the
+  // screen follows the window's aspect (`screen_width`) and narrower frames
+  // are shown centred between the side fill; else it is 640x480
+  // letterboxed. Throws std::runtime_error if SDL fails.
   Display(std::string_view title, int scale = 2, Scaling scaling = Scaling::kSmooth, bool wide = false,
-          int window_w = 0, int window_h = 0);
+          int window_w = 0, int window_h = 0, bool fullscreen = false);
   ~Display();
   Display(const Display&) = delete;
   Display& operator=(const Display&) = delete;
@@ -188,9 +188,10 @@ class Display {
   // always fullscreen, without the toggle.
   bool fullscreen() const;
   void set_fullscreen(bool fullscreen);
-  // Restores the fullscreen state saved in `file`, and saves it there at
-  // each change from now on (a missing or unreadable file: windowed).
-  void remember_fullscreen(std::filesystem::path file);
+  // Calls `changed` with the new state after each Alt+Enter.
+  void on_fullscreen_toggled(std::function<void(bool)> changed);
+  // Changes how the picture is scaled to the window.
+  void set_scaling(Scaling scaling);
 
   // Returns milliseconds since SDL initialization.
   static std::uint64_t ticks_ms();

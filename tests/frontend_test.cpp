@@ -290,6 +290,12 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
   void play_sfx(std::int32_t, std::int32_t, std::int32_t) override {}
   void apply_sound_options(const GameOptions& options) override { sound_options = options; }
   void report(std::string_view message) override { reports.emplace_back(message); }
+  std::optional<DisplayOptions> display_options() const override { return display; }
+  void set_display_settings(const DisplaySettings& settings) override { applied_display.push_back(settings); }
+  // The window's settings the host offers (none by default), and those the
+  // front end applied.
+  std::optional<DisplayOptions> display;
+  std::vector<DisplaySettings> applied_display;
   std::int32_t run(const MissionRequest& request) override {
     requests.push_back(request);
     if (on_run) {
@@ -321,6 +327,17 @@ constexpr ScriptedHost::Step kExitToDos = ScriptedHost::Step{0, 20 + 35 + 90, 43
 constexpr ScriptedHost::Step kSingleMissionExt = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 110 + 17};
 constexpr ScriptedHost::Step kOptionsExt = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 310 + 17};
 constexpr ScriptedHost::Step kExitToDosExt = ScriptedHost::Step{0, 20 + 35 + 90, 43 + 350 + 17};
+// The extended OPTIONS page at (52, 10) with its DISPLAY group: the
+// INTERFACE row at y 211, the DISPLAY row at y 284.
+constexpr ScriptedHost::Step kWideScreenBox = ScriptedHost::Step{0, 52 + 28 + 12, 10 + 211 + 12};
+constexpr ScriptedHost::Step kCommandBarCycle = ScriptedHost::Step{0, 52 + 271 + 100, 10 + 211 + 12};
+constexpr ScriptedHost::Step kFullscreenBox = ScriptedHost::Step{0, 52 + 28 + 12, 10 + 284 + 12};
+constexpr ScriptedHost::Step kSmoothingBox = ScriptedHost::Step{0, 52 + 271 + 12, 10 + 284 + 12};
+// The window's settings of a desktop host.
+constexpr DisplayOptions kDesktopDisplay{.settings = {.fullscreen = true, .smoothing = true}};
+constexpr ScriptedHost::Step kOptionsCancel = ScriptedHost::Step{0, 52 + 40 + 60, 10 + 415 + 17};
+constexpr ScriptedHost::Step kOptionsOriginal = ScriptedHost::Step{0, 52 + 205 + 60, 10 + 415 + 17};
+constexpr ScriptedHost::Step kOptionsOk = ScriptedHost::Step{0, 52 + 367 + 60, 10 + 415 + 17};
 constexpr ScriptedHost::Step kHistoric = ScriptedHost::Step{0, 69 + 38 + 90, 59 + 125 + 17};
 constexpr ScriptedHost::Step kConvoy = ScriptedHost::Step{0, 69 + 261 + 90, 59 + 125 + 17};
 constexpr ScriptedHost::Step kMainMenu = ScriptedHost::Step{0, 69 + 38 + 90, 59 + 299 + 17};
@@ -563,6 +580,7 @@ TEST_CASE("Extended: the main menu's OPTIONS page keeps the interface in EXTENDE
   const TempDir dir;
   const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
   ScriptedHost host;
+  host.display = kDesktopDisplay;
   FrontEnd front_end({.install = install,
                       .paths = paths,
                       .exe = exe,
@@ -571,15 +589,119 @@ TEST_CASE("Extended: the main menu's OPTIONS page keeps the interface in EXTENDE
                       .extended_config = true},
                      host, host, 1234);
   front_end.set_play_intro(false);
-  // OPTIONS (the buttons from y 110, OPTIONS sixth), CREW MESSAGE LOG off
-  // (second, right column of the page at (52, 10)), OK; EXIT TO DOS last.
-  host.script = {kOptionsExt, ScriptedHost::click(52 + 271 + 12, 10 + 125 + 12),
-                 ScriptedHost::click(52 + 367 + 60, 10 + 415 + 17), kExitToDosExt};
+  // OPTIONS (the buttons from y 110, OPTIONS sixth), WIDE SCREEN off, OK;
+  // EXIT TO DOS last.
+  host.script = {kOptionsExt, kWideScreenBox, kOptionsOk, kExitToDosExt};
   front_end.run();
   CHECK(host.script.empty());
   Features expected = Features::extended();
-  expected.crew_log = false;
+  expected.wide_screen = false;
   CHECK(load_features(saves, Features::extended()) == expected);
+  CHECK(host.applied_display.empty());
+}
+
+// Runs the extended front end of `install` on `host` through its script,
+// with `saves`.
+void run_extended(const Install& install, ScriptedHost& host, const SaveDir& saves) {
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  FrontEnd front_end({.install = install,
+                      .paths = paths,
+                      .exe = exe,
+                      .saves = saves,
+                      .features = Features::extended(),
+                      .extended_config = true},
+                     host, host, 1234);
+  front_end.set_play_intro(false);
+  front_end.run();
+  CHECK(host.script.empty());
+}
+
+TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL restores the original's",
+          "[frontend][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
+  {
+    // ALL COMMANDS, then ORIGINAL BAR, FLOATING ORDERS.
+    ScriptedHost host;
+    host.display = kDesktopDisplay;
+    host.script = {kOptionsExt, kCommandBarCycle, kCommandBarCycle, kOptionsOk, kExitToDosExt};
+    run_extended(install, host, saves);
+    CHECK(load_features(saves, Features::extended()).command_bar == CommandBarStyle::kOrdersButton);
+    CHECK(parse_config(read_config(saves)).at("ui.command_bar") == "1");
+  }
+  {
+    ScriptedHost host;
+    host.display = kDesktopDisplay;
+    host.script = {kOptionsExt, kCommandBarCycle, kOptionsOk, kExitToDosExt};
+    run_extended(install, host, saves);
+    CHECK(load_features(saves, Features::extended()).command_bar == CommandBarStyle::kBarOrders);
+  }
+  {
+    // ORIGINAL: the faithful game's interface, its floating ORDERS button
+    // included; the other improvements stay.
+    ScriptedHost host;
+    host.display = kDesktopDisplay;
+    host.script = {kOptionsExt, kOptionsOriginal, kOptionsOk, kExitToDosExt};
+    run_extended(install, host, saves);
+    const Features f = load_features(saves, Features::extended());
+    CHECK(f.command_bar == Features::faithful().command_bar);
+    CHECK_FALSE(f.wide_screen);
+    // The improvements without an option stay on.
+    CHECK(f.crew_log);
+    CHECK(f.chart_tools);
+    CHECK(f.drag_rotate);
+    CHECK(f.last_boat);
+    const auto keys = parse_config(read_config(saves));
+    CHECK(keys.size() == kFeatureOptions.size());
+    CHECK_FALSE(keys.contains("ui.crew_log"));
+  }
+}
+
+TEST_CASE("Extended: OPTIONS' DISPLAY group applies the window's settings on OK only", "[frontend][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
+  const DisplayOptions shown = kDesktopDisplay;
+  {
+    ScriptedHost host;
+    host.display = shown;
+    host.script = {kOptionsExt, kFullscreenBox, kSmoothingBox, kOptionsCancel, kExitToDosExt};
+    run_extended(install, host, saves);
+    CHECK(host.applied_display.empty());
+  }
+  {
+    ScriptedHost host;
+    host.display = shown;
+    host.script = {kOptionsExt, kFullscreenBox, kSmoothingBox, kOptionsOk, kExitToDosExt};
+    run_extended(install, host, saves);
+    REQUIRE(host.applied_display.size() == 1);
+    CHECK(host.applied_display[0] == DisplaySettings{.fullscreen = false, .smoothing = false});
+    // The interface is untouched.
+    CHECK(load_features(saves, Features::extended()) == Features::extended());
+  }
+  {
+    // ORIGINAL leaves the window's settings alone.
+    ScriptedHost host;
+    host.display = shown;
+    host.script = {kOptionsExt, kOptionsOriginal, kOptionsOk, kExitToDosExt};
+    run_extended(install, host, saves);
+    CHECK(host.applied_display.empty());
+  }
+}
+
+TEST_CASE("Extended: OPTIONS greys FULLSCREEN on Android and SMOOTHING with --sharp", "[frontend][extended]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
+  ScriptedHost host;
+  host.display = DisplayOptions{
+      .settings = {.fullscreen = true, .smoothing = true}, .fullscreen_fixed = true, .smoothing_fixed = true};
+  host.script = {kOptionsExt, kFullscreenBox, kSmoothingBox, kOptionsOk, kExitToDosExt};
+  run_extended(install, host, saves);
+  // Clicking the greyed boxes changes nothing.
+  CHECK(host.applied_display.empty());
 }
 
 TEST_CASE("Extended: the last boat chosen is remembered across sessions", "[frontend][extended]") {

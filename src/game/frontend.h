@@ -330,7 +330,8 @@ class FrontEnd {
   // `show_credits` (0x3579c, frontend_credits.cpp).
   void show_credits();
   // The main menu's EXTENDED OPTIONS page (frontend_options.cpp, not in the
-  // original): the improvements of `kFeatureOptions`, kept in EXTENDED.CFG.
+  // original): the improvements of `kFeatureOptions`, kept in EXTENDED.CFG,
+  // and the host's display settings; OK applies them.
   void extended_options_screen();
   // `interviews_screen` (0xa8bff, frontend_interviews.cpp): the INTERVIEWS
   // pages until MAIN MENU.

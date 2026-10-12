@@ -37,6 +37,7 @@ add_executable(sh_tests
   # A temporary directory per test run.
   temp_dir_setup.cpp
   core_test.cpp
+  display_config_test.cpp
   fixed_math_test.cpp
   # Graphics formats and drawing.
   gfx_assets_test.cpp

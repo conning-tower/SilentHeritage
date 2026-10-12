@@ -11,12 +11,14 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 #include "assets/crew_messages.h"
 #include "assets/exe_image.h"
+#include "core/display_config.h"
 #include "game/crew_log.h"
 #include "sim/context.h"
 #include "game/mission_loop.h"
@@ -206,7 +208,8 @@ class ControlBar : public CommandBar {
   void menu_detail_level();      // cmd_detail_level 0x4bb4b
   // The EXTENDED OPTIONS page of the mission (not in the original): the
   // interface improvements of `kFeatureOptions`, those that cannot change
-  // during a mission greyed; changes apply at once.
+  // during a mission greyed, then the window's settings of `display_options`
+  // when set; changes apply at once.
   void menu_extended_options();
   // `ask_yes_no` (0x4c670): `done(true)` on YES.
   void ask_yes_no(std::string title, std::string line1, std::string line2, std::function<void(bool)> done);
@@ -227,11 +230,18 @@ class ControlBar : public CommandBar {
   // ORDERS button (`Features::command_bar`), given its screen rectangle;
   // without it the bar has no ORDERS button.
   std::function<void(const ui::Rect&)> on_orders;
+  // Not in the original: the window's settings for the EXTENDED page
+  // (`FrontendHost::display_options`; unset or nothing: not shown), and
+  // called with them at each change there.
+  std::function<std::optional<DisplayOptions>()> display_options;
+  std::function<void(const DisplaySettings&)> on_display_changed;
 
  private:
   class SpriteButton;
   // GAME OPTIONS' EXTENDED button was pressed (not in the original).
   bool extended_requested_ = false;
+  // The window's settings the EXTENDED page edits.
+  DisplaySettings display_edit_;
   void build(const BarConfig& config);
   // Whether the bar shows the ORDERS button (not in the original).
   bool orders_shown() const { return env_.ui.features.orders_in_bar() && on_orders != nullptr; }

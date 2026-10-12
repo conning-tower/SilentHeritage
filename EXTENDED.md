@@ -27,8 +27,10 @@ kept with it.
 - **Boat choice:** the encounters' SUB CLASS screen starts on the class you
   chose last, if it is in service at the date, even after a restart.
 - **Extended options:** the main menu's OPTIONS page, and the EXTENDED
-  button of the in-mission GAME OPTIONS (Alt-O), switch the interface
-  improvements on and off at once.
+  button of the in-mission GAME OPTIONS (Alt-O), set the wide screen and the
+  command bar's layout; the other improvements are always on.
+- **Display options:** OPTIONS turns fullscreen (on at first, like
+  Alt+Enter) and smoothing on and off, and the game remembers both.
 - **Turning the views:** drag the bridge, periscope, TBT or deck gun view to
   turn it, and a quick flick keeps it turning for a moment.
 - **Precise dials:** drag a dial sideways to set its value, shown by an amber

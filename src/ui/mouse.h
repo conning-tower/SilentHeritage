@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "assets/shp.h"
+#include "core/platform.h"
 #include "core/image.h"
 #include "gfx/viewport.h"
 #include "ui/event.h"
@@ -150,6 +151,11 @@ class Mouse {
   void draw(Image8& frame);
   void erase(Image8& frame);
 
+  // Whether `draw` draws the cursor at all (not in the original): not on
+  // Android, where a finger points. The cursor's state is kept either way.
+  bool draws_cursor() const { return draws_cursor_; }
+  void set_draws_cursor(bool draws) { draws_cursor_ = draws; }
+
  private:
   // Returns the key event of `bios_word` with the mouse state.
   Event key_event(std::uint16_t bios_word, std::uint8_t shift) const;
@@ -168,6 +174,7 @@ class Mouse {
   std::size_t frame_ = 0;
   int show_count_ = -1;
   std::optional<ClipRect> hide_rect_;
+  bool draws_cursor_ = !kAndroid;
   // The saved background of the drawn cursor.
   bool drawn_ = false;
   ClipRect saved_rect_;

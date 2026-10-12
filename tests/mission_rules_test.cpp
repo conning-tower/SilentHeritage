@@ -202,11 +202,14 @@ TEST_CASE("EXTENDED.CFG keeps its sections apart and survives unknown lines", "[
   const SaveDir saves(dir.path());
   CHECK(load_features(saves, Features::extended()) == Features::extended());
   CHECK_FALSE(load_last_boat(saves));
-  REQUIRE(saves.write(kExtendedConfigName, as_bytes("# a comment\nui.crew_log = 0\nui.someday = 1\nui.chart_tools = x\n")));
+  REQUIRE(saves.write(kExtendedConfigName,
+                      as_bytes("# a comment\nui.wide_screen = 0\nui.someday = 1\nui.command_bar = 4\n"
+                               "ui.crew_log = 0\n")));
   Features f = load_features(saves, Features::extended());
-  CHECK_FALSE(f.crew_log);
-  CHECK(f.chart_tools);  // a bad value keeps the default
-  f.wide_screen = false;
+  CHECK_FALSE(f.wide_screen);
+  CHECK(f.command_bar == Features::extended().command_bar);  // a bad value keeps the default
+  CHECK(f.crew_log);  // no longer an option: its old key is ignored
+  f.command_bar = CommandBarStyle::kOriginal;
   REQUIRE(save_features(saves, f));
   REQUIRE(save_last_boat(saves, "S CLASS"));
   REQUIRE(save_mission_rules(saves, keen()));
@@ -219,7 +222,9 @@ TEST_CASE("EXTENDED.CFG keeps its sections apart and survives unknown lines", "[
   const std::string text = read_config(saves);
   CHECK(text.starts_with("# a comment\n"));
   CHECK(text.find("ui.someday = 1") == std::string::npos);  // the ui. section is rewritten whole
-  CHECK(parse_config(text).at("ui.crew_log") == "0");
+  CHECK(parse_config(text).at("ui.wide_screen") == "0");
+  CHECK(parse_config(text).at("ui.command_bar") == "0");
+  CHECK_FALSE(parse_config(text).contains("ui.crew_log"));
   CHECK(parse_config(text).at("state.last_boat") == "GATO");
 }
 

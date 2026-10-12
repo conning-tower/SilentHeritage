@@ -5,6 +5,7 @@
 #include <SDL3/SDL.h>
 
 #include <optional>
+#include <vector>
 
 #include "platform/display.h"
 
@@ -66,6 +67,32 @@ TEST_CASE("Display: Alt+Enter toggles fullscreen and never reaches the game", "[
   REQUIRE(e);
   CHECK(e->key == SDLK_RETURN);
   CHECK_FALSE(display.fullscreen());
+}
+
+TEST_CASE("Display: created fullscreen (wide too), smoothing changed live, Alt+Enter reported", "[fullscreen]") {
+  SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "dummy");
+  const Palette palette;
+  for (const bool wide : {false, true}) {
+    Display display("test", 1, Scaling::kSmooth, wide, 0, 0, true);
+    while (display.poll()) {
+    }
+    CHECK(display.fullscreen());
+    CHECK(display.screen_width() >= kScreenWidth);
+    display.present(Image8(display.screen_width(), kScreenHeight), palette);
+    display.set_scaling(Scaling::kSharp);
+    display.present(Image8(kScreenWidth, kScreenHeight), palette);
+    std::vector<bool> toggled;
+    display.on_fullscreen_toggled([&toggled](bool on) { toggled.push_back(on); });
+    push_key(SDL_EVENT_KEY_DOWN, SDLK_RETURN, SDL_KMOD_LALT);
+    push_key(SDL_EVENT_KEY_UP, SDLK_RETURN, SDL_KMOD_LALT);
+    while (display.poll()) {
+    }
+    CHECK(toggled == std::vector<bool>{false});
+    // Set from the options page: not reported as a toggle.
+    display.set_fullscreen(true);
+    CHECK(display.fullscreen());
+    CHECK(toggled.size() == 1);
+  }
 }
 
 }  // namespace

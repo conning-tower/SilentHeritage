@@ -161,9 +161,10 @@ class Skin {
   // 0x108990: a push button `w` wide.
   virtual Rect button(const Viewport& gfx, int x, int y, int w, std::string_view label, bool pressed,
                       bool highlighted, bool focused, bool disabled) = 0;
-  // 0x108994 / 0x108998: a check box and the width of its hotspot.
+  // 0x108994 / 0x108998: a check box and the width of its hotspot;
+  // `disabled` greys its label (not in the original).
   virtual Rect check_box(const Viewport& gfx, int x, int y, bool pressed, bool checked, bool focused,
-                         std::string_view label) = 0;
+                         bool disabled, std::string_view label) = 0;
   virtual int check_box_width(std::string_view label) = 0;
   // 0x10899c / 0x1089a0: a radio button and the width of its hotspot.
   virtual Rect radio_button(const Viewport& gfx, int x, int y, bool pressed, bool selected, bool focused,

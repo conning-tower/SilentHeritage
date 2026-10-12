@@ -66,6 +66,7 @@ sh_add_module(sh_game
     frontend_results_screen.cpp
     frontend_briefing.cpp
     frontend_best.cpp
+    options_controls.cpp
     options_realism.cpp
     saves_options.cpp
     # The single-mission scenario generator.

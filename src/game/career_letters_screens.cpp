@@ -87,9 +87,9 @@ class TypewriterSkin : public ui::Skin {
                   bool focused, bool disabled) override {
     return base_.button(gfx, x, y, w, text, pressed, highlighted, focused, disabled);
   }
-  ui::Rect check_box(const Viewport& gfx, int x, int y, bool pressed, bool checked, bool focused,
+  ui::Rect check_box(const Viewport& gfx, int x, int y, bool pressed, bool checked, bool focused, bool disabled,
                      std::string_view text) override {
-    return base_.check_box(gfx, x, y, pressed, checked, focused, text);
+    return base_.check_box(gfx, x, y, pressed, checked, focused, disabled, text);
   }
   int check_box_width(std::string_view text) override { return base_.check_box_width(text); }
   ui::Rect radio_button(const Viewport& gfx, int x, int y, bool pressed, bool selected, bool focused, bool disabled,

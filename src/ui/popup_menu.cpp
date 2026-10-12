@@ -49,7 +49,7 @@ Rect DefaultMenuHooks::popup_item(const Viewport& gfx, int x, int y, int n, cons
   if (item.type == PopupItemType::kSubmenu) {
     submenu_arrow(gfx, mark_x, iy, highlighted);
   } else if (item.type == PopupItemType::kToggle) {
-    check_box(gfx, mark_x, iy, false, item.toggle(false), false, {});
+    check_box(gfx, mark_x, iy, false, item.toggle(false), false, false, {});
   }
   const int x0 = x + 5;
   const int y0 = y + iy;

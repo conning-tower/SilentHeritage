@@ -24,8 +24,10 @@
 #include "assets/pcx.h"
 #include "assets/smacker.h"
 #include "assets/speech.h"
+#include "core/display_config.h"
 #include "core/edition.h"
 #include "core/install.h"
+#include "core/platform.h"
 #include "editor/editor.h"
 #include "game/frontend.h"
 #include "game/frontend_results.h"
@@ -168,8 +170,12 @@ class GameApp final : public FrontendHost, public EditorRunner {
         saves_(saves),
         custom_(custom),
         headless_(options.screenshot.has_value()),
-        display_(edition::kName, 2, options.scaling, options.features.wide_screen, options.window_width,
-                 options.window_height),
+        // A headless run neither reads nor writes DISPLAY.CFG, and is never
+        // fullscreen.
+        display_config_(headless_ ? DisplayConfig{} : read_display_config(saves.dir() / kDisplayConfigName)),
+        display_settings_(initial_display_settings(display_config_, options.extended_config, kAndroid)),
+        display_(edition::kName, 2, scaling(), options.features.wide_screen, options.window_width,
+                 options.window_height, !headless_ && display_settings_.fullscreen),
         sound_(install, paths),
         runner_({.install = install,
                  .paths = paths,
@@ -188,7 +194,7 @@ class GameApp final : public FrontendHost, public EditorRunner {
       keeper_.emplace(saves, [this] { return runner_.snapshot(); }, &*log_);
     }
     if (!headless_) {
-      display_.remember_fullscreen(saves.dir() / "DISPLAY.CFG");
+      display_.on_fullscreen_toggled([this](bool) { save_display_config(); });
     }
     if (options.features.wide_screen) {
       display_.set_side_texture(SideFill::Kind::kBrass,
@@ -370,6 +376,24 @@ class GameApp final : public FrontendHost, public EditorRunner {
     sound_.with_layer([&](MelLayer& layer) { sh::apply_sound_options(layer, sound); });
   }
 
+  std::optional<DisplayOptions> display_options() const override {
+    if (!options_.extended_config) {
+      return std::nullopt;
+    }
+    return DisplayOptions{.settings = {.fullscreen = display_.fullscreen(), .smoothing = display_settings_.smoothing},
+                          .fullscreen_fixed = kAndroid,
+                          .smoothing_fixed = options_.scaling == Scaling::kSharp};
+  }
+
+  void set_display_settings(const DisplaySettings& settings) override {
+    if (!headless_) {
+      display_.set_fullscreen(settings.fullscreen);
+    }
+    display_settings_.smoothing = settings.smoothing;
+    display_.set_scaling(scaling());
+    save_display_config();
+  }
+
   bool has_orders_panel() const override { return command_panel_ != nullptr; }
   void open_orders_panel(const ui::Rect& button) override {
     display_.open_command_panel_above({button.x0, button.y0, button.x1 - button.x0 + 1, button.y1 - button.y0 + 1});
@@ -411,6 +435,27 @@ class GameApp final : public FrontendHost, public EditorRunner {
       video_sound_.release();
       sound_.reopen_audio(*fault, now);
       video_sound_.restore();
+    }
+  }
+
+  // Returns how the picture is scaled: `--sharp` forces sharp pixels.
+  Scaling scaling() const {
+    return options_.scaling == Scaling::kSharp || !display_settings_.smoothing ? Scaling::kSharp : Scaling::kSmooth;
+  }
+
+  // Writes the window's settings to DISPLAY.CFG (not for a headless run).
+  // Without the extended settings, the smoothing saved there is kept as
+  // it is.
+  void save_display_config() {
+    if (headless_) {
+      return;
+    }
+    display_config_.fullscreen = display_.fullscreen();
+    if (options_.extended_config) {
+      display_config_.smoothing = display_settings_.smoothing;
+    }
+    if (!write_display_config(saves_.dir() / kDisplayConfigName, display_config_)) {
+      SDL_Log("%s: cannot save the display settings", edition::kExecutable);
     }
   }
 
@@ -498,6 +543,9 @@ class GameApp final : public FrontendHost, public EditorRunner {
   std::optional<ResumeKeeper> keeper_;
   // The floating command button (outlives the display that shows it).
   std::unique_ptr<CommandPanel> command_panel_;
+  // DISPLAY.CFG as read and last written, and the window's settings.
+  DisplayConfig display_config_;
+  DisplaySettings display_settings_;
   Display display_;
   SoundSystem sound_;
   GameRunner runner_;

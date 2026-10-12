@@ -256,7 +256,7 @@ bool CheckBox::handle(Dialog& dialog, Msg msg, int, const Event&) {
       return false;
   }
   const bool checked = value(false);
-  dialog.add_dirty(skin.check_box(dialog.gfx(), x, y, down, checked, is_focused(dialog, this), label));
+  dialog.add_dirty(skin.check_box(dialog.gfx(), x, y, down, checked, is_focused(dialog, this), disabled, label));
   return true;
 }
 

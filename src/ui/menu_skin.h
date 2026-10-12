@@ -63,7 +63,7 @@ class MenuSkin : public DefaultSkin {
                   int fill, TextAlign align, bool use_colours, const Font* custom) override;
   Rect button(const Viewport& gfx, int x, int y, int w, std::string_view label, bool pressed, bool highlighted,
               bool focused, bool disabled) override;
-  Rect check_box(const Viewport& gfx, int x, int y, bool pressed, bool checked, bool focused,
+  Rect check_box(const Viewport& gfx, int x, int y, bool pressed, bool checked, bool focused, bool disabled,
                  std::string_view label) override;
   int check_box_width(std::string_view label) override;
   Rect cycle_button(const Viewport& gfx, int x, int y, int w, bool pressed, bool focused, bool disabled,

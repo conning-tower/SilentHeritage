@@ -9,6 +9,7 @@
 
 #include "game/crew_log_view.h"
 #include "game/extended_config.h"
+#include "game/options_controls.h"
 #include "game/mission.h"
 #include "gfx/sprite.h"
 #include "gfx/text.h"
@@ -88,6 +89,8 @@ constexpr std::uint32_t kGameOptions = 0xf4339;
 // original).
 constexpr std::string_view kExtendedButton = "EXTENDED";
 constexpr std::string_view kExtendedTitle = "EXTENDED OPTIONS";
+constexpr std::string_view kFullscreen = "FULLSCREEN";
+constexpr std::string_view kSmoothing = "SMOOTHING";
 constexpr std::uint32_t kAutoTorpLoad = 0xf4346;
 constexpr std::uint32_t kAutoSjRadar = 0xf4355;
 constexpr std::uint32_t kAutoSdRadar = 0xf4363;
@@ -1528,21 +1531,35 @@ void ControlBar::menu_extended_options() {
   Features& features = env_.ui.features;
   auto changed = std::make_shared<bool>(false);
   constexpr int kRow = 0x17;
-  const int h = 0x50 + static_cast<int>(kFeatureOptions.size()) * kRow;
+  // The window's settings in a second group below the first.
+  constexpr int kDisplayRows = 2;
+  constexpr int kGroupGap = 0x18;
+  const std::optional<DisplayOptions> display = display_options ? display_options() : std::nullopt;
+  const int rows = static_cast<int>(kFeatureOptions.size());
+  const int h = 0x50 + rows * kRow + (display ? kGroupGap + kDisplayRows * kRow : 0);
   auto d = std::make_unique<ui::Dialog>(env_.gui, 0x9d, (kScreenHeight - h) / 2, 0x141, h, 7);
   d->emplace<ui::TitleBar>(std::string(text::kExtendedTitle), ui::return_accept);
-  d->emplace<ui::GroupBox>(0x11, 0x2b, 0x12f, 0x2b + static_cast<int>(kFeatureOptions.size()) * kRow + 0x10);
+  d->emplace<ui::GroupBox>(0x11, 0x2b, 0x12f, 0x2b + rows * kRow + 0x10);
+  // A cycle button as wide as a check box.
+  const int cycle_w = d->skin().check_box_width(" ");
   int y = 0x32;
   for (const FeatureOption& o : kFeatureOptions) {
-    auto& box = d->emplace<ui::CheckBox>(0x36, y, std::string(o.label), [&features, changed, o](bool flip) {
-      if (flip) {
-        features.*o.member = !(features.*o.member);
-        *changed = true;
-      }
-      return features.*o.member;
-    });
-    box.disabled = !o.in_mission;
+    add_feature_control(*d, 0x36, y, cycle_w, o, features, !o.in_mission, [changed] { *changed = true; });
     y += kRow;
+  }
+  if (display) {
+    display_edit_ = display->settings;
+    const auto apply = [this] {
+      if (on_display_changed) {
+        on_display_changed(display_edit_);
+      }
+    };
+    y += kGroupGap;
+    d->emplace<ui::GroupBox>(0x11, y - 7, 0x12f, y + kDisplayRows * kRow + 2);
+    add_setting_check_box(*d, 0x36, y, text::kFullscreen, display_edit_.fullscreen,
+                          display->fullscreen_fixed ? std::optional<bool>(true) : std::nullopt, apply);
+    add_setting_check_box(*d, 0x36, y + kRow, text::kSmoothing, display_edit_.smoothing,
+                          display->smoothing_fixed ? std::optional<bool>(false) : std::nullopt, apply);
   }
   env_.modals.run_modal(std::move(d), ModalFrame::kMenu, [this, changed, &features](int) {
     if (*changed && on_features_changed) {

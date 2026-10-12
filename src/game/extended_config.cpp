@@ -1,5 +1,7 @@
 #include "game/extended_config.h"
 
+#include <charconv>
+#include <system_error>
 #include <vector>
 
 #include "game/saves_options.h"
@@ -77,8 +79,14 @@ Features load_features(const SaveDir& dir, const Features& defaults) {
   const auto values = parse_config(read_config(dir));
   for (const FeatureOption& o : kFeatureOptions) {
     const auto v = values.find(std::string(kUiPrefix) + std::string(o.key));
-    if (v != values.end() && (v->second == "0" || v->second == "1")) {
-      f.*o.member = v->second == "1";
+    if (v == values.end()) {
+      continue;
+    }
+    int value = -1;
+    const std::string& s = v->second;
+    const auto [end, ec] = std::from_chars(s.data(), s.data() + s.size(), value);
+    if (ec == std::errc() && end == s.data() + s.size() && value >= 0 && value < o.values()) {
+      o.set(f, value);
     }
   }
   return f;
@@ -87,7 +95,7 @@ Features load_features(const SaveDir& dir, const Features& defaults) {
 bool save_features(const SaveDir& dir, const Features& features) {
   std::string lines;
   for (const FeatureOption& o : kFeatureOptions) {
-    lines += std::string(kUiPrefix) + std::string(o.key) + " = " + (features.*o.member ? "1" : "0") + "\n";
+    lines += std::string(kUiPrefix) + std::string(o.key) + " = " + std::to_string(o.get(features)) + "\n";
   }
   return write_config(dir, kUiPrefix, lines);
 }

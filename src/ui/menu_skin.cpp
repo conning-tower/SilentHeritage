@@ -231,7 +231,7 @@ Rect MenuSkin::button(const Viewport& gfx, int x, int y, int w, std::string_view
 }
 
 Rect MenuSkin::check_box(const Viewport& gfx, int x, int y, bool pressed, bool checked, bool focused,
-                         std::string_view s) {
+                         bool disabled, std::string_view s) {
   // menu_skin_draw_checkbox (0x57c9c)
   const int bh = metrics().button_height;
   const int lw = metrics().check_box_label_width;
@@ -246,6 +246,14 @@ Rect MenuSkin::check_box(const Viewport& gfx, int x, int y, bool pressed, bool c
   const int off = (lw - menu_.bold.text_width(s) + 1) / 2;
   gui_focus_rect(gfx, lx + 3, y + 3, lw - 6, bh - 6, fc, false);
   if (!s.empty()) {
+    // A disabled check box's label in the disabled button's colours (not
+    // in the original, whose check boxes are never disabled).
+    TablePatches patches(res_.table);
+    if (disabled) {
+      res_.table[0x3d] = 0x5a;
+      res_.table[0x38] = 0x55;
+      res_.table[0x49] = 0x4b;
+    }
     gui_draw_text(gfx, lx + off, pressed ? y + 2 + 8 : y + 8, menu_.bold, s, &res_.table);
   }
   return {x, y, x + check_box_width(s), y + bh - 1};

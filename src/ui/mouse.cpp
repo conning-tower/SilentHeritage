@@ -132,7 +132,7 @@ void Mouse::draw(Image8& frame) {
   // mouse_draw_cursor (0x590e4)
   erase(frame);
   const std::optional<ClipRect> r = cursor_rect();
-  if (!r) {
+  if (!r || !draws_cursor_) {
     return;
   }
   if (hide_rect_ && !(r->right < hide_rect_->left || r->left > hide_rect_->right ||

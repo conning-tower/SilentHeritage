@@ -730,4 +730,56 @@ TEST_CASE("Mouse cursor counter, drawing and erasing", "[ui]") {
   CHECK(std::equal(frame.pixels().begin(), frame.pixels().end(), before.pixels().begin()));
 }
 
+TEST_CASE("Android: the mouse keeps its cursor state but draws nothing", "[ui][android]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const Shp cursors = Shp::load(install, "ART/CURSORS.SHP");
+  std::uint32_t tick = 0;
+  EventQueue q([&] { return tick; });
+  Mouse m(q);
+  CHECK(m.draws_cursor() == !kAndroid);
+  m.set_cursor(cursors, CursorId::kMove);
+  m.show();
+  m.update(200, 150, 0, 0);
+  Image8 drawn(kScreenWidth, kScreenHeight, 0x42);
+  const Image8 before = drawn;
+  m.set_draws_cursor(true);
+  m.draw(drawn);
+  CHECK_FALSE(std::equal(drawn.pixels().begin(), drawn.pixels().end(), before.pixels().begin()));
+  m.erase(drawn);
+  // Not drawn, the shape, counter, rectangle and position stay.
+  m.set_draws_cursor(false);
+  Image8 hidden = before;
+  m.draw(hidden);
+  CHECK(std::equal(hidden.pixels().begin(), hidden.pixels().end(), before.pixels().begin()));
+  m.erase(hidden);
+  CHECK(std::equal(hidden.pixels().begin(), hidden.pixels().end(), before.pixels().begin()));
+  CHECK(m.shown());
+  CHECK(m.cursor_frame() == static_cast<std::size_t>(CursorId::kMove));
+  REQUIRE(m.cursor_rect());
+  CHECK(m.cursor_rect()->left == 200 + cursors.frame(4).x0);
+  CHECK(m.x() == 200);
+  CHECK(m.y() == 150);
+}
+
+TEST_CASE("A disabled check box greys its label, not its box", "[ui]") {
+  SH_REQUIRE_GAME_DATA(install);
+  GuiResources res = GuiResources::load(install);
+  const MenuResources menu = MenuResources::load(install);
+  MenuSkin menu_skin(res, menu);
+  DefaultSkin default_skin(res);
+  for (Skin* skin : {static_cast<Skin*>(&menu_skin), static_cast<Skin*>(&default_skin)}) {
+    Image8 enabled(400, 60, 0);
+    Image8 disabled(400, 60, 0);
+    skin->check_box(Viewport::full(enabled), 10, 10, false, true, false, false, "FULLSCREEN");
+    skin->check_box(Viewport::full(disabled), 10, 10, false, true, false, true, "FULLSCREEN");
+    CHECK_FALSE(std::equal(enabled.pixels().begin(), enabled.pixels().end(), disabled.pixels().begin()));
+    // The box itself is the same.
+    for (int y = 10; y < 26; ++y) {
+      for (int x = 10; x < 26; ++x) {
+        CHECK(enabled.at(x, y) == disabled.at(x, y));
+      }
+    }
+  }
+}
+
 }  // namespace sh::ui
