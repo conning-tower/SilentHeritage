@@ -600,7 +600,7 @@ Features editor_fixes(bool on) {
 }
 
 TEST_CASE("Extended: cancelling SELECT A CITY keeps an existing mission and its city", "[editor][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool fixes : {false, true}) {
     ChartRig rig(install, {}, editor_fixes(fixes));
     ChartScreen& chart = *rig.chart;
@@ -653,7 +653,7 @@ TEST_CASE("Extended: cancelling SELECT A CITY keeps an existing mission and its 
 }
 
 TEST_CASE("Extended: a new airstrike cancelled is still removed", "[editor][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ChartRig rig(install, {}, editor_fixes(true));
   if (rig.scenario.world().airstrike_targets() == 0) {
     SKIP("no airstrike target in this world");
@@ -666,7 +666,7 @@ TEST_CASE("Extended: a new airstrike cancelled is still removed", "[editor][exte
   CHECK(rig.scenario.selected() == &rig.scenario.player());
 }
 
-TEST_CASE("Extended: enemy subs get Intercept and its point", "[editor][extended]") {
+TEST_CASE("Extended: enemy subs get Intercept and its point", "[editor][extended][content]") {
   SH_REQUIRE_GAME_DATA(install);
   for (const bool fixes : {false, true}) {
     ChartRig rig(install, {}, editor_fixes(fixes));
@@ -709,7 +709,7 @@ TEST_CASE("Extended: enemy subs get Intercept and its point", "[editor][extended
   }
 }
 
-TEST_CASE("Extended: ships get Follow Path with a plotted course", "[editor][extended]") {
+TEST_CASE("Extended: ships get Follow Path with a plotted course", "[editor][extended][content]") {
   SH_REQUIRE_GAME_DATA(install);
   for (const bool fixes : {false, true}) {
     ChartRig rig(install, {}, editor_fixes(fixes));
@@ -741,7 +741,7 @@ TEST_CASE("Extended: ships get Follow Path with a plotted course", "[editor][ext
   }
 }
 
-TEST_CASE("Extended: the airstrike's hold time is labelled Hold Time", "[editor][extended]") {
+TEST_CASE("Extended: the airstrike's hold time is labelled Hold Time", "[editor][extended][content]") {
   SH_REQUIRE_GAME_DATA(install);
   std::array<Image8, 2> panels{Image8(kScreenWidth, kScreenHeight, 0), Image8(kScreenWidth, kScreenHeight, 0)};
   std::array<ui::Rect, 2> boxes{};
