@@ -8,6 +8,7 @@
 #include "assets/scenario.h"
 #include "core/edition.h"
 #include "core/error.h"
+#include "game/command_bar.h"
 #include "game/extended_config.h"
 #include "game/mission.h"
 #include "game/mission_session.h"
@@ -15,6 +16,7 @@
 #include "game/screen_shake.h"
 #include "game/torpedo_load.h"
 #include "game/stations/cabin.h"
+#include "gfx/sprite.h"
 #include "ui/dialog.h"
 
 namespace sh {
@@ -195,6 +197,18 @@ void GameRunner::present(const MissionScreen& screen) {
     side_fill_changes_ = ui.side_fill_changes;
     host_.set_side_fill(ui.side_fill);
   }
+  if (const MissionUiState& ui = screen.ui_state(); ui.bar_offset > 0) {
+    // The command bar across the window, with the pointer over it.
+    bar_shown_ = ui.bar_strip;
+    const ui::Mouse& mouse = front_end_->gui().mouse();
+    if (mouse.shown() && mouse.cursor_sprites() != nullptr) {
+      draw_sprite_clipped(Viewport::full(bar_shown_), mouse.cursor_sprites()->frame(mouse.cursor_frame()),
+                          mouse.x() + ui.bar_offset, mouse.y() - kCommandBarTop);
+    }
+    host_.set_bottom_strip(&bar_shown_);
+  } else {
+    host_.set_bottom_strip(nullptr);
+  }
   if (screen.display_start() == 0) {
     host_.present(screen.screen(), screen.dac());
   } else {
@@ -286,8 +300,9 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
   }
   // The mission ended in play: a snapshot written meanwhile is stale.
   delete_resume_snapshot(services_.saves);
-  // Back to the menus' side fill.
+  // Back to the menus' side fill, without the bar.
   host_.set_side_fill({});
+  host_.set_bottom_strip(nullptr);
   side_fill_changes_ = ~std::uint32_t{0};
   std::int32_t end = screen.finish();
   if (patrol != nullptr) {

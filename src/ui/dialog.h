@@ -265,6 +265,14 @@ class Dialog {
   // Runs the dialog modally, calling `Gui::pump` between iterations.
   int run();
 
+  // Draws into the target at (`dx`, `dy`) from the dialog's place, for a
+  // target that is not in screen coordinates (the command bar drawn across
+  // a wide window; not in the original). Set before it opens.
+  void set_target_offset(int dx, int dy) {
+    target_dx_ = dx;
+    target_dy_ = dy;
+  }
+
   // Moves the dialog by (`dx`, `dy`) before it opens (the dialogs placed
   // for the 640-wide screen centred on a wider one; not in the original).
   void move_by(int dx, int dy) {
@@ -353,6 +361,8 @@ class Dialog {
   int h_;
   unsigned flags_;
   Image8* target_;
+  int target_dx_ = 0;
+  int target_dy_ = 0;
   IdleFn idle_;
   BlitFn blit_;
   ExtraDirtyFn extra_dirty_;

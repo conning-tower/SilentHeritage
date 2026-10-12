@@ -44,11 +44,13 @@ kept with it.
   game options, detail level or end mission box closes it.
 - **Wide screens:** the game fills windows and screens wider than 4:3, up to
   21:9. The chart shows more of the map and the bridge a wider view, with its
-  gauge panel and command bar running to the screen's edges; looking out to
-  the side from the bridge, you now see the bow or the stern turning with
-  you. The other screens are shown in the middle, framed by the menus' brass,
-  the TDC's wood or, at the TBT, its own panel continued; the frame follows
-  fades and the red light. `--window 1708x960` opens a window of that size.
+  gauge panel running to the screen's edges; looking out to the side from the
+  bridge, you now see the bow or the stern turning with you. The other
+  screens are shown in the middle, framed by the menus' brass, the TDC's wood
+  or, at the TBT, its own panel continued; the frame follows fades and the
+  red light. At every station the command bar runs across the whole screen,
+  the clock at the left edge and the buttons at the right. `--window
+  1708x960` opens a window of that size.
 
 ## Rules
 

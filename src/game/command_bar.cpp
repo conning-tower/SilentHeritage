@@ -29,7 +29,7 @@ constexpr std::uint8_t kCompressionFrame = 0x12;
 constexpr std::uint8_t kCompressionPressedFrame = 0x13;
 // The bar dialog 0x11e540: 640 (the screen's width) x 20 at y 459,
 // cancellable, no navigation.
-constexpr int kBarY = 0x1cb;
+constexpr int kBarY = kCommandBarTop;
 constexpr int kBarHeight = 0x14;
 constexpr int kButtonWidth = 0x48;
 constexpr int kButtonStep = 0x49;
@@ -463,10 +463,18 @@ void ControlBar::open(const BarConfig& config) {
 
 void ControlBar::build(const BarConfig& config) {
   // control_bar_build (0x48e84)
-  // The screen's width: wider than 640 on the wide-screen layouts.
-  const int bar_width = env_.gui.screen().width();
-  dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, kBarY, bar_width, kBarHeight,
-                                         ui::kDialogCancel | ui::kDialogNoNavigation, &env_.gui.screen());
+  // The screen's width: wider than 640 on the wide-screen layouts; beside a
+  // 640-wide station on a wide window, the window's, drawn in the bar strip
+  // from the window's left edge (not in the original).
+  const int offset = env_.ui.bar_offset;
+  const int bar_width = offset > 0 ? env_.ui.bar_strip.width() : env_.gui.screen().width();
+  dialog_ = std::make_unique<ui::Dialog>(env_.gui, -offset, kBarY, bar_width, kBarHeight,
+                                         ui::kDialogCancel | ui::kDialogNoNavigation,
+                                         offset > 0 ? &env_.ui.bar_strip : &env_.gui.screen());
+  if (offset > 0) {
+    dialog_->set_target_offset(offset, -kBarY);
+    dialog_->set_blit([](const Viewport&, int, int, int, int) {});
+  }
   if (config.hotkeys) {
     // control_bar_add_hotkeys: key-only areas running `hotkey_proc`.
     for (const Hotkey& h : hotkey_table()) {
@@ -535,7 +543,10 @@ void ControlBar::build(const BarConfig& config) {
     dialog_->emplace<SpriteButton>(
         *this, x, 0, x + kButtonWidth, 0x13,
         BarButton{kCompressionFrame, kCompressionPressedFrame,
-                  [this, x] { on_orders({x, kBarY, x + kButtonWidth - 1, kBarY + kBarHeight - 1}); }},
+                  [this, x] {
+                    const int x0 = dialog_->x() + x;
+                    on_orders({x0, kBarY, x0 + kButtonWidth - 1, kBarY + kBarHeight - 1});
+                  }},
         SpriteButton::Extras{.above = above, .split = false, .label = std::string(kOrdersLabel)});
     x -= kButtonStep;
   }

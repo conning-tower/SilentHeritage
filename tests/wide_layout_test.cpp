@@ -11,11 +11,14 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "assets/world.h"
 #include "core/features.h"
 #include "core/side_fill.h"
+#include "game/command_bar.h"
 #include "game/mission.h"
+#include "sim/clock.h"
 #include "game/stations/bridge.h"
 #include "game/stations/chart_view.h"
 #include "game/stations/panel_ends.h"
@@ -114,6 +117,57 @@ TEST_CASE("Wide layout: the bridge's command bar runs end to end, its art unscal
   CHECK(same(block(w, kWide - kButtons, kBarTop, kButtons, 0x14),
              block(n, kScreenWidth - kButtons, kBarTop, kButtons, 0x14)));
   CHECK(same(block(w, 0, kBarTop, 0x48, 0x14), block(n, 0, kBarTop, 0x48, 0x14)));
+}
+
+TEST_CASE("Wide layout: beside a 640-wide station the command bar runs across the window", "[wide]") {
+  const Install& install = data_or_synthetic();
+  const GoldenGame game(install);
+  GoldenMissionRig narrow(game, hist01(game), Features::faithful());
+  GoldenMissionRig wide(game, hist01(game), wide_screen(), kWide);
+  narrow.play("-60,f6,-40");
+  wide.play("-60,f6,-40");
+  const MissionUiState& ui = wide.screen().ui_state();
+  REQUIRE(wide.screen().screen().width() == kScreenWidth);
+  constexpr int kOffset = (kWide - kScreenWidth) / 2;
+  REQUIRE(ui.bar_offset == kOffset);
+  const Image8& strip = ui.bar_strip;
+  REQUIRE(strip.width() == kWide);
+  const Image8& n = narrow.screen().screen();
+  // The TDC's buttons at the window's right edge, the clock box at its left,
+  // their art unscaled.
+  constexpr int kButtons = 2 * 0x49;
+  CHECK(same(block(strip, kWide - kButtons, 0, kButtons, 0x14), block(n, kScreenWidth - kButtons, kBarTop, kButtons, 0x14)));
+  CHECK(same(block(strip, 0, 0, 0x48, 0x14), block(n, 0, kBarTop, 0x48, 0x14)));
+  // The rightmost button, past the screen's right edge, takes the click as
+  // at the original's place.
+  narrow.play(std::format("click:{}:{},-5", kScreenWidth - 30, kBarTop + 10));
+  wide.play(std::format("click:{}:{},-5", kWide - kOffset - 30, kBarTop + 10));
+  CHECK(wide.screen().stations().current() == narrow.screen().stations().current());
+  CHECK(wide.screen().stations().current() != StationId::kTdc);
+}
+
+TEST_CASE("Wide layout: ORDERS and - / + work at the right end of the wide bar", "[wide]") {
+  const Install& install = data_or_synthetic();
+  const GoldenGame game(install);
+  Features features = wide_screen();
+  features.command_bar = CommandBarStyle::kBarOrdersTime;
+  GoldenMissionRig rig(game, hist01(game), features, kWide);
+  std::vector<ui::Rect> orders;
+  rig.screen().bar().on_orders = [&](const ui::Rect& r) { orders.push_back(r); };
+  // The bridge's bar from the right edge: its three station buttons, then
+  // ORDERS and the time compression.
+  rig.play("-60,f4,-40");
+  REQUIRE(rig.screen().screen().width() == kWide);
+  constexpr int kOrdersX = kWide - 0x48 - 3 * 0x49;
+  constexpr int kCompressionX = kOrdersX - 0x49;
+  rig.play(std::format("click:{}:{},-3", kOrdersX + 30, kBarTop + 10));
+  REQUIRE(orders.size() == 1);
+  CHECK(orders[0].x0 == kOrdersX);
+  CHECK(orders[0].y0 == kBarTop);
+  GameClock& clock = rig.mission().sim().clock();
+  const std::int32_t start = clock.requested_compression();
+  rig.play(std::format("click:{}:{},-3", kCompressionX + 60, kBarTop + 10));
+  CHECK(clock.requested_compression() == start * 2);
 }
 
 TEST_CASE("Wide layout: the menus are centred on a wide screen", "[wide]") {

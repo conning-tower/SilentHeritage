@@ -128,6 +128,8 @@ class GameRunner final : public MissionRunner {
   // The count of side fill changes last passed to the host (the mission's
   // count starts at 0; its first fill is always passed).
   std::uint32_t side_fill_changes_ = ~std::uint32_t{0};
+  // The command bar shown across a wide window, with the pointer.
+  Image8 bar_shown_;
 };
 
 }  // namespace sh

@@ -15,13 +15,20 @@ void Mouse::set_bounds(int width, int height) {
   y_ = std::clamp(y_, 0, height_ - 1);
 }
 
+void Mouse::set_band(std::optional<ClipRect> band) {
+  band_ = band;
+  if (!band_ || y_ < band_->top) {
+    x_ = std::clamp(x_, 0, width_ - 1);
+  }
+}
+
 void Mouse::update(int x, int y, std::uint8_t buttons, std::uint8_t shift) {
   const std::uint8_t old_buttons = buttons_;
   buttons_ = buttons & (kButtonLeft | kButtonRight | kButtonMiddle);
   bool moved = false;
   if (frozen_ < 1) {
-    const int nx = std::clamp(x, 0, width_ - 1);
     const int ny = std::clamp(y, 0, height_ - 1);
+    const int nx = band_ && ny >= band_->top ? std::clamp(x, band_->left, band_->right) : std::clamp(x, 0, width_ - 1);
     moved = nx != x_ || ny != y_;
     x_ = nx;
     y_ = ny;

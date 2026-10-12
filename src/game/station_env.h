@@ -186,6 +186,13 @@ struct MissionUiState {
   // its changes (`Features::wide_screen`; not in the original).
   SideFill side_fill;
   std::uint32_t side_fill_changes = 0;
+  // Beside a 640-wide station on a wide window, the command bar runs across
+  // the window (`Features::wide_screen`; not in the original): the columns
+  // it reaches left of the screen (0: within the screen, as the original),
+  // and the picture it is drawn in, from the window's left edge and the
+  // bar's top row down.
+  int bar_offset = 0;
+  Image8 bar_strip;
   // The 16 animation tick counters 0x129bc0..0x129bfc, advanced by the
   // 100 Hz game timer while the simulation runs (`game_timer_tick`).
   std::array<std::int32_t, 16> timers{};

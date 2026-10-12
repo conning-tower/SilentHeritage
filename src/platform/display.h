@@ -144,6 +144,11 @@ class Display {
   // (`side_fill_tint`), or the screen's own pictures through it. The
   // brass at first.
   void set_side_fill(const SideFill& fill);
+  // Sets the picture shown across the screen's bottom rows, over the frame
+  // and the side fill, from the screen's left edge (the command bar across
+  // a wide window), shown through the frame's palette; null for none.
+  // `strip` must stay valid while set.
+  void set_bottom_strip(const Image8* strip);
 
   // Returns the next pending input event, if any. The window's close
   // button and the system ending the program (SDL_EVENT_QUIT) give
@@ -179,7 +184,7 @@ class Display {
   // resolution). On the desktop Alt+Enter (either Enter key) toggles it,
   // as in DOSBox: `poll` takes the key down, its repeats and its release,
   // which never reach the caller. While fullscreen, the mouse is confined
-  // to the picture (`letterbox_rect` of the window). Android windows are
+  // to the screen (`letterbox_rect` of the window). Android windows are
   // always fullscreen, without the toggle.
   bool fullscreen() const;
   void set_fullscreen(bool fullscreen);

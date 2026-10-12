@@ -345,6 +345,7 @@ class GameApp final : public FrontendHost, public EditorRunner {
   int screen_width() override { return display_.screen_width(); }
 
   void set_side_fill(const SideFill& fill) override { display_.set_side_fill(fill); }
+  void set_bottom_strip(const Image8* strip) override { display_.set_bottom_strip(strip); }
 
   VideoSound* video_sound() override { return sound_.has_device() ? &video_sound_ : nullptr; }
 

@@ -157,7 +157,7 @@ void Dialog::open() {
     gui_->mouse().unfreeze_motion();
     gfx_ = {&buffer_, 0, 0, bw - 1, bh - 1};
   } else {
-    gfx_ = {target_, x_, y_, x_ + bw - 1, y_ + bh - 1};
+    gfx_ = {target_, x_ + target_dx_, y_ + target_dy_, x_ + target_dx_ + bw - 1, y_ + target_dy_ + bh - 1};
   }
   dirty_.clear();
   open_ = true;

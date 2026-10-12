@@ -85,6 +85,11 @@ class FrontendHost {
   // Sets what fills a wide screen beside the 640-wide frames presented
   // from now on (not in the original); nothing by default.
   virtual void set_side_fill(const SideFill& /*fill*/) {}
+  // Sets the picture shown across the window's bottom rows over the frames
+  // presented from now on, from its left edge (the command bar across a
+  // wide window; not in the original); null for none, the default. It must
+  // stay valid while set.
+  virtual void set_bottom_strip(const Image8* /*strip*/) {}
 };
 
 // The mission layer, called where the original calls `mission_main_loop`

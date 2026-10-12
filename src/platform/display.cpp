@@ -96,6 +96,9 @@ struct Display::Impl {
   SideFill side_fill;
   std::array<SDL_Texture*, 2> side_textures{};
   std::array<SDL_Texture*, 2> side_pictures{};
+  // The picture across the bottom rows, if set, and its texture.
+  const Image8* bottom_strip = nullptr;
+  SDL_Texture* bottom_texture = nullptr;
   std::array<std::uint8_t, 3> brightest{};
   std::array<std::uint8_t, 3> tint{255, 255, 255};
   // Where the next picture shown is saved (empty: not saved).
@@ -114,7 +117,7 @@ struct Display::Impl {
   // dropped.
   std::optional<SDL_Keycode> toggle_key;
 
-  // Confines the mouse to the picture while fullscreen, frees it otherwise.
+  // Confines the mouse to the screen while fullscreen, frees it otherwise.
   void confine_mouse() {
 #ifndef SDL_PLATFORM_ANDROID  // always fullscreen, the pointer a finger
     if (!fullscreen) {
@@ -124,10 +127,11 @@ struct Display::Impl {
     int w = 0;
     int h = 0;
     SDL_GetWindowSize(window, &w, &h);
-    // The frame's part of the screen.
+    // The screen: with the wide screen the whole of it (a command bar may
+    // run across it; the game keeps the pointer where it belongs), else
+    // the 640x480 picture.
     const ScreenRect r = letterbox_rect(w, h, screen_w);
-    const int x0 = r.x + r.w * frame_x() / screen_w;
-    const SDL_Rect rect{x0, r.y, r.w * frame_w / screen_w, r.h};
+    const SDL_Rect rect{r.x, r.y, r.w, r.h};
     if (!SDL_SetWindowMouseRect(window, &rect)) {
       SDL_Log("%s: cannot confine the mouse: %s", edition::kExecutable, SDL_GetError());
     }
@@ -267,6 +271,12 @@ struct Display::Impl {
     }
     const SDL_FRect dst{static_cast<float>(x), 0, static_cast<float>(frame_w), static_cast<float>(kScreenHeight)};
     SDL_RenderTexture(renderer, texture, nullptr, &dst);
+    if (bottom_strip != nullptr && bottom_texture != nullptr) {
+      const auto w = static_cast<float>(bottom_strip->width());
+      const auto h = static_cast<float>(bottom_strip->height());
+      const SDL_FRect bottom{(static_cast<float>(screen_w) - w) / 2, static_cast<float>(kScreenHeight) - h, w, h};
+      SDL_RenderTexture(renderer, bottom_texture, nullptr, &bottom);
+    }
     if (panel_view && panel_shown) {
       sync_panel_window();
       panel_view->draw(*panel);
@@ -356,6 +366,9 @@ Display::~Display() {
       SDL_DestroyTexture(t);
     }
   }
+  if (impl_->bottom_texture != nullptr) {
+    SDL_DestroyTexture(impl_->bottom_texture);
+  }
   for (SDL_Texture* t : impl_->side_pictures) {
     if (t != nullptr) {
       SDL_DestroyTexture(t);
@@ -401,6 +414,7 @@ void Display::present(const Image8& frame, const Palette& palette) {
       impl_->upload_picture(impl_->side_pictures[0], impl_->side_fill.left, lut);
       impl_->upload_picture(impl_->side_pictures[1], impl_->side_fill.right, lut);
     }
+    impl_->upload_picture(impl_->bottom_texture, impl_->bottom_strip != nullptr ? *impl_->bottom_strip : Image8(), lut);
   }
   impl_->render();
 }
@@ -645,6 +659,8 @@ void Display::set_side_texture(SideFill::Kind kind, const RgbaImage& picture) {
 }
 
 void Display::set_side_fill(const SideFill& fill) { impl_->side_fill = fill; }
+
+void Display::set_bottom_strip(const Image8* strip) { impl_->bottom_strip = strip; }
 
 bool Display::fullscreen() const { return impl_->fullscreen; }
 

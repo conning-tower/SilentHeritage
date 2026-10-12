@@ -97,6 +97,10 @@ class Mouse {
   // Changes the screen the position is limited to (not in the original:
   // the wide-screen layouts), clamping the position.
   void set_bounds(int width, int height);
+  // Lets the pointer reach columns `x0`..`x1` (beyond the screen's) on rows
+  // `top` and below: the command bar drawn across a wide window over a
+  // 640-wide screen (not in the original). Nothing for none.
+  void set_band(std::optional<ClipRect> band);
 
   int x() const { return x_; }
   int y() const { return y_; }
@@ -153,6 +157,7 @@ class Mouse {
   EventQueue* events_;
   int width_;
   int height_;
+  std::optional<ClipRect> band_;
   int x_ = 0;
   int y_ = 0;
   std::uint8_t buttons_ = 0;

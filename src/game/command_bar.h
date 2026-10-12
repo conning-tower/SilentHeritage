@@ -29,6 +29,9 @@
 
 namespace sh {
 
+// The bar's top row on the screen (dialog 0x11e540 at y 459).
+inline constexpr int kCommandBarTop = 0x1cb;
+
 // A station button of the bar (12 bytes: normal and pressed GLOBAL.SHP
 // frames, callback).
 struct BarButton {

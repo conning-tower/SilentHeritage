@@ -83,6 +83,16 @@ void MissionScreen::fit_screen(const Station& next) {
     width = setup_.screen_width();
   }
   setup_.gui.set_screen_width(width);
+  // The command bar across a wide window over a 640-wide station.
+  const int window = ui_.features.wide_screen && setup_.screen_width ? setup_.screen_width() : kScreenWidth;
+  ui_.bar_offset = width == kScreenWidth ? (window - kScreenWidth) / 2 : 0;
+  if (ui_.bar_offset > 0) {
+    ui_.bar_strip = Image8(window, kScreenHeight - kCommandBarTop, 0);
+    setup_.gui.mouse().set_band(ClipRect{-ui_.bar_offset, kCommandBarTop, window - ui_.bar_offset - 1, kScreenHeight - 1});
+  } else {
+    ui_.bar_strip = Image8();
+    setup_.gui.mouse().set_band(std::nullopt);
+  }
   // Beside a 640-wide station: the brass, the wood for the TDC; a station
   // may set pictures of its own when it opens.
   if (ui_.features.wide_screen) {
@@ -103,6 +113,7 @@ MissionScreen::~MissionScreen() {
   }
   // The front end's screen.
   setup_.gui.set_screen_width(kScreenWidth);
+  setup_.gui.mouse().set_band(std::nullopt);
 }
 
 void MissionScreen::install(StationId id, std::unique_ptr<Station> station) {
