@@ -351,7 +351,7 @@ TEST_CASE("A career patrol updates the career from its results", "[career][conte
   CHECK(saved->career.log.size() == 6);
 }
 
-TEST_CASE("A career patrol takes the extended rules, and its port time their deliveries", "[career][radar_rules]") {
+TEST_CASE("A career patrol takes the extended rules, and its port time their deliveries", "[career][radar_rules][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GameTables tables = GameTables::load(install);
   const CampaignData campaign = CampaignData::load(install, tables);
