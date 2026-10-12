@@ -2,7 +2,7 @@
 // or `silent_hunter` after the edition, core/edition.h):
 //
 //   silent_heritage [--data <install dir> | --setup] [--nointro | --editor] [--save <dir>] [--sharp]
-//                   [--touch-panel] [--no-orders-button] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]
+//                   [--touch-panel] [--no-orders-button] [--classic] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]
 //   silent_heritage [--data <install dir> | --setup] --viewer [--open <path>] [--keys ...] [--screenshot ...]
 //
 // Without `--data` (or when it is not an install) the game files are those
@@ -25,8 +25,8 @@
 // it is shown by default).
 // `--window WxH` opens the window at that size (the wide-screen layouts
 // follow its aspect).
-// `--faithful` runs the extended variant without its improvements, as the
-// faithful variant (core/features.h).
+// `--classic` runs the extended variant without its improvements, as the
+// classic variant (core/features.h).
 // `--keys` presses the given keys, one per frame: names up, down, left,
 // right, pgup, pgdn, home, end, enter, esc, tab, space, backspace, comma,
 // minus, period, kpplus, kpminus, f1..f12 or a single character (an
@@ -53,7 +53,7 @@ namespace sh {
 // The usage line's options, after the program's name.
 inline constexpr std::string_view kUsageOptions =
     "[--data <install dir> | --setup] "
-    "[--viewer [--open <category/item#frame>] | --nointro | --editor] [--save <dir>] [--sharp] [--touch-panel] [--no-orders-button] [--window WxH] [--faithful] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]";
+    "[--viewer [--open <category/item#frame>] | --nointro | --editor] [--save <dir>] [--sharp] [--touch-panel] [--no-orders-button] [--window WxH] [--classic] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]";
 
 struct CommandLine {
   std::optional<std::string> data_dir;
@@ -64,7 +64,7 @@ struct CommandLine {
   Scaling scaling = Scaling::kSmooth;
   bool touch_panel = false;
   bool no_orders_button = false;
-  bool faithful = false;
+  bool classic = false;
   // The window's size, 0 for the default.
   int window_width = 0;
   int window_height = 0;

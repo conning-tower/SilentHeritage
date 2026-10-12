@@ -161,7 +161,7 @@ add_executable(sh_tests
   wide_layout_test.cpp
   # The Android launcher icon tool (tools/).
   launcher_icon_test.cpp
-  # Golden traces of the faithful game (tests/golden/).
+  # Golden traces of the classic game (tests/golden/).
   golden_trace.cpp
   golden_rig.cpp
   golden_game_rig.cpp

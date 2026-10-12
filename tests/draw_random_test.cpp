@@ -60,8 +60,8 @@ TEST_CASE("Draw random: the simulation does not depend on the station shown", "[
   // The deck gun keeps its shells' tracers in view; the TBT looks ahead,
   // away from them. Both show the world and are the same sensor station for
   // the simulation.
-  SECTION("Faithful: the bridge's tracers draw from the game's generator") {
-    CHECK(play_at(game, Features::faithful(), "alt+f4", kFrames) != play_at(game, Features::faithful(), "f3", kFrames));
+  SECTION("Classic: the bridge's tracers draw from the game's generator") {
+    CHECK(play_at(game, Features::classic(), "alt+f4", kFrames) != play_at(game, Features::classic(), "f3", kFrames));
   }
   SECTION("Own generator: the same game") {
     Features features;

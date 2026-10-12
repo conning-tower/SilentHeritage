@@ -95,7 +95,7 @@ TEST_CASE("Wide layout: the chart and the bridge take the window's width, the ot
 TEST_CASE("Wide layout: without the improvement every station stays 640 wide, with no side fill", "[wide]") {
   const Install& install = data_or_synthetic();
   const GoldenGame game(install);
-  GoldenMissionRig rig(game, hist01(game), Features::faithful(), kWide);
+  GoldenMissionRig rig(game, hist01(game), Features::classic(), kWide);
   for (const char* key : {"f5", "f4", "f3", "f6"}) {
     rig.play(std::string("-30,") + key + ",-30");
     CHECK(rig.screen().screen().width() == kScreenWidth);
@@ -106,7 +106,7 @@ TEST_CASE("Wide layout: without the improvement every station stays 640 wide, wi
 TEST_CASE("Wide layout: the bridge's command bar runs end to end, its art unscaled", "[wide]") {
   const Install& install = data_or_synthetic();
   const GoldenGame game(install);
-  GoldenMissionRig narrow(game, hist01(game), Features::faithful());
+  GoldenMissionRig narrow(game, hist01(game), Features::classic());
   GoldenMissionRig wide(game, hist01(game), wide_screen(), kWide);
   narrow.play("-60,f4,-40");
   wide.play("-60,f4,-40");
@@ -122,7 +122,7 @@ TEST_CASE("Wide layout: the bridge's command bar runs end to end, its art unscal
 TEST_CASE("Wide layout: beside a 640-wide station the command bar runs across the window", "[wide]") {
   const Install& install = data_or_synthetic();
   const GoldenGame game(install);
-  GoldenMissionRig narrow(game, hist01(game), Features::faithful());
+  GoldenMissionRig narrow(game, hist01(game), Features::classic());
   GoldenMissionRig wide(game, hist01(game), wide_screen(), kWide);
   narrow.play("-60,f6,-40");
   wide.play("-60,f6,-40");

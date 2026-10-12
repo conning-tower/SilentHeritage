@@ -53,9 +53,9 @@ Features style(CommandBarStyle s) {
 }  // namespace
 
 TEST_CASE("controls: the command bar styles", "[controls]") {
-  // The faithful game's: the floating button and the original bar.
-  CHECK(Features::faithful().command_bar == CommandBarStyle::kOrdersButton);
-  CHECK(Features::faithful().floating_orders());
+  // The classic game's: the floating button and the original bar.
+  CHECK(Features::classic().command_bar == CommandBarStyle::kOrdersButton);
+  CHECK(Features::classic().floating_orders());
   CHECK(Features::extended().command_bar == CommandBarStyle::kBarOrdersTime);
   const Features plain = style(CommandBarStyle::kOriginal);
   CHECK(!plain.floating_orders());
@@ -164,7 +164,7 @@ TEST_CASE("controls: a click outside the 1MC and time compression boxes closes t
 
 TEST_CASE("controls: off, a click outside the 1MC box leaves it open", "[controls][stations]") {
   SH_REQUIRE_INSTALL(install);
-  BarRig b(install, Features::faithful());
+  BarRig b(install, Features::classic());
   b.rig.click(k1mcX + 30, kBarY + 10);
   b.rig.frames(2);
   REQUIRE(b.rig.screen->env().modals.modal_active());

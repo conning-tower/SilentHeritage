@@ -1,4 +1,4 @@
-// Golden traces of the faithful game: scripted missions with a fixed seed
+// Golden traces of the classic game: scripted missions with a fixed seed
 // whose simulation, generator, crew messages, UI state, station pictures
 // and save bytes are compared with the traces recorded from main
 // (golden_trace.h): on the original's data (SH_DATA) those of
@@ -185,13 +185,13 @@ void run_script(const GoldenGame& game, const GoldenScript& script, Features fea
   out = rig.trace();
 }
 
-TEST_CASE("The faithful game follows its golden traces", "[golden]") {
+TEST_CASE("The classic game follows its golden traces", "[golden]") {
   const GoldenData data = golden_data();
   const GoldenGame game(data.install);
   for (const GoldenScript& script : scripts()) {
     DYNAMIC_SECTION(data.trace_name(script.name)) {
       GoldenTrace trace;
-      run_script(game, script, Features::faithful(), trace);
+      run_script(game, script, Features::classic(), trace);
       check_golden(data.trace_name(script.name), trace, {}, data.header);
     }
   }

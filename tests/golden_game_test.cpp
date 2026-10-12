@@ -1,4 +1,4 @@
-// Golden traces of the whole faithful program: the front end's menus, a
+// Golden traces of the whole classic program: the front end's menus, a
 // single mission launched from them, a career and the scenario editor,
 // played by scripts (golden_game_rig.h) on the original's data or the
 // synthetic install (`golden_data`) and compared with tests/golden/
@@ -105,7 +105,7 @@ const std::vector<GameScript>& game_scripts() {
   return list;
 }
 
-TEST_CASE("The faithful program follows its golden traces", "[golden]") {
+TEST_CASE("The classic program follows its golden traces", "[golden]") {
   const GoldenData data = golden_data();
   for (const GameScript& script : game_scripts()) {
     DYNAMIC_SECTION(data.trace_name(script.name)) {

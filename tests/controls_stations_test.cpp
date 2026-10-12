@@ -174,8 +174,8 @@ TEST_CASE("controls: off, a drag on the periscope view changes nothing", "[contr
   SH_REQUIRE_INSTALL(install);
   // The same drag with the feature off, and no input at all: the same
   // bearing, pixels and random generator.
-  Harness dragged(install, Features::faithful());
-  Harness still(install, Features::faithful());
+  Harness dragged(install, Features::classic());
+  Harness still(install, Features::classic());
   ScopeStation a(dragged.services);
   ScopeStation b(still.services);
   raise_and_open(dragged, a);
@@ -197,7 +197,7 @@ TEST_CASE("controls: a periscope drag draws nothing from the game's generator", 
   // The drag, and the bearing it ends on set at the start without input:
   // the generator is where it would be.
   Harness dragged(install, with_drag());
-  Harness set(install, Features::faithful());
+  Harness set(install, Features::classic());
   ScopeStation a(dragged.services);
   ScopeStation b(set.services);
   raise_and_open(dragged, a);
@@ -246,8 +246,8 @@ TEST_CASE("controls: a bridge drag after a hold starts from the press", "[contro
 TEST_CASE("controls: off, a bridge drag is the original hold", "[controls][stations2]") {
   SH_REQUIRE_INSTALL(install);
   // Moving within the train area while held is the same as holding still.
-  Harness moved(install, Features::faithful());
-  Harness held(install, Features::faithful());
+  Harness moved(install, Features::classic());
+  Harness held(install, Features::classic());
   BridgeStation a(moved.services);
   BridgeStation b(held.services);
   for (auto [h, s] : {std::pair{&moved, &a}, std::pair{&held, &b}}) {
@@ -379,8 +379,8 @@ TEST_CASE("controls: off, the TDC dials are the original clicks", "[controls][st
   SH_REQUIRE_INSTALL(install);
   // A press, a drag and a release on the bearing knob sets the angle of
   // the press, as a plain click does.
-  Harness dragged(install, Features::faithful());
-  Harness clicked(install, Features::faithful());
+  Harness dragged(install, Features::classic());
+  Harness clicked(install, Features::classic());
   TdcStation a(dragged.services);
   TdcStation b(clicked.services);
   for (auto [h, s] : {std::pair{&dragged, &a}, std::pair{&clicked, &b}}) {

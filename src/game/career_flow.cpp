@@ -105,7 +105,7 @@ MissionRules CareerFlow::rules() const { return career_.rules.value_or(MissionRu
 
 void CareerFlow::adopt_rules() {
   // Not in the original: a career without ROSTER<n>.EXT (begun in the
-  // original or the faithful variant) takes the extended defaults.
+  // original or the classic variant) takes the extended defaults.
   if (ui_.extended_config()) {
     career_.rules = load_career_rules(ui_.saves(), career_.record.roster_slot).value_or(MissionRules::extended());
   } else {

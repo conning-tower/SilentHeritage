@@ -121,7 +121,7 @@ void check_golden(std::string_view name, const GoldenTrace& trace, std::span<con
   if (kinds.empty() && golden_recording(name)) {
     std::filesystem::create_directories(path.parent_path());
     std::ofstream out(path, std::ios::trunc);
-    out << "# Golden trace \"" << name << "\" of tests/golden_test.cpp, recorded from the faithful game.\n"
+    out << "# Golden trace \"" << name << "\" of tests/golden_test.cpp, recorded from the classic game.\n"
         << "# Re-record deliberately with SH_GOLDEN_RECORD=" << name << " (see tests/golden_trace.h).\n";
     for (const std::string& h : header) {
       out << '@' << h << '\n';

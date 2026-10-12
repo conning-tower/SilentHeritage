@@ -14,7 +14,7 @@
 //
 // The run ends after the last step (or when the front end returns).
 //
-//   GoldenGameRig rig(install, Features::faithful());
+//   GoldenGameRig rig(install, Features::classic());
 //   rig.run("-60,@menu,click:145,190,-40,@single");
 //   check_golden("real/frontend", rig.trace());
 #pragma once
@@ -47,7 +47,7 @@ class GoldenGameRig final : public FrontendHost, public EditorRunner {
   // The program on `install` with `features`, its SAVE and CUSTOM
   // directories empty in a scratch directory, the generator seeded with
   // `seed`, without the intro.
-  GoldenGameRig(const Install& install, Features features = Features::faithful(), std::uint32_t seed = 1);
+  GoldenGameRig(const Install& install, Features features = Features::classic(), std::uint32_t seed = 1);
   ~GoldenGameRig() override;
 
   // Runs the program on `script` until its end. Fails the test when a

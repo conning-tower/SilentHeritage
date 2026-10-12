@@ -1,4 +1,4 @@
-# Golden trace "synthetic/hist01_attack" of tests/golden_test.cpp, recorded from the faithful game.
+# Golden trace "synthetic/hist01_attack" of tests/golden_test.cpp, recorded from the classic game.
 # Re-record deliberately with SH_GOLDEN_RECORD=synthetic/hist01_attack (see tests/golden_trace.h).
 @install synthetic
 marked sim.time day 1 06:00:18.00 x1/1/64

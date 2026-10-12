@@ -17,7 +17,7 @@
 # With --variant=extended, the packages are the extended variant's
 # (SH_VARIANT): build/android/SilentHeritageExtended-debug.apk
 # (com.conningtower.silentheritage.extended), and likewise for Silent Hunter,
-# installed next to the faithful ones. Their launcher icons carry the
+# installed next to the classic ones. Their launcher icons carry the
 # extended mark, a brass "EXT" ribbon (android/icon/extended_ribbon.svg)
 # drawn over the edition's icon, whatever --icon says; the SH plate is
 # oxblood instead of dark green.
@@ -30,12 +30,12 @@
 # SOURCE_DATE_EPOCH, give the same unsigned package (what F-Droid's
 # reproducible builds compare).
 #
-# Usage: android/build_apk.sh [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate]
+# Usage: android/build_apk.sh [--edition=heritage|hunter] [--variant=classic|extended] [--icon=game|sh-plate]
 #                             [--unsigned]
 #   --edition  the edition's package to build [heritage]; --edition=hunter
 #              builds the local Silent Hunter testing package (refused when
 #              the CI environment variable is set: never in a workflow)
-#   --variant  the variant built [faithful]
+#   --variant  the variant built [classic]
 #   --icon     the launcher icon of every package built, instead of each
 #              edition's own; made at build time by tools/make_launcher_icon
 #              (built for the host in build/host-tools): `game` cuts it from
@@ -63,17 +63,17 @@
 set -euo pipefail
 
 editions=(heritage)
-variant=faithful
+variant=classic
 icon_override=
 signed=true
 for arg in "$@"; do
   case "${arg}" in
     --edition=heritage | --edition=hunter) editions=("${arg#--edition=}") ;;
-    --variant=faithful | --variant=extended) variant="${arg#--variant=}" ;;
+    --variant=classic | --variant=extended) variant="${arg#--variant=}" ;;
     --icon=game | --icon=sh-plate) icon_override="${arg#--icon=}" ;;
     --unsigned) signed=false ;;
     *)
-      echo "usage: $0 [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate] [--unsigned]" >&2
+      echo "usage: $0 [--edition=heritage|hunter] [--variant=classic|extended] [--icon=game|sh-plate] [--unsigned]" >&2
       exit 1
       ;;
   esac

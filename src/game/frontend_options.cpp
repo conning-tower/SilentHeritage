@@ -91,7 +91,7 @@ void FrontEnd::extended_options_screen() {
   // window's settings stay.
   d.emplace<ui::Button>(205, 415, 121, std::string(kOriginal), [&edited, &d](int) {
     for (const FeatureOption& o : kFeatureOptions) {
-      o.set(edited, o.get(Features::faithful()));
+      o.set(edited, o.get(Features::classic()));
     }
     d.invalidate();
     return 0;

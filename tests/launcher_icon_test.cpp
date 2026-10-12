@@ -258,7 +258,7 @@ TEST_CASE("launcher icon: overlays drawn over the picture", "[launcher_icon]") {
 }
 
 TEST_CASE("launcher icon: the icons without the extended mark are unchanged", "[launcher_icon]") {
-  // The faithful packages draw no overlay; a transparent one changes no
+  // The classic packages draw no overlay; a transparent one changes no
   // byte of any resource either.
   const sh::RgbaBitmap base = test_foreground();
   const TempDir plain;

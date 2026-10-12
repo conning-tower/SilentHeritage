@@ -102,7 +102,7 @@ TEST_CASE("Wide screen: mouse positions are those of the frame shown", "[wide]")
     CHECK(e->x == 427);
     CHECK_THROWS_AS(display.present(Image8(kMaxScreenWidth + 1, kScreenHeight), palette), std::invalid_argument);
   }
-  SECTION("Faithful display: 640x480 letterboxed in the same window") {
+  SECTION("Classic display: 640x480 letterboxed in the same window") {
     Display display("test", 1, Scaling::kSharp, false, 1708, 960);
     while (display.poll()) {
     }

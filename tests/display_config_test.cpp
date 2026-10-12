@@ -40,11 +40,11 @@ TEST_CASE("DISPLAY.CFG is written and read back; a missing file holds nothing", 
   std::filesystem::remove_all(dir);
 }
 
-TEST_CASE("A launch starts fullscreen in the extended variant, windowed in the faithful one", "[display]") {
-  // Nothing saved: the faithful variant as before, windowed and smooth.
+TEST_CASE("A launch starts fullscreen in the extended variant, windowed in the classic one", "[display]") {
+  // Nothing saved: the classic variant as before, windowed and smooth.
   CHECK(initial_display_settings({}, false, false) == DisplaySettings{.fullscreen = false, .smoothing = true});
   CHECK(initial_display_settings({}, true, false) == DisplaySettings{.fullscreen = true, .smoothing = true});
-  // The saved settings win; the faithful variant ignores the smoothing.
+  // The saved settings win; the classic variant ignores the smoothing.
   const DisplayConfig saved{.fullscreen = false, .smoothing = false};
   CHECK(initial_display_settings(saved, true, false) == DisplaySettings{.fullscreen = false, .smoothing = false});
   CHECK(initial_display_settings(saved, false, false) == DisplaySettings{.fullscreen = false, .smoothing = true});

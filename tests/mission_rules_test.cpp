@@ -187,7 +187,7 @@ TEST_CASE("A mission keeps its rules, and its save carries them only when they a
   CHECK(fixing_file == appended);
 
   // A restored mission takes the rules of its save, not of its set-up; a
-  // save without a RULE section (the original's, a faithful build's) keeps
+  // save without a RULE section (the original's, a classic build's) keeps
   // those of its set-up.
   CHECK(restored(install, tables, fixing_file, {})->sim().conditions().rules == marked);
   CHECK(restored(install, tables, original_file, keen())->sim().conditions().rules == keen());

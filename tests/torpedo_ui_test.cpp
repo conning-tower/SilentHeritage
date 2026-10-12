@@ -162,7 +162,7 @@ TEST_CASE("The status page shows a card per type carried at the start, which sta
 
 TEST_CASE("Without the feature the cards are the TDC table's, as the original", "[torpedo_ui]") {
   SH_REQUIRE_INSTALL(install);
-  TorpedoRig rig(install, test::mixed_scenario(install, false), Features::faithful(), MissionRules{});
+  TorpedoRig rig(install, test::mixed_scenario(install, false), Features::classic(), MissionRules{});
   StatusStation& s = open_torpedo_page(rig);
   // February 1944: the original's table MARK10 / MARK14 / MARK18-1, the
   // Mark 10 by its date.
@@ -226,21 +226,21 @@ std::vector<std::uint8_t> knob_labels(const Image8& screen) {
 TEST_CASE("The knob's labels are the table's names in the art's lettering", "[torpedo_ui][content]") {
   SH_REQUIRE_GAME_DATA(install);
   // The original's table (February 1944: MARK10, MARK14, MARK18-1).
-  const Image8 faithful =
-      tdc_screen(install, test::mixed_scenario(install, false), Features::faithful(), {}, 1, "torpedo_tdc_faithful");
+  const Image8 classic =
+      tdc_screen(install, test::mixed_scenario(install, false), Features::classic(), {}, 1, "torpedo_tdc_classic");
   // The original command bar, so that only the torpedo display differs.
   Features features = Features::extended();
-  features.command_bar = Features::faithful().command_bar;
+  features.command_bar = Features::classic().command_bar;
   const Image8 extended =
       tdc_screen(install, test::mixed_scenario(install, false), features, {}, 1, "torpedo_tdc_feature");
   // The labels are written ("MARK18-1" is longer than the art's "MARK18");
   // the rest of the station, the tube buttons included, is the original's.
-  CHECK(knob_labels(extended) != knob_labels(faithful));
+  CHECK(knob_labels(extended) != knob_labels(classic));
   int differ = 0;
   for (int y = 0; y < kScreenHeight; ++y) {
     for (int x = 0; x < kScreenWidth; ++x) {
       const bool labels = x < 46 && y >= 379 && y <= 437;
-      differ += !labels && extended.at(x, y) != faithful.at(x, y) ? 1 : 0;
+      differ += !labels && extended.at(x, y) != classic.at(x, y) ? 1 : 0;
     }
   }
   CHECK(differ == 0);
@@ -248,7 +248,7 @@ TEST_CASE("The knob's labels are the table's names in the art's lettering", "[to
   // are the art's.
   for (int y = 379 + 26; y < 379 + 26 + 7; ++y) {
     for (int x = 46 - 41; x < 46 - 41 + 33; ++x) {
-      CHECK(extended.at(x, y) == faithful.at(x, y));
+      CHECK(extended.at(x, y) == classic.at(x, y));
     }
   }
   // The selected type changes the knob, not its labels (no highlight).
@@ -260,7 +260,7 @@ TEST_CASE("The knob's labels are the table's names in the art's lettering", "[to
 TEST_CASE("Under the torpedo rules the knob holds the types carried", "[torpedo_ui]") {
   SH_REQUIRE_INSTALL(install);
   for (const bool feature : {false, true}) {
-    TorpedoRig rig(install, test::mixed_scenario(install, false), feature ? Features::extended() : Features::faithful(),
+    TorpedoRig rig(install, test::mixed_scenario(install, false), feature ? Features::extended() : Features::classic(),
                    test::torpedo_rules(false));
     const auto& types = rig.mission().player_combat().torpedo_types;
     CHECK(types[0].name == "MARK14");
@@ -395,7 +395,7 @@ TEST_CASE("Torpedo type screenshots", "[.torpedo_screens]") {
   // its own rendering, for comparison.
   for (const auto& [scen, name] : {std::pair{"SCEN/HIST06.SCN", "torpedo_tdc_original_one_type"}}) {
     Scenario sc = parse_scenario(install.read(scen), scen);
-    TorpedoRig rig(install, std::move(sc), Features::faithful(), {});
+    TorpedoRig rig(install, std::move(sc), Features::classic(), {});
     rig.frames(1);
     rig.settle();
     rig.key(kKeyTdc);

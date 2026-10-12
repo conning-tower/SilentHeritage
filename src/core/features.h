@@ -1,7 +1,7 @@
 // The improvements beyond the original game (not in the original), each
-// switched on its own. The faithful variant runs with none of them, the
+// switched on its own. The classic variant runs with none of them, the
 // extended variant with all (CMake option SH_VARIANT, core/edition.h); the
-// extended build's `--faithful` switches them all off.
+// extended build's `--classic` switches them all off.
 //
 // An improvement to the interface (screens, controls, logs) must leave the
 // simulation exactly as the original runs it: the same state, the same draws
@@ -21,7 +21,7 @@ namespace sh {
 enum class CommandBarStyle : std::uint8_t {
   kOriginal,       // the original bar alone ("ORIGINAL BAR")
   // The original bar and the floating ORDERS button of touch screens, as in
-  // the faithful game ("FLOATING ORDERS").
+  // the classic game ("FLOATING ORDERS").
   kOrdersButton,
   kBarOrders,      // the ORDERS button in the bar ("BAR WITH ORDERS")
   // The ORDERS button in the bar, - and + around its time compression.
@@ -101,7 +101,7 @@ struct Features {
   bool torpedo_types = false;
 
   // Returns the original game's set: no improvement.
-  static constexpr Features faithful() { return {}; }
+  static constexpr Features classic() { return {}; }
   // Returns every improvement.
   static constexpr Features extended() {
     return {.wide_screen = true,
@@ -119,7 +119,7 @@ struct Features {
             .torpedo_types = true};
   }
   // Returns the set of this build's variant.
-  static constexpr Features for_build() { return edition::kExtended ? extended() : faithful(); }
+  static constexpr Features for_build() { return edition::kExtended ? extended() : classic(); }
 
   // Whether the ORDERS button is in the bar, and - and + around its time
   // compression.

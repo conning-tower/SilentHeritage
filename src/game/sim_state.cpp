@@ -484,7 +484,7 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     out.u32(kExtensionVersion);
     write_section(out, kSimSection, sim_extension);
     write_section(out, kUiSection, ui_extension);
-    // Not written for the original's rules: the faithful variant's files
+    // Not written for the original's rules: the classic variant's files
     // stay as they were.
     if (!rules_extension.empty()) {
       write_section(out, kRuleSection, rules_extension);
@@ -1135,7 +1135,7 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
   Simulation& sim = *mission.sim_;
   ByteReader ext_reader(f.sim_extension, "state extension");
   ByteReader* ext = f.sim_extension.empty() ? nullptr : &ext_reader;
-  // A save without rules (the original's, a faithful build's) keeps those
+  // A save without rules (the original's, a classic build's) keeps those
   // the mission was set up with.
   if (!f.rules_extension.empty()) {
     const MissionRules rules = decode_mission_rules(f.rules_extension);

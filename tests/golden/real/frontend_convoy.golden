@@ -1,4 +1,4 @@
-# Golden trace "real/frontend_convoy" of tests/golden_test.cpp, recorded from the faithful game.
+# Golden trace "real/frontend_convoy" of tests/golden_test.cpp, recorded from the classic game.
 # Re-record deliberately with SH_GOLDEN_RECORD=real/frontend_convoy (see tests/golden_trace.h).
 @install SH.EXE 8a2903db48e2f767
 briefing fe.place single -1

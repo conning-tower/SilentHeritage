@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds the desktop packages of a release, both variants (faithful and
+# Builds the desktop packages of a release, both variants (classic and
 # extended, see CMakeLists.txt), into dist/:
 #   linux    SilentHeritage-<version>-linux-<arch>.tar.gz: the executable, its
 #            .desktop file and icon, README.txt and the licences; and
@@ -218,7 +218,7 @@ package_windows() {
 }
 
 mkdir -p "${dist}" "${work}"
-for variant in faithful extended; do
+for variant in classic extended; do
   sdl_src="${work}/${variant}/build/_deps/sdl3-src"
   "package_${platform}" "${variant}"
 done

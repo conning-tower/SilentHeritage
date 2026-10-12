@@ -201,7 +201,7 @@ struct Career {
   std::uint8_t patrol_state_version = 7;
   // The extended variant's rules of the career (not in the original), kept
   // in ROSTER<n>.EXT beside its roster; none for the original's rules (the
-  // faithful variant writes no such file).
+  // classic variant writes no such file).
   std::optional<MissionRules> rules;
 };
 

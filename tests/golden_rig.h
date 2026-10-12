@@ -5,7 +5,7 @@
 // The whole program's rig (front end, career, editor) is in
 // golden_game_rig.h.
 //
-//   GoldenMissionRig rig(game, Mission::load(...), Features::faithful());
+//   GoldenMissionRig rig(game, Mission::load(...), Features::classic());
 //   rig.play("f2,-40,space,-300");
 //   rig.checkpoint("scope");
 //   check_golden("real/hist01", rig.trace());
@@ -113,7 +113,7 @@ class GoldenMissionRig {
   // Plays `mission` (built on `game`'s tables) with `features`, without
   // sound, at 5 ticks a frame.
   // `screen_width` is the window's for the wide-screen layouts.
-  GoldenMissionRig(const GoldenGame& game, std::unique_ptr<Mission> mission, Features features = Features::faithful(),
+  GoldenMissionRig(const GoldenGame& game, std::unique_ptr<Mission> mission, Features features = Features::classic(),
                    int screen_width = kScreenWidth);
 
   MissionScreen& screen() { return session_->screen(); }

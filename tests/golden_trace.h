@@ -1,6 +1,6 @@
 // Golden traces: hashes of the game's state recorded at checkpoints of a
 // scripted run, compared with a trace file committed in tests/golden/ so
-// that any change of the faithful behaviour fails a test, with the
+// that any change of the classic behaviour fails a test, with the
 // checkpoints that changed.
 //
 // A trace is a list of lines "<checkpoint> <kind> <value>", e.g.
@@ -16,8 +16,8 @@
 //
 // Recording: with SH_GOLDEN_RECORD set (to 1 for every trace, or to a
 // substring of the trace names to record), `check_golden` writes the trace
-// file instead of comparing. Record only from a faithful build of main, or
-// when a change of the faithful behaviour is deliberate (the commit then
+// file instead of comparing. Record only from a classic build of main, or
+// when a change of the classic behaviour is deliberate (the commit then
 // says so).
 #pragma once
 

@@ -112,8 +112,8 @@ CommandLine parse_command_line(std::span<const std::string_view> args) {
       o.no_orders_button = true;
       continue;
     }
-    if (a == "--faithful") {
-      o.faithful = true;
+    if (a == "--classic") {
+      o.classic = true;
       continue;
     }
     if (a == "--setup") {

@@ -300,17 +300,17 @@ TEST_CASE("The crew log is saved in a CLOG section and restored with the session
   restore_session_state(parsed, {.screen = restored.screen.get()});
   CHECK(restored.screen->bar().history() == rig.screen->bar().history());
 
-  // The faithful game reads the file and leaves the log out.
-  ControlRig faithful(install);
-  start(faithful, false);
-  restore_session_state(parsed, {.screen = faithful.screen.get()});
-  CHECK(faithful.screen->bar().history().entries().empty());
+  // The classic game reads the file and leaves the log out.
+  ControlRig classic(install);
+  start(classic, false);
+  restore_session_state(parsed, {.screen = classic.screen.get()});
+  CHECK(classic.screen->bar().history().entries().empty());
 }
 
 // --- Without the flag -----------------------------------------------------
 
 TEST_CASE("Without crew_log the bar records nothing and neither the strip nor L opens a log",
-          "[crewlog][faithful]") {
+          "[crewlog][classic]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   start(rig, false);
@@ -328,7 +328,7 @@ TEST_CASE("Without crew_log the bar records nothing and neither the strip nor L 
   CHECK_FALSE(contains(file.serialize(), "CLOG"));
 }
 
-TEST_CASE("crew_log leaves the pixels, the simulation and the saved bytes as without it", "[crewlog][faithful]") {
+TEST_CASE("crew_log leaves the pixels, the simulation and the saved bytes as without it", "[crewlog][classic]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig off(install);
   ControlRig on(install);

@@ -125,8 +125,8 @@ int run(const Options& options, const sh::Install& install) {
                           .orders_button = !options.no_orders_button,
                           .window_width = options.window_width,
                           .window_height = options.window_height,
-                          .features = options.faithful ? sh::Features::faithful() : sh::Features::for_build(),
-                          .extended_config = sh::edition::kExtended && !options.faithful,
+                          .features = options.classic ? sh::Features::classic() : sh::Features::for_build(),
+                          .extended_config = sh::edition::kExtended && !options.classic,
                           .keys = options.keys,
                           .screenshot = {},
                           .frames = options.frames};

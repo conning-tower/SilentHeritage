@@ -639,14 +639,14 @@ TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL re
     CHECK(load_features(saves, Features::extended()).command_bar == CommandBarStyle::kBarOrders);
   }
   {
-    // ORIGINAL: the faithful game's interface, its floating ORDERS button
+    // ORIGINAL: the classic game's interface, its floating ORDERS button
     // included; the other improvements stay.
     ScriptedHost host;
     host.display = kDesktopDisplay;
     host.script = {kOptionsExt, kOptionsOriginal, kOptionsOk, kExitToDosExt};
     run_extended(install, host, saves);
     const Features f = load_features(saves, Features::extended());
-    CHECK(f.command_bar == Features::faithful().command_bar);
+    CHECK(f.command_bar == Features::classic().command_bar);
     CHECK_FALSE(f.wide_screen);
     // The improvements without an option stay on.
     CHECK(f.crew_log);

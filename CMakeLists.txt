@@ -53,15 +53,15 @@ set(SH_EDITION_PREF_ORG "Conning Tower")
 
 # The variant built, orthogonal to the edition, in core/edition.h and
 # edition.sh:
-#   faithful  the original game, its rules, screens and limits.
+#   classic  the original game, its rules, screens and limits.
 #   extended  the same game with the improvements beyond the original
 #             (core/features.h), under its own name, executable,
 #             application id and per-user folder, so that it installs next
-#             to the faithful build and never shares its saves.
-set(SH_VARIANT faithful CACHE STRING
-  "The variant built: faithful (the original game) or extended (with the improvements of core/features.h)")
-set_property(CACHE SH_VARIANT PROPERTY STRINGS faithful extended)
-if(SH_VARIANT STREQUAL "faithful")
+#             to the classic build and never shares its saves.
+set(SH_VARIANT classic CACHE STRING
+  "The variant built: classic (the original game) or extended (with the improvements of core/features.h)")
+set_property(CACHE SH_VARIANT PROPERTY STRINGS classic extended)
+if(SH_VARIANT STREQUAL "classic")
   set(SH_VARIANT_EXTENDED false)
 elseif(SH_VARIANT STREQUAL "extended")
   set(SH_VARIANT_EXTENDED true)
@@ -69,7 +69,7 @@ elseif(SH_VARIANT STREQUAL "extended")
   string(APPEND SH_EDITION_EXECUTABLE _extended)
   string(APPEND SH_EDITION_APP_ID .extended)
 else()
-  message(FATAL_ERROR "SH_VARIANT must be faithful or extended, not '${SH_VARIANT}'")
+  message(FATAL_ERROR "SH_VARIANT must be classic or extended, not '${SH_VARIANT}'")
 endif()
 # The version of the build, MAJOR.MINOR.PATCH with an optional -suffix: the
 # release's tag without its "v" (.github/workflows/release.yml), in
