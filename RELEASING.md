@@ -57,7 +57,10 @@ keystore has one password for the store and the key. 50 years of validity:
 Google Play wants a key valid past 2033. Note its fingerprint, which users
 and stores check:
 
-    keytool -list -v -keystore silentheritage-release.p12 | grep SHA256
+    keytool -list -v -keystore silentheritage-release.p12
+
+(it asks for the password; the fingerprint is the `SHA256:` line of
+"Certificate fingerprints").
 
 Keep two offline copies of the keystore (e.g. an encrypted USB key and a
 password manager's file attachment) and the password in your password
