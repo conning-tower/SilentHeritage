@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What Android's cloud backup and device-to-device transfer keep of the
+     app's storage from Android 12 (android:dataExtractionRules): the SAVE
+     folder, as backup_rules.xml explains. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="file" path="SAVE/" />
+        <exclude domain="file" path="SAVE/RESUME.SAV" />
+        <exclude domain="file" path="SAVE/LIFECYCLE.LOG" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="file" path="SAVE/" />
+        <exclude domain="file" path="SAVE/RESUME.SAV" />
+        <exclude domain="file" path="SAVE/LIFECYCLE.LOG" />
+    </device-transfer>
+</data-extraction-rules>
