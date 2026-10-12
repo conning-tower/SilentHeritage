@@ -19,6 +19,7 @@
 #include "assets/game_exe.h"
 #include "core/error.h"
 #include "core/install.h"
+#include "core/side_fill.h"
 #include "game/frontend.h"
 #include "game/frontend_best.h"
 #include "game/extended_config.h"
@@ -292,6 +293,9 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
   void report(std::string_view message) override { reports.emplace_back(message); }
   std::optional<DisplayOptions> display_options() const override { return display; }
   void set_display_settings(const DisplaySettings& settings) override { applied_display.push_back(settings); }
+  void set_side_fill(const SideFill& fill) override { side_fills.push_back(fill.kind); }
+  // The side fills the front end set, in order.
+  std::vector<SideFill::Kind> side_fills;
   // The window's settings the host offers (none by default), and those the
   // front end applied.
   std::optional<DisplayOptions> display;
@@ -752,6 +756,22 @@ TEST_CASE("Alt-Q asks EXIT TO DOS? and YES ends the game", "[frontend]") {
                  ScriptedHost::key(0x1579)};
   CHECK_THROWS_AS(front_end.run(), QuitRequested);
   CHECK(host.script.empty());
+}
+
+TEST_CASE("The intro videos have black bars beside them, the menus their brass", "[frontend][content]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const TempDir dir;
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+  ScriptedHost host;
+  FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves}, host, host, 1);
+  // Esc skips each of the three videos, then Alt-Q and Y quit.
+  host.script = {ScriptedHost::key(0x011b), ScriptedHost::key(0x011b), ScriptedHost::key(0x011b),
+                 ScriptedHost::key(0x1000), ScriptedHost::key(0x1579)};
+  CHECK_THROWS_AS(front_end.run(), QuitRequested);
+  using enum SideFill::Kind;
+  CHECK(host.side_fills == std::vector{kBlack, kBrass, kBlack, kBrass, kBlack, kBrass});
 }
 
 // A scenario editor whose File / Run writes a copy of SITDUCK as

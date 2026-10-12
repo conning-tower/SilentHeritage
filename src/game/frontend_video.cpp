@@ -26,6 +26,8 @@ bool FrontEnd::play_cinematic(std::string_view name, int x, int y) {
   const int top = (y == -1 ? (kScreenHeight - video.height()) / 2 : y) / 4 * 4;
   screen_.fill(0);
   palette_fade_out(0, 0x100);
+  // Black bars beside the video on a wide screen, not the menus' brass.
+  host_.set_side_fill({.kind = SideFill::Kind::kBlack, .left = {}, .right = {}});
 
   VideoSound* sound = video.audio_tracks().empty() ? nullptr : host_.video_sound();
   if (sound != nullptr) {
@@ -66,6 +68,7 @@ bool FrontEnd::play_cinematic(std::string_view name, int x, int y) {
   gui_.events().flush();
   palette_fade_out(2, 2);
   screen_.fill(0);
+  host_.set_side_fill({});
   mouse.unfreeze_motion();
   mouse.show();
   return true;

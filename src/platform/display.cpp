@@ -197,6 +197,9 @@ struct Display::Impl {
                           static_cast<float>(kScreenHeight)};
       SDL_RenderTexture(renderer, t, nullptr, &dst);
     };
+    if (side_fill.kind == SideFill::Kind::kBlack) {
+      return;
+    }
     if (side_fill.kind == SideFill::Kind::kPicture) {
       side(side_pictures[0], true);
       side(side_pictures[1], false);
@@ -637,7 +640,7 @@ int Display::screen_width() const {
 }
 
 void Display::set_side_texture(SideFill::Kind kind, const RgbaImage& picture) {
-  if (kind == SideFill::Kind::kPicture) {
+  if (kind == SideFill::Kind::kPicture || kind == SideFill::Kind::kBlack) {
     throw std::invalid_argument("Display::set_side_texture: not a texture kind");
   }
   SDL_Surface* surface = SDL_CreateSurfaceFrom(picture.width, picture.height, SDL_PIXELFORMAT_ARGB8888,

@@ -1,6 +1,6 @@
 // What fills a wide screen beside a 640-wide frame (`Features::wide_screen`;
-// not in the original): the menus' brass, the desk wood, or pictures of the
-// screen's own, in its palette, that continue its art.
+// not in the original): the menus' brass, the desk wood, pictures of the
+// screen's own, in its palette, that continue its art, or black bars.
 #pragma once
 
 #include <cstdint>
@@ -14,6 +14,7 @@ struct SideFill {
     kBrass,    // ART/MENUBGND.PCX, the menus' brass
     kWood,     // the desk wood of ART/WOOD.PCX
     kPicture,  // `left` and `right`
+    kBlack,    // nothing (the full-screen videos)
   };
   Kind kind = Kind::kBrass;
   // For `kPicture`: the columns left and right of the frame (480 rows),
