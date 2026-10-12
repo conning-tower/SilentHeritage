@@ -22,6 +22,8 @@
 #include "game/mission_loop.h"
 #include "game/station.h"
 #include "game/station_env.h"
+#include "gfx/text.h"
+#include "gfx/viewport.h"
 #include "ui/controls.h"
 #include "ui/dialog.h"
 
@@ -272,5 +274,10 @@ class ControlBar : public CommandBar {
   std::int32_t message_skip_ = 0;   // 0x11e02c
   std::int32_t end_reason_ = 0;     // 0x11dff8
 };
+
+// Draws `text` like `gui_draw_text` with each glyph a pixel closer to the
+// previous one (not in the original: the extended bar's message strip).
+void draw_tight_text(const Viewport& vp, int x, int y, const Font& font, std::string_view text,
+                     const GlyphColourTable& colours);
 
 }  // namespace sh

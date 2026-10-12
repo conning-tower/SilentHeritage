@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string_view>
 
 #include "core/edition.h"
 
@@ -26,6 +27,22 @@ enum class CommandBarStyle : std::uint8_t {
   // The ORDERS button in the bar, - and + around its time compression.
   kBarOrdersTime,
 };
+
+// Returns the options page's label of `style`, in the menu fonts (at most
+// 178 pixels wide in the in-mission page's GUI_S.FNT).
+constexpr std::string_view command_bar_label(CommandBarStyle style) {
+  switch (style) {
+    case CommandBarStyle::kOriginal:
+      return "ORIGINAL BAR";
+    case CommandBarStyle::kOrdersButton:
+      return "FLOATING ORDERS";
+    case CommandBarStyle::kBarOrders:
+      return "BAR WITH ORDERS";
+    case CommandBarStyle::kBarOrdersTime:
+      break;
+  }
+  return "ALL COMMANDS";
+}
 
 struct Features {
   // Screens wider than 4:3: the chart and the 3D views fill the window's

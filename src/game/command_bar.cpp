@@ -633,7 +633,24 @@ void ControlBar::draw_message() {
   ui::fill_rect(vp, 0, 0, vp.x1 - vp.x0, vp.y1 - vp.y0, 0);
   ui::gui_focus_rect(vp, 0, 1, w, vp.y1 - vp.y0, 0xe, false);
   const GlyphColourTable identity = ui::GuiResources::identity_table();
+  if (env_.ui.features.orders_in_bar()) {
+    // Not in the original: the bar's buttons leave less room, so the
+    // letters are a pixel closer.
+    draw_tight_text(vp, 6, 7, env_.assets.msg, current_message(), identity);
+    return;
+  }
   gui_draw_text(vp, 6, 7, env_.assets.msg, current_message(), &identity);
+}
+
+void draw_tight_text(const Viewport& vp, int x, int y, const Font& font, std::string_view text,
+                     const GlyphColourTable& colours) {
+  for (const char c : text) {
+    if (c == '\0') {
+      break;
+    }
+    const int w = font_draw_char(vp, x, y, font, static_cast<std::uint8_t>(c), &colours);
+    x += std::max(w - 1, 0);
+  }
 }
 
 std::string ControlBar::current_message() const { return format_crew_message(messages_, log_.entry(log_.shown())); }

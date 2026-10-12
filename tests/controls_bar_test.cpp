@@ -6,13 +6,16 @@
 
 #include <algorithm>
 #include <optional>
+#include <string>
 #include <vector>
 
+#include "assets/fnt.h"
 #include "core/features.h"
 #include "game/command_bar.h"
 #include "game_data.h"
 #include "sim/clock.h"
 #include "stations_control_fixture.h"
+#include "ui/skin.h"
 
 namespace sh {
 
@@ -168,6 +171,56 @@ TEST_CASE("controls: off, a click outside the 1MC box leaves it open", "[control
   b.rig.click(20, 20);
   b.rig.frames(2);
   CHECK(b.rig.screen->env().modals.modal_active());
+}
+
+}  // namespace sh
+
+namespace sh {
+
+TEST_CASE("controls: the improved bar's message letters are a pixel closer", "[controls]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const Font msg = Font::load(install, "ART/MSG.FNT");
+  const std::string text = "OOD: Ship spotted, bearing 093.";
+  const GlyphColourTable identity = ui::GuiResources::identity_table();
+  Image8 normal(400, 20, 0);
+  Image8 tight(400, 20, 0);
+  gui_draw_text(Viewport::full(normal), 6, 2, msg, text, &identity);
+  draw_tight_text(Viewport::full(tight), 6, 2, msg, text, identity);
+  const auto right = [](const Image8& im) {
+    int r = -1;
+    for (int y = 0; y < im.height(); ++y) {
+      for (int x = 0; x < im.width(); ++x) {
+        if (im.at(x, y) != 0) {
+          r = std::max(r, x);
+        }
+      }
+    }
+    return r;
+  };
+  // The same first letter, the line shorter by a pixel a letter.
+  for (int y = 0; y < 20; ++y) {
+    for (int x = 0; x < 6 + msg.glyph_width('O') - 1; ++x) {
+      CHECK(normal.at(x, y) == tight.at(x, y));
+    }
+  }
+  CHECK(right(tight) == right(normal) - static_cast<int>(text.size() - 1));
+}
+
+}  // namespace sh
+
+namespace sh {
+
+TEST_CASE("controls: the command bar labels fit the options pages", "[controls]") {
+  SH_REQUIRE_GAME_DATA(install);
+  // The in-mission page's GUI_S.FNT labels (182 px plates) and the main
+  // menu's MENU_B.FNT ones (198 px).
+  const Font small = Font::load(install, "ART/GUI_S.FNT");
+  const Font bold = Font::load(install, "ART/MENU_B.FNT");
+  for (const CommandBarStyle s : {CommandBarStyle::kOriginal, CommandBarStyle::kOrdersButton,
+                                  CommandBarStyle::kBarOrders, CommandBarStyle::kBarOrdersTime}) {
+    CHECK(small.text_width(command_bar_label(s)) <= 178);
+    CHECK(bold.text_width(command_bar_label(s)) <= 190);
+  }
 }
 
 }  // namespace sh
