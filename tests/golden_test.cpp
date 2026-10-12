@@ -242,18 +242,18 @@ constexpr std::pair<std::string_view, bool MissionRules::*> kDormantRules[] = {
 };
 
 TEST_CASE("The radar rules keep the simulation of the golden traces without their fits", "[golden][rules]") {
-  SH_REQUIRE_GAME_DATA(install);
-  const GoldenGame game(install);
+  const GoldenData data = golden_data();
+  const GoldenGame game(data.install);
   for (const auto& [name, rule] : kDormantRules) {
     for (const GoldenScript& script : scripts()) {
-      DYNAMIC_SECTION(name << " " << script.name) {
+      DYNAMIC_SECTION(name << " " << data.trace_name(script.name)) {
         std::unique_ptr<Mission> mission = script.mission(game);
         MissionConditions& c = mission->sim().conditions();
         c.options &= ~(sensor_option::kApr1Detector | sensor_option::kStPeriscopeRadar);
         c.rules.*rule = true;
         GoldenMissionRig rig(game, std::move(mission));
         script.play(rig);
-        check_golden(script.name, rig.trace(), kSimKinds, install_header(install));
+        check_golden(data.trace_name(script.name), rig.trace(), kSimKinds, data.header);
       }
     }
   }
