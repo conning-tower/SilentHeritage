@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -303,6 +304,49 @@ TEST_CASE("launcher icon: the extended mark reaches every layer", "[launcher_ico
     const std::filesystem::path png = std::filesystem::path("mipmap-xxxhdpi") / name;
     CHECK(sh::read_file(plain.path() / png) != sh::read_file(extended.path() / png));
   }
+}
+
+TEST_CASE("launcher icon: Windows icon file", "[launcher_icon]") {
+  const std::vector<sh::RgbaBitmap> images{sh::RgbaBitmap(16, 16, {1, 2, 3, 4}),
+                                           sh::RgbaBitmap(256, 256, {5, 6, 7, 8})};
+  const std::vector<std::uint8_t> ico = sh::encode_ico(images);
+  const auto le16 = [&ico](std::size_t at) { return ico[at] | (ico[at + 1] << 8); };
+  const auto le32 = [&](std::size_t at) { return static_cast<std::uint32_t>(le16(at) | (le16(at + 2) << 16)); };
+  // ICONDIR: reserved, type 1 (icon), 2 entries.
+  CHECK(le16(0) == 0);
+  CHECK(le16(2) == 1);
+  CHECK(le16(4) == 2);
+  // Each ICONDIRENTRY: its size (256 written 0), 1 plane, 32 bits, its
+  // PNG's length and offset; the PNGs follow, in order.
+  std::uint32_t offset = 6 + 2 * 16;
+  for (std::size_t i = 0; i < images.size(); ++i) {
+    const std::size_t entry = 6 + 16 * i;
+    const std::vector<std::uint8_t> png = sh::encode_png(images[i]);
+    CHECK(ico[entry] == (images[i].width() == 256 ? 0 : images[i].width()));
+    CHECK(ico[entry + 1] == ico[entry]);
+    CHECK(le16(entry + 4) == 1);
+    CHECK(le16(entry + 6) == 32);
+    CHECK(le32(entry + 8) == png.size());
+    CHECK(le32(entry + 12) == offset);
+    CHECK(std::equal(png.begin(), png.end(), ico.begin() + offset));
+    offset += static_cast<std::uint32_t>(png.size());
+  }
+  CHECK(offset == ico.size());
+  const std::vector<sh::RgbaBitmap> too_big{sh::RgbaBitmap(257, 257)};
+  CHECK_THROWS_AS(sh::encode_ico(too_big), std::invalid_argument);
+}
+
+TEST_CASE("launcher icon: desktop icons", "[launcher_icon]") {
+  const TempDir dir;
+  sh::write_desktop_icons(test_foreground(), dir.path());
+  for (const int size : sh::kDesktopIconSizes) {
+    const DecodedPng png = read_png(sh::read_file(dir.path() / ("icon-" + std::to_string(size) + ".png")));
+    CHECK(png.width == static_cast<std::uint32_t>(size));
+    CHECK(png.height == static_cast<std::uint32_t>(size));
+  }
+  const std::vector<std::uint8_t> ico = sh::read_file(dir.path() / "icon.ico");
+  REQUIRE(ico.size() > 6);
+  CHECK((ico[4] | (ico[5] << 8)) == static_cast<int>(sh::kDesktopIconSizes.size()));
 }
 
 TEST_CASE("launcher icon: game-art square", "[launcher_icon][content]") {

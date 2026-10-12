@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Builds the debug-signed Android packages (arm64-v8a), without Gradle: the
-# steps Bazel's rules_android run (CMake for the native library, javac, d8,
-# aapt2, zipalign, apksigner). One package per edition (the native library
-# built with SH_EDITION, see CMakeLists.txt), signed with the same debug key:
+# Builds the debug-signed Android packages, without Gradle: the steps Bazel's
+# rules_android run (CMake for the native library, javac, d8, aapt2,
+# zipalign, apksigner). Each package holds the native library of every ABI
+# (arm64-v8a for phones and tablets, x86_64 for Chromebooks and emulators).
+# One package per edition (the native library built with SH_EDITION, see
+# CMakeLists.txt), signed with the same debug key:
 #   build/android/SilentHeritage-debug.apk  Silent Heritage
 #       (com.conningtower.silentheritage): no game files, the asset setup
 #       asks for the install's folder on the first start
@@ -20,9 +22,19 @@
 # drawn over the edition's icon, whatever --icon says; the SH plate is
 # oxblood instead of dark green.
 #
+# With --unsigned, the packages are left unsigned (aligned, ready for
+# apksigner: android/sign_apk.sh signs the release's with the release key),
+# as build/android/SilentHeritage-unsigned.apk and likewise.
+#
+# The packages are reproducible: the same sources, SDK, NDK and JDK, and
+# SOURCE_DATE_EPOCH, give the same unsigned package (what F-Droid's
+# reproducible builds compare).
+#
 # Usage: android/build_apk.sh [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate]
+#                             [--unsigned]
 #   --edition  the edition's package to build [heritage]; --edition=hunter
-#              builds the local Silent Hunter testing package
+#              builds the local Silent Hunter testing package (refused when
+#              the CI environment variable is set: never in a workflow)
 #   --variant  the variant built [faithful]
 #   --icon     the launcher icon of every package built, instead of each
 #              edition's own; made at build time by tools/make_launcher_icon
@@ -42,25 +54,35 @@
 #   SH_KEYSTORE   the debug keystore, created if missing (a standard
 #                 Android debug key) [debug.keystore at the repository root,
 #                 git-ignored]
-#   SH_VERSION_CODE, SH_VERSION_NAME  the package version [1, 0.1]
+#   SH_VERSION_CODE, SH_VERSION_NAME  the package version [1, 0.0.0-dev];
+#                 the version name is also the native build's SH_VERSION
+#   SH_ABIS       the ABIs of the packages [arm64-v8a x86_64]
+#   SOURCE_DATE_EPOCH  the time stamp of the package's files [the last
+#                 commit's]
 #   SH_CMAKE_ARGS extra arguments of the native library's CMake configuration
 set -euo pipefail
 
 editions=(heritage)
 variant=faithful
 icon_override=
+signed=true
 for arg in "$@"; do
   case "${arg}" in
     --edition=heritage | --edition=hunter) editions=("${arg#--edition=}") ;;
     --variant=faithful | --variant=extended) variant="${arg#--variant=}" ;;
     --icon=game | --icon=sh-plate) icon_override="${arg#--icon=}" ;;
+    --unsigned) signed=false ;;
     *)
-      echo "usage: $0 [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate]" >&2
+      echo "usage: $0 [--edition=heritage|hunter] [--variant=faithful|extended] [--icon=game|sh-plate] [--unsigned]" >&2
       exit 1
       ;;
   esac
 done
-readonly editions variant icon_override
+readonly editions variant icon_override signed
+if [[ -n "${CI:-}" && " ${editions[*]} " == *" hunter "* ]]; then
+  echo "build_apk.sh: the Silent Hunter edition is a local build only, never built in CI" >&2
+  exit 1
+fi
 
 # The packaging of edition $1: whether the game files are embedded, the
 # launcher icon, the package's file name. Its name and applicationId come
@@ -80,9 +102,13 @@ edition_apk() {
   if [[ "${variant}" == extended ]]; then
     suffix=Extended
   fi
+  local signing=debug
+  if [[ "${signed}" == false ]]; then
+    signing=unsigned
+  fi
   case "$1" in
-    heritage) echo "SilentHeritage${suffix}-debug.apk" ;;
-    hunter) echo "SilentHunter${suffix}-debug.apk" ;;
+    heritage) echo "SilentHeritage${suffix}-${signing}.apk" ;;
+    hunter) echo "SilentHunter${suffix}-${signing}.apk" ;;
   esac
 }
 
@@ -104,12 +130,19 @@ export PATH="${JAVA_HOME}/bin:${PATH}"
 readonly data="${SH_DATA:-}"
 readonly keystore="${SH_KEYSTORE:-${reimpl}/debug.keystore}"
 readonly version_code="${SH_VERSION_CODE:-1}"
-readonly version_name="${SH_VERSION_NAME:-0.1}"
+readonly version_name="${SH_VERSION_NAME:-0.0.0-dev}"
+read -r -a abis <<< "${SH_ABIS:-arm64-v8a x86_64}"
+readonly abis
+if [[ -z "${SOURCE_DATE_EPOCH:-}" ]]; then
+  SOURCE_DATE_EPOCH="$(git -C "$(dirname "${BASH_SOURCE[0]}")" log -1 --format=%ct)"
+fi
+export SOURCE_DATE_EPOCH
 readonly min_sdk=24
 readonly target_sdk=36
 
 readonly android="${reimpl}/android"
 readonly out="${reimpl}/build/android"
+# The native build directories, one per ABI: native-<abi>.
 readonly native="${out}/native"
 readonly stage="${out}/stage"
 # The extended variant's launcher icon: the extra arguments of
@@ -143,39 +176,49 @@ for f in "${required[@]}"; do
     exit 1
   fi
 done
-for tool in ninja rsync zip clang++; do
+tools=(ninja zip clang++ git)
+for e in "${editions[@]}"; do
+  if edition_assets "${e}"; then
+    tools+=(rsync)
+  fi
+done
+for tool in "${tools[@]}"; do
   if ! command -v "${tool}" > /dev/null; then
     echo "build_apk.sh: ${tool} not found" >&2
     exit 1
   fi
 done
 
-# 0. The launcher icon tool, for the host.
+# 0. The launcher icon tool, for the host (SDL without the display: no
+# development package of X11 or Wayland needed).
 readonly host_tools="${reimpl}/build/host-tools"
 host_args=()
 if [[ -d "${sdl_src}" ]]; then
   host_args+=("-DFETCHCONTENT_SOURCE_DIR_SDL3=${sdl_src}")
 fi
 cmake -S "${reimpl}" -B "${host_tools}" -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF "${host_args[@]}"
+  -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF -DSDL_UNIX_CONSOLE_BUILD=ON -DSDL_X11=OFF -DSDL_WAYLAND=OFF "${host_args[@]}"
 ninja -C "${host_tools}" make_launcher_icon
 readonly icon_tool="${host_tools}/tools/make_launcher_icon"
 
 # build_native <edition>: the native library of the edition in the variant,
-# the game with SDL linked in, as libmain.so (one build directory,
-# reconfigured: only the files of the edition's identity are rebuilt). Sets edition_name,
-# edition_executable and edition_app_id.
+# the game with SDL linked in, as libmain.so, for every ABI (one build
+# directory per ABI, reconfigured: only the files of the edition's identity
+# are rebuilt). Sets edition_name, edition_executable and edition_app_id.
 build_native() {
-  local cmake_args
+  local cmake_args abi
   read -r -a cmake_args <<< "${SH_CMAKE_ARGS:-}"
   if [[ -d "${sdl_src}" ]]; then
     cmake_args+=("-DFETCHCONTENT_SOURCE_DIR_SDL3=${sdl_src}")
   fi
-  cmake -S "${reimpl}" -B "${native}" -G Ninja \
-    -DCMAKE_TOOLCHAIN_FILE="${reimpl}/cmake/android-arm64.cmake" -DSH_ANDROID_NDK="${ndk}" \
-    -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF -DSH_EDITION="$1" -DSH_VARIANT="${variant}" "${cmake_args[@]}"
-  source "${native}/edition.sh"
-  ninja -C "${native}" "${edition_executable}"
+  for abi in "${abis[@]}"; do
+    cmake -S "${reimpl}" -B "${native}-${abi}" -G Ninja \
+      -DCMAKE_TOOLCHAIN_FILE="${reimpl}/cmake/android.cmake" -DSH_ANDROID_NDK="${ndk}" -DSH_ANDROID_ABI="${abi}" \
+      -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF -DSH_EDITION="$1" -DSH_VARIANT="${variant}" \
+      -DSH_VERSION="${version_name}" "${cmake_args[@]}"
+    source "${native}-${abi}/edition.sh"
+    ninja -C "${native}-${abi}" "${edition_executable}"
+  done
 }
 
 # 1. Java: SDL's activity and ours, compiled to classes.dex (the same in
@@ -188,15 +231,15 @@ if [[ "${variant}" == extended ]]; then
 fi
 build_native "${editions[0]}"
 if [[ ! -d "${sdl_src}" ]]; then
-  sdl_src="${native}/_deps/sdl3-src"
+  sdl_src="${native}-${abis[0]}/_deps/sdl3-src"
 fi
-mapfile -t java_sources < <(find "${sdl_src}/android-project/app/src/main/java" "${android}/java" -name '*.java')
+mapfile -t java_sources < <(find "${sdl_src}/android-project/app/src/main/java" "${android}/java" -name '*.java' | LC_ALL=C sort)
 "${JAVA_HOME}/bin/javac" -source 8 -target 8 -bootclasspath "${platform_jar}" -Xlint:-options -nowarn \
   -d "${stage}/classes" "${java_sources[@]}"
-mapfile -t classes < <(find "${stage}/classes" -name '*.class')
+mapfile -t classes < <(find "${stage}/classes" -name '*.class' | LC_ALL=C sort)
 "${build_tools}/d8" --release --min-api "${min_sdk}" --lib "${platform_jar}" --output "${stage}" "${classes[@]}"
 
-if [[ ! -f "${keystore}" ]]; then
+if [[ "${signed}" == true && ! -f "${keystore}" ]]; then
   mkdir -p "$(dirname "${keystore}")"
   "${JAVA_HOME}/bin/keytool" -genkeypair -keystore "${keystore}" -storepass android -keypass android \
     -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
@@ -207,10 +250,14 @@ for edition in "${editions[@]}"; do
     build_native "${edition}"
   fi
   dir="${stage}/${edition}"
-  mkdir -p "${dir}/lib/arm64-v8a" "${dir}/res"
+  mkdir -p "${dir}/res"
   cp "${stage}/classes.dex" "${dir}/"
-  "${ndk_bin}/llvm-strip" --strip-unneeded -o "${dir}/lib/arm64-v8a/libmain.so" "${native}/src/app/libmain.so"
-  stored=(lib/arm64-v8a/libmain.so)
+  stored=()
+  for abi in "${abis[@]}"; do
+    mkdir -p "${dir}/lib/${abi}"
+    "${ndk_bin}/llvm-strip" --strip-unneeded -o "${dir}/lib/${abi}/libmain.so" "${native}-${abi}/src/app/libmain.so"
+    stored+=("lib/${abi}/libmain.so")
+  done
 
   # 2. The game files (app/android_install.h), read in place from the APK:
   # the install without the DOS programs other than SH.EXE and SE.EXE (read
@@ -261,18 +308,26 @@ for edition in "${editions[@]}"; do
     --version-code "${version_code}" --version-name "${version_name}" \
     "${dir}/res.zip"
 
-  # 4. The package: classes.dex, the native library (loaded from the APK in
-  # place: extractNativeLibs="false") and the game files, both stored
-  # uncompressed, aligned and signed.
+  # 4. The package: classes.dex, the native libraries (loaded from the APK
+  # in place: extractNativeLibs="false") and the game files, both stored
+  # uncompressed, aligned and signed (unless --unsigned). The files are
+  # added in a fixed order, with SOURCE_DATE_EPOCH as their time and no
+  # extra attributes, for a reproducible package.
   (
     cd "${dir}"
-    zip -q unsigned.apk classes.dex
-    zip -q -0 -r -D unsigned.apk "${stored[@]}"
+    mapfile -t stored_files < <(find "${stored[@]}" -type f | LC_ALL=C sort)
+    touch -d "@${SOURCE_DATE_EPOCH}" classes.dex "${stored_files[@]}"
+    TZ=UTC zip -q -X unsigned.apk classes.dex
+    TZ=UTC zip -q -X -0 unsigned.apk "${stored_files[@]}"
   )
   "${build_tools}/zipalign" -f -P 16 4 "${dir}/unsigned.apk" "${dir}/aligned.apk"
   apk="${out}/$(edition_apk "${edition}")"
-  "${build_tools}/apksigner" sign --ks "${keystore}" --ks-pass pass:android --key-pass pass:android \
-    --ks-key-alias androiddebugkey --out "${apk}" "${dir}/aligned.apk"
-  echo "${apk}: ${edition_name} (${edition_app_id})"
+  if [[ "${signed}" == true ]]; then
+    "${build_tools}/apksigner" sign --ks "${keystore}" --ks-pass pass:android --key-pass pass:android \
+      --ks-key-alias androiddebugkey --out "${apk}" "${dir}/aligned.apk"
+  else
+    mv "${dir}/aligned.apk" "${apk}"
+  fi
+  echo "${apk}: ${edition_name} (${edition_app_id}, ${version_name}, version code ${version_code}, ${abis[*]})"
 done
 rm -rf "${stage}"

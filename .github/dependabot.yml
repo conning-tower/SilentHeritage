@@ -1,0 +1,11 @@
+# Pull requests for new versions of the workflows' actions, which are pinned
+# to a commit (.github/workflows).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

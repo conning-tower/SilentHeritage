@@ -1,0 +1,106 @@
+# Builds every package of a release, unsigned, as workflow artifacts:
+#   linux-x86_64, linux-aarch64  the tarballs and AppImages
+#                                (packaging/build_desktop.sh linux)
+#   windows-x64                  the zips (packaging/build_desktop.sh windows)
+#   android-unsigned             the APKs, unsigned (android/build_apk.sh
+#                                --unsigned; release.yml signs them)
+# both variants each. Called by release.yml for a release and by ci.yml to
+# check the packaging. No secret reaches these jobs: they run the project's
+# build and its dependencies (SDL, the SDK, the toolchains).
+name: build
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: The version, MAJOR.MINOR.PATCH[-suffix]
+        type: string
+        required: true
+      version-code:
+        description: The Android version code
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: linux-${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    # The oldest distribution built on: the executables need glibc 2.35+.
+    container: ubuntu:22.04
+    env:
+      CXXFLAGS: -stdlib=libc++
+      SH_VERSION: ${{ inputs.version }}
+    steps:
+      # git first, for a checkout with its history (SOURCE_DATE_EPOCH).
+      - name: Install git
+        run: apt-get update && apt-get install -y --no-install-recommends ca-certificates git
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the build dependencies
+        run: packaging/linux/install_build_deps.sh
+      - name: Build the packages
+        run: packaging/build_desktop.sh linux
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: linux-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+
+  windows:
+    runs-on: ubuntu-24.04
+    env:
+      SH_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the build dependencies
+        run: sudo packaging/windows/install_build_deps.sh
+      - name: Build the packages
+        run: packaging/build_desktop.sh windows
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: windows-x64
+          path: dist/*
+          if-no-files-found: error
+
+  android:
+    runs-on: ubuntu-24.04
+    env:
+      SH_VERSION_NAME: ${{ inputs.version }}
+      SH_VERSION_CODE: ${{ inputs.version-code }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build zip librsvg2-2 libcairo2 \
+            fonts-liberation-sans-narrow fontconfig
+          # The SDK packages build_apk.sh names, in the runner's SDK.
+          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-36" "build-tools;36.1.0" "ndk;29.0.14206865" > /dev/null
+      - name: Build the packages
+        run: |
+          export JAVA_HOME="${JAVA_HOME_17_X64}"
+          android/build_apk.sh --unsigned
+          android/build_apk.sh --unsigned --variant=extended
+          mkdir -p dist
+          mv build/android/*-unsigned.apk dist/
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: android-unsigned
+          path: dist/*
+          if-no-files-found: error

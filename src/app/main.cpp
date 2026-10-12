@@ -36,6 +36,14 @@
 #include "platform/display.h"
 #include "platform/screenshot.h"
 
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 namespace {
 
 using Options = sh::CommandLine;
@@ -168,7 +176,7 @@ std::optional<sh::Install> android_install() {
 // floating command button of touch screens. Errors go to the log and a
 // message box.
 int main(int, char**) {
-  SDL_SetAppMetadata(sh::edition::kName, nullptr, sh::edition::kAppId);
+  SDL_SetAppMetadata(sh::edition::kName, sh::edition::kVersion, sh::edition::kAppId);
   try {
     Options options;
     options.touch_panel = true;
@@ -214,10 +222,23 @@ std::optional<sh::Install> desktop_install(const Options& options) {
   return sh::run_install_setup(start.problems, config, remembered_folder ? remembered->location : std::string());
 }
 
+// Windows: the executable is a windowed program (no console window of its
+// own); started from a console, its output and messages go to that console.
+void attach_parent_console() {
+#ifdef _WIN32
+  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    std::FILE* ignored = nullptr;
+    freopen_s(&ignored, "CONOUT$", "w", stdout);
+    freopen_s(&ignored, "CONOUT$", "w", stderr);
+  }
+#endif
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
-  SDL_SetAppMetadata(sh::edition::kName, nullptr, sh::edition::kAppId);
+  attach_parent_console();
+  SDL_SetAppMetadata(sh::edition::kName, sh::edition::kVersion, sh::edition::kAppId);
   try {
     const std::vector<std::string_view> args(argv + 1, argv + argc);
     const Options options = sh::parse_command_line(args);
@@ -225,6 +246,10 @@ int main(int argc, char** argv) {
     return install ? run(options, *install) : 0;
   } catch (const std::exception& e) {
     std::fprintf(stderr, "%s: %s\n", sh::edition::kExecutable, e.what());
+#ifdef _WIN32
+    // Started from the Explorer, there is no console to tell it.
+    SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, sh::edition::kName, e.what(), nullptr);
+#endif
     return 1;
   }
 }

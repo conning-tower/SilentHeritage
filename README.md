@@ -21,6 +21,25 @@ repository contains no data from the original game. "Silent Hunter" is a
 trademark of its owner and is used here only to say what this software is
 compatible with.
 
+## Downloading
+
+The [releases](https://github.com/conning-tower/SilentHeritage/releases)
+hold the packages of both builds, the faithful one (`SilentHeritage-…`) and
+the extended one (`SilentHeritageExtended-…`), which install side by side:
+
+- Android 7.0 or later: `…-<version>.apk` (phones and tablets, Chromebooks).
+- Linux, x86_64 or aarch64, glibc 2.35 or later: `…-<arch>.AppImage`
+  (`chmod +x` and run it), or `…-linux-<arch>.tar.gz` (the program, its
+  menu entry and its icon).
+- Windows 10 or later, x64: `…-windows-x64.zip`. The program is not signed
+  yet: Windows SmartScreen asks for confirmation ("More info", "Run
+  anyway") on its first start.
+
+`SHA256SUMS` lists the files' checksums. Each file's build provenance is
+attested by GitHub: `gh attestation verify <file> -R conning-tower/SilentHeritage`
+shows that it was built by the release workflow from the release's tag.
+[RELEASING.md](RELEASING.md) describes how releases are made.
+
 ## Building
 
 You need CMake 3.25 or later, Ninja, clang and lld, and git (CMake downloads
@@ -32,7 +51,10 @@ Wayland, audio and GL development packages.
     ninja -C build/release silent_heritage
 
 Windows builds are cross-compiled from Linux with clang and the mingw-w64
-runtime: add `-DCMAKE_TOOLCHAIN_FILE=cmake/mingw-clang.cmake`. Debug builds
+runtime: add `-DCMAKE_TOOLCHAIN_FILE=cmake/mingw-clang.cmake`. `-DSH_VERSION=`
+sets the version (`MAJOR.MINOR.PATCH[-suffix]`, `0.0.0-dev` by default).
+`packaging/build_desktop.sh linux|windows` builds the release packages
+(described at its top). Debug builds
 (the default) enable ASan and UBSan; under WSLg, set
 `ASAN_OPTIONS=detect_leaks=0`.
 
@@ -58,18 +80,23 @@ fullscreen.
 
 ## Android
 
-`android/build_apk.sh` builds a debug-signed arm64 package (Android 7.0 or
-later) without Gradle:
+`android/build_apk.sh` builds a debug-signed package for arm64-v8a and
+x86_64 (Android 7.0 or later) without Gradle:
 
     ANDROID_HOME=<sdk> android/build_apk.sh
 
 It needs the Android SDK (`platforms/android-36`, `build-tools/36.1.0`) and
-NDK 29, a JDK 17 or later, ninja, rsync and zip, and python3 with librsvg and
+NDK 29, a JDK 17 or later, ninja and zip (and rsync for the local Silent
+Hunter edition), and python3 with librsvg and
 cairo plus the Liberation Sans Narrow font for the launcher icon. The other
 settings are described at the top of the script. The package is
 `build/android/SilentHeritage-debug.apk`; the debug key is `debug.keystore`
 at the repository root (created on first use, not committed; keep it, since
-an installed package only accepts updates signed with the same key).
+an installed package only accepts updates signed with the same key, and
+the released packages are signed with another, see RELEASING.md).
+
+The app's saves (the `SAVE` folder) are kept by Android's backup: they come
+back when the app is installed again or moved to a new device.
 
 On first start, the app asks for the folder holding your Silent Hunter
 install, then either reads it in place or copies it into the app's storage.

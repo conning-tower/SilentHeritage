@@ -15,3 +15,5 @@ compile_commands.json
 android/res/mipmap-*dpi/
 # Screenshots written by the tests and --screenshot
 *.bmp
+# Release packages (packaging/build_desktop.sh)
+dist/

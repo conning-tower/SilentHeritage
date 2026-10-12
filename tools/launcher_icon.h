@@ -2,9 +2,11 @@
 // so that no picture is stored in the repository: RGBA bitmaps, a minimal
 // PNG encoder (uncompressed deflate, no zlib), an area-averaging resampler,
 // the game-art picture cut from the install's ART/RTNPORT.PCX, and the
-// resource PNGs of every density.
+// resource PNGs of every density; and the desktop icons made from the same
+// picture (the Windows executable's .ico, the Linux packages' PNGs).
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <span>
@@ -107,5 +109,21 @@ RgbaBitmap monochrome(const RgbaBitmap& image, MonochromeSource source);
 // than 432 px, `std::runtime_error` when a file cannot be written.
 void write_launcher_icons(const RgbaBitmap& foreground, MonochromeSource source,
                           const std::filesystem::path& res_dir);
+
+// The sizes of the desktop icons, in pixels.
+inline constexpr std::array<int, 7> kDesktopIconSizes{16, 24, 32, 48, 64, 128, 256};
+
+// Returns a Windows icon file (.ico) holding `images` as PNG entries (as
+// Windows reads them since Vista), in order. Each image must be square,
+// 1 to 256 px (throws `std::invalid_argument` otherwise).
+std::vector<std::uint8_t> encode_ico(std::span<const RgbaBitmap> images);
+
+// Writes the desktop icons of the square full-bleed adaptive foreground
+// `foreground` into `dir`: the central 72 of its 108 dp (the part Android
+// launchers show), round, as icon-<size>.png for each of
+// `kDesktopIconSizes` and all of them in icon.ico. Throws
+// `std::invalid_argument` for a foreground that is not square or smaller
+// than 432 px, `std::runtime_error` when a file cannot be written.
+void write_desktop_icons(const RgbaBitmap& foreground, const std::filesystem::path& dir);
 
 }  // namespace sh

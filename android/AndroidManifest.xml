@@ -13,13 +13,17 @@
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
     <uses-feature android:name="android.hardware.type.pc" android:required="false" />
 
-    <!-- enableOnBackInvokedCallback="false": the Back button and gesture reach
+    <!-- Android's backup keeps the saves only (res/xml/backup_rules.xml,
+         res/xml/data_extraction_rules.xml).
+         enableOnBackInvokedCallback="false": the Back button and gesture reach
          SDL as a key (the game's way back, see platform/bios_keys.h) instead
          of closing the activity. -->
     <application android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:allowBackup="false"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
         android:enableOnBackInvokedCallback="false"
         android:hardwareAccelerated="true"

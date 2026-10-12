@@ -46,5 +46,21 @@ else()
     install_setup.cpp
     main.cpp)
 endif()
+if(WIN32)
+  # A windowed program (no console window; app/main.cpp attaches to the
+  # console it is started from), with its icon, version and manifest.
+  set(SH_WINDOWS_ICON "" CACHE FILEPATH
+    "The executable's icon (.ico), made by tools/make_launcher_icon --desktop; none when empty")
+  set(SH_WINDOWS_ICON_RESOURCE "")
+  if(SH_WINDOWS_ICON)
+    set(SH_WINDOWS_ICON_RESOURCE "1 ICON \"${SH_WINDOWS_ICON}\"")
+  endif()
+  set(SH_WINDOWS_MANIFEST ${CMAKE_CURRENT_SOURCE_DIR}/windows.manifest)
+  configure_file(windows.rc.in ${CMAKE_CURRENT_BINARY_DIR}/windows.rc @ONLY)
+  target_sources(${SH_EDITION_EXECUTABLE} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/windows.rc)
+  set_target_properties(${SH_EDITION_EXECUTABLE} PROPERTIES WIN32_EXECUTABLE TRUE)
+  set_property(SOURCE ${CMAKE_CURRENT_BINARY_DIR}/windows.rc APPEND PROPERTY OBJECT_DEPENDS
+    ${SH_WINDOWS_MANIFEST} ${SH_WINDOWS_ICON})
+endif()
 target_link_libraries(${SH_EDITION_EXECUTABLE} PRIVATE sh_core sh_gfx sh_assets sh_audio sh_platform sh_sim sh_ui sh_game
   sh_viewer sh_editor SDL3::SDL3-static)

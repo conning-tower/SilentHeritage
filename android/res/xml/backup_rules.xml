@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What Android's backup keeps of the app's storage, through Android 11
+     (android:fullBackupContent; data_extraction_rules.xml from Android 12):
+     the saves, options and best missions of the SAVE folder, small enough
+     for the 25 MB of Auto Backup. Not the copy of the game files
+     (files/install, larger than that: the whole backup would be skipped)
+     nor the remembered install (files/INSTALL.CFG: a folder's access is not
+     restored, the asset setup asks again), nor the resume snapshot and the
+     lifecycle log of this device. -->
+<full-backup-content>
+    <include domain="file" path="SAVE/" />
+    <exclude domain="file" path="SAVE/RESUME.SAV" />
+    <exclude domain="file" path="SAVE/LIFECYCLE.LOG" />
+</full-backup-content>

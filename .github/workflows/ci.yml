@@ -1,0 +1,55 @@
+# The tests, and the packages of every platform built as a check (unsigned,
+# kept a few days as the run's artifacts): on the pushes to main and the
+# pull requests. No secret: forks' pull requests run it too.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (${{ matrix.variant }})
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [faithful, extended]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the build dependencies
+        # SDL's, as in README.md (https://wiki.libsdl.org/SDL3/README-linux).
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build clang lld libclang-rt-18-dev \
+            libasound2-dev libpulse-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev \
+            libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
+            libegl1-mesa-dev libwayland-dev wayland-protocols libdecor-0-dev libdbus-1-dev libudev-dev
+      # A debug build: ASan and UBSan. Without SH_DATA, the tests run on the
+      # synthetic install (the [content] tests are skipped).
+      - name: Build
+        run: |
+          cmake -S . -B build/debug -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_LINKER_TYPE=LLD -DSH_VARIANT=${{ matrix.variant }}
+          ninja -C build/debug
+      - name: Test
+        run: |
+          build/debug/tests/sh_tests
+          build/debug/tests/editor/sh_editor_tests
+
+  packages:
+    uses: ./.github/workflows/build.yml
+    with:
+      version: 0.0.0-ci.${{ github.run_number }}
+      version-code: "1"

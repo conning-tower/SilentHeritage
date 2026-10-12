@@ -144,6 +144,19 @@ void write_file(const std::filesystem::path& path, std::span<const std::uint8_t>
   }
 }
 
+// Returns the part of the square full-bleed foreground `foreground` that
+// launchers show: its central 72 of 108 dp. Throws `std::invalid_argument`,
+// naming `caller`, for a foreground that is not square or smaller than
+// 432 px.
+RgbaBitmap visible_centre(const RgbaBitmap& foreground, const char* caller) {
+  const int size = foreground.width();
+  if (foreground.height() != size || size < kFullBleedDp * 4) {
+    throw std::invalid_argument(std::string(caller) + ": the foreground must be square, 432 px or more");
+  }
+  const int visible = size * 2 / 3;
+  return crop(foreground, (size - visible) / 2, (size - visible) / 2, visible, visible);
+}
+
 }  // namespace
 
 RgbaBitmap::RgbaBitmap(int width, int height, Rgba8 fill)
@@ -463,14 +476,8 @@ RgbaBitmap monochrome(const RgbaBitmap& image, MonochromeSource source) {
 
 void write_launcher_icons(const RgbaBitmap& foreground, MonochromeSource source,
                           const std::filesystem::path& res_dir) {
-  const int size = foreground.width();
-  if (foreground.height() != size || size < kFullBleedDp * 4) {
-    throw std::invalid_argument("write_launcher_icons: the foreground must be square, 432 px or more");
-  }
+  const RgbaBitmap centre = visible_centre(foreground, "write_launcher_icons");
   const RgbaBitmap mono = monochrome(foreground, source);
-  // The launchers' visible part: the central 72 of the 108 dp.
-  const int visible = size * 2 / 3;
-  const RgbaBitmap centre = crop(foreground, (size - visible) / 2, (size - visible) / 2, visible, visible);
   for (const Density& density : kDensities) {
     const std::filesystem::path dir = res_dir / (std::string("mipmap-") + density.name);
     std::filesystem::create_directories(dir);
@@ -482,6 +489,58 @@ void write_launcher_icons(const RgbaBitmap& foreground, MonochromeSource source,
     write_file(dir / "ic_launcher.png", encode_png(small));
     write_file(dir / "ic_launcher_round.png", encode_png(round_mask(small)));
   }
+}
+
+std::vector<std::uint8_t> encode_ico(std::span<const RgbaBitmap> images) {
+  std::vector<std::vector<std::uint8_t>> pngs;
+  for (const RgbaBitmap& image : images) {
+    if (image.width() != image.height() || image.width() < 1 || image.width() > 256) {
+      throw std::invalid_argument("encode_ico: the images must be square, 1 to 256 px");
+    }
+    pngs.push_back(encode_png(image));
+  }
+  std::vector<std::uint8_t> out;
+  const auto put16 = [&out](std::uint32_t v) {
+    out.push_back(static_cast<std::uint8_t>(v));
+    out.push_back(static_cast<std::uint8_t>(v >> 8));
+  };
+  const auto put32le = [&put16](std::uint32_t v) {
+    put16(v & 0xffff);
+    put16(v >> 16);
+  };
+  // ICONDIR, then one 16-byte ICONDIRENTRY per image (a size of 256 is
+  // written 0), then the PNGs.
+  put16(0);
+  put16(1);
+  put16(static_cast<std::uint32_t>(images.size()));
+  auto offset = static_cast<std::uint32_t>(6 + 16 * images.size());
+  for (std::size_t i = 0; i < images.size(); ++i) {
+    const auto side = static_cast<std::uint8_t>(images[i].width() == 256 ? 0 : images[i].width());
+    out.push_back(side);
+    out.push_back(side);
+    out.push_back(0);  // no palette
+    out.push_back(0);
+    put16(1);   // colour planes
+    put16(32);  // bits per pixel
+    put32le(static_cast<std::uint32_t>(pngs[i].size()));
+    put32le(offset);
+    offset += static_cast<std::uint32_t>(pngs[i].size());
+  }
+  for (const std::vector<std::uint8_t>& png : pngs) {
+    out.insert(out.end(), png.begin(), png.end());
+  }
+  return out;
+}
+
+void write_desktop_icons(const RgbaBitmap& foreground, const std::filesystem::path& dir) {
+  const RgbaBitmap centre = visible_centre(foreground, "write_desktop_icons");
+  std::filesystem::create_directories(dir);
+  std::vector<RgbaBitmap> icons;
+  for (const int size : kDesktopIconSizes) {
+    icons.push_back(round_mask(resize_area(centre, size, size)));
+    write_file(dir / ("icon-" + std::to_string(size) + ".png"), encode_png(icons.back()));
+  }
+  write_file(dir / "icon.ico", encode_ico(icons));
 }
 
 }  // namespace sh

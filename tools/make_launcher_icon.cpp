@@ -1,13 +1,15 @@
 // Writes the Android launcher icon PNGs of every density (launcher_icon.h)
-// into a resource directory, from the game's art or from a full-bleed
-// foreground picture (the SH plate rendered from its SVG), optionally with
-// overlays drawn over it (the extended variant's mark). Run by
-// android/build_apk.sh; no icon is stored in the repository.
+// into a resource directory, or with --desktop the desktop icons (the
+// Windows .ico and the PNGs of the Linux packages) into a directory, from
+// the game's art or from a full-bleed foreground picture (the SH plate
+// rendered from its SVG), optionally with overlays drawn over it (the
+// extended variant's mark). Run by android/build_apk.sh and
+// packaging/build_desktop.sh; no icon is stored in the repository.
 //
 // Usage:
-//   make_launcher_icon --res <dir> --install <game dir> [--overlay <square.pam>]...
-//   make_launcher_icon --res <dir> --foreground <square.pam> [--monochrome dark|light]
-//                      [--overlay <square.pam>]...
+//   make_launcher_icon (--res | --desktop) <dir> --install <game dir> [--overlay <square.pam>]...
+//   make_launcher_icon (--res | --desktop) <dir> --foreground <square.pam>
+//                      [--monochrome dark|light] [--overlay <square.pam>]...
 // The monochrome layer keeps the picture's dark parts for the game art and,
 // by default, its light parts for a foreground. Each overlay, a full-bleed
 // picture with transparency (android/icon/extended_ribbon.svg rendered), is
@@ -27,7 +29,7 @@
 namespace {
 
 constexpr std::string_view kUsage =
-    "usage: make_launcher_icon --res <dir> (--install <game dir> | --foreground <square.pam> "
+    "usage: make_launcher_icon (--res | --desktop) <dir> (--install <game dir> | --foreground <square.pam> "
     "[--monochrome dark|light]) [--overlay <square.pam>]...\n";
 
 int usage() {
@@ -39,6 +41,7 @@ int usage() {
 
 int main(int argc, char** argv) {
   std::optional<std::filesystem::path> res;
+  std::optional<std::filesystem::path> desktop;
   std::optional<std::filesystem::path> install_dir;
   std::optional<std::filesystem::path> foreground;
   std::optional<sh::MonochromeSource> mono;
@@ -51,6 +54,8 @@ int main(int argc, char** argv) {
     const std::string_view value = argv[++i];
     if (arg == "--res") {
       res = value;
+    } else if (arg == "--desktop") {
+      desktop = value;
     } else if (arg == "--install") {
       install_dir = value;
     } else if (arg == "--foreground") {
@@ -63,7 +68,7 @@ int main(int argc, char** argv) {
       return usage();
     }
   }
-  if (!res || install_dir.has_value() == foreground.has_value() || (install_dir && mono)) {
+  if (res.has_value() == desktop.has_value() || install_dir.has_value() == foreground.has_value() || (install_dir && mono)) {
     return usage();
   }
   try {
@@ -77,7 +82,11 @@ int main(int argc, char** argv) {
     for (const std::filesystem::path& overlay : overlays) {
       picture = sh::composite_over(picture, sh::decode_pam(sh::read_file(overlay), overlay.string()));
     }
-    sh::write_launcher_icons(picture, mono.value_or(sh::MonochromeSource::kLightness), *res);
+    if (desktop) {
+      sh::write_desktop_icons(picture, *desktop);
+    } else {
+      sh::write_launcher_icons(picture, mono.value_or(sh::MonochromeSource::kLightness), *res);
+    }
   } catch (const std::exception& e) {
     std::cerr << "make_launcher_icon: " << e.what() << '\n';
     return 1;

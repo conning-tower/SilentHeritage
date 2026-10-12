@@ -4,6 +4,8 @@ project(silent_heritage LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+# No C++20 modules: no dependency scan (which needs clang-scan-deps).
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
@@ -42,6 +44,11 @@ elseif(SH_EDITION STREQUAL "hunter")
 else()
   message(FATAL_ERROR "SH_EDITION must be heritage or hunter, not '${SH_EDITION}'")
 endif()
+# The Silent Hunter edition is never built by the workflows (.github), whose
+# builds may be published.
+if(SH_EDITION STREQUAL "hunter" AND DEFINED ENV{CI})
+  message(FATAL_ERROR "SH_EDITION=hunter is a local build only, never built in CI")
+endif()
 set(SH_EDITION_PREF_ORG "Conning Tower")
 
 # The variant built, orthogonal to the edition, in core/edition.h and
@@ -64,28 +71,44 @@ elseif(SH_VARIANT STREQUAL "extended")
 else()
   message(FATAL_ERROR "SH_VARIANT must be faithful or extended, not '${SH_VARIANT}'")
 endif()
+# The version of the build, MAJOR.MINOR.PATCH with an optional -suffix: the
+# release's tag without its "v" (.github/workflows/release.yml), in
+# core/edition.h and the Windows version resource.
+set(SH_VERSION "0.0.0-dev" CACHE STRING "The version: MAJOR.MINOR.PATCH[-suffix]")
+if(NOT SH_VERSION MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(-[0-9A-Za-z.-]+)?$")
+  message(FATAL_ERROR "SH_VERSION must be MAJOR.MINOR.PATCH[-suffix], not '${SH_VERSION}'")
+endif()
+set(SH_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(SH_VERSION_MINOR ${CMAKE_MATCH_2})
+set(SH_VERSION_PATCH ${CMAKE_MATCH_3})
 configure_file(src/core/edition.h.in ${CMAKE_CURRENT_BINARY_DIR}/generated/core/edition.h @ONLY)
 configure_file(cmake/edition.sh.in ${CMAKE_CURRENT_BINARY_DIR}/edition.sh @ONLY)
 
+# Release builds carry no path of the build machine (__FILE__ in SDL's and
+# our messages), for reproducible packages (android/build_apk.sh); before the
+# dependencies, so that it applies to them too.
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_options(-ffile-prefix-map=${CMAKE_BINARY_DIR}/=build/ -ffile-prefix-map=${CMAKE_SOURCE_DIR}/=)
+endif()
+
 include(FetchContent)
 
-# Third-party dependencies, pinned and built from source.
+# Third-party dependencies, pinned to a commit (a tag can be moved) and built
+# from source.
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
 set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(SDL3
   GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-  GIT_TAG release-3.4.18
-  GIT_SHALLOW TRUE
+  GIT_TAG 829a65d769d935c4852f8159e964312c0957260a  # release-3.4.18
   SYSTEM)
 FetchContent_MakeAvailable(SDL3)
 
 if(SH_BUILD_TESTS)
   FetchContent_Declare(Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.16.0
-    GIT_SHALLOW TRUE
+    GIT_TAG 317ac1ed4c0bb6e6b91eafc817e05c488feffcb3  # v3.16.0
     SYSTEM)
   FetchContent_MakeAvailable(Catch2)
 endif()
@@ -107,6 +130,11 @@ if(WIN32)
   # mingw's <intrin.h> (pulled in by the SDL headers) includes clang's
   # deprecated <mm3dnow.h>, whose #warning would fail the build.
   target_compile_options(sh_options INTERFACE -Wno-\#warnings)
+elseif(NOT ANDROID AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  # The C++ runtime linked in (libstdc++, or libc++ with -stdlib=libc++): the
+  # Linux executable needs only glibc and the system libraries SDL opens at
+  # run time.
+  target_link_options(sh_options INTERFACE -static-libstdc++ -static-libgcc)
 endif()
 
 # Declares module library `name` from SOURCES, linking DEPS publicly. A
