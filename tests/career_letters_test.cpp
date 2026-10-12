@@ -480,7 +480,7 @@ TEST_CASE("Career patrol screens return the original codes", "[career]") {
 }
 
 TEST_CASE("Extended rules deliver the APR-1 and the ST with their letters", "[career][radar_rules]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   MissionRules rules;
   rules.apr1 = true;
   rules.st_radar = true;
@@ -517,7 +517,7 @@ TEST_CASE("Extended rules deliver the APR-1 and the ST with their letters", "[ca
 }
 
 TEST_CASE("The original's NEW EQUIPMENT letters come one a visit in the table's order", "[career]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Screens s(install);
   CareerRecord r = sample_record();
   r.month = 11;
