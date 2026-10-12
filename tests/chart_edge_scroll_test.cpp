@@ -135,7 +135,7 @@ TEST_CASE("Chart edge scroll: over a command bar, only the screen's last row", "
 
 TEST_CASE("Chart edge scroll: the extended chart over its bar, and no scroll on a touch screen",
           "[edgescroll]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool touch : {false, true}) {
     ControlRig rig(install);
     rig.screen->env().ui.features.chart_tools = !touch;
