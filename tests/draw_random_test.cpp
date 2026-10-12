@@ -53,7 +53,7 @@ SimOutcome play_at(const GoldenGame& game, Features features, std::string_view k
   return {mission.sim().random().state(), capture_sim_state(mission, {}, {}).serialize()};
 }
 
-TEST_CASE("Draw random: the simulation does not depend on the station shown", "[draw_random]") {
+TEST_CASE("Draw random: the simulation does not depend on the station shown", "[draw_random][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const GoldenGame game(install);
   constexpr int kFrames = 200;
