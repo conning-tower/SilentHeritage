@@ -585,7 +585,8 @@ TEST_CASE("The extended deliveries come by their rules and dates", "[radar_rules
         static_cast<std::uint32_t>(Equipment::kApr1Detector));
 }
 
-TEST_CASE("The original's equipment dates are unchanged", "[radar_rules]") {
+TEST_CASE("The original's equipment dates are unchanged", "[radar_rules][content]") {
+  SH_REQUIRE_GAME_EXE();
   // The APR-1's bit from 5/44 as before; never the ST's.
   CHECK((equipment_on_date(3, 14) & static_cast<std::uint32_t>(Equipment::kApr1Detector)) == 0);
   CHECK((equipment_on_date(4, 14) & static_cast<std::uint32_t>(Equipment::kApr1Detector)) != 0);
