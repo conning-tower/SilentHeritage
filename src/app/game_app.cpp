@@ -327,6 +327,14 @@ class GameApp final : public FrontendHost, public EditorRunner {
         command_panel_->set_status(std::nullopt);
       }
     }
+    // The game moved the pointer since the last poll (the charts' edge
+    // scroll and zoom box): the system pointer follows, as the original's
+    // mouse driver did, so that the pointer drawn is where the next motion
+    // starts.
+    const ui::Mouse& mouse = gui.mouse();
+    if (!headless_ && pointer_.gui == &gui && (mouse.x() != pointer_.x || mouse.y() != pointer_.y)) {
+      display_.warp_pointer(mouse.x(), mouse.y());
+    }
     if (!pending_.empty()) {
       const InputEvent e = pending_.front();
       pending_.pop_front();
@@ -335,6 +343,7 @@ class GameApp final : public FrontendHost, public EditorRunner {
     while (const std::optional<InputEvent> e = display_.poll()) {
       feed(gui, *e);
     }
+    pointer_ = {.gui = &gui, .x = mouse.x(), .y = mouse.y()};
     // The charts' edge scrolling: only the very edges when the pointer is
     // held in the fullscreen picture, none on touch screens (not in the
     // original).
@@ -554,6 +563,13 @@ class GameApp final : public FrontendHost, public EditorRunner {
   int frames_ = 0;
   std::uint8_t buttons_ = 0;
   std::uint16_t mods_ = 0;
+  // The pointer's position after the last poll, and the GUI it was in.
+  struct PolledPointer {
+    const ui::Gui* gui = nullptr;
+    int x = 0;
+    int y = 0;
+  };
+  PolledPointer pointer_;
   // The background: since when, and the time spent there before.
   bool suspended_ = false;
   std::uint64_t suspended_at_ms_ = 0;

@@ -15,9 +15,9 @@ improvements of Silent Heritage Extended are in [EXTENDED.md](EXTENDED.md).
   Alt+Enter toggles fullscreen, which keeps the mouse inside the picture.
 - **Keyboard:** keys follow your keyboard layout (AZERTY, QWERTZ, BÉPO...),
   so each command is on the key that types its letter.
-- **Chart:** in a window, edge scrolling reacts to a wider band along the
-  screen's edges; in fullscreen, where the mouse cannot leave the picture,
-  it reacts only at the very edge.
+- **Chart:** in a window, edge scrolling reacts to a band a few pixels wide
+  along the screen's edges; in fullscreen, where the mouse cannot leave the
+  picture, it reacts only at the very edge.
 
 ## Android
 

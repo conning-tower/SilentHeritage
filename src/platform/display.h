@@ -190,6 +190,12 @@ class Display {
   void set_fullscreen(bool fullscreen);
   // Calls `changed` with the new state after each Alt+Enter.
   void on_fullscreen_toggled(std::function<void(bool)> changed);
+  // Moves the system pointer to pixel (`x`, `y`) of the frame shown, as
+  // the original's mouse driver did when the game set the pointer's
+  // position, so that the next motion starts from there (`poll` may
+  // return a motion to it). Nothing while the pointer is off the window
+  // (it is never pulled back in) or on Android (a finger points).
+  void warp_pointer(int x, int y);
   // Changes how the picture is scaled to the window.
   void set_scaling(Scaling scaling);
 

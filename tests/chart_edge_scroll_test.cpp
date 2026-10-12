@@ -96,8 +96,10 @@ TEST_CASE("Chart edge scroll: the chart scrolls at the margin; its bar has no bu
 
 TEST_CASE("Chart edge scroll: only the very edges in fullscreen", "[edgescroll]") {
   using ui::PointerEdges;
-  // In a window, the band.
+  // In a window, the band: a few pixels only.
   CHECK(chart_edge_scroll_edges(3, 200, false, PointerEdges::kBand) == ChartEdges{.left = true});
+  CHECK_FALSE(chart_edge_scroll_edges(4, 200, false, PointerEdges::kBand).any());
+  CHECK_FALSE(chart_edge_scroll_edges(300, kScreenHeight - 5, false, PointerEdges::kBand).any());
   // In fullscreen, where the pointer is held in the picture, the edge
   // rows and columns themselves.
   for (const auto& [x, y, edges] :
@@ -110,6 +112,44 @@ TEST_CASE("Chart edge scroll: only the very edges in fullscreen", "[edgescroll]"
   CHECK_FALSE(chart_edge_scroll_edges(kScreenWidth - 2, 200, false, PointerEdges::kExact).any());
   CHECK_FALSE(chart_edge_scroll_edges(300, 1, false, PointerEdges::kExact).any());
   CHECK_FALSE(chart_edge_scroll_edges(300, kScreenHeight - 2, false, PointerEdges::kExact).any());
+  // The wide screen's right edge, under the extended chart's bar too.
+  constexpr int kWide = 854;
+  CHECK(chart_edge_scroll_edges(kWide - 1, 200, false, PointerEdges::kExact, 0x1cb, kWide) ==
+        ChartEdges{.right = true});
+  CHECK(chart_edge_scroll_edges(kWide - 1, 470, false, PointerEdges::kExact, 0x1cb, kWide) ==
+        ChartEdges{.right = true});
+  CHECK_FALSE(chart_edge_scroll_edges(kWide - 2, 200, false, PointerEdges::kExact, 0x1cb, kWide).any());
+}
+
+TEST_CASE("Chart edge scroll: in fullscreen the chart scrolls from the very edge only", "[edgescroll]") {
+  SH_REQUIRE_INSTALL(install);
+  for (const bool tools : {false, true}) {
+    INFO("chart tools " << tools);
+    ControlRig rig(install);
+    rig.screen->env().ui.features.chart_tools = tools;
+    rig.gui.mouse().set_edges(ui::PointerEdges::kExact);
+    ChartStation& chart = open_chart(rig);
+    chart.view().set_zoom(8 << 16);
+    chart.center_button();
+    rig.frames(2);
+    const std::int32_t cx = chart.view().center_x();
+    const std::int32_t cy = chart.view().center_y();
+    // One pixel in: nothing.
+    rig.gui.mouse().update(1, 200, 0, 0);
+    rig.frames(2);
+    rig.gui.mouse().update(kScreenWidth - 2, 200, 0, 0);
+    rig.frames(2);
+    rig.gui.mouse().update(300, 1, 0, 0);
+    rig.frames(2);
+    CHECK(chart.view().center_x() == cx);
+    CHECK(chart.view().center_y() == cy);
+    // The edge: east, the pointer moved back 30 pixels (where the system
+    // pointer is then put).
+    rig.gui.mouse().update(kScreenWidth - 1, 200, 0, 0);
+    rig.frames(1);
+    CHECK(chart.view().center_x() > cx);
+    CHECK(rig.gui.mouse().x() == kScreenWidth - 1 - 30);
+  }
 }
 
 TEST_CASE("Chart edge scroll: none on touch screens", "[edgescroll]") {

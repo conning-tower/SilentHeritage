@@ -1,10 +1,12 @@
-// The desktop's Alt+Enter fullscreen toggle and the picture's rectangle the
-// mouse is confined to while fullscreen.
+// The desktop's Alt+Enter fullscreen toggle, the picture's rectangle the
+// mouse is confined to while fullscreen, and the system pointer put where
+// the game moves its pointer.
 #include <catch2/catch_test_macros.hpp>
 
 #include <SDL3/SDL.h>
 
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include "platform/display.h"
@@ -93,6 +95,59 @@ TEST_CASE("Display: created fullscreen (wide too), smoothing changed live, Alt+E
     CHECK(display.fullscreen());
     CHECK(toggled.size() == 1);
   }
+}
+
+// Pushes the window's mouse enter (`inside`) or leave event.
+void push_pointer_crossing(bool inside) {
+  int count = 0;
+  SDL_Window** windows = SDL_GetWindows(&count);
+  REQUIRE(count == 1);
+  SDL_Event e{};
+  e.type = inside ? SDL_EVENT_WINDOW_MOUSE_ENTER : SDL_EVENT_WINDOW_MOUSE_LEAVE;
+  e.window.windowID = SDL_GetWindowID(windows[0]);
+  SDL_free(windows);
+  REQUIRE(SDL_PushEvent(&e));
+}
+
+// Returns the last mouse motion `poll` returns, if any.
+std::optional<InputEvent> last_motion(Display& display) {
+  std::optional<InputEvent> last;
+  for (std::optional<InputEvent> e = display.poll(); e; e = display.poll()) {
+    if (e->type == EventType::kMouseMove) {
+      last = e;
+    }
+  }
+  return last;
+}
+
+TEST_CASE("Display: the system pointer goes where the game puts its pointer", "[fullscreen]") {
+  SDL_SetHint(SDL_HINT_VIDEO_DRIVER, "dummy");
+  const Palette palette;
+  // A wide window at 2.25 times, a 640 frame centred in it: the frame's
+  // pixels to the window and back.
+  Display display("test", 1, Scaling::kSharp, true, 1920, 1080);
+  while (display.poll()) {
+  }
+  display.present(Image8(kScreenWidth, kScreenHeight), palette);
+  // Off the window (the dummy driver puts the pointer in the window it
+  // shows): never pulled back in.
+  push_pointer_crossing(false);
+  CHECK_FALSE(last_motion(display));
+  display.warp_pointer(30, 200);
+  CHECK_FALSE(last_motion(display));
+  push_pointer_crossing(true);
+  CHECK_FALSE(last_motion(display));
+  for (const auto& [x, y] : {std::pair{30, 200}, {kScreenWidth - 31, 479}, {0, 0}, {609, 31}}) {
+    display.warp_pointer(x, y);
+    const std::optional<InputEvent> e = last_motion(display);
+    REQUIRE(e);
+    CHECK(e->x == x);
+    CHECK(e->y == y);
+  }
+  push_pointer_crossing(false);
+  CHECK_FALSE(last_motion(display));
+  display.warp_pointer(100, 100);
+  CHECK_FALSE(last_motion(display));
 }
 
 }  // namespace

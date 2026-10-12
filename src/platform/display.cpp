@@ -111,6 +111,9 @@ struct Display::Impl {
   std::unique_ptr<CommandPanelView> panel_view;
   bool panel_shown = true;
   bool fullscreen = false;
+  // Whether the system pointer is over the window (its mouse enter and
+  // leave events).
+  bool pointer_inside = false;
   // Called after each Alt+Enter.
   std::function<void(bool)> fullscreen_toggled;
   // The Enter key of the Alt+Enter being held: its repeats and release are
@@ -469,6 +472,10 @@ std::optional<InputEvent> Display::poll() {
         impl_->pending.insert(impl_->pending.end(), chars.begin() + 1, chars.end());
         return chars.front();
       }
+      case SDL_EVENT_WINDOW_MOUSE_ENTER:
+      case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+        impl_->pointer_inside = e.type == SDL_EVENT_WINDOW_MOUSE_ENTER;
+        break;
       case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
       case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
         // Also when the window manager changes it.
@@ -677,6 +684,23 @@ void Display::set_fullscreen(bool fullscreen) {
 
 void Display::on_fullscreen_toggled(std::function<void(bool)> changed) {
   impl_->fullscreen_toggled = std::move(changed);
+}
+
+void Display::warp_pointer(int x, int y) {
+#ifndef SDL_PLATFORM_ANDROID
+  if (!impl_->pointer_inside) {
+    return;
+  }
+  // The pixel's centre, so that the motion back to it rounds to the pixel.
+  float wx = 0;
+  float wy = 0;
+  SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(impl_->frame_x() + x) + 0.5f,
+                                static_cast<float>(y) + 0.5f, &wx, &wy);
+  SDL_WarpMouseInWindow(impl_->window, wx, wy);
+#else
+  (void)x;
+  (void)y;
+#endif
 }
 
 void Display::set_scaling(Scaling scaling) {

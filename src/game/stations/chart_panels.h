@@ -207,13 +207,15 @@ class ChartRubberBand {
 // The distance from a screen edge, in 640x480 game pixels, within which the
 // pointer scrolls the chart. It deliberately differs from the original,
 // whose zone is the outermost row or column only (a margin of 1: x < 1,
-// x > 0x27e, y < 1, y > 0x1de), so that a finger near the edge of a touch
-// screen, or a pointer the window does not capture, reaches it. Over the
-// open panel the original's margin is kept (a panel may be dragged to an
-// edge). The bottom zone lies on the bar under the map, which has no
-// button on either chart (the game's bar only shows texts there, the
-// editor's is its status bar).
-inline constexpr int kChartEdgeScrollMargin = 8;
+// x > 0x27e, y < 1, y > 0x1de), so that a pointer the window does not
+// capture, which may leave it at any speed, reaches it without aiming at a
+// single row: 4 pixels, 8 window pixels at the default double size,
+// about the width of a window's resize border. Over the open panel the
+// original's margin is kept (a panel may be dragged to an edge). The
+// bottom zone lies on the bar under the map, which has no button on either
+// chart (the game's bar only shows texts there, the editor's is its status
+// bar).
+inline constexpr int kChartEdgeScrollMargin = 4;
 
 // The screen edges the pointer is on, as `chart_edge_scroll` sees them.
 struct ChartEdges {
