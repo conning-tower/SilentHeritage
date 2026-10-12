@@ -43,8 +43,9 @@ The other options:
 - **`--viewer [--open <category/item#frame>]`:** opens the asset viewer.
 - **`--save <dir>`:** writes the saves to another folder.
 - **`--sharp`:** scales the picture with square pixels, without smoothing.
-- **`--window WxH`:** opens the window at that size (the wide-screen layouts
-  follow its aspect).
+- **`--window WxH`:** opens the window at that size, brought within the
+  shapes the window may take (4:3, up to 21:9 with the wide screen); the
+  wide-screen layouts follow its aspect.
 - **`--touch-panel` / `--no-orders-button`:** shows or hides the floating
   ORDERS button of touch screens (shown by default on Android).
 - **`--classic`:** runs the extended variant without its improvements.

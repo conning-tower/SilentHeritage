@@ -1,6 +1,6 @@
-// The desktop's Alt+Enter fullscreen toggle, the picture's rectangle the
-// mouse is confined to while fullscreen, and the system pointer put where
-// the game moves its pointer.
+// The desktop's Alt+Enter fullscreen toggle, the mouse confined to the
+// window while fullscreen, and the system pointer put where the game moves
+// its pointer.
 #include <catch2/catch_test_macros.hpp>
 
 #include <SDL3/SDL.h>
@@ -22,19 +22,6 @@ void push_key(Uint32 type, SDL_Keycode key, SDL_Keymod mod, bool repeat = false)
   e.key.down = type == SDL_EVENT_KEY_DOWN;
   e.key.repeat = repeat;
   REQUIRE(SDL_PushEvent(&e));
-}
-
-TEST_CASE("Display: the letterbox rectangle the mouse is confined to", "[fullscreen]") {
-  // 4:3 windows: the whole window.
-  CHECK(letterbox_rect(640, 480) == ScreenRect{0, 0, 640, 480});
-  CHECK(letterbox_rect(1600, 1200) == ScreenRect{0, 0, 1600, 1200});
-  // Wider: bars left and right.
-  CHECK(letterbox_rect(1920, 1080) == ScreenRect{240, 0, 1440, 1080});
-  CHECK(letterbox_rect(2560, 1440) == ScreenRect{320, 0, 1920, 1440});
-  CHECK(letterbox_rect(1366, 768) == ScreenRect{171, 0, 1024, 768});
-  // Taller: bars above and below.
-  CHECK(letterbox_rect(1280, 1024) == ScreenRect{0, 32, 1280, 960});
-  CHECK(letterbox_rect(801, 1000) == ScreenRect{0, 200, 801, 600});
 }
 
 TEST_CASE("Display: Alt+Enter toggles fullscreen and never reaches the game", "[fullscreen]") {
@@ -137,7 +124,9 @@ TEST_CASE("Display: the system pointer goes where the game puts its pointer", "[
   CHECK_FALSE(last_motion(display));
   push_pointer_crossing(true);
   CHECK_FALSE(last_motion(display));
-  for (const auto& [x, y] : {std::pair{30, 200}, {kScreenWidth - 31, 479}, {0, 0}, {609, 31}}) {
+  // Beyond the frame too, over the side fill.
+  for (const auto& [x, y] :
+       {std::pair{30, 200}, {kScreenWidth - 31, 479}, {0, 0}, {609, 31}, {-40, 200}, {kScreenWidth + 20, 10}}) {
     display.warp_pointer(x, y);
     const std::optional<InputEvent> e = last_motion(display);
     REQUIRE(e);

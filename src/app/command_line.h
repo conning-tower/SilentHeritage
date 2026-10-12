@@ -23,8 +23,9 @@
 // (always on under Android; platform/command_panel.h).
 // `--no-orders-button` hides that floating button (Android included, where
 // it is shown by default).
-// `--window WxH` opens the window at that size (the wide-screen layouts
-// follow its aspect).
+// `--window WxH` opens the window at that size, brought within the aspect
+// ratios it may take (`window_aspect_range`); the wide-screen layouts
+// follow its aspect.
 // `--classic` runs the extended variant without its improvements, as the
 // classic variant (core/features.h).
 // `--keys` presses the given keys, one per frame: names up, down, left,

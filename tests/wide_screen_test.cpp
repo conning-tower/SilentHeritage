@@ -1,7 +1,7 @@
 // The wide screen (`Features::wide_screen`) at the platform and GUI level:
-// the screen width following the window, the letterbox and the mouse
-// mapping of a frame narrower than the screen, the side fill's tint, and
-// the GUI's screen resized for the wide layouts.
+// the screen width following the window, the mouse mapping of a frame
+// narrower than the screen, the side fill's tint, and the GUI's screen
+// resized for the wide layouts.
 #include <catch2/catch_test_macros.hpp>
 
 #include <SDL3/SDL.h>
@@ -27,15 +27,6 @@ TEST_CASE("Wide screen: the width follows the window's aspect, 640 to 21:9", "[w
   CHECK(wide_screen_width(3840, 1080) == kMaxScreenWidth);
   CHECK(wide_screen_width(1000, 1000) == kScreenWidth);
   CHECK(wide_screen_width(0, 0) == kScreenWidth);
-}
-
-TEST_CASE("Wide screen: the letterbox of a wider screen", "[wide]") {
-  // The 4:3 default is unchanged.
-  CHECK(letterbox_rect(1920, 1080) == ScreenRect{240, 0, 1440, 1080});
-  // A screen of the window's aspect fills it.
-  CHECK(letterbox_rect(1708, 960, 854) == ScreenRect{0, 0, 1708, 960});
-  // Wider than the window: bars above and below.
-  CHECK(letterbox_rect(1708, 960, 1120) == ScreenRect{0, 114, 1708, 732});
 }
 
 TEST_CASE("Wide screen: the side fill takes the frame palette's brightness and colour", "[wide]") {
@@ -102,13 +93,13 @@ TEST_CASE("Wide screen: mouse positions are those of the frame shown", "[wide]")
     CHECK(e->x == 427);
     CHECK_THROWS_AS(display.present(Image8(kMaxScreenWidth + 1, kScreenHeight), palette), std::invalid_argument);
   }
-  SECTION("Classic display: 640x480 letterboxed in the same window") {
+  SECTION("Classic display: 640x480 in the same window, narrowed to 4:3") {
     Display display("test", 1, Scaling::kSharp, false, 1708, 960);
     while (display.poll()) {
     }
     CHECK(display.screen_width() == kScreenWidth);
     display.present(Image8(kScreenWidth, kScreenHeight), palette);
-    const std::optional<InputEvent> e = move_mouse(display, 854, 480);
+    const std::optional<InputEvent> e = move_mouse(display, 640, 480);
     REQUIRE(e);
     CHECK(e->x == 320);
     CHECK(e->y == 240);

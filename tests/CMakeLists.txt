@@ -154,9 +154,11 @@ add_executable(sh_tests
   controls_stations_test.cpp
   controls_panel_test.cpp
   controls_bar_test.cpp
-  # Modern conveniences: the chart's wider edge scroll, Alt+Enter fullscreen.
+  # Modern conveniences: the chart's wider edge scroll, Alt+Enter fullscreen,
+  # the window's shape and the pointer beyond the frame.
   chart_edge_scroll_test.cpp
   display_fullscreen_test.cpp
+  window_pointer_test.cpp
   wide_screen_test.cpp
   wide_layout_test.cpp
   # The Android launcher icon tool (tools/).

@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include <algorithm>
+#include <cmath>
 #include <deque>
 #include <format>
 #include <functional>
@@ -47,16 +48,6 @@ bool is_fullscreen_toggle(const SDL_KeyboardEvent& key) {
 
 }  // namespace
 
-ScreenRect letterbox_rect(int window_w, int window_h, int screen_w) {
-  // Integer products: the aspect test is exact.
-  if (window_w * kScreenHeight > window_h * screen_w) {
-    const int w = window_h * screen_w / kScreenHeight;
-    return {(window_w - w) / 2, 0, w, window_h};
-  }
-  const int h = window_w * kScreenHeight / screen_w;
-  return {0, (window_h - h) / 2, window_w, h};
-}
-
 std::array<std::uint8_t, 3> side_fill_tint(const Palette& palette, std::array<std::uint8_t, 3>& brightest) {
   std::array<std::uint8_t, 3> top{};
   for (const Rgb& c : palette.colors) {
@@ -79,6 +70,11 @@ int wide_screen_width(int window_w, int window_h) {
   return std::clamp(window_w * kScreenHeight / window_h, kScreenWidth, kMaxScreenWidth);
 }
 
+AspectRange window_aspect_range(bool wide_screen) {
+  constexpr float k43 = static_cast<float>(kScreenWidth) / kScreenHeight;
+  return {k43, wide_screen ? static_cast<float>(kMaxScreenWidth) / kScreenHeight : k43};
+}
+
 struct Display::Impl {
   SDL_Window* window = nullptr;
   SDL_Renderer* renderer = nullptr;
@@ -99,6 +95,12 @@ struct Display::Impl {
   // The picture across the bottom rows, if set, and its texture.
   const Image8* bottom_strip = nullptr;
   SDL_Texture* bottom_texture = nullptr;
+  // The cursor beyond the frame, if set: its pixels and top-left corner in
+  // the frame, and its texture (made at each `present`).
+  std::optional<DecodedFrame> cursor;
+  int cursor_x = 0;
+  int cursor_y = 0;
+  SDL_Texture* cursor_texture = nullptr;
   std::array<std::uint8_t, 3> brightest{};
   std::array<std::uint8_t, 3> tint{255, 255, 255};
   // Where the next picture shown is saved (empty: not saved).
@@ -114,13 +116,17 @@ struct Display::Impl {
   // Whether the system pointer is over the window (its mouse enter and
   // leave events).
   bool pointer_inside = false;
+  // Whether the window may be wider than 4:3 (`set_wide_aspect`).
+  bool wide_aspect = false;
   // Called after each Alt+Enter.
   std::function<void(bool)> fullscreen_toggled;
   // The Enter key of the Alt+Enter being held: its repeats and release are
   // dropped.
   std::optional<SDL_Keycode> toggle_key;
 
-  // Confines the mouse to the screen while fullscreen, frees it otherwise.
+  // Confines the mouse to the window while fullscreen (away from the
+  // other displays), frees it otherwise. The black bars are included: the
+  // cursor is drawn there, the game's coordinates stop at the frame.
   void confine_mouse() {
 #ifndef SDL_PLATFORM_ANDROID  // always fullscreen, the pointer a finger
     if (!fullscreen) {
@@ -130,13 +136,23 @@ struct Display::Impl {
     int w = 0;
     int h = 0;
     SDL_GetWindowSize(window, &w, &h);
-    // The screen: with the wide screen the whole of it (a command bar may
-    // run across it; the game keeps the pointer where it belongs), else
-    // the 640x480 picture.
-    const ScreenRect r = letterbox_rect(w, h, screen_w);
-    const SDL_Rect rect{r.x, r.y, r.w, r.h};
+    const SDL_Rect rect{0, 0, w, h};
     if (!SDL_SetWindowMouseRect(window, &rect)) {
       SDL_Log("%s: cannot confine the mouse: %s", edition::kExecutable, SDL_GetError());
+    }
+#endif
+  }
+
+  // Keeps the window within its aspect ratios (`window_aspect_range`),
+  // unless fullscreen: they apply again when it leaves fullscreen.
+  void limit_aspect() {
+#ifndef SDL_PLATFORM_ANDROID  // the window is the screen
+    if (fullscreen) {
+      return;
+    }
+    const AspectRange range = window_aspect_range(wide_aspect);
+    if (!SDL_SetWindowAspectRatio(window, range.min, range.max)) {
+      SDL_Log("%s: cannot keep the window's aspect ratio: %s", edition::kExecutable, SDL_GetError());
     }
 #endif
   }
@@ -148,6 +164,7 @@ struct Display::Impl {
     }
     fullscreen = on;
     confine_mouse();
+    limit_aspect();
   }
 
   // Gives the command button the window's current output size and display
@@ -248,6 +265,87 @@ struct Display::Impl {
     SDL_UpdateTexture(target, nullptr, pixels.data(), picture.width() * 4);
   }
 
+  // Makes the texture of the cursor beyond the frame, through `lut`: its
+  // transparent pixels clear.
+  void upload_cursor(const std::array<std::uint32_t, 256>& lut) {
+    if (!cursor) {
+      return;
+    }
+    const Image8& picture = cursor->image;
+    float tw = 0;
+    float th = 0;
+    if (cursor_texture != nullptr) {
+      SDL_GetTextureSize(cursor_texture, &tw, &th);
+      if (picture.width() != static_cast<int>(tw) || picture.height() != static_cast<int>(th)) {
+        SDL_DestroyTexture(cursor_texture);
+        cursor_texture = nullptr;
+      }
+    }
+    if (cursor_texture == nullptr) {
+      cursor_texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING,
+                                         picture.width(), picture.height());
+      if (cursor_texture == nullptr) {
+        sdl_fail("SDL_CreateTexture");
+      }
+      SDL_SetTextureBlendMode(cursor_texture, SDL_BLENDMODE_BLEND);
+    }
+    SDL_SetTextureScaleMode(cursor_texture, scale_mode);
+    std::vector<std::uint32_t> pixels(picture.pixels().size());
+    for (std::size_t i = 0; i < pixels.size(); ++i) {
+      pixels[i] = cursor->opaque.pixels()[i] != 0 ? 0xff000000u | lut[picture.pixels()[i]] : 0;
+    }
+    SDL_UpdateTexture(cursor_texture, nullptr, pixels.data(), picture.width() * 4);
+  }
+
+  // Draws the cursor beyond the frame, the frame at column `x` of the
+  // screen. In window space: the logical presentation clips to the screen,
+  // and the cursor may be over the black bars.
+  void render_cursor(int x) {
+    if (!cursor || cursor_texture == nullptr) {
+      return;
+    }
+    float x0 = 0;
+    float y0 = 0;
+    float x1 = 0;
+    float y1 = 0;
+    SDL_RenderCoordinatesToWindow(renderer, static_cast<float>(x + cursor_x), static_cast<float>(cursor_y), &x0, &y0);
+    SDL_RenderCoordinatesToWindow(renderer, static_cast<float>(x + cursor_x + cursor->image.width()),
+                                  static_cast<float>(cursor_y + cursor->image.height()), &x1, &y1);
+    // Window points to output pixels.
+    const float density = SDL_GetWindowPixelDensity(window);
+    const SDL_FRect dst{x0 * density, y0 * density, (x1 - x0) * density, (y1 - y0) * density};
+    int logical_w = 0;
+    int logical_h = 0;
+    SDL_RendererLogicalPresentation mode = SDL_LOGICAL_PRESENTATION_DISABLED;
+    SDL_GetRenderLogicalPresentation(renderer, &logical_w, &logical_h, &mode);
+    SDL_SetRenderLogicalPresentation(renderer, 0, 0, SDL_LOGICAL_PRESENTATION_DISABLED);
+    SDL_RenderTexture(renderer, cursor_texture, nullptr, &dst);
+    SDL_SetRenderLogicalPresentation(renderer, logical_w, logical_h, mode);
+  }
+
+  // Gives the game a pointer motion to where the pointer is over the frame
+  // at column `x` of the screen (none while the pointer is elsewhere).
+  void post_pointer_motion(int x) {
+#ifndef SDL_PLATFORM_ANDROID  // a finger, not a pointer
+    if (!pointer_inside) {
+      return;
+    }
+    float wx = 0;
+    float wy = 0;
+    SDL_GetMouseState(&wx, &wy);
+    float rx = 0;
+    float ry = 0;
+    SDL_RenderCoordinatesFromWindow(renderer, wx, wy, &rx, &ry);
+    InputEvent e;
+    e.type = EventType::kMouseMove;
+    e.x = static_cast<int>(std::floor(rx)) - x;
+    e.y = static_cast<int>(std::floor(ry));
+    pending.push_back(e);
+#else
+    (void)x;
+#endif
+  }
+
   // Saves the picture rendered to `capture`.
   void save_capture() {
     SDL_Surface* surface = SDL_RenderReadPixels(renderer, nullptr);
@@ -274,6 +372,7 @@ struct Display::Impl {
       const SDL_FRect bottom{(static_cast<float>(screen_w) - w) / 2, static_cast<float>(kScreenHeight) - h, w, h};
       SDL_RenderTexture(renderer, bottom_texture, nullptr, &bottom);
     }
+    render_cursor(x);
     if (panel_view && panel_shown) {
       sync_panel_window();
       panel_view->draw(*panel);
@@ -317,6 +416,7 @@ Display::Display(std::string_view title, int scale, Scaling scaling, bool wide, 
                  bool fullscreen)
     : impl_(std::make_unique<Impl>()) {
   impl_->wide = wide;
+  impl_->wide_aspect = wide;
   SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
   if (fullscreen) {
     // Created fullscreen: no window shown first.
@@ -355,6 +455,7 @@ Display::Display(std::string_view title, int scale, Scaling scaling, bool wide, 
     sdl_fail("SDL_CreateTexture");
   }
   set_scaling(scaling);
+  impl_->limit_aspect();
   impl_->fit_screen();
   impl_->confine_mouse();
   // The game draws its own mouse. SDL only hides the cursor over its own
@@ -372,6 +473,9 @@ Display::~Display() {
   if (impl_->bottom_texture != nullptr) {
     SDL_DestroyTexture(impl_->bottom_texture);
   }
+  if (impl_->cursor_texture != nullptr) {
+    SDL_DestroyTexture(impl_->cursor_texture);
+  }
   for (SDL_Texture* t : impl_->side_pictures) {
     if (t != nullptr) {
       SDL_DestroyTexture(t);
@@ -387,6 +491,7 @@ void Display::present(const Image8& frame, const Palette& palette) {
   if (frame.width() < kScreenWidth || frame.width() > kMaxScreenWidth || frame.height() != kScreenHeight) {
     throw std::invalid_argument("Display::present: frame must be 640 to 1120 x 480");
   }
+  const int old_x = impl_->frame_x();
   if (frame.width() != impl_->frame_w) {
     SDL_Texture* texture = SDL_CreateTexture(impl_->renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING,
                                              frame.width(), kScreenHeight);
@@ -401,6 +506,10 @@ void Display::present(const Image8& frame, const Palette& palette) {
     impl_->confine_mouse();
   }
   impl_->fit_screen();
+  if (impl_->frame_x() != old_x) {
+    // The pointer has not moved, but its place in the frame has.
+    impl_->post_pointer_motion(impl_->frame_x());
+  }
   std::array<std::uint32_t, 256> lut{};
   for (std::size_t i = 0; i < 256; ++i) {
     const Rgb c = palette.colors[i];
@@ -419,6 +528,7 @@ void Display::present(const Image8& frame, const Palette& palette) {
     }
     impl_->upload_picture(impl_->bottom_texture, impl_->bottom_strip != nullptr ? *impl_->bottom_strip : Image8(), lut);
   }
+  impl_->upload_cursor(lut);
   impl_->render();
 }
 
@@ -481,6 +591,7 @@ std::optional<InputEvent> Display::poll() {
         // Also when the window manager changes it.
         impl_->fullscreen = e.type == SDL_EVENT_WINDOW_ENTER_FULLSCREEN;
         impl_->confine_mouse();
+        impl_->limit_aspect();
         break;
       case SDL_EVENT_WINDOW_RESIZED:
       case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
@@ -535,14 +646,15 @@ std::optional<InputEvent> Display::poll() {
         return out;
       case SDL_EVENT_MOUSE_MOTION:
         out.type = EventType::kMouseMove;
-        out.x = static_cast<int>(e.motion.x) - impl_->frame_x();
-        out.y = static_cast<int>(e.motion.y);
+        // Rounded down: left of and above the frame are negative.
+        out.x = static_cast<int>(std::floor(e.motion.x)) - impl_->frame_x();
+        out.y = static_cast<int>(std::floor(e.motion.y));
         return out;
       case SDL_EVENT_MOUSE_BUTTON_DOWN:
       case SDL_EVENT_MOUSE_BUTTON_UP:
         out.type = e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ? EventType::kMouseDown : EventType::kMouseUp;
-        out.x = static_cast<int>(e.button.x) - impl_->frame_x();
-        out.y = static_cast<int>(e.button.y);
+        out.x = static_cast<int>(std::floor(e.button.x)) - impl_->frame_x();
+        out.y = static_cast<int>(std::floor(e.button.y));
         out.button = to_button(e.button.button);
         return out;
       case SDL_EVENT_FINGER_DOWN:
@@ -672,6 +784,12 @@ void Display::set_side_fill(const SideFill& fill) { impl_->side_fill = fill; }
 
 void Display::set_bottom_strip(const Image8* strip) { impl_->bottom_strip = strip; }
 
+void Display::set_cursor_beyond(std::optional<DecodedFrame> cursor, int x, int y) {
+  impl_->cursor = std::move(cursor);
+  impl_->cursor_x = x;
+  impl_->cursor_y = y;
+}
+
 bool Display::fullscreen() const { return impl_->fullscreen; }
 
 void Display::set_fullscreen(bool fullscreen) {
@@ -719,6 +837,11 @@ void Display::set_scaling(Scaling scaling) {
   for (SDL_Texture* t : impl_->side_pictures) {
     apply(t);
   }
+}
+
+void Display::set_wide_aspect(bool wide_screen) {
+  impl_->wide_aspect = wide_screen;
+  impl_->limit_aspect();
 }
 
 std::uint64_t Display::ticks_ms() { return SDL_GetTicks(); }

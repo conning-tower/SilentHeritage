@@ -11,13 +11,16 @@ improvements of Silent Heritage Extended are in [EXTENDED.md](EXTENDED.md).
 - **Files:** the game reads your own Silent Hunter install, chosen once in a
   folder dialog, and never writes into it. Saves,
   options and custom scenarios go to your per-user folder.
-- **Display:** the 640×480 picture is scaled to the window with smoothing.
-  Alt+Enter toggles fullscreen, which keeps the mouse inside the picture.
+- **Display:** the 640×480 picture is scaled to the window with smoothing,
+  and the window keeps its 4:3 shape when resized. Alt+Enter toggles
+  fullscreen, which keeps the mouse on that screen.
+- **Mouse pointer:** it is drawn wherever the mouse is in the window,
+  black bars included, instead of stopping at the picture's edge.
 - **Keyboard:** keys follow your keyboard layout (AZERTY, QWERTZ, BÉPO...),
   so each command is on the key that types its letter.
 - **Chart:** in a window, edge scrolling reacts to a band a few pixels wide
   along the screen's edges; in fullscreen, where the mouse cannot leave the
-  picture, it reacts only at the very edge.
+  screen, it reacts only at the very edge.
 
 ## Android
 

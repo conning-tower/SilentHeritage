@@ -298,6 +298,17 @@ class GameApp final : public FrontendHost, public EditorRunner {
                               },
                           .end = [this] { display_.end_text_input(); }});
     }
+    // ... and shows its cursor where the frame cannot: beside it, over the
+    // side fill and the black bars (not in the original).
+    if (!gui.mouse().has_cursor_beyond()) {
+      gui.mouse().set_cursor_beyond([this](const SpriteFrame* frame, int x, int y) {
+        if (frame == nullptr) {
+          display_.set_cursor_beyond(std::nullopt);
+        } else {
+          display_.set_cursor_beyond(frame->decode(), x + frame->x0, y + frame->y0);
+        }
+      });
+    }
     if (command_panel_) {
       // Only over a mission in play, never over the menus.
       display_.show_command_panel(runner_.mission_in_play());
@@ -330,10 +341,13 @@ class GameApp final : public FrontendHost, public EditorRunner {
     // The game moved the pointer since the last poll (the charts' edge
     // scroll and zoom box): the system pointer follows, as the original's
     // mouse driver did, so that the pointer drawn is where the next motion
-    // starts.
+    // starts. The pointer itself, not the game's position: one only held
+    // at the screen's edge (beside it, or the screen narrowed under it)
+    // stays where it is.
     const ui::Mouse& mouse = gui.mouse();
-    if (!headless_ && pointer_.gui == &gui && (mouse.x() != pointer_.x || mouse.y() != pointer_.y)) {
-      display_.warp_pointer(mouse.x(), mouse.y());
+    if (!headless_ && pointer_.gui == &gui &&
+        (mouse.pointer_x() != pointer_.x || mouse.pointer_y() != pointer_.y)) {
+      display_.warp_pointer(mouse.pointer_x(), mouse.pointer_y());
     }
     if (!pending_.empty()) {
       const InputEvent e = pending_.front();
@@ -343,7 +357,7 @@ class GameApp final : public FrontendHost, public EditorRunner {
     while (const std::optional<InputEvent> e = display_.poll()) {
       feed(gui, *e);
     }
-    pointer_ = {.gui = &gui, .x = mouse.x(), .y = mouse.y()};
+    pointer_ = {.gui = &gui, .x = mouse.pointer_x(), .y = mouse.pointer_y()};
     // The charts' edge scrolling: only the very edges when the pointer is
     // held in the fullscreen picture, none on touch screens (not in the
     // original).
@@ -358,6 +372,8 @@ class GameApp final : public FrontendHost, public EditorRunner {
   }
 
   int screen_width() override { return display_.screen_width(); }
+
+  void set_wide_screen(bool on) override { display_.set_wide_aspect(on); }
 
   void set_side_fill(const SideFill& fill) override { display_.set_side_fill(fill); }
   void set_bottom_strip(const Image8* strip) override { display_.set_bottom_strip(strip); }
@@ -563,7 +579,8 @@ class GameApp final : public FrontendHost, public EditorRunner {
   int frames_ = 0;
   std::uint8_t buttons_ = 0;
   std::uint16_t mods_ = 0;
-  // The pointer's position after the last poll, and the GUI it was in.
+  // The pointer (`Mouse::pointer_x`) after the last poll, and the GUI it
+  // was in.
   struct PolledPointer {
     const ui::Gui* gui = nullptr;
     int x = 0;

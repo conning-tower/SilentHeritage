@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <vector>
 
@@ -83,7 +84,8 @@ class Mouse {
   // The driver callback (`mouse_update`): takes the new position and
   // buttons (`MouseButtonBit`) and posts an event with the moved / pressed /
   // released bits, if any changed. `shift` is the BIOS shift state (0x417).
-  // While the motion is frozen the position is not updated.
+  // The position is limited to the screen (and the band), the pointer
+  // (`pointer_x`) is not. While the motion is frozen neither is updated.
   void update(int x, int y, std::uint8_t buttons, std::uint8_t shift);
   // Posts a key event as `input_timer_isr` does for each BIOS keyboard word
   // `bios_word`: an extended key's 0xe0 ASCII byte is dropped (input mode
@@ -106,6 +108,12 @@ class Mouse {
   int x() const { return x_; }
   int y() const { return y_; }
   std::uint8_t buttons() const { return buttons_; }
+  // The pointer as the host last placed it (`update`), where the cursor is
+  // drawn: unlike `x()` and `y()`, it may lie beyond the screen and its
+  // band, in the side fill or the black bars around the picture (not in
+  // the original, whose driver held the pointer in the screen).
+  int pointer_x() const { return pointer_x_; }
+  int pointer_y() const { return pointer_y_; }
 
   // The fingers on a touch screen, in the order they touched (not in the
   // original: the first one is also the left button). `touch` adds or
@@ -140,8 +148,8 @@ class Mouse {
   // `rect` (screen coordinates); nothing for no rectangle.
   void set_hide_rect(std::optional<ClipRect> rect) { hide_rect_ = rect; }
 
-  // Returns the cursor rectangle clipped to the screen when shown
-  // (`mouse_get_cursor_rect`).
+  // Returns the cursor rectangle at the pointer clipped to the screen when
+  // shown (`mouse_get_cursor_rect`).
   std::optional<ClipRect> cursor_rect() const;
 
   // Draws the cursor onto `frame` (`mouse_draw_cursor`) when shown and not
@@ -156,9 +164,21 @@ class Mouse {
   bool draws_cursor() const { return draws_cursor_; }
   void set_draws_cursor(bool draws) { draws_cursor_ = draws; }
 
+  // Not in the original: the host's drawing of the cursor beyond the
+  // screen, which `draw` clips. Each `draw` calls it with the cursor's
+  // frame, to be drawn with its hotspot at (`pointer_x()`, `pointer_y()`),
+  // when the cursor is drawn and reaches beyond the screen, else with null.
+  using CursorBeyond = std::function<void(const SpriteFrame* frame, int x, int y)>;
+  void set_cursor_beyond(CursorBeyond show) { cursor_beyond_ = std::move(show); }
+  bool has_cursor_beyond() const { return static_cast<bool>(cursor_beyond_); }
+
  private:
   // Returns the key event of `bios_word` with the mouse state.
   Event key_event(std::uint16_t bios_word, std::uint8_t shift) const;
+  // Whether the cursor rectangle `r` overlaps the hide rectangle.
+  bool hidden_by_rect(const ClipRect& r) const;
+  // Whether the cursor is drawn and part of it lies beyond the screen.
+  bool reaches_beyond() const;
 
   EventQueue* events_;
   int width_;
@@ -166,6 +186,8 @@ class Mouse {
   std::optional<ClipRect> band_;
   int x_ = 0;
   int y_ = 0;
+  int pointer_x_ = 0;
+  int pointer_y_ = 0;
   std::uint8_t buttons_ = 0;
   std::vector<Touch> touches_;
   PointerEdges edges_ = PointerEdges::kBand;
@@ -175,6 +197,7 @@ class Mouse {
   int show_count_ = -1;
   std::optional<ClipRect> hide_rect_;
   bool draws_cursor_ = !kAndroid;
+  CursorBeyond cursor_beyond_;
   // The saved background of the drawn cursor.
   bool drawn_ = false;
   ClipRect saved_rect_;

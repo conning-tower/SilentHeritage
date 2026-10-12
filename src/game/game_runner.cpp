@@ -203,7 +203,7 @@ void GameRunner::present(const MissionScreen& screen) {
     const ui::Mouse& mouse = front_end_->gui().mouse();
     if (mouse.shown() && mouse.draws_cursor() && mouse.cursor_sprites() != nullptr) {
       draw_sprite_clipped(Viewport::full(bar_shown_), mouse.cursor_sprites()->frame(mouse.cursor_frame()),
-                          mouse.x() + ui.bar_offset, mouse.y() - kCommandBarTop);
+                          mouse.pointer_x() + ui.bar_offset, mouse.pointer_y() - kCommandBarTop);
     }
     host_.set_bottom_strip(&bar_shown_);
   } else {

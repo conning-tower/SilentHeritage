@@ -27,6 +27,8 @@ void Mouse::update(int x, int y, std::uint8_t buttons, std::uint8_t shift) {
   buttons_ = buttons & (kButtonLeft | kButtonRight | kButtonMiddle);
   bool moved = false;
   if (frozen_ < 1) {
+    pointer_x_ = x;
+    pointer_y_ = y;
     const int ny = std::clamp(y, 0, height_ - 1);
     const int nx = band_ && ny >= band_->top ? std::clamp(x, band_->left, band_->right) : std::clamp(x, 0, width_ - 1);
     moved = nx != x_ || ny != y_;
@@ -117,7 +119,7 @@ std::optional<ClipRect> Mouse::cursor_rect() const {
     return std::nullopt;
   }
   const SpriteFrame& f = sprites_->frame(frame_);
-  ClipRect r{x_ + f.x0, y_ + f.y0, x_ + f.x1, y_ + f.y1};
+  ClipRect r{pointer_x_ + f.x0, pointer_y_ + f.y0, pointer_x_ + f.x1, pointer_y_ + f.y1};
   if (r.left > width_ - 1 || r.top > height_ - 1 || r.right < 0 || r.bottom < 0) {
     return std::nullopt;
   }
@@ -128,15 +130,33 @@ std::optional<ClipRect> Mouse::cursor_rect() const {
   return r;
 }
 
+bool Mouse::hidden_by_rect(const ClipRect& r) const {
+  return hide_rect_ && !(r.right < hide_rect_->left || r.left > hide_rect_->right || r.bottom < hide_rect_->top ||
+                         r.top > hide_rect_->bottom);
+}
+
+bool Mouse::reaches_beyond() const {
+  if (!shown() || sprites_ == nullptr || !draws_cursor_) {
+    return false;
+  }
+  const SpriteFrame& f = sprites_->frame(frame_);
+  if (f.empty()) {
+    return false;
+  }
+  if (const std::optional<ClipRect> r = cursor_rect(); r && hidden_by_rect(*r)) {
+    return false;
+  }
+  return pointer_x_ + f.x0 < 0 || pointer_y_ + f.y0 < 0 || pointer_x_ + f.x1 >= width_ || pointer_y_ + f.y1 >= height_;
+}
+
 void Mouse::draw(Image8& frame) {
   // mouse_draw_cursor (0x590e4)
   erase(frame);
-  const std::optional<ClipRect> r = cursor_rect();
-  if (!r || !draws_cursor_) {
-    return;
+  if (cursor_beyond_) {
+    cursor_beyond_(reaches_beyond() ? &sprites_->frame(frame_) : nullptr, pointer_x_, pointer_y_);
   }
-  if (hide_rect_ && !(r->right < hide_rect_->left || r->left > hide_rect_->right ||
-                      r->bottom < hide_rect_->top || r->top > hide_rect_->bottom)) {
+  const std::optional<ClipRect> r = cursor_rect();
+  if (!r || !draws_cursor_ || hidden_by_rect(*r)) {
     return;
   }
   ClipRect c = *r;
@@ -152,7 +172,7 @@ void Mouse::draw(Image8& frame) {
       saved_.push_back(frame.at(x, y));
     }
   }
-  draw_sprite_clipped(Viewport::full(frame), sprites_->frame(frame_), x_, y_);
+  draw_sprite_clipped(Viewport::full(frame), sprites_->frame(frame_), pointer_x_, pointer_y_);
   drawn_ = true;
 }
 

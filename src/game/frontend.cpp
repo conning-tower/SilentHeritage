@@ -233,6 +233,7 @@ FrontEnd::FrontEnd(const FrontendServices& services, FrontendHost& host, Mission
   gui_.set_dialog_cursor(&cursors_, static_cast<std::size_t>(ui::CursorId::kPointer));
   gui_.mouse().set_cursor(cursors_, ui::CursorId::kPointer);
   gui_.mouse().show();
+  host_.set_wide_screen(features_.wide_screen);
 }
 
 FrontEnd::~FrontEnd() = default;

@@ -113,6 +113,7 @@ void FrontEnd::extended_options_screen() {
   if (edited != features_) {
     features_ = edited;
     save_features(saves_, features_);
+    host_.set_wide_screen(features_.wide_screen);
   }
   if (display && edited_display != display->settings) {
     host_.set_display_settings(edited_display);

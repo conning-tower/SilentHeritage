@@ -479,19 +479,20 @@ TEST_CASE("command panel: the display gives it the window's size before any touc
   const float edge = CommandPanel::kGroupWidthDp / 2 + CommandPanel::kMarginDp;
   CHECK(cx(panel.group_rect()) == 1280 - edge);
   CHECK(cy(panel.group_rect()) == Catch::Approx(panel.rel_y() * 960));
-  // Resized (a fold, a rotation): the next frame follows.
+  // Resized (a fold, a rotation; 4:3, the desktop window's shape): the
+  // next frame follows.
   int count = 0;
   SDL_Window** windows = SDL_GetWindows(&count);
   REQUIRE(count == 1);
-  REQUIRE(SDL_SetWindowSize(windows[0], 900, 500));
+  REQUIRE(SDL_SetWindowSize(windows[0], 800, 600));
   SDL_SyncWindow(windows[0]);
   SDL_free(windows);
   while (display.poll()) {
   }
   display.present(frame, palette);
   const PanelRect g = panel.group_rect();
-  CHECK(cx(g) == 900 - edge);
-  CHECK(cy(g) == Catch::Approx(panel.rel_y() * 500));
+  CHECK(cx(g) == 800 - edge);
+  CHECK(cy(g) == Catch::Approx(panel.rel_y() * 600));
 }
 
 TEST_CASE("command panel: shown only while the mission is in play", "[cmdpanel]") {

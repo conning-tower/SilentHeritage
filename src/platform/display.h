@@ -9,6 +9,7 @@
 #include <optional>
 #include <string_view>
 
+#include "assets/shp.h"
 #include "core/image.h"
 #include "core/side_fill.h"
 #include "platform/command_panel.h"
@@ -43,8 +44,9 @@ enum class EventType : std::uint8_t {
 
 enum class MouseButton : std::uint8_t { kNone, kLeft, kRight, kMiddle };
 
-// An input event. Mouse coordinates are in 640x480 screen pixels (the
-// letterbox and scaling are removed; they may fall outside the screen).
+// An input event. Mouse coordinates are in pixels of the frame shown (the
+// letterbox, the scaling and the side fill are removed; they fall outside
+// the frame beside it and in the black bars).
 // `key` is the SDL keycode (printable keys are their lower-case ASCII code);
 // `mods` the SDL modifier mask. Key events from the keyboard also carry the
 // physical key and what the keyboard layout types with it; synthesized events
@@ -86,12 +88,6 @@ struct ScreenRect {
   bool operator==(const ScreenRect&) const = default;
 };
 
-// Returns the part of a `window_w` x `window_h` window (any unit) a
-// `screen_w` x 480 picture (4:3 by default) is drawn in, as
-// SDL_LOGICAL_PRESENTATION_LETTERBOX places it: the window's full height or
-// width, centred between black bars.
-ScreenRect letterbox_rect(int window_w, int window_h, int screen_w = kScreenWidth);
-
 // Returns the colour modulation of the side fill textures for a frame shown
 // with `palette`: per channel, the palette's brightest value against the
 // brightest ever seen (`brightest`, updated), so that the fill fades with
@@ -103,6 +99,19 @@ std::array<std::uint8_t, 3> side_fill_tint(const Palette& palette, std::array<st
 // `kMaxScreenWidth` (21:9). Not in the original.
 int wide_screen_width(int window_w, int window_h);
 
+// The aspect ratios (width / height) a desktop window may take.
+struct AspectRange {
+  float min = 0;
+  float max = 0;
+
+  bool operator==(const AspectRange&) const = default;
+};
+
+// Returns the aspect ratios of the windows the screen fills without black
+// bars: 4:3 alone, or with `wide_screen` (the wide-screen layouts in use)
+// 4:3 to that of `kMaxScreenWidth` (21:9). Not in the original.
+AspectRange window_aspect_range(bool wide_screen);
+
 // The kinds of text a field takes, which pick the soft keyboard.
 enum class TextInputKind : std::uint8_t { kText, kDigits };
 
@@ -112,10 +121,12 @@ enum class TextInputKind : std::uint8_t { kText, kDigits };
 class Display {
  public:
   // Opens a window `scale` times the original size (or `window_w` x
-  // `window_h` when given), or fullscreen with `fullscreen`. `wide`: the
-  // screen follows the window's aspect (`screen_width`) and narrower frames
-  // are shown centred between the side fill; else it is 640x480
-  // letterboxed. Throws std::runtime_error if SDL fails.
+  // `window_h` when given, brought within the aspect ratios allowed), or
+  // fullscreen with `fullscreen`. `wide`: the screen follows the window's
+  // aspect (`screen_width`) and narrower frames are shown centred between
+  // the side fill, and the window may be as wide as 21:9
+  // (`set_wide_aspect`); else it is 640x480 letterboxed. Throws
+  // std::runtime_error if SDL fails.
   Display(std::string_view title, int scale = 2, Scaling scaling = Scaling::kSmooth, bool wide = false,
           int window_w = 0, int window_h = 0, bool fullscreen = false);
   ~Display();
@@ -124,7 +135,8 @@ class Display {
 
   // Shows `frame` with `palette`. The frame is 480 rows of 640 up to
   // `kMaxScreenWidth` pixels, shown centred on the screen; input
-  // coordinates are those of the last frame shown.
+  // coordinates are those of the last frame shown (a frame of another
+  // width gives a pointer motion to the pointer's place in it).
   void present(const Image8& frame, const Palette& palette);
 
   // Saves the next picture shown, as the window shows it (with the side
@@ -149,6 +161,12 @@ class Display {
   // a wide window), shown through the frame's palette; null for none.
   // `strip` must stay valid while set.
   void set_bottom_strip(const Image8* strip);
+  // Sets the cursor shown over everything from the next `present` on, for
+  // a pointer beyond the frame (in the side fill or the black bars, which
+  // the frame cannot draw into; not in the original): `cursor`'s pixels
+  // with their top-left corner at (`x`, `y`) of the frame, shown through
+  // the frame's palette. Nothing for none.
+  void set_cursor_beyond(std::optional<DecodedFrame> cursor, int x = 0, int y = 0);
 
   // Returns the next pending input event, if any. The window's close
   // button and the system ending the program (SDL_EVENT_QUIT) give
@@ -184,20 +202,25 @@ class Display {
   // resolution). On the desktop Alt+Enter (either Enter key) toggles it,
   // as in DOSBox: `poll` takes the key down, its repeats and its release,
   // which never reach the caller. While fullscreen, the mouse is confined
-  // to the screen (`letterbox_rect` of the window). Android windows are
-  // always fullscreen, without the toggle.
+  // to the window, black bars included. Android windows are always
+  // fullscreen, without the toggle.
   bool fullscreen() const;
   void set_fullscreen(bool fullscreen);
   // Calls `changed` with the new state after each Alt+Enter.
   void on_fullscreen_toggled(std::function<void(bool)> changed);
-  // Moves the system pointer to pixel (`x`, `y`) of the frame shown, as
-  // the original's mouse driver did when the game set the pointer's
-  // position, so that the next motion starts from there (`poll` may
-  // return a motion to it). Nothing while the pointer is off the window
+  // Moves the system pointer to pixel (`x`, `y`) of the frame shown (or
+  // beyond it, over the side fill or the black bars), as the original's
+  // mouse driver did when the game set the pointer's position, so that
+  // the next motion starts from there (`poll` may return a motion to it). Nothing while the pointer is off the window
   // (it is never pulled back in) or on Android (a finger points).
   void warp_pointer(int x, int y);
   // Changes how the picture is scaled to the window.
   void set_scaling(Scaling scaling);
+  // Keeps the desktop window, while not fullscreen, within the aspect
+  // ratios `window_aspect_range(wide_screen)`, resizing it at once if
+  // needed (`wide_screen`: the player's wide-screen setting; at first,
+  // the constructor's `wide`). Nothing on Android.
+  void set_wide_aspect(bool wide_screen);
 
   // Returns milliseconds since SDL initialization.
   static std::uint64_t ticks_ms();

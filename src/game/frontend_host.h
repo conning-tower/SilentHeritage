@@ -87,6 +87,10 @@ class FrontendHost {
   // Sets what fills a wide screen beside the 640-wide frames presented
   // from now on (not in the original); nothing by default.
   virtual void set_side_fill(const SideFill& /*fill*/) {}
+  // Not in the original: whether the wide-screen layouts are in use (the
+  // player's WIDE SCREEN setting), which the window's shape follows.
+  // Nothing by default.
+  virtual void set_wide_screen(bool /*on*/) {}
   // Sets the picture shown across the window's bottom rows over the frames
   // presented from now on, from its left edge (the command bar across a
   // wide window; not in the original); null for none, the default. It must
