@@ -51,7 +51,7 @@ std::vector<std::string> listed(const EditorData& data) {
 }  // namespace
 
 TEST_CASE("TORPEDOES lists the Mark 18-2 and 27 with the extended torpedoes only", "[editor][torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const EditorData original = EditorData::load(install);
   CHECK(listed(original) == std::vector<std::string>{"MARK10", "MARK14", "MARK18-1"});
   CHECK(original.torpedo_choices.count == 4);
@@ -65,7 +65,7 @@ TEST_CASE("TORPEDOES lists the Mark 18-2 and 27 with the extended torpedoes only
 }
 
 TEST_CASE("The extended TORPEDOES dialog grows by a row per type past three", "[editor][torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   std::vector<Image8> shots;
   for (const bool extended : {false, true}) {
     ExtendedFixture fx(install, extended);
@@ -94,7 +94,7 @@ TEST_CASE("The extended TORPEDOES dialog grows by a row per type past three", "[
 }
 
 TEST_CASE("The extended TORPEDOES refuses a fourth type", "[editor][torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ExtendedFixture fx(install, true);
   Scenario& s = fx.scenario;
   set_scn_text(s.player().rec.sub_class, "GATO");
@@ -137,7 +137,7 @@ TEST_CASE("The extended TORPEDOES refuses a fourth type", "[editor][torpedo_type
 }
 
 TEST_CASE("The extended TORPEDOES explains the three-type limit in a message box", "[editor][torpedo_types]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   ExtendedFixture fx(install, true);
   Scenario& s = fx.scenario;
   set_scn_text(s.player().rec.sub_class, "GATO");
