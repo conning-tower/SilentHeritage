@@ -428,7 +428,7 @@ TEST_CASE("Chart screen of a historical scenario", "[editor]") {
   rig.save("editor_chart_hist01_ship");
 }
 
-TEST_CASE("Extended: the chart palette alone has M8.PCX's colours", "[editor][extended]") {
+TEST_CASE("Extended: the chart palette alone has M8.PCX's colours", "[editor][extended][content]") {
   SH_REQUIRE_GAME_DATA(install);
   ChartRig rig(install);
   const World& world = rig.scenario.world().world();
