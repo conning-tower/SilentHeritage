@@ -49,7 +49,7 @@ kept with it.
   bridge, you now see the bow or the stern turning with you. The other
   screens are shown in the middle, framed by the menus' brass, the TDC's wood
   or, at the TBT, its own panel continued; the frame follows fades and the
-  red light. At every station the command bar runs across the whole screen,
+  red light. The videos have black bars beside them. At every station the command bar runs across the whole screen,
   the clock at the left edge and the buttons at the right.
 
 ## Rules
