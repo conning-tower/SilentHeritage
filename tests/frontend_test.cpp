@@ -619,7 +619,7 @@ void run_extended(const Install& install, ScriptedHost& host, const SaveDir& sav
 
 TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL restores the original's",
           "[frontend][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
   {
@@ -660,7 +660,7 @@ TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL re
 }
 
 TEST_CASE("Extended: OPTIONS' DISPLAY group applies the window's settings on OK only", "[frontend][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
   const DisplayOptions shown = kDesktopDisplay;
@@ -692,7 +692,7 @@ TEST_CASE("Extended: OPTIONS' DISPLAY group applies the window's settings on OK 
 }
 
 TEST_CASE("Extended: OPTIONS greys FULLSCREEN on Android and SMOOTHING with --sharp", "[frontend][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const TempDir dir;
   const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
   ScriptedHost host;
