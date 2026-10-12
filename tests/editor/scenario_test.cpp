@@ -711,7 +711,7 @@ TEST_CASE("A refused or unreadable load leaves a new scenario", "[editor][scenar
 
 TEST_CASE("Extended: a ship <-> sub class change keeps the course and the orders still valid",
           "[editor][scenario][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool corrected : {false, true}) {
     Session session(install);
     Scenario& s = session.scenario;
@@ -759,7 +759,7 @@ TEST_CASE("Extended: a ship <-> sub class change keeps the course and the orders
 }
 
 TEST_CASE("Extended: the orders each class may take", "[editor][scenario][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const EditorData& data = editor_data(install);
   for (const ShipClass& c : data.tables.ships) {
     CHECK(orders_fit_class(c, ShipOrders::kNone));
@@ -774,7 +774,7 @@ TEST_CASE("Extended: the orders each class may take", "[editor][scenario][extend
 }
 
 TEST_CASE("Extended: reload counts load by torpedo type", "[editor][scenario][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Session session(install);
   Scenario& s = session.scenario;
   const std::size_t listed = s.data().torpedo_choices.count - 1;
@@ -808,7 +808,7 @@ TEST_CASE("Extended: reload counts load by torpedo type", "[editor][scenario][ex
   }
 }
 
-TEST_CASE("Extended: the airstrike's info names its hold time", "[editor][scenario][extended]") {
+TEST_CASE("Extended: the airstrike's info names its hold time", "[editor][scenario][extended][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Session session(install);
   Scenario& s = session.scenario;
