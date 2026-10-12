@@ -66,7 +66,7 @@ TEST_CASE("controls: the command bar styles", "[controls]") {
 }
 
 TEST_CASE("controls: ORDERS in the bar opens the panel above it", "[controls][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   BarRig b(install, style(CommandBarStyle::kBarOrders));
   b.rig.click(kOrdersX + 30, kBarY + 10);
   REQUIRE(b.orders.size() == 1);
@@ -83,7 +83,7 @@ TEST_CASE("controls: ORDERS in the bar opens the panel above it", "[controls][st
 }
 
 TEST_CASE("controls: - and + around the bar's time compression", "[controls][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   BarRig b(install, style(CommandBarStyle::kBarOrdersTime));
   b.rig.save("controls_bar_orders_time");
   const std::int32_t start = b.clock().requested_compression();
@@ -102,7 +102,7 @@ TEST_CASE("controls: - and + around the bar's time compression", "[controls][sta
   CHECK(b.rig.screen->env().modals.modal_active());
 }
 
-TEST_CASE("controls: off, the bar is the original", "[controls][stations]") {
+TEST_CASE("controls: off, the bar is the original", "[controls][stations][content]") {
   SH_REQUIRE_GAME_DATA(install);
   BarRig improved(install, style(CommandBarStyle::kOrdersButton));
   test::ControlRig plain(install);
@@ -134,7 +134,7 @@ TEST_CASE("controls: off, the bar is the original", "[controls][stations]") {
 }
 
 TEST_CASE("controls: a click outside the 1MC and time compression boxes closes them", "[controls][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   Features f;
   f.outside_click_closes = true;
   BarRig b(install, f);
@@ -163,7 +163,7 @@ TEST_CASE("controls: a click outside the 1MC and time compression boxes closes t
 }
 
 TEST_CASE("controls: off, a click outside the 1MC box leaves it open", "[controls][stations]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   BarRig b(install, Features::faithful());
   b.rig.click(k1mcX + 30, kBarY + 10);
   b.rig.frames(2);
@@ -177,7 +177,7 @@ TEST_CASE("controls: off, a click outside the 1MC box leaves it open", "[control
 
 namespace sh {
 
-TEST_CASE("controls: the improved bar's message letters are a pixel closer", "[controls]") {
+TEST_CASE("controls: the improved bar's message letters are a pixel closer", "[controls][content]") {
   SH_REQUIRE_GAME_DATA(install);
   const Font msg = Font::load(install, "ART/MSG.FNT");
   const std::string text = "OOD: Ship spotted, bearing 093.";
@@ -211,7 +211,7 @@ TEST_CASE("controls: the improved bar's message letters are a pixel closer", "[c
 namespace sh {
 
 TEST_CASE("controls: the command bar labels fit the options pages", "[controls]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // The in-mission page's GUI_S.FNT labels (182 px plates) and the main
   // menu's MENU_B.FNT ones (198 px).
   const Font small = Font::load(install, "ART/GUI_S.FNT");
