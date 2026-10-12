@@ -321,7 +321,7 @@ TEST_CASE("The small boxes return their buttons", "[editor][dialogs]") {
 }
 
 TEST_CASE("Extended: EQUIPMENT sets the radar detector, limited by date", "[editor][dialogs][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool limit : {false, true}) {
     EditorFixture fx(install);
     Scenario& s = fx.scenario;
@@ -350,7 +350,7 @@ TEST_CASE("Extended: EQUIPMENT sets the radar detector, limited by date", "[edit
 }
 
 TEST_CASE("Extended: EQUIPMENT without the row keeps bit 4 as it is", "[editor][dialogs][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   EditorFixture fx(install);
   Scenario& s = fx.scenario;
   s.header.month = 0;
@@ -363,7 +363,7 @@ TEST_CASE("Extended: EQUIPMENT without the row keeps bit 4 as it is", "[editor][
 }
 
 TEST_CASE("Extended: OPTIONS reports an SBOPTION.SAV it cannot write", "[editor][dialogs][extended]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const test::TempDir dir;
   // A directory under a plain file cannot be made.
   std::ofstream(dir.path() / "FILE") << "x";
