@@ -88,7 +88,7 @@ StatusStation& open_torpedo_page(TorpedoRig& rig) {
 // ------------------------------------------------------------ pictures
 
 TEST_CASE("The Mark 10 and 14 pictures are the original's frames, as drawn", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Shp statust = Shp::load(install, "ART/STATUST.SHP");
   const TorpedoArt art(statust, load_pcx(install, "ART/STATUSBG.PCX").palette);
   Image8 scratch;
@@ -116,7 +116,7 @@ TEST_CASE("The Mark 10 and 14 pictures are the original's frames, as drawn", "[t
 }
 
 TEST_CASE("The Mark 18-1, 18-2 and 27 pictures differ and keep off the original ramps", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Shp statust = Shp::load(install, "ART/STATUST.SHP");
   const TorpedoArt art(statust, load_pcx(install, "ART/STATUSBG.PCX").palette);
   for (const std::uint32_t id : {kMark18_1Id, kMark18_2Id, kMark27Id}) {
@@ -138,7 +138,7 @@ TEST_CASE("The Mark 18-1, 18-2 and 27 pictures differ and keep off the original 
 // ------------------------------------------------------------ status page
 
 TEST_CASE("The status page shows a card per type carried at the start, which stays", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   TorpedoRig rig(install, test::mixed_scenario(install, false), Features::extended(), test::torpedo_rules(false));
   CHECK(rig.mission().start_torpedo_types() == std::vector<std::uint32_t>{2, 3, 4});
   StatusStation& s = open_torpedo_page(rig);
@@ -161,7 +161,7 @@ TEST_CASE("The status page shows a card per type carried at the start, which sta
 }
 
 TEST_CASE("Without the feature the cards are the TDC table's, as the original", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   TorpedoRig rig(install, test::mixed_scenario(install, false), Features::faithful(), MissionRules{});
   StatusStation& s = open_torpedo_page(rig);
   // February 1944: the original's table MARK10 / MARK14 / MARK18-1, the
@@ -170,7 +170,7 @@ TEST_CASE("Without the feature the cards are the TDC table's, as the original", 
 }
 
 TEST_CASE("Moving a torpedo frames its type's card", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   TorpedoRig rig(install, test::mixed_scenario(install, false), Features::extended(), test::torpedo_rules(false));
   StatusStation& s = open_torpedo_page(rig);
   CHECK(s.highlighted_card() == 0);
@@ -223,7 +223,7 @@ std::vector<std::uint8_t> knob_labels(const Image8& screen) {
 
 }  // namespace
 
-TEST_CASE("The knob's labels are the table's names in the art's lettering", "[torpedo_ui]") {
+TEST_CASE("The knob's labels are the table's names in the art's lettering", "[torpedo_ui][content]") {
   SH_REQUIRE_GAME_DATA(install);
   // The original's table (February 1944: MARK10, MARK14, MARK18-1).
   const Image8 faithful =
@@ -258,7 +258,7 @@ TEST_CASE("The knob's labels are the table's names in the art's lettering", "[to
 }
 
 TEST_CASE("Under the torpedo rules the knob holds the types carried", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   for (const bool feature : {false, true}) {
     TorpedoRig rig(install, test::mixed_scenario(install, false), feature ? Features::extended() : Features::faithful(),
                    test::torpedo_rules(false));
@@ -270,7 +270,7 @@ TEST_CASE("Under the torpedo rules the knob holds the types carried", "[torpedo_
 }
 
 TEST_CASE("With fewer than three types the knob stops on those only", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   // Two types (Mark 14 and 18-2): slots 0 and 1; slot 2 an unavailable
   // straight runner.
   Scenario sc = test::mixed_scenario(install, false);
@@ -295,7 +295,7 @@ TEST_CASE("With fewer than three types the knob stops on those only", "[torpedo_
 }
 
 TEST_CASE("The Mark 27 dims the dials a bearing-only solution leaves out", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   TorpedoRig rig(install, test::mixed_scenario(install, true), Features::extended(), test::torpedo_rules(true));
   rig.frames(1);
   rig.settle();
@@ -319,7 +319,7 @@ TEST_CASE("The Mark 27 dims the dials a bearing-only solution leaves out", "[tor
 // ------------------------------------------------------------ touch panel
 
 TEST_CASE("The touch panel's label strips name the tubes' torpedo types", "[torpedo_ui]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   TorpedoRig rig(install, test::mixed_scenario(install, false), Features::extended(), test::torpedo_rules(false));
   PlayerCombat& pc = rig.mission().player_combat();
   pc.tubes.set_tube(1, -4);
@@ -334,7 +334,7 @@ TEST_CASE("The touch panel's label strips name the tubes' torpedo types", "[torp
 // The screenshots of the design note: run explicitly with
 // SH_SCREENSHOT_DIR (and SH_PANEL_FRAME, a 640x480 BMP, for the panel).
 TEST_CASE("Torpedo type screenshots", "[.torpedo_screens]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   {
     // The Mark 27 on the TDC, its bearing from the sonar: an escort heard
     // on the starboard bow.
