@@ -719,7 +719,7 @@ TEST_CASE("Mouse cursor counter, drawing and erasing", "[ui]") {
 }
 
 TEST_CASE("Android: the mouse keeps its cursor state but draws nothing", "[ui][android]") {
-  SH_REQUIRE_GAME_DATA(install);
+  SH_REQUIRE_INSTALL(install);
   const Shp cursors = Shp::load(install, "ART/CURSORS.SHP");
   std::uint32_t tick = 0;
   EventQueue q([&] { return tick; });
@@ -749,7 +749,7 @@ TEST_CASE("Android: the mouse keeps its cursor state but draws nothing", "[ui][a
   CHECK(m.y() == 150);
 }
 
-TEST_CASE("A disabled check box greys its label, not its box", "[ui]") {
+TEST_CASE("A disabled check box greys its label, not its box", "[ui][content]") {
   SH_REQUIRE_GAME_DATA(install);
   GuiResources res = GuiResources::load(install);
   const MenuResources menu = MenuResources::load(install);
