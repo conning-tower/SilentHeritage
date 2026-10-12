@@ -37,6 +37,9 @@ jobs:
     runs-on: ${{ matrix.runner }}
     # The oldest distribution built on: the executables need glibc 2.35+.
     container: ubuntu:22.04
+    defaults:
+      run:
+        shell: bash
     env:
       CXXFLAGS: -stdlib=libc++
       SH_VERSION: ${{ inputs.version }}
@@ -47,6 +50,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      # The checkout belongs to the runner's user, not the container's root:
+      # git reads it (SOURCE_DATE_EPOCH) only once it is marked safe.
+      - name: Mark the checkout safe for git
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
       - name: Install the build dependencies
         run: packaging/linux/install_build_deps.sh
       - name: Build the packages
