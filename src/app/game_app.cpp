@@ -343,11 +343,18 @@ class GameApp final : public FrontendHost, public EditorRunner {
     // mouse driver did, so that the pointer drawn is where the next motion
     // starts. The pointer itself, not the game's position: one only held
     // at the screen's edge (beside it, or the screen narrowed under it)
-    // stays where it is.
+    // stays where it is. Where the system does not move its pointer (some
+    // Wayland compositors), the game's goes back to it instead, so that the
+    // cursor drawn stays on the real one: a chart then keeps scrolling while
+    // the pointer is on its edge.
     const ui::Mouse& mouse = gui.mouse();
     if (!headless_ && pointer_.gui == &gui &&
         (mouse.pointer_x() != pointer_.x || mouse.pointer_y() != pointer_.y)) {
-      display_.warp_pointer(mouse.pointer_x(), mouse.pointer_y());
+      if (display_.pointer_warp_refused()) {
+        feed(gui, InputEvent{.type = EventType::kMouseMove, .x = pointer_.x, .y = pointer_.y});
+      } else {
+        display_.warp_pointer(mouse.pointer_x(), mouse.pointer_y());
+      }
     }
     if (!pending_.empty()) {
       const InputEvent e = pending_.front();

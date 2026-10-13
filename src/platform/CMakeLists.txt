@@ -1,6 +1,8 @@
 sh_add_module(sh_platform
   SOURCES
     display.cpp
+    # Whether the system honours the pointer warps.
+    pointer_warp.cpp
     screenshot.cpp
     # The lifecycle events SDL hands only to event watches.
     lifecycle_watch.cpp

@@ -17,6 +17,7 @@
 #include "platform/bios_keys.h"
 #include "platform/command_panel.h"
 #include "platform/command_panel_view.h"
+#include "platform/pointer_warp.h"
 
 namespace sh {
 
@@ -113,9 +114,16 @@ struct Display::Impl {
   std::unique_ptr<CommandPanelView> panel_view;
   bool panel_shown = true;
   bool fullscreen = false;
+  // The area the mouse is confined to (`confine_mouse`).
+  std::optional<WindowRect> mouse_rect;
   // Whether the system pointer is over the window (its mouse enter and
   // leave events).
   bool pointer_inside = false;
+  // Whether the system honours `warp_pointer`, judged from the motions
+  // after the last warp (since `warp_ns`, SDL's clock).
+  WarpCheck warp_check;
+  std::uint64_t warp_ns = 0;
+  bool refusal_logged = false;
   // Whether the window may be wider than 4:3 (`set_wide_aspect`).
   bool wide_aspect = false;
   // Called after each Alt+Enter.
@@ -124,19 +132,30 @@ struct Display::Impl {
   // dropped.
   std::optional<SDL_Keycode> toggle_key;
 
-  // Confines the mouse to the window while fullscreen (away from the
-  // other displays), frees it otherwise. The black bars are included: the
-  // cursor is drawn there, the game's coordinates stop at the frame.
+  // Confines the mouse while fullscreen to the picture (away from the
+  // other displays and the black bars of a screen of another shape), frees
+  // it otherwise. The picture is the whole screen: the side fill beside a
+  // narrower frame is in, where the cursor is drawn while the game's
+  // coordinates stop at the frame.
   void confine_mouse() {
 #ifndef SDL_PLATFORM_ANDROID  // always fullscreen, the pointer a finger
     if (!fullscreen) {
+      mouse_rect.reset();
       SDL_SetWindowMouseRect(window, nullptr);
       return;
     }
-    int w = 0;
-    int h = 0;
-    SDL_GetWindowSize(window, &w, &h);
-    const SDL_Rect rect{0, 0, w, h};
+    float x0 = 0;
+    float y0 = 0;
+    float x1 = 0;
+    float y1 = 0;
+    SDL_RenderCoordinatesToWindow(renderer, 0, 0, &x0, &y0);
+    SDL_RenderCoordinatesToWindow(renderer, static_cast<float>(screen_w), static_cast<float>(kScreenHeight), &x1, &y1);
+    // Rounded outward, so that the edge rows and columns stay within reach
+    // (the charts' edge scroll).
+    const int left = static_cast<int>(std::floor(x0));
+    const int top = static_cast<int>(std::floor(y0));
+    mouse_rect = WindowRect{left, top, static_cast<int>(std::ceil(x1)) - left, static_cast<int>(std::ceil(y1)) - top};
+    const SDL_Rect rect{mouse_rect->x, mouse_rect->y, mouse_rect->w, mouse_rect->h};
     if (!SDL_SetWindowMouseRect(window, &rect)) {
       SDL_Log("%s: cannot confine the mouse: %s", edition::kExecutable, SDL_GetError());
     }
@@ -155,6 +174,14 @@ struct Display::Impl {
       SDL_Log("%s: cannot keep the window's aspect ratio: %s", edition::kExecutable, SDL_GetError());
     }
 #endif
+  }
+
+  // Logs once that the system does not move the pointer.
+  void log_warp_refusal() {
+    if (warp_check.refused() && !refusal_logged) {
+      SDL_Log("%s: the system does not move the pointer; the game's pointer stays with it", edition::kExecutable);
+      refusal_logged = true;
+    }
   }
 
   void set_fullscreen(bool on) {
@@ -540,6 +567,12 @@ std::optional<InputEvent> Display::poll() {
   }
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
+    if (e.type == SDL_EVENT_MOUSE_MOTION && e.motion.timestamp >= impl_->warp_ns &&
+        e.motion.which != SDL_TOUCH_MOUSEID && e.motion.which != SDL_PEN_MOUSEID) {
+      // The pointer itself (no finger nor pen), moved since the last warp.
+      impl_->warp_check.reported({e.motion.x, e.motion.y});
+      impl_->log_warp_refusal();
+    }
     if (e.type == SDL_EVENT_MOUSE_MOTION || e.type == SDL_EVENT_MOUSE_BUTTON_DOWN ||
         e.type == SDL_EVENT_MOUSE_BUTTON_UP) {
       if (const std::optional<PanelInput> in = impl_->panel_input(e); in && in->consumed) {
@@ -585,6 +618,7 @@ std::optional<InputEvent> Display::poll() {
       case SDL_EVENT_WINDOW_MOUSE_ENTER:
       case SDL_EVENT_WINDOW_MOUSE_LEAVE:
         impl_->pointer_inside = e.type == SDL_EVENT_WINDOW_MOUSE_ENTER;
+        impl_->warp_check.left();
         break;
       case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
       case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
@@ -792,6 +826,10 @@ void Display::set_cursor_beyond(std::optional<DecodedFrame> cursor, int x, int y
 
 bool Display::fullscreen() const { return impl_->fullscreen; }
 
+std::optional<WindowRect> Display::mouse_confinement() const { return impl_->mouse_rect; }
+
+bool Display::pointer_warp_refused() const { return impl_->warp_check.refused(); }
+
 void Display::set_fullscreen(bool fullscreen) {
 #ifndef SDL_PLATFORM_ANDROID
   impl_->set_fullscreen(fullscreen);
@@ -806,7 +844,7 @@ void Display::on_fullscreen_toggled(std::function<void(bool)> changed) {
 
 void Display::warp_pointer(int x, int y) {
 #ifndef SDL_PLATFORM_ANDROID
-  if (!impl_->pointer_inside) {
+  if (!impl_->pointer_inside || impl_->warp_check.refused()) {
     return;
   }
   // The pixel's centre, so that the motion back to it rounds to the pixel.
@@ -814,7 +852,13 @@ void Display::warp_pointer(int x, int y) {
   float wy = 0;
   SDL_RenderCoordinatesToWindow(impl_->renderer, static_cast<float>(impl_->frame_x() + x) + 0.5f,
                                 static_cast<float>(y) + 0.5f, &wx, &wy);
+  // Where SDL last saw the pointer: the motions already queued are older.
+  WindowPoint from;
+  SDL_GetMouseState(&from.x, &from.y);
+  impl_->warp_ns = SDL_GetTicksNS();
   SDL_WarpMouseInWindow(impl_->window, wx, wy);
+  impl_->warp_check.warped(from, {wx, wy});
+  impl_->log_warp_refusal();
 #else
   (void)x;
   (void)y;

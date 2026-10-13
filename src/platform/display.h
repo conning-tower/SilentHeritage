@@ -88,6 +88,16 @@ struct ScreenRect {
   bool operator==(const ScreenRect&) const = default;
 };
 
+// A rectangle of the window, in window coordinates.
+struct WindowRect {
+  int x = 0;
+  int y = 0;
+  int w = 0;
+  int h = 0;
+
+  bool operator==(const WindowRect&) const = default;
+};
+
 // Returns the colour modulation of the side fill textures for a frame shown
 // with `palette`: per channel, the palette's brightest value against the
 // brightest ever seen (`brightest`, updated), so that the fill fades with
@@ -202,18 +212,28 @@ class Display {
   // resolution). On the desktop Alt+Enter (either Enter key) toggles it,
   // as in DOSBox: `poll` takes the key down, its repeats and its release,
   // which never reach the caller. While fullscreen, the mouse is confined
-  // to the window, black bars included. Android windows are always
-  // fullscreen, without the toggle.
+  // to the picture: the screen, side fill included, without the black bars
+  // of a display of another shape. Android windows are always fullscreen,
+  // without the toggle.
   bool fullscreen() const;
   void set_fullscreen(bool fullscreen);
+  // Returns the area the mouse is confined to, if any (asked of the
+  // system, which may not support it).
+  std::optional<WindowRect> mouse_confinement() const;
   // Calls `changed` with the new state after each Alt+Enter.
   void on_fullscreen_toggled(std::function<void(bool)> changed);
   // Moves the system pointer to pixel (`x`, `y`) of the frame shown (or
   // beyond it, over the side fill or the black bars), as the original's
   // mouse driver did when the game set the pointer's position, so that
-  // the next motion starts from there (`poll` may return a motion to it). Nothing while the pointer is off the window
-  // (it is never pulled back in) or on Android (a finger points).
+  // the next motion starts from there (`poll` may return a motion to it).
+  // Nothing while the pointer is off the window (it is never pulled back
+  // in), on Android (a finger points), or once the system is known to
+  // ignore it (`pointer_warp_refused`).
   void warp_pointer(int x, int y);
+  // Whether the system is known to leave the pointer where it is when
+  // `warp_pointer` moves it, as a Wayland compositor may: judged from the
+  // motions `poll` returns after the warps (`WarpCheck`). Never on Android.
+  bool pointer_warp_refused() const;
   // Changes how the picture is scaled to the window.
   void set_scaling(Scaling scaling);
   // Keeps the desktop window, while not fullscreen, within the aspect

@@ -13,14 +13,18 @@ improvements of Silent Heritage Extended are in [EXTENDED.md](EXTENDED.md).
   options and custom scenarios go to your per-user folder.
 - **Display:** the 640×480 picture is scaled to the window with smoothing,
   and the window keeps its 4:3 shape when resized. Alt+Enter toggles
-  fullscreen, which keeps the mouse on that screen.
+  fullscreen, which keeps the mouse on the picture, off the black bars of a
+  screen of another shape.
 - **Mouse pointer:** it is drawn wherever the mouse is in the window,
-  black bars included, instead of stopping at the picture's edge.
+  instead of stopping at the picture's edge. When the game moves it (the
+  chart's edge scrolling), the mouse follows; where the system does not let
+  it (some Linux desktops), the pointer stays with the mouse instead, and
+  the chart keeps scrolling while it is on the edge.
 - **Keyboard:** keys follow your keyboard layout (AZERTY, QWERTZ, BÉPO...),
   so each command is on the key that types its letter.
 - **Chart:** in a window, edge scrolling reacts to a band a few pixels wide
   along the screen's edges; in fullscreen, where the mouse cannot leave the
-  screen, it reacts only at the very edge.
+  picture, it reacts only at the very edge.
 
 ## Android
 
