@@ -420,12 +420,12 @@ TEST_CASE("Extended: GAME OPTIONS' EXTENDED page switches the interface at once"
       CHECK(features == Features{});
       continue;
     }
-    // The page (rows 0x17 apart from 0x32): WIDE SCREEN greyed, the
-    // command bar's next layout at once.
+    // The page (rows 0x17 apart from 0x32): WIDE SCREEN, the command
+    // bar's next layout, both at once.
     const int h = 0x50 + static_cast<int>(kFeatureOptions.size()) * 0x17;
     const int y0 = (kScreenHeight - h) / 2;
     rig.click(0x9d + 0x36 + 8, y0 + 0x32 + 8);
-    CHECK_FALSE(features.wide_screen);
+    CHECK(features.wide_screen);
     rig.click(0x9d + 0x36 + 60, y0 + 0x32 + 0x17 + 8);
     CHECK(features.command_bar == CommandBarStyle::kBarOrders);
     CHECK(saved.empty());
@@ -433,6 +433,7 @@ TEST_CASE("Extended: GAME OPTIONS' EXTENDED page switches the interface at once"
     rig.frames(2);
     CHECK(rig.screen->in_play());
     REQUIRE(saved.size() == 1);
+    CHECK(saved[0].wide_screen);
     CHECK(saved[0].command_bar == CommandBarStyle::kBarOrders);
   }
 }

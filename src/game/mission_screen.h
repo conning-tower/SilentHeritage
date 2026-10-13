@@ -150,6 +150,20 @@ class MissionScreen : private MissionSound,
   void run_modal(std::unique_ptr<ui::Dialog> dialog, ModalFrame frame, std::function<void(int)> done) override;
   bool modal_active() const override { return !modals_.empty(); }
 
+  // Returns the width of the screen the window shows with the wide screen
+  // setting as it is (640 with it off).
+  int window_width() const;
+  // The screen's width for a station and the command bar's offset beside
+  // it (a 640-wide station on a wide window).
+  struct Layout {
+    int width = kScreenWidth;
+    int bar_offset = 0;
+
+    bool operator==(const Layout&) const = default;
+  };
+  // Returns the layout of `station` for the window and the wide screen
+  // setting as they are.
+  Layout layout_for(const Station& station) const;
   // Sizes the GUI's screen for station `next` before it opens.
   void fit_screen(const Station& next);
   // Runs one iteration of the first pending modal.

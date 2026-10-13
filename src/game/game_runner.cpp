@@ -250,6 +250,14 @@ std::int32_t GameRunner::play(const MissionRequest& request, std::unique_ptr<Mis
     // The EXTENDED page's window settings (not in the original).
     screen.bar().display_options = [this] { return host_.display_options(); };
     screen.bar().on_display_changed = [this](const DisplaySettings& s) { host_.set_display_settings(s); };
+    // The wide screen turned on or off: the window's shape follows at once
+    // (the stations are laid out again by the mission's screen).
+    screen.bar().on_features_changed = [this, saved = screen.bar().on_features_changed](const Features& features) {
+      if (saved) {
+        saved(features);
+      }
+      host_.set_wide_screen(features.wide_screen);
+    };
   }
   // The blocking loops of the in-game dialogs (the SAVE MISSION name
   // entry) show the mission's screen with its palette.

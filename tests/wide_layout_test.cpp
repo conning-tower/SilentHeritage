@@ -92,6 +92,40 @@ TEST_CASE("Wide layout: the chart and the bridge take the window's width, the ot
   CHECK(ui.side_fill.left.height() == kScreenHeight);
 }
 
+TEST_CASE("Wide layout: turned on or off during a mission, the station is laid out again at once", "[wide]") {
+  const Install& install = data_or_synthetic();
+  const GoldenGame game(install);
+  GoldenMissionRig rig(game, hist01(game), wide_screen(), kWide);
+  const MissionUiState& ui = rig.screen().ui_state();
+  // As the EXTENDED page sets it.
+  Features& features = rig.screen().env().ui.features;
+  constexpr int kOffset = (kWide - kScreenWidth) / 2;
+  // The chart: the window's width, then 640.
+  rig.play("-60,f5,-30");
+  CHECK(rig.screen().screen().width() == kWide);
+  features.wide_screen = false;
+  rig.frames(5);
+  CHECK(rig.screen().screen().width() == kScreenWidth);
+  CHECK(ui.bar_offset == 0);
+  features.wide_screen = true;
+  rig.frames(5);
+  CHECK(rig.screen().screen().width() == kWide);
+  // The TDC, 640 wide: the command bar across the window goes and comes
+  // back with the wood beside it.
+  rig.play("f6,-30");
+  REQUIRE(ui.bar_offset == kOffset);
+  features.wide_screen = false;
+  rig.frames(5);
+  CHECK(rig.screen().screen().width() == kScreenWidth);
+  CHECK(ui.bar_offset == 0);
+  CHECK(ui.bar_strip.width() == 0);
+  features.wide_screen = true;
+  rig.frames(5);
+  CHECK(ui.bar_offset == kOffset);
+  CHECK(ui.bar_strip.width() == kWide);
+  CHECK(ui.side_fill.kind == SideFill::Kind::kWood);
+}
+
 TEST_CASE("Wide layout: without the improvement every station stays 640 wide, with no side fill", "[wide]") {
   const Install& install = data_or_synthetic();
   const GoldenGame game(install);

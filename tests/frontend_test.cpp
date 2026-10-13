@@ -270,6 +270,9 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
       return;
     }
     idle_ = 0;
+    if (before_step) {
+      before_step();
+    }
     const Step s = script.front();
     script.pop_front();
     Screen shown;
@@ -309,6 +312,8 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
   }
   // Called when a mission starts.
   std::function<void(const MissionRequest&)> on_run;
+  // Called before each step is replayed.
+  std::function<void()> before_step;
   MissionOutcome outcome() const override { return mission; }
   // How the missions end: aborted by default (no results).
   MissionOutcome mission = [] {
@@ -661,6 +666,31 @@ TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL re
     CHECK(keys.size() == kFeatureOptions.size());
     CHECK_FALSE(keys.contains("ui.crew_log"));
   }
+}
+
+TEST_CASE("Extended: OPTIONS starts from what a mission's EXTENDED page saved", "[frontend][extended]") {
+  SH_REQUIRE_INSTALL(install);
+  const TempDir dir;
+  const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
+  ScriptedHost host;
+  host.display = kDesktopDisplay;
+  // The wide screen turned off during a mission, after the front end read
+  // the file.
+  bool mission_played = false;
+  host.before_step = [&] {
+    if (!mission_played) {
+      Features f = Features::extended();
+      f.wide_screen = false;
+      REQUIRE(save_features(saves, f));
+      mission_played = true;
+    }
+  };
+  host.script = {kOptionsExt, kCommandBarCycle, kOptionsOk, kExitToDosExt};
+  run_extended(install, host, saves);
+  const Features f = load_features(saves, Features::extended());
+  CHECK_FALSE(f.wide_screen);
+  // ALL COMMANDS, then ORIGINAL BAR.
+  CHECK(f.command_bar == CommandBarStyle::kOriginal);
 }
 
 TEST_CASE("Extended: OPTIONS' DISPLAY group applies the window's settings on OK only", "[frontend][extended]") {

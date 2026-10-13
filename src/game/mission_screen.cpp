@@ -77,15 +77,23 @@ MissionScreen::MissionScreen(MissionScreenSetup setup, std::unique_ptr<Mission> 
   sound_.apply_options();
 }
 
-void MissionScreen::fit_screen(const Station& next) {
-  int width = kScreenWidth;
-  if (ui_.features.wide_screen && next.wide_layout() && setup_.screen_width) {
-    width = setup_.screen_width();
-  }
-  setup_.gui.set_screen_width(width);
+int MissionScreen::window_width() const {
+  return ui_.features.wide_screen && setup_.screen_width ? setup_.screen_width() : kScreenWidth;
+}
+
+MissionScreen::Layout MissionScreen::layout_for(const Station& station) const {
+  const int window = window_width();
+  const int width = station.wide_layout() ? window : kScreenWidth;
   // The command bar across a wide window over a 640-wide station.
-  const int window = ui_.features.wide_screen && setup_.screen_width ? setup_.screen_width() : kScreenWidth;
-  ui_.bar_offset = width == kScreenWidth ? (window - kScreenWidth) / 2 : 0;
+  return {.width = width, .bar_offset = width == kScreenWidth ? (window - kScreenWidth) / 2 : 0};
+}
+
+void MissionScreen::fit_screen(const Station& next) {
+  const Layout layout = layout_for(next);
+  const int width = layout.width;
+  const int window = window_width();
+  setup_.gui.set_screen_width(width);
+  ui_.bar_offset = layout.bar_offset;
   if (ui_.bar_offset > 0) {
     ui_.bar_strip = Image8(window, kScreenHeight - kCommandBarTop, 0);
     setup_.gui.mouse().set_band(ClipRect{-ui_.bar_offset, kCommandBarTop, window - ui_.bar_offset - 1, kScreenHeight - 1});
@@ -147,10 +155,10 @@ bool MissionScreen::frame(std::int32_t timer_ticks) {
       }
     }
     mission_->set_paused(ui_.pause > 0);
-    if (const Station* open = loop_.open_station(); ui_.features.wide_screen && open != nullptr &&
-                                                     open->wide_layout() && setup_.screen_width &&
-                                                     setup_.screen_width() != gui.screen().width()) {
-      // The window changed its aspect: laid out again.
+    if (const Station* open = loop_.open_station();
+        open != nullptr && layout_for(*open) != Layout{gui.screen().width(), ui_.bar_offset}) {
+      // The window changed its aspect, or the wide screen was turned on or
+      // off: laid out again.
       stations_.request_reopen();
     }
     // mission_main_loop's step 1.

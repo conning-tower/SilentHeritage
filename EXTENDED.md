@@ -29,7 +29,8 @@ kept with it.
   chose last, if it is in service at the date, even after a restart.
 - **Extended options:** the main menu's OPTIONS page, and the EXTENDED
   button of the in-mission GAME OPTIONS (Alt-O), set the wide screen and the
-  command bar's layout; the other improvements are always on.
+  command bar's layout, which change at once even during a mission; the
+  other improvements are always on.
 - **Display options:** OPTIONS turns fullscreen (on at first, like
   Alt+Enter) and smoothing on and off, and the game remembers both.
 - **Turning the views:** drag the bridge, periscope, TBT or deck gun view to

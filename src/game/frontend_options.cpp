@@ -65,6 +65,10 @@ void FrontEnd::extended_options_screen() {
   load_screen_pcx(exe_string(kMenuPcx));
   gui_.set_skin(menu_skin_);
   palette_fade_out(0, 0x100);
+  if (extended_config_) {
+    // As a mission's EXTENDED page may have left them.
+    features_ = load_features(saves_, features_);
+  }
   Features edited = features_;
   const std::optional<DisplayOptions> display = host_.display_options();
   DisplaySettings edited_display = display ? display->settings : DisplaySettings{};

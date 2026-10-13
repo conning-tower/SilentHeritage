@@ -87,10 +87,10 @@ inline constexpr std::array<std::string_view, 4> kCommandBarChoices{
 
 // The improvements the player sets on the EXTENDED OPTIONS pages, in page
 // order (two per row on the main menu's); the extended variant's others are
-// always on. The wide screen changes the window's layout and waits for the
-// next mission; the command bar is laid out again at once.
+// always on. Both apply at once during a mission: the window's shape and
+// the stations' layout follow the wide screen, the bar its layout.
 inline constexpr std::array kFeatureOptions{
-    feature_check_box<&Features::wide_screen>("wide_screen", "WIDE SCREEN", false),
+    feature_check_box<&Features::wide_screen>("wide_screen", "WIDE SCREEN", true),
     feature_choice<&Features::command_bar>("command_bar", kCommandBarChoices, true),
 };
 
