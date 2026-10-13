@@ -118,6 +118,11 @@ add_library(sh_options INTERFACE)
 target_compile_options(sh_options INTERFACE
   -Wall -Wextra -Wpedantic -Wshadow -Wimplicit-int-conversion
   -Wshorten-64-to-32 -Werror)
+# No fused multiply-add: the floating-point results (the astronomy of
+# sim/astronomy.cpp, the sun's elevation behind the daylight palette) are the
+# same on every processor, ARM64 included, where clang otherwise fuses
+# a * b + c by default.
+target_compile_options(sh_options INTERFACE -ffp-contract=off)
 target_include_directories(sh_options INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src
   ${CMAKE_CURRENT_BINARY_DIR}/generated)
 if(SH_SANITIZE AND CMAKE_BUILD_TYPE STREQUAL "Debug" AND NOT WIN32)
