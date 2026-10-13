@@ -17,14 +17,15 @@ improvements of Silent Heritage Extended are in [EXTENDED.md](EXTENDED.md).
   screen of another shape.
 - **Mouse pointer:** it is drawn wherever the mouse is in the window,
   instead of stopping at the picture's edge. When the game moves it (the
-  chart's edge scrolling), the mouse follows; where the system does not let
-  it (some Linux desktops), the pointer stays with the mouse instead, and
-  the chart keeps scrolling while it is on the edge.
+  chart's zoom box), the mouse follows; where the system does not let it
+  (some Linux desktops), the pointer stays with the mouse instead.
 - **Keyboard:** keys follow your keyboard layout (AZERTY, QWERTZ, BÉPO...),
   so each command is on the key that types its letter.
 - **Chart:** in a window, edge scrolling reacts to a band a few pixels wide
   along the screen's edges; in fullscreen, where the mouse cannot leave the
-  picture, it reacts only at the very edge.
+  picture, it reacts only at the very edge. The pointer stays on the edge,
+  instead of jumping back from it at each step, and the chart scrolls on at
+  a steady pace while it is there.
 
 ## Android
 

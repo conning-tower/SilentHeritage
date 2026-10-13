@@ -230,6 +230,9 @@ class Display {
   // in), on Android (a finger points), or once the system is known to
   // ignore it (`pointer_warp_refused`).
   void warp_pointer(int x, int y);
+  // Whether the system pointer is over the window, after the last `poll`
+  // (its mouse enter and leave events).
+  bool pointer_inside() const;
   // Whether the system is known to leave the pointer where it is when
   // `warp_pointer` moves it, as a Wayland compositor may: judged from the
   // motions `poll` returns after the warps (`WarpCheck`). Never on Android.

@@ -361,17 +361,31 @@ ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdg
   };
 }
 
-void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty, int bar_top, int screen_w) {
+void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty, ChartEdgeHold& hold,
+                       std::uint32_t ticks, int bar_top, int screen_w) {
   // chart_view_edge_scroll (0x2aa58): the pointer on a screen edge scrolls
   // 50 / zoom chart pixels and is moved back 30 pixels.
   int x = mouse.x();
   int y = mouse.y();
-  const ChartEdges e = chart_edge_scroll_edges(x, y, over_panel, mouse.edges(), bar_top, screen_w);
+  const ui::EdgeScrollPointer pointer = mouse.edge_scroll_pointer();
+  const ChartEdges e = pointer == ui::EdgeScrollPointer::kAway
+                           ? ChartEdges{}
+                           : chart_edge_scroll_edges(x, y, over_panel, mouse.edges(), bar_top, screen_w);
+  if (!e.any() || pointer != ui::EdgeScrollPointer::kHold) {
+    hold.since.reset();
+  }
   if (!e.any()) {
     return;
   }
   const unsigned edges = (e.left ? 1u : 0u) | (e.right ? 2u : 0u) | (e.top ? 4u : 0u) | (e.bottom ? 8u : 0u);
-  const std::int32_t step = fx::div(0x320000, view.zoom());
+  std::int32_t step = fx::div(0x320000, view.zoom());
+  if (pointer == ui::EdgeScrollPointer::kHold) {
+    // The ticks since the last frame on the edge, none on the first: a
+    // pause (a held view) resumes with at most one step.
+    const std::uint32_t elapsed = hold.since ? std::min(ticks - *hold.since, kChartEdgeHoldTicks) : 0;
+    hold.since = ticks;
+    step = static_cast<std::int32_t>(std::int64_t{step} * elapsed / kChartEdgeHoldTicks);
+  }
   std::int32_t cx = view.center_x();
   std::int32_t cy = view.center_y();
   const std::int32_t old_x = cx;
@@ -390,7 +404,7 @@ void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool&
   }
   view.set_center(cx, cy);
   dirty = dirty || view.center_x() != old_x || view.center_y() != old_y;
-  if (dirty) {
+  if (dirty && pointer == ui::EdgeScrollPointer::kPushBack) {
     x += (edges & 1) != 0 ? 0x1e : 0;
     x -= (edges & 2) != 0 ? 0x1e : 0;
     y += (edges & 4) != 0 ? 0x1e : 0;

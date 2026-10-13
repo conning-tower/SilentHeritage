@@ -237,13 +237,29 @@ struct ChartEdges {
 ChartEdges chart_edge_scroll_edges(int x, int y, bool over_panel, ui::PointerEdges edges = ui::PointerEdges::kBand,
                                    int bar_top = kScreenHeight, int screen_w = kScreenWidth);
 
+// The 100 Hz ticks over which a pointer held on an edge scrolls a chart by
+// one of the original's steps (not in the original, whose pointer was moved
+// back from the edge at each step): 500 screen pixels a second.
+inline constexpr std::uint32_t kChartEdgeHoldTicks = 10;
+
+// The pace of a chart's edge scroll while the pointer is held on an edge
+// (`ui::EdgeScrollPointer::kHold`): the tick of the last frame it scrolled
+// on, none while the pointer is off the edges.
+struct ChartEdgeHold {
+  std::optional<std::uint32_t> since;
+};
+
 // `chart_view_edge_scroll`: the pointer on a screen edge (see
 // `chart_edge_scroll_edges`) scrolls the view by 50 / zoom chart pixels;
 // when `dirty` (set by a scroll that moved the view) the pointer is moved
-// back 30 pixels.
-// The zones follow the mouse's `edges` and `bar_top`.
-void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty,
-                       int bar_top = kScreenHeight, int screen_w = kScreenWidth);
+// back 30 pixels. The zones follow the mouse's `edges` and `bar_top`.
+// Not in the original, after the mouse's `edge_scroll_pointer`: a pointer
+// held on the edge stays there, and the view scrolls by that step every
+// `kChartEdgeHoldTicks` from the frame the pointer reached the edge on
+// (`ticks`, the GUI's clock, kept in `hold`), spread over the frames; a
+// pointer away scrolls nothing.
+void chart_edge_scroll(ChartView& view, ui::Mouse& mouse, bool over_panel, bool& dirty, ChartEdgeHold& hold,
+                       std::uint32_t ticks, int bar_top = kScreenHeight, int screen_w = kScreenWidth);
 
 // Returns the top-left corner of a `w` x `h` info box for the pointer at
 // (`x`, `y`) (`chart_show_info_popup` 0x21a0c, SE `sbchart_place_info_popup`

@@ -139,10 +139,12 @@ TEST_CASE("Display: the system pointer goes where the game puts its pointer", "[
   // shows): never pulled back in.
   push_pointer_crossing(false);
   CHECK_FALSE(last_motion(display));
+  CHECK_FALSE(display.pointer_inside());
   display.warp_pointer(30, 200);
   CHECK_FALSE(last_motion(display));
   push_pointer_crossing(true);
   CHECK_FALSE(last_motion(display));
+  CHECK(display.pointer_inside());
   // Beyond the frame too, over the side fill.
   for (const auto& [x, y] :
        {std::pair{30, 200}, {kScreenWidth - 31, 479}, {0, 0}, {609, 31}, {-40, 200}, {kScreenWidth + 20, 10}}) {

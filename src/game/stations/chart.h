@@ -348,6 +348,8 @@ class ChartStation : public Station, private PanelSuspender {
   ChartPanelHost panels_;
   bool suspended_open_ = false;             // 0x11794c
   bool dirty_ = true;                       // 0x118a6c
+  // The pace of the edge scroll under a held pointer (not in the original).
+  ChartEdgeHold edge_hold_;
   bool force_overlays_ = false;             // 0x118b64
   ChartZoomBox zoom_box_;                   // 0x118a78 and the magnifier
   // 0x118a80 as the zoom box sets it: the view is held (no edge scroll, no

@@ -417,7 +417,7 @@ void ChartScreen::view_update() {
     view_suspended_ = false;
   }
   if (!panels_.locked() && !view_suspended_) {
-    chart_edge_scroll(*view_, env_.gui.mouse(), panels_.hovered(), dirty_);
+    chart_edge_scroll(*view_, env_.gui.mouse(), panels_.hovered(), dirty_, edge_hold_, env_.gui.ticks());
   }
   if (dirty_) {
     redraw_map();

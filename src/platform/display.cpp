@@ -830,6 +830,8 @@ bool Display::fullscreen() const { return impl_->fullscreen; }
 
 std::optional<WindowRect> Display::mouse_confinement() const { return impl_->mouse_rect; }
 
+bool Display::pointer_inside() const { return impl_->pointer_inside; }
+
 bool Display::pointer_warp_refused() const { return impl_->warp_check.refused(); }
 
 void Display::set_fullscreen(bool fullscreen) {

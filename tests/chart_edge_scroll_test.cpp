@@ -1,7 +1,8 @@
 // The chart's edge scroll zones (`chart_edge_scroll_edges`): the wider
 // margin over the map, the original's single row and column elsewhere, and
 // the command bar's icons out of every zone; only the very edges in
-// fullscreen and over the extended chart's bar, none on touch screens.
+// fullscreen and over the extended chart's bar, none on touch screens; the
+// pointer moved back at each step, or held on the edge.
 #include <catch2/catch_test_macros.hpp>
 
 #include <cstdint>
@@ -149,6 +150,64 @@ TEST_CASE("Chart edge scroll: in fullscreen the chart scrolls from the very edge
     rig.frames(1);
     CHECK(chart.view().center_x() > cx);
     CHECK(rig.gui.mouse().x() == kScreenWidth - 1 - 30);
+  }
+}
+
+TEST_CASE("Chart edge scroll: a held pointer stays on the edge, the chart scrolling on at a steady pace",
+          "[edgescroll]") {
+  SH_REQUIRE_INSTALL(install);
+  // At zoom 8 a step is 50 / 8 chart pixels, half of it in each frame of
+  // 5 ticks (`kChartEdgeHoldTicks` is 10).
+  constexpr std::int32_t kStep = (50 << 16) / 8;
+  static_assert(kChartEdgeHoldTicks == 10);
+  for (const bool tools : {false, true}) {
+    INFO("chart tools " << tools);
+    ControlRig rig(install);
+    rig.screen->env().ui.features.chart_tools = tools;
+    ui::Mouse& mouse = rig.gui.mouse();
+    mouse.set_edge_scroll_pointer(ui::EdgeScrollPointer::kHold);
+    ChartStation& chart = open_chart(rig);
+    chart.view().set_zoom(8 << 16);
+    chart.center_button();
+    rig.frames(2);
+    const std::int32_t cx = chart.view().center_x();
+    const std::int32_t cy = chart.view().center_y();
+    // In a window, within the band: from the next frame on, half a step a
+    // frame, the pointer where it is.
+    mouse.update(2, 200, 0, 0);
+    rig.frames(1);
+    CHECK(chart.view().center_x() == cx);
+    for (int i = 1; i <= 4; ++i) {
+      rig.frames(1);
+      CHECK(chart.view().center_x() == cx - i * kStep / 2);
+      CHECK(mouse.x() == 2);
+      CHECK(mouse.pointer_x() == 2);
+    }
+    CHECK(chart.view().center_y() == cy);
+    // Switched to fullscreen with the pointer on the very edge: it goes on
+    // at the same pace, the pointer still there.
+    mouse.set_edges(ui::PointerEdges::kExact);
+    mouse.update(0, 200, 0, 0);
+    rig.frames(2);
+    CHECK(chart.view().center_x() == cx - 6 * kStep / 2);
+    CHECK(mouse.x() == 0);
+    // Off the edge: no more scrolling, and none on the first frame back.
+    mouse.update(1, 200, 0, 0);
+    rig.frames(2);
+    mouse.update(0, 200, 0, 0);
+    rig.frames(1);
+    CHECK(chart.view().center_x() == cx - 6 * kStep / 2);
+    // The system pointer off the window, its last position on the edge:
+    // nothing.
+    mouse.set_edge_scroll_pointer(ui::EdgeScrollPointer::kAway);
+    rig.frames(3);
+    CHECK(chart.view().center_x() == cx - 6 * kStep / 2);
+    // The bottom edge, under the extended chart's bar too.
+    mouse.set_edge_scroll_pointer(ui::EdgeScrollPointer::kHold);
+    mouse.update(300, kScreenHeight - 1, 0, 0);
+    rig.frames(3);
+    CHECK(chart.view().center_y() == cy + 2 * kStep / 2);
+    CHECK(mouse.y() == kScreenHeight - 1);
   }
 }
 

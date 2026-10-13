@@ -75,6 +75,14 @@ struct Touch {
 // touch screen, whose pointer never scrolls a chart at an edge.
 enum class PointerEdges : std::uint8_t { kBand, kExact, kNone };
 
+// What the charts' edge scroll does with the pointer on an edge (not in the
+// original, whose mouse driver let the game move it): `kPushBack` moves it
+// back 30 pixels at each step, as the original did; `kHold` leaves it on
+// the edge, under the system pointer, the chart scrolling on at a steady
+// pace while it stays there; `kAway` scrolls nothing, the system pointer
+// being off the window (the last position seen may lie on an edge).
+enum class EdgeScrollPointer : std::uint8_t { kPushBack, kHold, kAway };
+
 // The mouse: position, buttons, event generation and the cursor.
 class Mouse {
  public:
@@ -124,6 +132,9 @@ class Mouse {
   // Set by the host from the window's state (`kBand` by default).
   void set_edges(PointerEdges edges) { edges_ = edges; }
   PointerEdges edges() const { return edges_; }
+  // Set by the host from the system pointer (`kPushBack` by default).
+  void set_edge_scroll_pointer(EdgeScrollPointer p) { edge_scroll_pointer_ = p; }
+  EdgeScrollPointer edge_scroll_pointer() const { return edge_scroll_pointer_; }
 
   // `mouse_freeze_motion` / `mouse_unfreeze_motion` (counter 0x1248c0).
   void freeze_motion() { ++frozen_; }
@@ -191,6 +202,7 @@ class Mouse {
   std::uint8_t buttons_ = 0;
   std::vector<Touch> touches_;
   PointerEdges edges_ = PointerEdges::kBand;
+  EdgeScrollPointer edge_scroll_pointer_ = EdgeScrollPointer::kPushBack;
   int frozen_ = 0;
   const Shp* sprites_ = nullptr;
   std::size_t frame_ = 0;

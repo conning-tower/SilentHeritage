@@ -436,6 +436,8 @@ class ChartScreen {
   ChartRubberBand course_line_;
   Image8 clean_map_;
   bool dirty_ = true;               // 0xa4728
+  // The pace of the edge scroll under a held pointer (not in the original).
+  ChartEdgeHold edge_hold_;
   bool force_overlays_ = false;     // 0xa4820
   bool view_suspended_ = false;     // 0xa473c: a zoom box holds the edge scroll
   std::int32_t city_zoom_ = 0x800;  // 0x982e4

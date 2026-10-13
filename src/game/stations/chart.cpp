@@ -549,7 +549,7 @@ void ChartStation::view_update() {
   // follows the boat (0x118a98).
   if (!view_held() && env_.options.chart_follow_sub == 0) {
     // Over the extended chart's full bar, only the screen's last row.
-    chart_edge_scroll(view_, env_.gui.mouse(), panels_.hovered(), dirty_,
+    chart_edge_scroll(view_, env_.gui.mouse(), panels_.hovered(), dirty_, edge_hold_, env_.gui.ticks(),
                       full_bar() ? view_.y1() + 1 : kScreenHeight, env_.screen().width());
   }
   if (env_.ui.features.chart_tools || pointer_.active()) {

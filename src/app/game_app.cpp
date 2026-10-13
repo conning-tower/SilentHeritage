@@ -338,15 +338,15 @@ class GameApp final : public FrontendHost, public EditorRunner {
         command_panel_->set_status(std::nullopt);
       }
     }
-    // The game moved the pointer since the last poll (the charts' edge
-    // scroll and zoom box): the system pointer follows, as the original's
-    // mouse driver did, so that the pointer drawn is where the next motion
-    // starts. The pointer itself, not the game's position: one only held
-    // at the screen's edge (beside it, or the screen narrowed under it)
-    // stays where it is. Where the system does not move its pointer (some
-    // Wayland compositors), the game's goes back to it instead, so that the
-    // cursor drawn stays on the real one: a chart then keeps scrolling while
-    // the pointer is on its edge.
+    // The game moved the pointer since the last poll (the charts' zoom
+    // box; their edge scroll leaves it on the edge, see below): the system
+    // pointer follows, as the original's mouse driver did, so that the
+    // pointer drawn is where the next motion starts. The pointer itself,
+    // not the game's position: one only held at the screen's edge (beside
+    // it, or the screen narrowed under it) stays where it is. Where the
+    // system does not move its pointer (some Wayland compositors), the
+    // game's goes back to it instead, so that the cursor drawn stays on the
+    // real one.
     const ui::Mouse& mouse = gui.mouse();
     if (!headless_ && pointer_.gui == &gui &&
         (mouse.pointer_x() != pointer_.x || mouse.pointer_y() != pointer_.y)) {
@@ -367,11 +367,18 @@ class GameApp final : public FrontendHost, public EditorRunner {
     pointer_ = {.gui = &gui, .x = mouse.pointer_x(), .y = mouse.pointer_y()};
     // The charts' edge scrolling: only the very edges when the pointer is
     // held in the fullscreen picture, none on touch screens (not in the
-    // original).
+    // original). The pointer stays on the edge, under the system's, rather
+    // than jumping back from it at each step as the original's did (its
+    // mouse driver moved it), whatever the window's state; nothing scrolls
+    // while it is off the window. A headless run keeps the original's.
 #ifdef SDL_PLATFORM_ANDROID
     gui.mouse().set_edges(ui::PointerEdges::kNone);
 #else
     gui.mouse().set_edges(display_.fullscreen() ? ui::PointerEdges::kExact : ui::PointerEdges::kBand);
+    if (!headless_) {
+      gui.mouse().set_edge_scroll_pointer(display_.pointer_inside() ? ui::EdgeScrollPointer::kHold
+                                                                    : ui::EdgeScrollPointer::kAway);
+    }
 #endif
     if (!headless_) {
       keep_sound_output();
