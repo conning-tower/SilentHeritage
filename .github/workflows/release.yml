@@ -3,9 +3,10 @@
 # signs the Android packages (the `release` environment, whose secrets
 # hold the release key; this job runs no build), then creates the release
 # as a draft with the packages, their SHA256SUMS and their build provenance
-# attestations, its notes the version's section of CHANGELOG.md. Publish
-# the draft by hand on GitHub. RELEASING.md describes the whole process and
-# the repository's settings it relies on.
+# attestations, its notes the version's section of CHANGELOG.md (empty
+# without one) and the Android version code. Publish the draft by hand on
+# GitHub. RELEASING.md describes the whole process and the repository's
+# settings it relies on.
 #
 # The Android version code is this workflow's run number: it grows with
 # every release (keep this file's name: a renamed workflow counts from 1
@@ -30,12 +31,7 @@ jobs:
       version-code: ${{ steps.version.outputs.version-code }}
       prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          sparse-checkout: CHANGELOG.md
-          sparse-checkout-cone-mode: false
-      - name: Check the tag and the changelog
+      - name: Check the tag
         id: version
         env:
           TAG: ${{ github.ref_name }}
@@ -49,10 +45,6 @@ jobs:
           prerelease=false
           if [[ "${version}" == *-* ]]; then
             prerelease=true
-          fi
-          if ! grep -qE "^## \[${version//./\\.}\]" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md has no section \"## [${version}]\""
-            exit 1
           fi
           {
             echo "version=${version}"
@@ -146,8 +138,8 @@ jobs:
           PRERELEASE: ${{ needs.version.outputs.prerelease }}
         run: |
           # The notes: the version's section of CHANGELOG.md, without its
-          # heading, and the Android version code (not derived from the
-          # version: F-Droid's recipe needs it).
+          # heading (nothing when it has none), and the Android version code
+          # (not derived from the version: F-Droid's recipe needs it).
           awk -v heading="## [${VERSION}]" '
             index($0, heading) == 1 { found = 1; next }
             found && /^## / { exit }
