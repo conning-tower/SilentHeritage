@@ -1,15 +1,29 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.1] - 2026-10-13
 
 ### Added
 
 - macOS packages: a disk image per version, with one app for Apple Silicon
   and Intel Macs, macOS 13.3 or later. Not notarized: the first start needs
   "Open Anyway" in System Settings.
+- Extended: the Esc menu has Game Options and Save; WIDE SCREEN can be
+  changed during a mission.
+- Extended chart tools: two-line tips worded for the mouse or a finger, and
+  a line's next point dragged from its end.
+- Android: Back in a mission goes back to the conn, where it opens the END
+  MISSION menu.
 
 ### Fixed
 
+- Extended: the videos have black bars beside them instead of the brass.
+- The window keeps the screen's shape, and the mouse pointer moves over the
+  frame beside the screens; in fullscreen it stays off the black bars.
+- With the wide screen off, fullscreen shows the 4:3 picture between black
+  bars.
+- The chart scrolls only at the very edges of the screen.
+- Extended chart: the tool's cross shows only over the map, the zoom hint
+  no longer covers the command bar, and the clock box shows when it opens.
 - The SH icon's letters are centred, on every system: the icons built on
   newer Linux distributions (the Android and Windows ones) drew them off
   centre.
