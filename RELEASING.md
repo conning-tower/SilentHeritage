@@ -143,10 +143,10 @@ your computer. Google's steps change; follow the console.
    `apksigner verify --print-certs <apk>` shows the release key's SHA-256.
 6. Publish.
 7. Homebrew: in [conning-tower/homebrew-tap](https://github.com/conning-tower/homebrew-tap),
-   set `Formula/silent-heritage.rb`'s `url` to the release's source archive
-   (`https://github.com/conning-tower/SilentHeritage/archive/refs/tags/v<version>.tar.gz`)
-   and its `sha256` (`curl -sL <url> | shasum -a 256`), in a pull request:
-   the tap's workflow builds it on a Mac.
+   set `Formula/silent-heritage.rb`'s `url` to the release's tag and its
+   commit (`tag: "v<version>"`, `revision:` the output of
+   `git rev-parse v<version>^{commit}`), in a pull request: the tap's
+   workflow builds it on a Mac.
 
 A failed run: fix the cause, then either re-run the failed jobs (same
 version code), or delete the tag (`git push origin :v1.0.0`, `git tag -d
