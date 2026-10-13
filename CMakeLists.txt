@@ -130,7 +130,7 @@ if(WIN32)
   # mingw's <intrin.h> (pulled in by the SDL headers) includes clang's
   # deprecated <mm3dnow.h>, whose #warning would fail the build.
   target_compile_options(sh_options INTERFACE -Wno-\#warnings)
-elseif(NOT ANDROID AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   # The C++ runtime linked in (libstdc++, or libc++ with -stdlib=libc++): the
   # Linux executable needs only glibc and the system libraries SDL opens at
   # run time.
