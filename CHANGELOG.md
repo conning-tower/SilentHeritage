@@ -10,6 +10,9 @@
 
 ### Fixed
 
+- The SH icon's letters are centred, on every system: the icons built on
+  newer Linux distributions (the Android and Windows ones) drew them off
+  centre.
 - The ARM builds (Linux aarch64, Android on ARM) compute the sun's position,
   and so the daylight colours, exactly as the others.
 

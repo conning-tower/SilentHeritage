@@ -39,8 +39,14 @@
       <stop offset="0.27" stop-color="#a79b57"/>
       <stop offset="1" stop-color="#473b0b"/>
     </linearGradient>
-    <text id="sh" x="0" y="0" text-anchor="middle" font-family="Liberation Sans Narrow" font-weight="bold"
-          font-size="27" letter-spacing="1.8">SH</text>
+    <!-- The letters, centred on x = 0 with 1.8 between them, each placed
+         from the font's advances (S 14.766, H 15.979 at this size): no
+         letter-spacing nor text-anchor, which librsvg's versions place
+         differently (2.52 and 2.58 both off centre, unalike). -->
+    <g id="sh" font-family="Liberation Sans Narrow" font-weight="bold" font-size="27">
+      <text x="-16.272" y="0">S</text>
+      <text x="0.294" y="0">H</text>
+    </g>
   </defs>
   <rect width="108" height="108" fill="#282c2a"/>
   <circle cx="54" cy="54" r="36.2" fill="url(#ring)"/>
