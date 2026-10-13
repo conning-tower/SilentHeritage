@@ -532,6 +532,32 @@ std::vector<std::uint8_t> encode_ico(std::span<const RgbaBitmap> images) {
   return out;
 }
 
+std::vector<std::uint8_t> encode_icns(std::span<const RgbaBitmap> images) {
+  for (const RgbaBitmap& image : images) {
+    if (image.width() != image.height()) {
+      throw std::invalid_argument("encode_icns: the images must be square");
+    }
+  }
+  // The header ("icns", the file's length), then each entry: its type, its
+  // length (header included), its PNG; lengths big-endian.
+  std::vector<std::uint8_t> out{'i', 'c', 'n', 's', 0, 0, 0, 0};
+  for (const IcnsEntry& entry : kIcnsEntries) {
+    const auto image = std::ranges::find_if(images, [&](const RgbaBitmap& i) { return i.width() == entry.size; });
+    if (image == images.end()) {
+      continue;
+    }
+    const std::vector<std::uint8_t> png = encode_png(*image);
+    out.insert(out.end(), entry.type, entry.type + 4);
+    put_u32(out, static_cast<std::uint32_t>(png.size() + 8));
+    out.insert(out.end(), png.begin(), png.end());
+  }
+  const auto size = static_cast<std::uint32_t>(out.size());
+  for (int i = 0; i < 4; ++i) {
+    out[static_cast<std::size_t>(4 + i)] = static_cast<std::uint8_t>(size >> (24 - 8 * i));
+  }
+  return out;
+}
+
 void write_desktop_icons(const RgbaBitmap& foreground, const std::filesystem::path& dir) {
   const RgbaBitmap centre = visible_centre(foreground, "write_desktop_icons");
   std::filesystem::create_directories(dir);
@@ -541,6 +567,15 @@ void write_desktop_icons(const RgbaBitmap& foreground, const std::filesystem::pa
     write_file(dir / ("icon-" + std::to_string(size) + ".png"), encode_png(icons.back()));
   }
   write_file(dir / "icon.ico", encode_ico(icons));
+  // The macOS sizes up to the central part's (no enlargement).
+  std::vector<RgbaBitmap> mac;
+  for (const IcnsEntry& entry : kIcnsEntries) {
+    const bool done = std::ranges::any_of(mac, [&](const RgbaBitmap& i) { return i.width() == entry.size; });
+    if (!done && entry.size <= centre.width()) {
+      mac.push_back(round_mask(resize_area(centre, entry.size, entry.size)));
+    }
+  }
+  write_file(dir / "icon.icns", encode_icns(mac));
 }
 
 }  // namespace sh

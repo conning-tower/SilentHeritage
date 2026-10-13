@@ -8,32 +8,44 @@
 #   windows  SilentHeritage-<version>-windows-x64.zip: the executable (its
 #            icon, version and manifest in its resources), README.txt and
 #            the licences; cross-compiled (cmake/mingw-clang.cmake).
+#   macos    SilentHeritage-<version>-macos.dmg: the app (one universal
+#            executable, arm64 and x86_64, for macOS 13.3 and later; its
+#            icon; README.txt and the licences in its resources), ad-hoc
+#            signed, next to a link to /Applications and README.txt.
+#   icons    no package: the desktop icons of both variants, into
+#            build/desktop-icons/<variant>/ (for SH_ICONS_DIR).
 # and likewise SilentHeritageExtended-... for the extended variant. The
 # release workflow runs it (.github/workflows/build.yml), on Ubuntu 22.04
 # for Linux (packaging/linux/install_build_deps.sh), 24.04 for Windows
-# (packaging/windows/install_build_deps.sh).
+# (packaging/windows/install_build_deps.sh) and the icons, macOS 15 for
+# macOS (with the icons made on Linux: SH_ICONS_DIR).
 #
 # The executables run from any folder and keep nothing next to themselves:
 # the game asks for the install's folder on the first start and keeps its
 # saves in the per-user application folder.
 #
-# Usage: packaging/build_desktop.sh linux|windows
+# Usage: packaging/build_desktop.sh linux|windows|macos|icons
 # Environment (defaults in brackets):
 #   SH_VERSION         the version, MAJOR.MINOR.PATCH[-suffix] [0.0.0-dev]
 #   SOURCE_DATE_EPOCH  the time stamp of the packages' files [the last commit's]
 #   SH_APPIMAGE_RUNTIME  the AppImage runtime [downloaded, its SHA-256 checked]
 #   SH_CMAKE_ARGS      extra arguments of the CMake configurations
+#   SH_ICONS_DIR       the desktop icons already made (`icons`), in
+#                      <dir>/<variant>/ [made here]
 #
 # The icons are rendered from android/icon/*.svg as android/build_apk.sh does
 # (python3 with the librsvg and cairo libraries, the Liberation Sans Narrow
 # font) and made by tools/make_launcher_icon --desktop.
+#
+# It runs with macOS's bash 3.2: no associative arrays, and the arrays that
+# can be empty are expanded as ${a[@]+"${a[@]}"} (set -u).
 set -euo pipefail
 
 readonly platform="${1:-}"
 case "${platform}" in
-  linux | windows) ;;
+  linux | windows | macos | icons) ;;
   *)
-    echo "usage: $0 linux|windows" >&2
+    echo "usage: $0 linux|windows|macos|icons" >&2
     exit 1
     ;;
 esac
@@ -50,39 +62,59 @@ readonly work="${root}/build/package-${platform}"
 # The AppImage runtime (https://github.com/AppImage/type2-runtime), pinned:
 # its release and the SHA-256 of each architecture's file.
 readonly appimage_runtime_release=20251108
-declare -A appimage_runtime_sha256=(
-  [x86_64]=2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d
-  [aarch64]=00cbdfcf917cc6c0ff6d3347d59e0ca1f7f45a6df1a428a0d6d8a78664d87444
-)
+appimage_runtime_sha256() {
+  case "$1" in
+    x86_64) echo 2fca8b443c92510f1483a883f60061ad09b46b978b2631c807cd873a47ec260d ;;
+    aarch64) echo 00cbdfcf917cc6c0ff6d3347d59e0ca1f7f45a6df1a428a0d6d8a78664d87444 ;;
+  esac
+}
+
+# The oldest macOS the app runs on (libc++'s <format>).
+readonly macos_minimum=13.3
 
 cmake_extra=()
 read -r -a cmake_extra <<< "${SH_CMAKE_ARGS:-}"
 readonly cmake_extra
 
 # The icon tool, for the host (as android/build_apk.sh builds it; SDL
-# without the display, whose development packages the Windows build lacks).
+# without the display, whose development packages the Windows build lacks),
+# built (or brought up to date) on first use.
 readonly host_tools="${root}/build/host-tools-desktop"
-cmake -S "${root}" -B "${host_tools}" -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-  -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF -DSDL_UNIX_CONSOLE_BUILD=ON -DSDL_X11=OFF -DSDL_WAYLAND=OFF
-ninja -C "${host_tools}" make_launcher_icon
 readonly icon_tool="${host_tools}/tools/make_launcher_icon"
+icon_tool_built=false
+build_icon_tool() {
+  if [[ "${icon_tool_built}" == false ]]; then
+    cmake -S "${root}" -B "${host_tools}" -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
+      -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF -DSDL_UNIX_CONSOLE_BUILD=ON -DSDL_X11=OFF \
+      -DSDL_WAYLAND=OFF
+    ninja -C "${host_tools}" make_launcher_icon
+    icon_tool_built=true
+  fi
+}
 
 # make_icons <variant> <dir>: the desktop icons of the variant into <dir>
-# (icon-<size>.png, icon.ico): the SH plate, and for the extended variant
-# its oxblood plate and the "EXT" ribbon (as android/build_apk.sh).
+# (icon-<size>.png, icon.ico, icon.icns): the SH plate, and for the extended
+# variant its oxblood plate and the "EXT" ribbon (as android/build_apk.sh),
+# rendered at 1536 px for the 1024 px of the .icns; or those of
+# SH_ICONS_DIR.
 make_icons() {
   local variant="$1" dir="$2"
-  local plate_args=() overlay_args=()
   mkdir -p "${dir}"
+  if [[ -n "${SH_ICONS_DIR:-}" ]]; then
+    cp "${SH_ICONS_DIR}/${variant}/"* "${dir}/"
+    return
+  fi
+  build_icon_tool
+  local plate_args=() overlay_args=()
   if [[ "${variant}" == extended ]]; then
     plate_args=(--css '#plate{fill:#3c1416}')
-    python3 "${root}/android/icon/render_svg.py" "${root}/android/icon/extended_ribbon.svg" "${dir}/ribbon.pam" 864
+    python3 "${root}/android/icon/render_svg.py" "${root}/android/icon/extended_ribbon.svg" "${dir}/ribbon.pam" 1536
     overlay_args=(--overlay "${dir}/ribbon.pam")
   fi
-  python3 "${root}/android/icon/render_svg.py" "${plate_args[@]}" "${root}/android/icon/sh_plate.svg" \
-    "${dir}/plate.pam" 864
-  "${icon_tool}" --desktop "${dir}" --foreground "${dir}/plate.pam" "${overlay_args[@]}"
-  rm -f "${dir}"/*.pam
+  python3 "${root}/android/icon/render_svg.py" ${plate_args[@]+"${plate_args[@]}"} \
+    "${root}/android/icon/sh_plate.svg" "${dir}/plate.pam" 1536
+  "${icon_tool}" --desktop "${dir}" --foreground "${dir}/plate.pam" ${overlay_args[@]+"${overlay_args[@]}"}
+  rm -f "${dir:?}"/*.pam
 }
 
 # build <variant> <build dir> [cmake args...]: the game's executable in the
@@ -92,7 +124,8 @@ build() {
   local variant="$1" dir="$2"
   shift 2
   cmake -S "${root}" -B "${dir}" -G Ninja -DCMAKE_BUILD_TYPE=Release -DSH_BUILD_TESTS=OFF -DSH_SANITIZE=OFF \
-    -DSH_EDITION=heritage -DSH_VARIANT="${variant}" -DSH_VERSION="${version}" "$@" "${cmake_extra[@]}"
+    -DSH_EDITION=heritage -DSH_VARIANT="${variant}" -DSH_VERSION="${version}" "$@" \
+    ${cmake_extra[@]+"${cmake_extra[@]}"}
   source "${dir}/edition.sh"
   ninja -C "${dir}" "${edition_executable}"
 }
@@ -107,9 +140,13 @@ stage_docs() {
   cp "${sdl_src}/LICENSE.txt" "${dir}/licenses/SDL3.txt"
 }
 
-# fix_times <dir>: every file and folder under <dir> stamped SOURCE_DATE_EPOCH.
+# fix_times <dir>: every file and folder under <dir> stamped SOURCE_DATE_EPOCH
+# (GNU date, else BSD date).
 fix_times() {
-  find "$1" -exec touch -h -d "@${SOURCE_DATE_EPOCH}" {} +
+  local stamp
+  stamp="$(date -u -d "@${SOURCE_DATE_EPOCH}" +%Y%m%d%H%M.%S 2>/dev/null ||
+    date -u -r "${SOURCE_DATE_EPOCH}" +%Y%m%d%H%M.%S)"
+  find "$1" -exec env TZ=UTC touch -h -t "${stamp}" {} +
 }
 
 # package_name <variant>: the packages' base name.
@@ -132,7 +169,7 @@ appimage_runtime() {
   if [[ ! -f "${file}" ]]; then
     curl -fsSL -o "${file}.part" \
       "https://github.com/AppImage/type2-runtime/releases/download/${appimage_runtime_release}/runtime-${arch}"
-    echo "${appimage_runtime_sha256[${arch}]}  ${file}.part" | sha256sum -c - >&2
+    echo "$(appimage_runtime_sha256 "${arch}")  ${file}.part" | sha256sum -c - >&2
     mv "${file}.part" "${file}"
   fi
   echo "${file}"
@@ -215,6 +252,47 @@ package_windows() {
     cd "${dir}"
     find "$(basename "${tree}")" | LC_ALL=C sort | TZ=UTC zip -q -X -9 "${zip}" -@
   )
+}
+
+package_macos() {
+  local variant="$1"
+  local dir="${work}/${variant}"
+  local icons="${dir}/icons"
+  make_icons "${variant}" "${icons}"
+  build "${variant}" "${dir}/build" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" \
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="${macos_minimum}"
+  local name
+  name="$(package_name "${variant}")"
+
+  # The app: the executable, its Info.plist and icon, the README and the
+  # licences in its resources.
+  local stage="${dir}/dmg"
+  rm -rf "${stage:?}"
+  local app="${stage}/${edition_name}.app"
+  mkdir -p "${app}/Contents/MacOS" "${app}/Contents/Resources"
+  cp "${dir}/build/src/app/${edition_executable}" "${app}/Contents/MacOS/"
+  strip -x "${app}/Contents/MacOS/${edition_executable}"
+  cp "${icons}/icon.icns" "${app}/Contents/Resources/AppIcon.icns"
+  # CFBundleShortVersionString and CFBundleVersion: numbers only.
+  sed -e "s/@NAME@/${edition_name}/g" -e "s/@EXECUTABLE@/${edition_executable}/g" \
+    -e "s/@APP_ID@/${edition_app_id}/g" -e "s/@VERSION@/${version%%-*}/g" \
+    -e "s/@MINIMUM_SYSTEM@/${macos_minimum}/g" "${root}/packaging/macos/Info.plist.in" > "${app}/Contents/Info.plist"
+  printf 'APPL????' > "${app}/Contents/PkgInfo"
+  stage_docs "${app}/Contents/Resources"
+  # The disk image's window: the app, where to drag it, the README.
+  cp "${app}/Contents/Resources/README.txt" "${stage}/README.txt"
+  ln -s /Applications "${stage}/Applications"
+  fix_times "${stage}"
+  # Ad-hoc signed (no certificate): Apple Silicon runs no unsigned code.
+  codesign --force --deep --sign - "${app}"
+  codesign --verify --deep --strict "${app}"
+  local dmg="${dist}/${name}-macos.dmg"
+  rm -f "${dmg}"
+  hdiutil create -quiet -volname "${edition_name} ${version}" -srcfolder "${stage}" -fs HFS+ -format UDZO "${dmg}"
+}
+
+package_icons() {
+  make_icons "$1" "${root}/build/desktop-icons/$1"
 }
 
 mkdir -p "${dist}" "${work}"

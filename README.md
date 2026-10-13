@@ -1,7 +1,7 @@
 # Silent Heritage
 
 An open-source reimplementation of *Silent Hunter* (MicroProse, 1995), the
-World War II US submarine simulation, for Windows, Linux and Android. It
+World War II US submarine simulation, for Windows, macOS, Linux and Android. It
 includes the game and the scenario editor of the Commander's Edition.
 
 ![The bridge of USS Skate, on a wide screen](docs/screenshots/bridge.png)
@@ -16,6 +16,10 @@ includes the game and the scenario editor of the Commander's Edition.
    - **Windows** 10 or later (x64): the `.zip`. Unzip it anywhere and start
      the program. It is not signed yet, so Windows SmartScreen asks for
      confirmation on its first start: click "More info", then "Run anyway".
+   - **macOS** 13.3 or later (Apple Silicon and Intel): the `.dmg`. Drag the
+     app onto Applications. It is not notarized by Apple, so macOS refuses
+     to open it the first time: click Done, then in System Settings, Privacy
+     & Security, click "Open Anyway" and confirm.
    - **Linux** (x86_64 or aarch64, glibc 2.35 or later, as in Ubuntu 22.04
      and Debian 12): the `.AppImage`; make it executable and run it. The
      `.tar.gz` holds the same program with a menu entry and an icon.

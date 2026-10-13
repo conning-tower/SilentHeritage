@@ -17,7 +17,7 @@ Wayland, audio and GL development packages.
 Windows builds are cross-compiled from Linux with clang and the mingw-w64
 runtime: add `-DCMAKE_TOOLCHAIN_FILE=cmake/mingw-clang.cmake`. `-DSH_VERSION=`
 sets the version (`MAJOR.MINOR.PATCH[-suffix]`, `0.0.0-dev` by default).
-`packaging/build_desktop.sh linux|windows` builds the release packages
+`packaging/build_desktop.sh linux|windows|macos` builds the release packages
 (described at its top). Debug builds (the default) enable ASan and UBSan;
 under WSLg, set `ASAN_OPTIONS=detect_leaks=0`.
 
