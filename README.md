@@ -19,7 +19,10 @@ includes the game and the scenario editor of the Commander's Edition.
    - **macOS** 13.3 or later (Apple Silicon and Intel): the `.dmg`. Drag the
      app onto Applications. It is not notarized by Apple, so macOS refuses
      to open it the first time: click Done, then in System Settings, Privacy
-     & Security, click "Open Anyway" and confirm.
+     & Security, click "Open Anyway" and confirm. With
+     [Homebrew](https://brew.sh), `brew install --HEAD conning-tower/tap/silent-heritage`
+     builds it on your Mac instead, without that warning, as two Terminal
+     commands: `silent_heritage` and `silent_heritage_extended`.
    - **Linux** (x86_64 or aarch64, glibc 2.35 or later, as in Ubuntu 22.04
      and Debian 12): the `.AppImage`; make it executable and run it. The
      `.tar.gz` holds the same program with a menu entry and an icon.
