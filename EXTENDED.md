@@ -22,7 +22,8 @@ kept with it.
   scroll it, and zoom smoothly with the mouse wheel or a two-finger pinch.
 - **Command bar on the chart:** the chart shows the command bar like the
   other stations, and its MAP CONTROLS, NAVIGATION and CHART TOOLS panels
-  each lead to the others.
+  each lead to the others; the zoom box no longer writes its key hint over
+  the bar's clock, buttons and crew messages.
 - **Nautical chart scale:** the chart's scale bar reads in nautical miles,
   and in yards close in.
 - **Boat choice:** the encounters' SUB CLASS screen starts on the class you

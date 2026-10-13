@@ -1535,6 +1535,11 @@ void ChartStation::mouse_moved(std::int32_t x, std::int32_t y) {
       }
     }
   }
+  if (full_bar()) {
+    // Not in the original: no hint, which would erase the command bar's
+    // clock, buttons and crew message.
+    return;
+  }
   const Viewport bar{&env_.screen(), 0, 0x1cb, env_.screen().width() - 1, 0x1df};
   if (zoom_box_.is_open() && !zoom_message_) {
     ui::fill_rect(bar, 0, 0, bar.x1 - bar.x0, bar.y1 - bar.y0, 0);

@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "game/stations/chart.h"
+#include "game/command_bar.h"
 #include "core/byte_reader.h"
 #include "game/sim_state.h"
 #include "game_data.h"
@@ -382,6 +383,77 @@ TEST_CASE("The original chart shows the plotting cross over its bar", "[charttoo
   rig.gui.mouse().update(300, 0x1cb + 10, 0, 0);
   rig.frames(2);
   CHECK(rig.gui.mouse().cursor_frame() == static_cast<std::size_t>(ui::CursorId::kCross));
+}
+
+TEST_CASE("The extended chart's zoom box leaves the command bar alone", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  ControlBar& bar = rig.screen->bar();
+  rig.gui.mouse().update(400, 150, 0, 0);
+  rig.frames(2);
+  // The bar but the clock's digits, which may change: the original's hint
+  // would erase the clock, the buttons and the crew message shown.
+  constexpr int kBarTop = 0x1cb;
+  const auto bar_pixels = [&] {
+    std::vector<std::uint8_t> out;
+    for (int y = kBarTop; y < 480; ++y) {
+      for (int x = 0; x < 640; ++x) {
+        if (x < 4 || x > 0x45 || y < kBarTop + 4 || y > kBarTop + 0x12) {
+          out.push_back(rig.screen_image.at(x, y));
+        }
+      }
+    }
+    return out;
+  };
+  const std::vector<std::uint8_t> before = bar_pixels();
+  rig.key(0x2c5a);  // Z
+  rig.gui.mouse().update(401, 150, 0, 0);
+  rig.frames(2);
+  REQUIRE(chart.zoom_box() != 0);
+  CHECK((bar_pixels() == before));
+  // A crew message during the box stays as the pointer moves.
+  bar.crew_message(3);
+  rig.frames(1);
+  REQUIRE(bar.message_state() != 0);
+  const std::vector<std::uint8_t> shown = bar_pixels();
+  CHECK((shown != before));
+  for (int x = 402; x < 420; x += 4) {
+    rig.gui.mouse().update(x, 150, 0, 0);
+    rig.frames(1);
+  }
+  REQUIRE(chart.zoom_box() != 0);
+  rig.save("charttools_zoom_box_bar");
+  CHECK(bar.message_state() != 0);
+  CHECK((bar_pixels() == shown));
+}
+
+TEST_CASE("The original chart writes its zoom hint over its bar", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, false);
+  rig.gui.mouse().update(400, 150, 0, 0);
+  rig.frames(2);
+  // The bar from x 0x48, right of the clock the hint's start overlaps.
+  const auto bar_pixels = [&] {
+    std::vector<std::uint8_t> out;
+    for (int y = 0x1cb; y < 0x1e0; ++y) {
+      for (int x = 0x48; x < 640; ++x) {
+        out.push_back(rig.screen_image.at(x, y));
+      }
+    }
+    return out;
+  };
+  const std::vector<std::uint8_t> before = bar_pixels();
+  rig.key(0x2c5a);  // Z
+  rig.gui.mouse().update(401, 150, 0, 0);
+  rig.frames(2);
+  REQUIRE(chart.zoom_box() != 0);
+  CHECK((bar_pixels() != before));
+  rig.click(200, 150);
+  rig.frames(2);
+  REQUIRE(chart.zoom_box() == 0);
+  CHECK((bar_pixels() == before));
 }
 
 TEST_CASE("The narrower MAP CONTROLS keeps the shared panels on the map", "[charttools]") {
