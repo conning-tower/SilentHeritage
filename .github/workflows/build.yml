@@ -2,6 +2,9 @@
 #   linux-x86_64, linux-aarch64  the tarballs and AppImages
 #                                (packaging/build_desktop.sh linux)
 #   windows-x64                  the zips (packaging/build_desktop.sh windows)
+#   macos                        the disk images (packaging/build_desktop.sh
+#                                macos, with the icons of the desktop-icons
+#                                artifact, made on Linux)
 #   android-unsigned             the APKs, unsigned (android/build_apk.sh
 #                                --unsigned; release.yml signs them)
 # both variants each. Called by release.yml for a release and by ci.yml to
@@ -61,6 +64,51 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: linux-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+
+  # The desktop icons for macOS, rendered on Linux (librsvg, cairo and the
+  # Liberation fonts, which the macOS runner lacks).
+  icons:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ninja-build clang librsvg2-2 libcairo2 \
+            fonts-liberation-sans-narrow fontconfig
+      - name: Make the icons
+        run: packaging/build_desktop.sh icons
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: desktop-icons
+          path: build/desktop-icons/
+          if-no-files-found: error
+
+  macos:
+    needs: icons
+    runs-on: macos-15
+    env:
+      SH_VERSION: ${{ inputs.version }}
+      SH_ICONS_DIR: ${{ github.workspace }}/build/desktop-icons
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: desktop-icons
+          path: build/desktop-icons
+      - name: Install the build dependencies
+        run: brew install ninja
+      - name: Build the packages
+        run: packaging/build_desktop.sh macos
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: macos
           path: dist/*
           if-no-files-found: error
 

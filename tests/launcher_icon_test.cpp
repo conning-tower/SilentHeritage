@@ -9,6 +9,7 @@
 #include <span>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "assets/pcx.h"
@@ -336,6 +337,33 @@ TEST_CASE("launcher icon: Windows icon file", "[launcher_icon]") {
   CHECK_THROWS_AS(sh::encode_ico(too_big), std::invalid_argument);
 }
 
+TEST_CASE("launcher icon: macOS icon file", "[launcher_icon]") {
+  const std::vector<sh::RgbaBitmap> images{sh::RgbaBitmap(16, 16, {1, 2, 3, 4}),
+                                           sh::RgbaBitmap(32, 32, {5, 6, 7, 8})};
+  const std::vector<std::uint8_t> icns = sh::encode_icns(images);
+  // The header: "icns" and the file's length.
+  REQUIRE(icns.size() > 8);
+  CHECK(std::string(icns.begin(), icns.begin() + 4) == "icns");
+  CHECK(be32(icns, 4) == icns.size());
+  // The entries of those sizes, in kIcnsEntries' order: icp4 (16), icp5 and
+  // ic11 (32), each its type, its length with the header, its PNG.
+  const std::vector<std::pair<std::string, int>> expected{{"icp4", 16}, {"icp5", 32}, {"ic11", 32}};
+  std::size_t at = 8;
+  for (const auto& [type, size] : expected) {
+    REQUIRE(at + 8 <= icns.size());
+    CHECK(std::string(icns.begin() + static_cast<std::ptrdiff_t>(at), icns.begin() + static_cast<std::ptrdiff_t>(at + 4)) ==
+          type);
+    const std::vector<std::uint8_t> png = sh::encode_png(sh::RgbaBitmap(size, size, size == 16 ? sh::Rgba8{1, 2, 3, 4}
+                                                                                                 : sh::Rgba8{5, 6, 7, 8}));
+    CHECK(be32(icns, at + 4) == png.size() + 8);
+    CHECK(std::equal(png.begin(), png.end(), icns.begin() + static_cast<std::ptrdiff_t>(at + 8)));
+    at += png.size() + 8;
+  }
+  CHECK(at == icns.size());
+  const std::vector<sh::RgbaBitmap> not_square{sh::RgbaBitmap(16, 8)};
+  CHECK_THROWS_AS(sh::encode_icns(not_square), std::invalid_argument);
+}
+
 TEST_CASE("launcher icon: desktop icons", "[launcher_icon]") {
   const TempDir dir;
   sh::write_desktop_icons(test_foreground(), dir.path());
@@ -347,6 +375,16 @@ TEST_CASE("launcher icon: desktop icons", "[launcher_icon]") {
   const std::vector<std::uint8_t> ico = sh::read_file(dir.path() / "icon.ico");
   REQUIRE(ico.size() > 6);
   CHECK((ico[4] | (ico[5] << 8)) == static_cast<int>(sh::kDesktopIconSizes.size()));
+  // The 432 px foreground's central part is 288 px: the macOS entries up to
+  // 256 px, no enlargement.
+  const std::vector<std::uint8_t> icns = sh::read_file(dir.path() / "icon.icns");
+  REQUIRE(icns.size() > 8);
+  CHECK(be32(icns, 4) == icns.size());
+  std::vector<std::string> types;
+  for (std::size_t at = 8; at + 8 <= icns.size(); at += be32(icns, at + 4)) {
+    types.emplace_back(icns.begin() + static_cast<std::ptrdiff_t>(at), icns.begin() + static_cast<std::ptrdiff_t>(at + 4));
+  }
+  CHECK(types == std::vector<std::string>{"icp4", "icp5", "ic11", "ic12", "ic07", "ic13", "ic08"});
 }
 
 TEST_CASE("launcher icon: game-art square", "[launcher_icon][content]") {

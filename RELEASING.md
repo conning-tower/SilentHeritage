@@ -29,6 +29,7 @@ The packages, for the classic (`SilentHeritage-…`) and the extended
 | Android 7.0+ (arm64-v8a, x86_64) | `…-<version>-android.apk` | `android/build_apk.sh --unsigned`, then `android/sign_apk.sh` |
 | Linux x86_64, aarch64 (glibc 2.35+) | `…-<version>-linux-<arch>.tar.gz`, `…-<version>-linux-<arch>.AppImage` | `packaging/build_desktop.sh linux`, in Ubuntu 22.04 |
 | Windows x64 | `…-<version>-windows-x64.zip` | `packaging/build_desktop.sh windows` (mingw-w64 cross build) |
+| macOS 13.3+ (Apple Silicon, Intel) | `…-<version>-macos.dmg` | `packaging/build_desktop.sh macos`, on macOS 15 (the icons made on Linux) |
 
 Versions: the version name is the tag without its `v`; the Android version
 code is `release.yml`'s run number, so that it grows with every release,
@@ -137,10 +138,15 @@ your computer. Google's steps change; follow the console.
 
 4. Follow the `release` run in the Actions tab (about 20 minutes).
 5. On the Releases page, open the draft and check it: the files (2 APKs, 4
-   tarballs, 4 AppImages, 2 zips, `SHA256SUMS`), the notes, the
+   tarballs, 4 AppImages, 2 zips, 2 disk images, `SHA256SUMS`), the notes, the
    pre-release mark for a suffixed version. To check an APK's signature:
    `apksigner verify --print-certs <apk>` shows the release key's SHA-256.
 6. Publish.
+7. Homebrew: in [conning-tower/homebrew-tap](https://github.com/conning-tower/homebrew-tap),
+   set `Formula/silent-heritage.rb`'s `url` to the release's source archive
+   (`https://github.com/conning-tower/SilentHeritage/archive/refs/tags/v<version>.tar.gz`)
+   and its `sha256` (`curl -sL <url> | shasum -a 256`), in a pull request:
+   the tap's workflow builds it on a Mac.
 
 A failed run: fix the cause, then either re-run the failed jobs (same
 version code), or delete the tag (`git push origin :v1.0.0`, `git tag -d

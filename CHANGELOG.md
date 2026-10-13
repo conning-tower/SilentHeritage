@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- macOS packages: a disk image per version, with one app for Apple Silicon
+  and Intel Macs, macOS 13.3 or later. Not notarized: the first start needs
+  "Open Anyway" in System Settings.
+
+### Fixed
+
+- The SH icon's letters are centred, on every system: the icons built on
+  newer Linux distributions (the Android and Windows ones) drew them off
+  centre.
+- The ARM builds (Linux aarch64, Android on ARM) compute the sun's position,
+  and so the daylight colours, exactly as the others.
+
 ## [0.1.0] - 2026-10-12
 
 The first release: the whole game, in the classic version

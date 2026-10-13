@@ -118,12 +118,38 @@ inline constexpr std::array<int, 7> kDesktopIconSizes{16, 24, 32, 48, 64, 128, 2
 // 1 to 256 px (throws `std::invalid_argument` otherwise).
 std::vector<std::uint8_t> encode_ico(std::span<const RgbaBitmap> images);
 
+// The entries of a macOS icon file (.icns): their type and size in pixels
+// (the "@2x" ones, for Retina screens, twice their nominal size).
+struct IcnsEntry {
+  const char* type;
+  int size;
+};
+inline constexpr std::array<IcnsEntry, 10> kIcnsEntries{{
+    {"icp4", 16},
+    {"icp5", 32},
+    {"ic11", 32},  // 16@2x
+    {"ic12", 64},  // 32@2x
+    {"ic07", 128},
+    {"ic13", 256},  // 128@2x
+    {"ic08", 256},
+    {"ic14", 512},  // 256@2x
+    {"ic09", 512},
+    {"ic10", 1024},  // 512@2x
+}};
+
+// Returns a macOS icon file (.icns) holding, for each entry of
+// `kIcnsEntries` whose size is one of `images`', that image as a PNG. Each
+// image must be square (throws `std::invalid_argument` otherwise).
+std::vector<std::uint8_t> encode_icns(std::span<const RgbaBitmap> images);
+
 // Writes the desktop icons of the square full-bleed adaptive foreground
 // `foreground` into `dir`: the central 72 of its 108 dp (the part Android
 // launchers show), round, as icon-<size>.png for each of
-// `kDesktopIconSizes` and all of them in icon.ico. Throws
-// `std::invalid_argument` for a foreground that is not square or smaller
-// than 432 px, `std::runtime_error` when a file cannot be written.
+// `kDesktopIconSizes` and all of them in icon.ico; and icon.icns with the
+// entries of `kIcnsEntries` no larger than that central part (all of them
+// from a foreground of 1536 px). Throws `std::invalid_argument` for a
+// foreground that is not square or smaller than 432 px,
+// `std::runtime_error` when a file cannot be written.
 void write_desktop_icons(const RgbaBitmap& foreground, const std::filesystem::path& dir);
 
 }  // namespace sh
