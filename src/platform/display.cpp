@@ -124,7 +124,8 @@ struct Display::Impl {
   WarpCheck warp_check;
   std::uint64_t warp_ns = 0;
   bool refusal_logged = false;
-  // Whether the window may be wider than 4:3 (`set_wide_aspect`).
+  // The player's wide-screen setting (`set_wide_aspect`): whether the
+  // window may be wider than 4:3 and a wide screen follows it.
   bool wide_aspect = false;
   // Called after each Alt+Enter.
   std::function<void(bool)> fullscreen_toggled;
@@ -212,11 +213,12 @@ struct Display::Impl {
   // Returns the left column of the frame on the screen.
   int frame_x() const { return (screen_w - frame_w) / 2; }
 
-  // Sets the logical screen: the window's aspect when wide (and never
-  // narrower than the frame), 640 wide otherwise.
+  // Sets the logical screen: the window's aspect when wide and the
+  // player's setting is on (and never narrower than the frame), 640 wide
+  // otherwise, letterboxed with black bars.
   void fit_screen() {
     int w = kScreenWidth;
-    if (wide) {
+    if (wide && wide_aspect) {
       int ww = 0;
       int wh = 0;
       SDL_GetWindowSize(window, &ww, &wh);
@@ -783,7 +785,7 @@ void Display::show_command_panel(bool shown) {
 void Display::capture_next(std::filesystem::path file) { impl_->capture = std::move(file); }
 
 int Display::screen_width() const {
-  if (!impl_->wide) {
+  if (!impl_->wide || !impl_->wide_aspect) {
     return kScreenWidth;
   }
   int w = 0;
@@ -886,6 +888,8 @@ void Display::set_scaling(Scaling scaling) {
 void Display::set_wide_aspect(bool wide_screen) {
   impl_->wide_aspect = wide_screen;
   impl_->limit_aspect();
+  // In fullscreen the window keeps its size: the screen's width changes here.
+  impl_->fit_screen();
 }
 
 std::uint64_t Display::ticks_ms() { return SDL_GetTicks(); }

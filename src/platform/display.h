@@ -236,10 +236,11 @@ class Display {
   bool pointer_warp_refused() const;
   // Changes how the picture is scaled to the window.
   void set_scaling(Scaling scaling);
-  // Keeps the desktop window, while not fullscreen, within the aspect
-  // ratios `window_aspect_range(wide_screen)`, resizing it at once if
-  // needed (`wide_screen`: the player's wide-screen setting; at first,
-  // the constructor's `wide`). Nothing on Android.
+  // Applies the player's wide-screen setting (at first, the constructor's
+  // `wide`): off, a wide display shows the 640-wide screen with black bars
+  // (`screen_width` returns 640); the desktop window, while not fullscreen,
+  // is kept within the aspect ratios `window_aspect_range(wide_screen)`,
+  // resized at once if needed (not on Android).
   void set_wide_aspect(bool wide_screen);
 
   // Returns milliseconds since SDL initialization.

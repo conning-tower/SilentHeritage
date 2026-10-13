@@ -57,9 +57,10 @@ kept with it.
   or, at the TBT, its own panel continued; the frame follows fades and the
   red light. The videos have black bars beside them. At every station the
   command bar runs across the whole screen, the clock at the left edge and
-  the buttons at the right. The window can be resized from 4:3 to 21:9 (4:3
-  only with the wide screen off), and the mouse pointer moves over the frame
-  beside the screens.
+  the buttons at the right. The window can be resized from 4:3 to 21:9, and
+  the mouse pointer moves over the frame beside the screens. With the wide
+  screen off, the window stays 4:3 and fullscreen shows the original picture
+  between black bars, the mouse kept off them.
 
 ## Rules
 

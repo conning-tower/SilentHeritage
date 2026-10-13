@@ -209,6 +209,18 @@ TEST_CASE("Display: fullscreen keeps the mouse in the picture, off the black bar
     display.present(Image8(853, kScreenHeight), palette);
     CHECK(display.mouse_confinement() == WindowRect{0, 0, 1920, 1080});
   }
+  SECTION("Wide display, the setting off, on 16:9: 4:3 between black bars") {
+    Display display("test", 1, Scaling::kSharp, true, 1708, 960);
+    drain_events(display);
+    fullscreen_at(display, 1920, 1080);
+    display.set_wide_aspect(false);
+    CHECK(display.screen_width() == kScreenWidth);
+    CHECK(display.mouse_confinement() == WindowRect{240, 0, 1440, 1080});
+    // On again: the whole screen at once.
+    display.set_wide_aspect(true);
+    CHECK(display.screen_width() == 853);
+    CHECK(display.mouse_confinement() == WindowRect{0, 0, 1920, 1080});
+  }
   SECTION("Wide on 32:9: the widest screen, 21:9, between bars") {
     Display display("test", 1, Scaling::kSharp, true, 1708, 960);
     drain_events(display);
