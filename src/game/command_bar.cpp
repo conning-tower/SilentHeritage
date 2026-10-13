@@ -632,6 +632,13 @@ void ControlBar::event(const ui::Event& event) {
     ++message_state_;
   }
   const bool escape = (event.is_key() && event.key == ui::kKeyEsc) || (event.flags & ui::kEventRightUp) != 0;
+  if (escape && event.back && !escape_passthrough_ && !config_.on_escape &&
+      env_.stations.current() != StationId::kConn) {
+    // Not in the original: Android's Back goes to the conn, whose Back
+    // opens the menu.
+    select_station(StationId::kConn);
+    return;
+  }
   if (!escape_passthrough_ || !escape) {
     dialog_->handle_event(event);
   }

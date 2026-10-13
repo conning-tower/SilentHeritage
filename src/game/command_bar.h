@@ -147,6 +147,8 @@ class ControlBar : public CommandBar {
   // `control_bar_open` (0x48d02): builds the bar for `config` and draws it.
   void open(const BarConfig& config);
   // CommandBar: the main loop's calls.
+  // Android's Back (`Event::back`) goes to the conn instead of the END
+  // MISSION menu from the other stations.
   void event(const ui::Event& event) override;  // control_bar_handle_event
   void process() override;                      // control_bar_process
   void update() override;                       // control_bar_update

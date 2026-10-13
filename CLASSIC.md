@@ -37,8 +37,10 @@ improvements of Silent Heritage Extended are in [EXTENDED.md](EXTENDED.md).
   start.
 - **Chart:** dragging the map with a finger scrolls it, and the pointer no
   longer scrolls it at the screen's edges.
-- **Back:** goes back one screen in the menus and quits from the main menu.
-  During a mission and in the scenario editor it acts as Esc.
+- **Back:** goes back one screen in the menus and quits from the main menu. In a
+  mission it goes back to the conn, where it opens the END MISSION menu, and
+  otherwise acts as Esc (closing a menu or ending the chart's plotting), as in
+  the scenario editor.
 - **Text entry:** the system keyboard opens for names and descriptions.
 - **Pointer:** the game's mouse pointer is not drawn, since your finger
   points.

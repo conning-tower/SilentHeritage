@@ -235,7 +235,7 @@ TEST_CASE("Esc and END MISSION: Abort, then YES, ends the mission", "[stations]"
   CHECK(rig.screen->finish() == 1);
 }
 
-TEST_CASE("Android's Back is Esc in a mission: it opens and closes END MISSION", "[stations][back]") {
+TEST_CASE("Android's Back on the conn opens and closes END MISSION", "[stations][back]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
   rig.frames(1);
