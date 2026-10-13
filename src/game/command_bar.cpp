@@ -91,6 +91,12 @@ constexpr std::string_view kExtendedButton = "EXTENDED";
 constexpr std::string_view kExtendedTitle = "EXTENDED OPTIONS";
 constexpr std::string_view kFullscreen = "FULLSCREEN";
 constexpr std::string_view kSmoothing = "SMOOTHING";
+// The extended Esc box's title and entries (`Features::mission_menu`).
+constexpr std::string_view kMissionTitle = "MISSION";
+constexpr std::string_view kPatrolTitle = "PATROL";
+constexpr std::string_view kGameOptionsEntry = "Game Options";
+constexpr std::string_view kSaveMissionEntry = "Save Mission";
+constexpr std::string_view kSaveCareerEntry = "Save Career";
 constexpr std::uint32_t kAutoTorpLoad = 0xf4346;
 constexpr std::uint32_t kAutoSjRadar = 0xf4355;
 constexpr std::uint32_t kAutoSdRadar = 0xf4363;
@@ -149,6 +155,38 @@ std::vector<ui::GridCell> read_cells(const ExeImage& exe, std::uint32_t address,
     cells.push_back(std::move(c));
   }
   return cells;
+}
+
+// The entries of the Esc box: END MISSION?'s, and those the MISSION menu
+// adds (`Features::mission_menu`).
+enum class EndMenuEntry : std::uint8_t { kCancel, kGameOptions, kSave, kAbort, kReturnToBase };
+
+// Turns END MISSION?'s three `cells` (Cancel, Abort, Return To Base, as
+// `entries`) into the MISSION menu's five: Game Options and Save Mission
+// (Save Career when `patrol`; disabled unless `can_save`) after Cancel,
+// keyed G and S like the others, the rows below moved down and the arrow
+// links kept in a column. Returns the height added.
+int add_mission_menu_entries(std::vector<ui::GridCell>& cells, std::vector<EndMenuEntry>& entries, bool patrol,
+                             bool can_save) {
+  const int step = cells[1].y - cells[0].y;
+  ui::GridCell options = cells[0];
+  options.label = std::string(text::kGameOptionsEntry);
+  options.key = 0xff47;
+  options.disabled = false;
+  ui::GridCell save = options;
+  save.label = std::string(patrol ? text::kSaveCareerEntry : text::kSaveMissionEntry);
+  save.key = 0xff53;
+  save.disabled = !can_save;
+  cells.insert(cells.begin() + 1, {options, save});
+  entries.insert(entries.begin() + 1, {EndMenuEntry::kGameOptions, EndMenuEntry::kSave});
+  const int n = static_cast<int>(cells.size());
+  for (int i = 0; i < n; ++i) {
+    ui::GridCell& c = cells[static_cast<std::size_t>(i)];
+    c.y = cells[0].y + i * step;
+    c.up = i > 0 ? i - 1 : -1;
+    c.down = i < n - 1 ? i + 1 : -1;
+  }
+  return 2 * step;
 }
 
 // Returns `value` as `digits` zero-padded digits (`int_to_padded_str`).
@@ -1377,21 +1415,43 @@ void ControlBar::menu_end_mission() {
   // (0x4c537): dialogs 0x11f990 / 0x11fac4.
   const bool patrol = (env_.mission.sim().conditions().options & option::kModeCareer) != 0;
   end_reason_ = 0;
-  auto d = std::make_unique<ui::Dialog>(env_.gui, 0xc9, 0xb3, 0xef, 0x8c, 7);
+  std::vector<ui::GridCell> cells = read_cells(env_.exe, patrol ? kEndPatrolCells : kEndMissionCells, 3);
+  std::vector<EndMenuEntry> entries{EndMenuEntry::kCancel, EndMenuEntry::kAbort, EndMenuEntry::kReturnToBase};
+  std::string title = str(patrol ? text::kEndPatrol : text::kEndMission);
+  int y = 0xb3;
+  int h = 0x8c;
+  if (env_.ui.features.mission_menu) {
+    // Not in the original: the MISSION menu, two rows taller upwards, so
+    // that Abort and Return To Base keep their places on the screen.
+    const int added = add_mission_menu_entries(cells, entries, patrol, on_save != nullptr);
+    title = std::string(patrol ? text::kPatrolTitle : text::kMissionTitle);
+    y -= added;
+    h += added;
+  }
+  auto d = std::make_unique<ui::Dialog>(env_.gui, 0xc9, y, 0xef, h, 7);
   d->set_outside_cancel(env_.ui.features.outside_click_closes);
-  d->emplace<ui::TitleBar>(str(patrol ? text::kEndPatrol : text::kEndMission));
-  d->emplace<ui::GroupBox>(0xb, 0x2c, 0xe4, 0x81);
-  d->emplace<ui::ButtonGrid>(read_cells(env_.exe, patrol ? kEndPatrolCells : kEndMissionCells, 3),
-                             [this](int choice) {
-                               if (choice == 1) {
+  d->emplace<ui::TitleBar>(title);
+  d->emplace<ui::GroupBox>(0xb, 0x2c, 0xe4, h - 0xb);
+  auto chosen = std::make_shared<EndMenuEntry>(EndMenuEntry::kCancel);
+  d->emplace<ui::ButtonGrid>(std::move(cells),
+                             [this, entries, chosen](int choice) {
+                               *chosen = entries.at(static_cast<std::size_t>(choice));
+                               if (*chosen == EndMenuEntry::kAbort) {
                                  env_.mission.set_end_code(1);
-                               } else if (choice == 2) {
+                               } else if (*chosen == EndMenuEntry::kReturnToBase) {
                                  apply_end_reason();
                                }
                                return ui::kResultAccept;
                              },
                              0);
-  env_.modals.run_modal(std::move(d), ModalFrame::kMenu, [this, patrol](int) {
+  env_.modals.run_modal(std::move(d), ModalFrame::kMenu, [this, patrol, chosen](int) {
+    if (*chosen == EndMenuEntry::kGameOptions) {
+      menu_game_options();
+      return;
+    }
+    if (*chosen == EndMenuEntry::kSave && on_save) {
+      on_save();
+    }
     if (env_.mission.end_code() == 1) {
       env_.mission.set_end_code(0);
       ask_yes_no(str(patrol ? text::kAbortPatrol : text::kAbortMission),

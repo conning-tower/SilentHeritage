@@ -224,3 +224,156 @@ TEST_CASE("controls: the command bar labels fit the options pages", "[controls]"
 }
 
 }  // namespace sh
+
+// --- The MISSION menu (`Features::mission_menu`) ------------------------------
+
+namespace sh {
+
+namespace {
+
+// The GAME OPTIONS dialog's rectangle (cmd_game_options' dialog 0x1200c8).
+constexpr ui::Rect kGameOptionsBox{0x9d, 0x1c, 0x9d + 0x141 - 1, 0x1c + 0x19c - 1};
+
+// A HIST01 rig on the conn, the mission menu set to `on`, counting the
+// saves its `on_save` runs (none when `can_save` is false).
+struct MenuRig {
+  MenuRig(const Install& install, bool on, bool can_save = true) : rig(install) {
+    Features f = Features::for_build();
+    f.mission_menu = on;
+    rig.screen->ui_state().features = f;
+    if (can_save) {
+      rig.screen->bar().on_save = [this] { ++saves; };
+    }
+    rig.frames(1);
+    rig.settle();
+    rig.frames(2);
+  }
+  bool menu_open() { return rig.screen->env().modals.modal_active(); }
+  std::vector<std::uint8_t> pixels(const ui::Rect& r) const {
+    std::vector<std::uint8_t> out;
+    for (int y = r.y0; y <= r.y1; ++y) {
+      for (int x = r.x0; x <= r.x1; ++x) {
+        out.push_back(rig.screen_image.at(x, y));
+      }
+    }
+    return out;
+  }
+
+  test::ControlRig rig;
+  int saves = 0;
+};
+
+constexpr std::uint16_t kEsc = 0x011b;
+constexpr std::uint16_t kDown = 0x5000;
+constexpr std::uint16_t kEnter = 0x1c0d;
+
+}  // namespace
+
+TEST_CASE("mission menu: Game Options opens Alt-O's page, then the game", "[controls][stations]") {
+  SH_REQUIRE_INSTALL(install);
+  MenuRig esc(install, true);
+  esc.rig.key(kEsc);
+  REQUIRE(esc.menu_open());
+  esc.rig.save("mission_menu");
+  esc.rig.key(0x2267);  // 'g'
+  esc.rig.frames(2);
+  REQUIRE(esc.menu_open());
+  MenuRig alt(install, true);
+  alt.rig.key(0x1800);  // Alt-O
+  alt.rig.frames(2);
+  REQUIRE(alt.menu_open());
+  CHECK((esc.pixels(kGameOptionsBox) == alt.pixels(kGameOptionsBox)));
+  // Closing it goes back to the game, not to the menu.
+  esc.rig.key(kEsc);
+  esc.rig.frames(2);
+  CHECK(!esc.menu_open());
+  CHECK(esc.rig.screen->in_play());
+}
+
+TEST_CASE("mission menu: Save Mission runs GAME OPTIONS' save, then the game", "[controls][stations]") {
+  SH_REQUIRE_INSTALL(install);
+  MenuRig m(install, true);
+  m.rig.key(kEsc);
+  m.rig.key(0x1f73);  // 's'
+  m.rig.frames(2);
+  CHECK(m.saves == 1);
+  CHECK(!m.menu_open());
+  CHECK(m.rig.screen->in_play());
+  // The arrows go down the column: Cancel, Game Options, Save Mission.
+  m.rig.key(kEsc);
+  m.rig.key(kDown);
+  m.rig.key(kDown);
+  m.rig.key(kEnter);
+  m.rig.frames(2);
+  CHECK(m.saves == 2);
+  CHECK(m.rig.screen->in_play());
+}
+
+TEST_CASE("mission menu: Save Mission is disabled when saving is not allowed", "[controls][stations]") {
+  SH_REQUIRE_INSTALL(install);
+  MenuRig m(install, true, false);
+  m.rig.key(kEsc);
+  m.rig.key(0x1f73);  // 's': nothing
+  m.rig.frames(2);
+  CHECK(m.menu_open());
+  // Down from Game Options skips it to Abort, which asks.
+  m.rig.key(kDown);
+  m.rig.key(kDown);
+  m.rig.key(kEnter);
+  m.rig.frames(2);
+  REQUIRE(m.menu_open());
+  m.rig.key(0x1579);  // 'y': YES
+  CHECK(m.rig.mission().end_code() == 1);
+}
+
+TEST_CASE("mission menu: Abort and Return To Base act as END MISSION?'s, in its places", "[controls][stations]") {
+  SH_REQUIRE_INSTALL(install);
+  // END MISSION?'s rows on the screen (box at y 0xb3, cells at 0x4d and
+  // 0x65).
+  constexpr int kAbortY = 0xb3 + 0x4d + 8;
+  constexpr int kReturnY = 0xb3 + 0x65 + 8;
+  for (const bool on : {false, true}) {
+    MenuRig m(install, on);
+    m.rig.key(kEsc);
+    m.rig.click(320, kAbortY);
+    m.rig.frames(2);
+    CHECK(m.rig.mission().end_code() == 0);
+    REQUIRE(m.menu_open());
+    m.rig.key(0x1579);  // 'y': YES
+    CHECK(m.rig.mission().end_code() == 1);
+  }
+  // Return To Base: the same answer with the menu as without.
+  MenuRig plain(install, false);
+  MenuRig menu(install, true);
+  for (MenuRig* m : {&plain, &menu}) {
+    m->rig.key(kEsc);
+    m->rig.click(320, kReturnY);
+    m->rig.frames(2);
+  }
+  CHECK(menu.rig.mission().end_code() == plain.rig.mission().end_code());
+  CHECK(menu.menu_open() == plain.menu_open());
+  CHECK((menu.pixels(kGameOptionsBox) == plain.pixels(kGameOptionsBox)));
+}
+
+TEST_CASE("mission menu: off, END MISSION? has no options or save", "[controls][stations]") {
+  SH_REQUIRE_INSTALL(install);
+  MenuRig m(install, false);
+  MenuRig menu(install, true);
+  m.rig.key(kEsc);
+  menu.rig.key(kEsc);
+  // The original box: from y 0xb3, the menu's two rows taller above.
+  const ui::Rect above{0xc9, 0xb3 - 0x30, 0xc9 + 0xef - 1, 0xb3 - 1};
+  MenuRig closed(install, false);
+  CHECK((m.pixels(above) == closed.pixels(above)));
+  CHECK((menu.pixels(above) != closed.pixels(above)));
+  m.rig.key(0x2267);  // 'g'
+  m.rig.key(0x1f73);  // 's'
+  m.rig.frames(2);
+  CHECK(m.saves == 0);
+  m.rig.key(kEsc);
+  m.rig.frames(2);
+  CHECK(!m.menu_open());
+  CHECK(m.rig.screen->in_play());
+}
+
+}  // namespace sh

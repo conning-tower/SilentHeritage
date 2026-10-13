@@ -45,8 +45,10 @@ kept with it.
   and the touch ORDERS panel names each tube's type.
 - **Command bar:** the ORDERS button can sit in the bottom bar, with − and +
   around the time compression, or float as in the original, or be hidden.
+- **Mission menu:** Esc opens the MISSION menu, which also leads to the
+  game options and saves the mission or the career.
 - **Closing menus:** a click outside the 1MC, crew log, time compression,
-  game options, detail level or end mission box closes it.
+  game options, detail level or mission menu closes it.
 - **Wide screens:** the game fills windows and screens wider than 4:3, up to
   21:9. The chart shows more of the map and the bridge a wider view, with its
   gauge panel running to the screen's edges; looking out to the side from the

@@ -203,7 +203,10 @@ class ControlBar : public CommandBar {
   void menu_1mc();               // 0x4c1a6
   void menu_time_compression();  // cmd_time_compression_box 0x49094
   void menu_quit();              // cmd_quit_to_dos 0x4be84
-  void menu_end_mission();       // cmd_abort_mission 0x48fa1
+  // cmd_abort_mission 0x48fa1; with `Features::mission_menu`, the MISSION
+  // menu, whose Game Options and Save run `menu_game_options` and `on_save`
+  // and return to the game.
+  void menu_end_mission();
   void menu_game_options();      // cmd_game_options 0x4bba0
   void menu_detail_level();      // cmd_detail_level 0x4bb4b
   // The EXTENDED OPTIONS page of the mission (not in the original): the

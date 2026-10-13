@@ -80,6 +80,10 @@ struct Features {
   // compression, game options, detail level, end mission) closes them as
   // their Cancel or Esc does.
   bool outside_click_closes = false;
+  // The Esc box of a mission is the MISSION menu: END MISSION?'s (END
+  // PATROL?'s) Cancel, Abort and Return To Base with GAME OPTIONS (Alt-O's)
+  // and SAVE MISSION (SAVE CAREER) between them.
+  bool mission_menu = false;
   // The scenario editor without the memory budget of SE's 16 MB DOS
   // machine: no gauge, no SCENARIO IS TOO LARGE (the files keep their
   // estimate).
@@ -114,6 +118,7 @@ struct Features {
             .panel_status = true,
             .command_bar = CommandBarStyle::kBarOrdersTime,
             .outside_click_closes = true,
+            .mission_menu = true,
             .editor_no_size_limit = true,
             .editor_fixes = true,
             .torpedo_types = true};

@@ -35,6 +35,9 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
     {"panel_status", &Features::panel_status, true},
     // The menus' outside clicks: no script uses them.
     {"outside_click_closes", &Features::outside_click_closes, true},
+    // The Esc box's entries: the original's keep their keys and actions,
+    // and Abort and Return To Base their places for the scripts' clicks.
+    {"mission_menu", &Features::mission_menu, true},
     // The scenario editor only.
     {"editor_no_size_limit", &Features::editor_no_size_limit, true},
     {"editor_fixes", &Features::editor_fixes, true},
