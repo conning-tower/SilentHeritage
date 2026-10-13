@@ -189,6 +189,8 @@ class ChartPointer {
 // The size of a toolbox button.
 inline constexpr int kChartToolButtonW = 21;
 inline constexpr int kChartToolButtonH = 20;
+// The height of the CHART TOOLS panel.
+inline constexpr int kChartToolsPanelH = 0x9a;
 // The size of the symbol buttons and ink swatches.
 inline constexpr int kChartSmallButton = 16;
 // The width of the toolbox's engraving, and of the button that opens the

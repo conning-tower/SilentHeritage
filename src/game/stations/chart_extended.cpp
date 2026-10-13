@@ -54,8 +54,10 @@ constexpr double kNotchesPerDoubling = 4;
 
 // The pencil keeps a point every few pixels of the pointer's path.
 constexpr int kStrokeStep = 3;
-// The eraser's and the line tool's end-point reach (pixels).
+// The eraser's and the line tool's end-point reach (pixels), with the
+// mouse and with a finger.
 constexpr int kPickRadius = 4;
+constexpr int kTouchPickRadius = 10;
 
 bool drag_tool(ChartTool tool) {
   return tool == ChartTool::kPencil || tool == ChartTool::kCircle || tool == ChartTool::kRuler;
@@ -121,8 +123,7 @@ void ChartStation::add_tools_button(ui::Dialog& d, ui::Rect r, int w, int h) {
 std::unique_ptr<ui::Dialog> ChartStation::make_tools_panel() {
   // In the plotting panel's place, with its drag strip and zoom group.
   constexpr int kToolsPanelW = 0x129;
-  constexpr int kToolsPanelH = 0x90;
-  auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kToolsPanelW, kToolsPanelH,
+  auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kToolsPanelW, kChartToolsPanelH,
                                         ui::kDialogFramed, &env_.screen());
   d->emplace<ui::OwnerDraw>([](const Viewport& gfx, ui::OwnerDraw&) {
     const int row_h = kChartToolButtonH + 2;
@@ -179,36 +180,73 @@ std::unique_ptr<ui::Dialog> ChartStation::make_tools_panel() {
   for (int k = 0; k < 4; ++k) {
     d->emplace<ui::Line>(7, 0x75 + k, 0x120, 0x75 + k, k < 2 ? 3 : 2);
   }
-  auto& prompt = d->emplace<ui::TextField>(8, 0x7e, 0x11f, 0x88, [this] { return tools_prompt(); },
-                                           ui::FontSlot::kCustom, TextAlign::kCentre);
-  prompt.use_colours = true;
-  prompt.fill = 6;
-  prompt.custom = &env_.assets.font1;
-  prompt_control_ = &prompt;
+  // The prompt's two lines.
+  std::array<ui::TextField*, 2> lines{};
+  for (std::size_t i = 0; i < lines.size(); ++i) {
+    const int y = 0x7c + static_cast<int>(i) * 0xc;
+    lines[i] = &d->emplace<ui::TextField>(8, y, 0x11f, y + 0xa, [this, i] { return tools_prompt()[i]; },
+                                          ui::FontSlot::kCustom, TextAlign::kCentre);
+    lines[i]->use_colours = true;
+    lines[i]->fill = 6;
+    lines[i]->custom = &env_.assets.font1;
+  }
+  prompt_control_ = lines[0];
+  prompt_hint_ = lines[1];
   return d;
 }
 
-std::string ChartStation::tools_prompt() const {
+std::array<std::string, 2> ChartStation::tools_prompt() const {
   if (ruler_) {
-    return "RANGE AND BEARING  " + chart_ruler_text((*ruler_)[0], (*ruler_)[1]);
+    return {"RANGE AND BEARING", chart_ruler_text((*ruler_)[0], (*ruler_)[1])};
   }
+  const bool touch = touch_screen();
+  const std::string click = touch ? "TAP" : "CLICK";
+  // How to scroll the chart when the tool takes the drags.
+  const std::string scroll = touch ? "TWO FINGERS SCROLL AND ZOOM" : "THE MIDDLE BUTTON SCROLLS";
   switch (tool_) {
     case ChartTool::kPencil:
-      return "DRAG TO DRAW ON THE CHART";
+      return {"DRAG TO DRAW ON THE CHART", scroll};
     case ChartTool::kLine:
-      return draft_ ? "CLICK THE LAST POINT OR RIGHT CLICK TO END" : "CLICK EACH POINT OF THE LINE";
+      if (draft_) {
+        return {click + " OR DRAG THE NEXT POINT",
+                touch ? "TAP THE LAST POINT TO END" : "RIGHT CLICK OR CLICK THE LAST TO END"};
+      }
+      return {click + " THE FIRST POINT, OR DRAG", scroll};
     case ChartTool::kCircle:
-      return "DRAG FROM THE CENTRE TO SET THE RADIUS";
+      return {"DRAG FROM THE CENTRE TO THE EDGE", scroll};
     case ChartTool::kMark:
-      return "CLICK TO PUT THE MARK";
+      return {click + " TO PUT THE MARK", "DRAG TO SCROLL THE CHART"};
     case ChartTool::kNote:
-      return "CLICK WHERE THE NOTE GOES";
+      return {click + " WHERE THE NOTE GOES", "DRAG TO SCROLL THE CHART"};
     case ChartTool::kRuler:
-      return "DRAG FROM ONE POINT TO THE OTHER";
+      return {"DRAG FROM ONE POINT TO ANOTHER", scroll};
     case ChartTool::kEraser:
-      return "CLICK WHAT TO ERASE (FRAMED)";
+      return {touch ? "TAP A DRAWING TO ERASE IT" : "CLICK WHAT TO ERASE (FRAMED)", "DRAG TO SCROLL THE CHART"};
   }
   return {};
+}
+
+void ChartStation::tools_prompt_changed() {
+  for (ui::Control* line : {prompt_control_, prompt_hint_}) {
+    if (line != nullptr) {
+      line->dirty = true;
+    }
+  }
+}
+
+bool ChartStation::touch_screen() const { return env_.gui.mouse().edges() == ui::PointerEdges::kNone; }
+
+int ChartStation::pick_radius() const { return touch_screen() ? kTouchPickRadius : kPickRadius; }
+
+bool ChartStation::on_line_end(std::int32_t x, std::int32_t y) const {
+  if (!draft_ || draft_->kind != ChartAnnotation::Kind::kLine) {
+    return false;
+  }
+  const geom::WorldXZ last = draft_->points.back();
+  std::int32_t lx = 0;
+  std::int32_t ly = 0;
+  return view_.point_on_screen(last.x, last.z, lx, ly) && std::abs(lx - x) <= pick_radius() &&
+         std::abs(ly - y) <= pick_radius();
 }
 
 // --- Commands ----------------------------------------------------------------
@@ -240,9 +278,7 @@ void ChartStation::select_tool(ChartTool tool) {
     highlight_ = -1;
     dirty_ = true;
   }
-  if (prompt_control_ != nullptr) {
-    prompt_control_->dirty = true;
-  }
+  tools_prompt_changed();
 }
 
 void ChartStation::select_ink(ChartInk ink) { ink_ = ink; }
@@ -318,9 +354,8 @@ bool ChartStation::pinch() {
   if (!pinch_) {
     // The finger that pressed first is no click or drag.
     pointer_.cancel();
-    if (panning_) {
-      panning_ = false;
-    }
+    panning_ = false;
+    extending_ = false;
     if (env_.options.chart_follow_sub != 0) {
       toggle_follow();
     }
@@ -400,7 +435,7 @@ void ChartStation::update_map_pointer() {
     int highlight = -1;
     if (tool_ == ChartTool::kEraser && on_map && !pointer_.active()) {
       if (const std::optional<std::size_t> i =
-              pick_chart_annotation(view_, annotations_, env_.assets.font1, x, y, kPickRadius)) {
+              pick_chart_annotation(view_, annotations_, env_.assets.font1, x, y, pick_radius())) {
         highlight = static_cast<int>(*i);
       }
     }
@@ -430,7 +465,16 @@ void ChartStation::update_tool_cursor() {
 
 void ChartStation::drag_map(ChartPointer::Step step, std::int32_t x, std::int32_t y) {
   if (step == ChartPointer::Step::kDragBegin) {
-    panning_ = pointer_.button() != ui::kButtonLeft || click_mode_ != ChartClickMode::kAnnotate || !drag_tool(tool_);
+    const bool tool = pointer_.button() == ui::kButtonLeft && click_mode_ == ChartClickMode::kAnnotate;
+    extending_ = tool && tool_ == ChartTool::kLine;
+    panning_ = !tool || (!drag_tool(tool_) && !extending_);
+    if (extending_ && !on_line_end(pointer_.start_x(), pointer_.start_y())) {
+      // Away from the line's end: a new line from the press.
+      finish_line();
+      const std::array<std::int32_t, 2> s = view_.screen_to_world(pointer_.start_x(), pointer_.start_y());
+      draft_ = ChartAnnotation{.kind = ChartAnnotation::Kind::kLine, .ink = ink_, .points = {{s[0], s[1]}}, .text = {}};
+      tools_prompt_changed();
+    }
     if (panning_) {
       drag_centre_ = {view_.center_x(), view_.center_y()};
       if (env_.options.chart_follow_sub != 0) {
@@ -452,6 +496,19 @@ void ChartStation::drag_map(ChartPointer::Step step, std::int32_t x, std::int32_
     view_.set_center(drag_centre_[0] - (x - pointer_.start_x()) * view_.step(),
                      drag_centre_[1] - (y - pointer_.start_y()) * view_.step());
     dirty_ = dirty_ || view_.center_x() != cx || view_.center_y() != cy;
+    return;
+  }
+  if (extending_) {
+    // The rubber band follows the pointer; the release places the point.
+    if (step == ChartPointer::Step::kDragEnd) {
+      extending_ = false;
+      if (draft_ && draft_->kind == ChartAnnotation::Kind::kLine && !on_line_end(x, y)) {
+        const std::array<std::int32_t, 2> p = view_.screen_to_world(x, y);
+        draft_->points.push_back({p[0], p[1]});
+        tools_prompt_changed();
+      }
+    }
+    force_overlays_ = true;
     return;
   }
   if (step == ChartPointer::Step::kDragEnd && !draft_ && !ruler_) {
@@ -494,8 +551,8 @@ void ChartStation::drag_map(ChartPointer::Step step, std::int32_t x, std::int32_
     }
     draft_.reset();
   }
-  if (ruler_ && prompt_control_ != nullptr) {
-    prompt_control_->dirty = true;
+  if (ruler_) {
+    tools_prompt_changed();
   }
   force_overlays_ = true;
 }
@@ -509,19 +566,13 @@ void ChartStation::tools_click(std::int32_t x, std::int32_t y) {
         draft_ = ChartAnnotation{.kind = ChartAnnotation::Kind::kLine, .ink = ink_, .points = {at}, .text = {}};
       } else {
         // A click on the last point ends the line.
-        const geom::WorldXZ last = draft_->points.back();
-        std::int32_t lx = 0;
-        std::int32_t ly = 0;
-        if (view_.point_on_screen(last.x, last.z, lx, ly) && std::abs(lx - x) <= kPickRadius &&
-            std::abs(ly - y) <= kPickRadius) {
+        if (on_line_end(x, y)) {
           finish_line();
         } else {
           draft_->points.push_back(at);
         }
       }
-      if (prompt_control_ != nullptr) {
-        prompt_control_->dirty = true;
-      }
+      tools_prompt_changed();
       force_overlays_ = true;
       break;
     }
@@ -535,15 +586,13 @@ void ChartStation::tools_click(std::int32_t x, std::int32_t y) {
     case ChartTool::kRuler:
       if (ruler_) {
         ruler_.reset();
-        if (prompt_control_ != nullptr) {
-          prompt_control_->dirty = true;
-        }
+        tools_prompt_changed();
         force_overlays_ = true;
       }
       break;
     case ChartTool::kEraser:
       if (const std::optional<std::size_t> i =
-              pick_chart_annotation(view_, annotations_, env_.assets.font1, x, y, kPickRadius)) {
+              pick_chart_annotation(view_, annotations_, env_.assets.font1, x, y, pick_radius())) {
         annotations_.erase(*i);
         highlight_ = -1;
         dirty_ = true;
@@ -564,9 +613,7 @@ void ChartStation::finish_line() {
     dirty_ = true;
   }
   draft_.reset();
-  if (prompt_control_ != nullptr) {
-    prompt_control_->dirty = true;
-  }
+  tools_prompt_changed();
   force_overlays_ = true;
 }
 
@@ -611,8 +658,8 @@ void ChartStation::draw_tool_overlays() {
   const Viewport vp{&screen, view_.x0(), view_.y0(), view_.x1(), view_.y1()};
   if (draft_) {
     ChartAnnotation shown = *draft_;
-    if (shown.kind == ChartAnnotation::Kind::kLine && !panels_.hovered()) {
-      // The rubber band to the pointer.
+    if (shown.kind == ChartAnnotation::Kind::kLine && !panels_.hovered() && (extending_ || !touch_screen())) {
+      // The rubber band to the pointer (a finger's only while it drags).
       const ui::Mouse& mouse = env_.gui.mouse();
       const std::array<std::int32_t, 2> p = view_.screen_to_world(mouse.x() - view_.x0(), mouse.y() - view_.y0());
       shown.points.push_back({p[0], p[1]});

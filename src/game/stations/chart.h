@@ -141,6 +141,9 @@ class ChartStation : public Station, private PanelSuspender {
   const std::optional<std::array<geom::WorldXZ, 2>>& ruler() const { return ruler_; }
   // The line being drawn with the line tool, if any.
   const std::optional<ChartAnnotation>& draft() const { return draft_; }
+  // Returns the toolbox's two prompt lines: how to use the tool, with the
+  // mouse or on a touch screen, or the ruler's reading.
+  std::array<std::string, 2> tools_prompt() const;
   // Zooms continuously by `notches` of the wheel (four double the zoom,
   // negative zooms out) about viewport pixel (`x`, `y`), which keeps its
   // chart position.
@@ -183,7 +186,16 @@ class ChartStation : public Station, private PanelSuspender {
   // buttons that leave it for MAP CONTROLS or NAVIGATION at (`x`, `y`).
   void add_tools_button(ui::Dialog& d, ui::Rect r, int w, int h);
   void add_panel_switch(ui::Dialog& d, int x, int y, ChartPanel panel);
-  std::string tools_prompt() const;
+  // Has the toolbox's prompt redrawn.
+  void tools_prompt_changed();
+  // Whether the pointer is a finger (no hover, no right button).
+  bool touch_screen() const;
+  // The reach of a click on a drawing or on the line's last point (wider
+  // for a finger).
+  int pick_radius() const;
+  // Returns whether viewport pixel (`x`, `y`) is on the last point of the
+  // line being drawn.
+  bool on_line_end(std::int32_t x, std::int32_t y) const;
   // Returns whether `event` was the extended chart's: the wheel, the
   // middle button on the map, or Esc and a right click in the toolbox.
   bool tools_event(const ui::Event& event);
@@ -347,6 +359,8 @@ class ChartStation : public Station, private PanelSuspender {
   ui::Control* compression_control_ = nullptr;
   ui::Control* clock_control_ = nullptr;
   ui::Control* prompt_control_ = nullptr;
+  // The toolbox's second prompt line.
+  ui::Control* prompt_hint_ = nullptr;
   // The extended chart (not in the original).
   ChartAnnotations annotations_;
   ChartInks inks_;
@@ -364,6 +378,8 @@ class ChartStation : public Station, private PanelSuspender {
   // The view's centre when a drag began (the drag scroll).
   std::array<std::int32_t, 2> drag_centre_{};
   bool panning_ = false;
+  // The line tool's drag under way, which places the line's next point.
+  bool extending_ = false;
   // The pinch under way: the fingers' distance and the zoom when it began,
   // and the chart point under their middle.
   struct Pinch {

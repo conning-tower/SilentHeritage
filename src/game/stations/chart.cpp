@@ -59,9 +59,7 @@ constexpr int kViewY1 = 0x1ca;
 constexpr int kMapPanelW = 0x129;
 constexpr int kMapPanelH = 0x81;
 constexpr int kPlotPanelH = 0x86;
-// Not in the original: the toolbox, and MAP CONTROLS with the full
-// command bar.
-constexpr int kToolsPanelH = 0x90;
+// Not in the original: MAP CONTROLS with the full command bar.
 constexpr int kBarMapPanelW = 0xe0;
 constexpr int kNavPanelW = 0x10b;
 constexpr int kNavPanelH = 0x167;
@@ -328,7 +326,7 @@ ChartStation::ChartStation(StationEnv& env)
   panels_.add(std::move(nav));
   panels_.add(slot(&panel_pos_, kMapPanelW, kPlotPanelH, [this] { open_plot_panel(); }));
   if (env_.ui.features.chart_tools) {
-    panels_.add(slot(&panel_pos_, kMapPanelW, kToolsPanelH, [this] { open_tools_panel(); }));
+    panels_.add(slot(&panel_pos_, kMapPanelW, kChartToolsPanelH, [this] { open_tools_panel(); }));
   }
   // chart_reset_view (0x20868)
   view_.set_zoom(0x10000);
@@ -2095,6 +2093,7 @@ void ChartStation::open_map_panel() {
   compression_control_ = nullptr;
   clock_control_ = nullptr;
   prompt_control_ = nullptr;
+  prompt_hint_ = nullptr;
   panel_dialog_ = make_map_panel();
   panel_dialog_->open();
 }
@@ -2107,6 +2106,7 @@ void ChartStation::open_plot_panel() {
   compression_control_ = nullptr;
   clock_control_ = nullptr;
   prompt_control_ = nullptr;
+  prompt_hint_ = nullptr;
   panel_dialog_ = make_plot_panel();
   panel_dialog_->open();
 }
@@ -2118,6 +2118,7 @@ void ChartStation::open_nav_panel() {
   compression_control_ = nullptr;
   clock_control_ = nullptr;
   prompt_control_ = nullptr;
+  prompt_hint_ = nullptr;
   NavPanelFrame frame;
   frame.x = nav_pos_.x;
   frame.y = nav_pos_.y;
@@ -2180,6 +2181,7 @@ void ChartStation::close_panel_dialogs() {
   compression_control_ = nullptr;
   clock_control_ = nullptr;
   prompt_control_ = nullptr;
+  prompt_hint_ = nullptr;
   force_overlays_ = true;
 }
 
@@ -2397,6 +2399,7 @@ void ChartStation::open_tools_panel() {
   compression_control_ = nullptr;
   clock_control_ = nullptr;
   prompt_control_ = nullptr;
+  prompt_hint_ = nullptr;
   panel_dialog_ = make_tools_panel();
   panel_dialog_->open();
 }

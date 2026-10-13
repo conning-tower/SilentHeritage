@@ -157,6 +157,27 @@ TEST_CASE("TOOLS opens the chart toolbox and Esc, a right click or EXIT close it
   CHECK(chart.click_mode() == ChartClickMode::kSelectTarget);
 }
 
+TEST_CASE("Android's Back closes the toolbox, then goes back to the conn", "[charttools][back]") {
+  SH_REQUIRE_INSTALL(install);
+  for (const bool tools : {true, false}) {
+    ControlRig rig(install);
+    ChartStation& chart = open_chart(rig, tools);
+    if (tools) {
+      rig.click(kToolsButton[0], kToolsButton[1]);
+      rig.frames(2);
+      REQUIRE(chart.panel() == ChartPanel::kTools);
+      rig.gui.mouse().post_back(0);
+      rig.frames(2);
+      CHECK(chart.panel() == ChartPanel::kMap);
+      CHECK(rig.screen->stations().current() == StationId::kChart);
+    }
+    rig.gui.mouse().post_back(0);
+    rig.frames(2);
+    CHECK(rig.screen->stations().current() == StationId::kConn);
+    CHECK_FALSE(rig.mission().paused());
+  }
+}
+
 TEST_CASE("The extended chart opens with its bar's clock box drawn", "[charttools]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
@@ -571,6 +592,72 @@ TEST_CASE("The chart tools draw, erase and undo", "[charttools]") {
   rig.key(ui::kKeyEsc);
   rig.click(450, 100);
   CHECK(items.size() == 5);
+}
+
+TEST_CASE("The line tool's drags place its points: from its end, else a new line", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kTools);
+  chart.select_tool(ChartTool::kLine);
+  const auto& items = chart.annotations().items();
+  const fx::Vec3 sub = rig.mission().player().position();
+  look(chart, sub.x, sub.z, 8);
+  rig.frames(1);
+
+  drag(rig, {100, 50}, {200, 50});
+  REQUIRE(chart.draft());
+  CHECK(chart.draft()->points == std::vector{world_at(chart, 100, 50), world_at(chart, 200, 50)});
+  CHECK(chart.tools_prompt()[0] == "CLICK OR DRAG THE NEXT POINT");
+  // From its end: the next point.
+  drag(rig, {201, 51}, {200, 120});
+  REQUIRE(chart.draft());
+  CHECK(chart.draft()->points.size() == 3);
+  CHECK(chart.draft()->points.back() == world_at(chart, 200, 120));
+  CHECK(items.empty());
+  // Elsewhere: the line ends and a new one starts.
+  drag(rig, {300, 200}, {350, 200});
+  REQUIRE(items.size() == 1);
+  CHECK(items[0].points.size() == 3);
+  REQUIRE(chart.draft());
+  CHECK(chart.draft()->points.front() == world_at(chart, 300, 200));
+  rig.click(350, 200);
+  CHECK(items.size() == 2);
+  CHECK_FALSE(chart.draft());
+}
+
+TEST_CASE("The toolbox's prompt fits its two lines, for the mouse and for a finger", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  const Font& font = rig.screen->env().assets.font1;
+  constexpr int kWidth = 0x11f - 8 + 1;
+  for (const ui::PointerEdges edges : {ui::PointerEdges::kBand, ui::PointerEdges::kNone}) {
+    rig.gui.mouse().set_edges(edges);
+    for (std::size_t i = 0; i < kChartToolCount; ++i) {
+      chart.select_tool(static_cast<ChartTool>(i));
+      if (static_cast<ChartTool>(i) == ChartTool::kLine) {
+        for (const std::string& line : chart.tools_prompt()) {
+          CHECK(font.text_width(line) <= kWidth);
+        }
+        rig.click(400, 100);
+        REQUIRE(chart.draft());
+      }
+      for (const std::string& line : chart.tools_prompt()) {
+        CAPTURE(line);
+        CHECK(font.text_width(line) <= kWidth);
+        // Nothing of the other pointer's.
+        for (const char* word : edges == ui::PointerEdges::kNone ? std::array{"CLICK", "MIDDLE"}
+                                                                  : std::array{"TAP", "FINGER"}) {
+          CHECK(line.find(word) == std::string::npos);
+        }
+      }
+    }
+  }
 }
 
 TEST_CASE("CLEAR asks before erasing the chart", "[charttools]") {
