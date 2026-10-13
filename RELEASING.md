@@ -11,13 +11,14 @@ Everything is done by the repository's workflows (`.github/workflows`):
   build with the sanitizers, both variants) and every package built as a
   check (`build.yml`). It has no secret.
 - `release.yml`, on a pushed tag `vMAJOR.MINOR.PATCH[-suffix]`:
-  1. checks the tag and that `CHANGELOG.md` has the version's section;
+  1. checks the tag;
   2. builds every package, unsigned (`build.yml`, no secret);
   3. signs the Android packages in a job of the `release` environment,
      the only one with the release key, which runs no build
      (`android/sign_apk.sh`);
   4. creates a **draft** release: the packages, `SHA256SUMS`, GitHub's build
-     provenance attestations of every file, the notes from `CHANGELOG.md`
+     provenance attestations of every file, the notes from the version's
+     section of `CHANGELOG.md` (empty without one: write them in the draft)
      and the Android version code.
   Nothing is public until the draft is published by hand.
 
@@ -128,8 +129,8 @@ your computer. Google's steps change; follow the console.
 ## A release
 
 1. In `CHANGELOG.md`, add the version's section at the top, e.g.
-   `## [1.0.0] - 2026-11-02`, with its changes. A pre-release needs its own
-   section too (`## [1.0.0-beta.1] - …`).
+   `## [1.0.0] - 2026-11-02`, with its changes: the release's notes. Without
+   one, the draft's notes are empty.
 2. Commit and push to `main`; wait for `ci` to pass.
 3. Tag and push the tag:
 
