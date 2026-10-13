@@ -157,6 +157,27 @@ TEST_CASE("TOOLS opens the chart toolbox and Esc, a right click or EXIT close it
   CHECK(chart.click_mode() == ChartClickMode::kSelectTarget);
 }
 
+TEST_CASE("The extended chart opens with its bar's clock box drawn", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  open_chart(rig, true);
+  StationEnv& env = rig.screen->env();
+  const Image8& screen = env.screen();
+  // The clock box's top edge, as the bar draws it at (2, 2) of its rows.
+  constexpr int kBarTop = 0x1cb;
+  constexpr std::size_t kClockBoxFrame = 0x24;
+  Image8 box(screen.width(), screen.height() - kBarTop, 0);
+  draw_sprite_clipped(Viewport::full(box), env.assets.global.frame(kClockBoxFrame), 2, 2);
+  int edge = 0;
+  for (int x = 0; x < box.width(); ++x) {
+    if (box.at(x, 2) != 0) {
+      ++edge;
+      CHECK(screen.at(x, kBarTop + 2) == box.at(x, 2));
+    }
+  }
+  CHECK(edge > 20);
+}
+
 TEST_CASE("The extended chart selects a target on the release", "[charttools]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);

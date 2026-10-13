@@ -362,15 +362,17 @@ void ChartStation::build_palette() {
 void ChartStation::open() {
   // chart_screen (0x20979) and chart_view_init (0x2a5c8)
   ++env_.ui.pause;
+  Image8& screen = env_.screen();
   if (full_bar()) {
-    // The whole bar, as at the other stations (not in the original).
+    // The whole bar, as at the other stations (not in the original), drawn
+    // over the cleared screen: its clock box and buttons stay.
+    ui::gui_fill_rect(Viewport::full(screen), 0, 0, screen.width(), screen.height(), 0);
     env_.bar.open({{BarButton{kConnButton, kConnButton + 1, [this] { env_.bar.select_station(StationId::kConn); }}},
                    {}, true, true, true});
   } else {
     env_.bar.open({{}, {}, false, false, true});
+    ui::gui_fill_rect(Viewport::full(screen), 0, 0, screen.width(), screen.height(), 0);
   }
-  Image8& screen = env_.screen();
-  ui::gui_fill_rect(Viewport::full(screen), 0, 0, screen.width(), screen.height(), 0);
   // The map fills the screen's width (wider than 640 for the wide screen).
   const int view_x1 = screen.width() - 1;
   view_.set_extent(view_x1, kViewY1);
