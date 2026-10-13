@@ -3,10 +3,10 @@
 #include <SDL3/SDL_keycode.h>
 
 #include <algorithm>
-#include <charconv>
 #include <fstream>
+#include <locale>
+#include <sstream>
 #include <string>
-#include <system_error>
 
 namespace sh {
 
@@ -18,20 +18,17 @@ constexpr std::string_view kPositionMagic = "SH-COMMAND-BUTTON 1";
 constexpr float kDefaultRelX = 0.96f;
 constexpr float kDefaultRelY = 0.62f;
 
-// Parses "<x> <y>" fractions in 0..1.
+// Parses "<x> <y>" fractions in 0..1. A stream in the classic locale,
+// not std::from_chars: the libc++ of macOS and of older NDKs has no
+// floating-point from_chars.
 std::optional<std::array<float, 2>> parse_position(const std::string& text) {
+  std::istringstream in(text);
+  in.imbue(std::locale::classic());
   std::array<float, 2> v{};
-  const char* p = text.data();
-  const char* end = text.data() + text.size();
   for (float& f : v) {
-    while (p != end && (*p == ' ' || *p == '\t')) {
-      ++p;
-    }
-    const auto [next, ec] = std::from_chars(p, end, f);
-    if (ec != std::errc() || f < 0 || f > 1) {
+    if (!(in >> f) || !(f >= 0 && f <= 1)) {
       return std::nullopt;
     }
-    p = next;
   }
   return v;
 }

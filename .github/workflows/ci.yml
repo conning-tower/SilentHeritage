@@ -48,6 +48,33 @@ jobs:
           build/debug/tests/sh_tests
           build/debug/tests/editor/sh_editor_tests
 
+  # macOS: the same tests, built with Apple's clang for the oldest macOS
+  # the game supports (13.3: libc++'s <format> and floating-point
+  # <charconv>).
+  test-macos:
+    name: test-macos (${{ matrix.variant }})
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [classic, extended]
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install the build dependencies
+        run: brew install ninja
+      - name: Build
+        run: |
+          cmake -S . -B build/debug -G Ninja -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3 \
+            -DSH_VARIANT=${{ matrix.variant }}
+          # Every file that fails to compile, not only the first.
+          ninja -C build/debug -k 0
+      - name: Test
+        run: |
+          build/debug/tests/sh_tests
+          build/debug/tests/editor/sh_editor_tests
+
   packages:
     uses: ./.github/workflows/build.yml
     with:
