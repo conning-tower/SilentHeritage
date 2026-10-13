@@ -6,6 +6,7 @@
 
 #include <iterator>
 #include <string_view>
+#include <vector>
 
 #include "core/features.h"
 
@@ -47,5 +48,19 @@ inline constexpr FlagExpectation kFlagExpectations[] = {
 // Every improvement must be listed above (`Features` holds flags and the
 // one-byte `command_bar`, covered by its own golden case).
 static_assert(sizeof(Features) == std::size(kFlagExpectations) * sizeof(bool) + sizeof(CommandBarStyle));
+
+// Returns the improvements of `kFlagExpectations` that keep the simulation.
+inline const std::vector<FlagExpectation>& simulation_keeping_flags() {
+  static const std::vector<FlagExpectation> flags = [] {
+    std::vector<FlagExpectation> out;
+    for (const FlagExpectation& e : kFlagExpectations) {
+      if (e.keeps_simulation) {
+        out.push_back(e);
+      }
+    }
+    return out;
+  }();
+  return flags;
+}
 
 }  // namespace sh::test

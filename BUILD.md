@@ -81,7 +81,13 @@ on the desktop, in the `SAVE` folder of the per-user application folder.
 ## Tests
 
     ninja -C <build> sh_tests sh_editor_tests
-    SH_DATA=<install dir> <build>/tests/sh_tests
+    SH_DATA=<install dir> ctest --test-dir <build> -j <processors> --output-on-failure
+
+CTest runs every test case in its own process, several at once. The
+programs can also be run directly, one test case after the other, for
+example with a test's name or tag to run only that test:
+
+    SH_DATA=<install dir> <build>/tests/sh_tests "[charttools]"
     SH_DATA=<install dir> <build>/tests/editor/sh_editor_tests
 
 With `SH_DATA` pointing at an install (the Commander's Edition, with

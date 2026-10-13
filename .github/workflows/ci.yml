@@ -43,10 +43,9 @@ jobs:
           cmake -S . -B build/debug -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_LINKER_TYPE=LLD -DSH_VARIANT=${{ matrix.variant }}
           ninja -C build/debug
+      # Every test case in its own process, on every processor.
       - name: Test
-        run: |
-          build/debug/tests/sh_tests
-          build/debug/tests/editor/sh_editor_tests
+        run: ctest --test-dir build/debug -j "$(getconf _NPROCESSORS_ONLN)" --output-on-failure
 
   # macOS: the same tests, built with Apple's clang for the oldest macOS
   # the game supports (13.3: libc++'s <format> and floating-point
@@ -70,10 +69,9 @@ jobs:
             -DSH_VARIANT=${{ matrix.variant }}
           # Every file that fails to compile, not only the first.
           ninja -C build/debug -k 0
+      # Every test case in its own process, on every processor.
       - name: Test
-        run: |
-          build/debug/tests/sh_tests
-          build/debug/tests/editor/sh_editor_tests
+        run: ctest --test-dir build/debug -j "$(getconf _NPROCESSORS_ONLN)" --output-on-failure
 
   packages:
     uses: ./.github/workflows/build.yml

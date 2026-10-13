@@ -33,6 +33,7 @@
 #include "golden_flags.h"
 #include "golden_rig.h"
 #include "golden_trace.h"
+#include "test_cases.h"
 #include "sim/geometry.h"
 #include "sim/sensor_environment.h"
 
@@ -185,6 +186,20 @@ void run_script(const GoldenGame& game, const GoldenScript& script, Features fea
   out = rig.trace();
 }
 
+// Checks that every script played with `features` keeps the simulation of
+// its golden trace.
+void check_simulation_kept(const Features& features) {
+  const GoldenData data = golden_data();
+  const GoldenGame game(data.install);
+  for (const GoldenScript& script : scripts()) {
+    DYNAMIC_SECTION(data.trace_name(script.name)) {
+      GoldenTrace trace;
+      run_script(game, script, features, trace);
+      check_golden(data.trace_name(script.name), trace, kSimKinds, data.header);
+    }
+  }
+}
+
 TEST_CASE("The classic game follows its golden traces", "[golden]") {
   const GoldenData data = golden_data();
   const GoldenGame game(data.install);
@@ -197,41 +212,38 @@ TEST_CASE("The classic game follows its golden traces", "[golden]") {
   }
 }
 
-TEST_CASE("Each improvement alone keeps the simulation of the golden traces", "[golden][features]") {
-  const GoldenData data = golden_data();
-  const GoldenGame game(data.install);
-  for (const FlagExpectation& e : kFlagExpectations) {
-    if (!e.keeps_simulation) {
-      continue;
-    }
-    for (const GoldenScript& script : scripts()) {
-      DYNAMIC_SECTION(e.name << " " << data.trace_name(script.name)) {
-        Features features;
-        features.*e.flag = true;
-        GoldenTrace trace;
-        run_script(game, script, features, trace);
-        check_golden(data.trace_name(script.name), trace, kSimKinds, data.header);
-      }
-    }
-  }
-}
+// One test case per improvement and per command bar layout, run in
+// parallel by CTest.
+[[maybe_unused]] const bool kFlagCases = register_test_cases(
+    simulation_keeping_flags(),
+    [](const FlagExpectation& e) {
+      return "Each improvement alone keeps the simulation of the golden traces: " + std::string(e.name);
+    },
+    "[golden][features]",
+    [](const FlagExpectation& e) {
+      Features features;
+      features.*e.flag = true;
+      check_simulation_kept(features);
+    });
 
-TEST_CASE("Each command bar layout keeps the simulation of the golden traces", "[golden][features]") {
-  const GoldenData data = golden_data();
-  const GoldenGame game(data.install);
-  for (const CommandBarStyle style :
-       {CommandBarStyle::kOriginal, CommandBarStyle::kBarOrders, CommandBarStyle::kBarOrdersTime}) {
-    for (const GoldenScript& script : scripts()) {
-      DYNAMIC_SECTION(static_cast<int>(style) << " " << data.trace_name(script.name)) {
-        Features features;
-        features.command_bar = style;
-        GoldenTrace trace;
-        run_script(game, script, features, trace);
-        check_golden(data.trace_name(script.name), trace, kSimKinds, data.header);
-      }
-    }
-  }
-}
+struct BarStyle {
+  std::string_view name;
+  CommandBarStyle style;
+};
+constexpr BarStyle kBarStyles[] = {{"original", CommandBarStyle::kOriginal},
+                                   {"bar_orders", CommandBarStyle::kBarOrders},
+                                   {"bar_orders_time", CommandBarStyle::kBarOrdersTime}};
+[[maybe_unused]] const bool kBarCases = register_test_cases(
+    kBarStyles,
+    [](const BarStyle& s) {
+      return "Each command bar layout keeps the simulation of the golden traces: " + std::string(s.name);
+    },
+    "[golden][features]",
+    [](const BarStyle& s) {
+      Features features;
+      features.command_bar = s.style;
+      check_simulation_kept(features);
+    });
 
 // The radar rules (sim/context.h) with nothing to act on: the ST's rule
 // (the boats are not fitted with it) and the APR-1's (the APR-1 bit

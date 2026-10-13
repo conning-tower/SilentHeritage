@@ -18,6 +18,7 @@
 #include "golden_flags.h"
 #include "golden_game_rig.h"
 #include "golden_trace.h"
+#include "test_cases.h"
 
 namespace sh::test {
 namespace {
@@ -116,23 +117,25 @@ TEST_CASE("The classic program follows its golden traces", "[golden]") {
   }
 }
 
-TEST_CASE("Each improvement alone keeps the simulation of the program's golden traces", "[golden][features]") {
-  const GoldenData data = golden_data();
-  for (const FlagExpectation& e : kFlagExpectations) {
-    if (!e.keeps_simulation) {
-      continue;
-    }
-    for (const GameScript& script : game_scripts()) {
-      DYNAMIC_SECTION(e.name << " " << data.trace_name(script.name)) {
-        Features features;
-        features.*e.flag = true;
-        GoldenGameRig rig(data.install, features);
-        rig.run(script.steps);
-        check_golden(data.trace_name(script.name), rig.trace(), kProgramSimKinds, data.header);
+// One test case per improvement, run in parallel by CTest.
+[[maybe_unused]] const bool kFlagCases = register_test_cases(
+    simulation_keeping_flags(),
+    [](const FlagExpectation& e) {
+      return "Each improvement alone keeps the simulation of the program's golden traces: " + std::string(e.name);
+    },
+    "[golden][features]",
+    [](const FlagExpectation& e) {
+      const GoldenData data = golden_data();
+      for (const GameScript& script : game_scripts()) {
+        DYNAMIC_SECTION(data.trace_name(script.name)) {
+          Features features;
+          features.*e.flag = true;
+          GoldenGameRig rig(data.install, features);
+          rig.run(script.steps);
+          check_golden(data.trace_name(script.name), rig.trace(), kProgramSimKinds, data.header);
+        }
       }
-    }
-  }
-}
+    });
 
 // Runs the script of SH_GOLDEN_SCRIPT and prints its trace, for writing
 // new scripts (with SH_SCREENS for the pictures of the checkpoints).
