@@ -78,23 +78,23 @@ void draw_plate(const Viewport& vp, int x, int y, int w, int h, bool down) {
 // The tools' pictures are 17 x 16, inside the buttons' 2-pixel margin, the
 // symbols' 9 x 9.
 
-// A pencil, its point at the lower left.
+// A felt marker, capped, its tip at the lower left.
 constexpr std::array<std::string_view, 16> kPencilIcon{
     ".................",
-    ".............eee.",
-    "............eaace",
-    "...........eaace.",
-    "..........e5dde..",
-    ".........edcee...",
-    "........e59de....",
-    ".......e59de.....",
-    "......e59de......",
-    ".....e59de.......",
-    "....e59de........",
-    "...eaaae.........",
-    "...eaae..........",
-    "...e0............",
-    "...0.............",
+    "............eee..",
+    "...........ecdde.",
+    "..........ecdddde",
+    ".........ecdddde.",
+    "........ecdddde..",
+    ".......eeeeeee...",
+    "......e5999ce....",
+    ".....e5999ce.....",
+    "....e5999ce......",
+    "...e5999ce.......",
+    "...eccdde........",
+    "...e00e..........",
+    "..000............",
+    "..00.............",
     "................."};
 
 // A course of three legs between four nodes.
@@ -135,42 +135,42 @@ constexpr std::array<std::string_view, 16> kCircleIcon{
     ".................",
     "................."};
 
-// A map pin.
+// The cross a mark puts on the chart, centred and bold.
 constexpr std::array<std::string_view, 16> kMarkIcon{
-    ".......eee.......",
-    ".....ee999ee.....",
-    "....e9999999e....",
-    "...e999eee99ce...",
-    "...e99e...e9ce...",
-    "...e99e...ecde...",
-    "...e99e...ecde...",
-    "....e99eeecde....",
-    "....e9999cdde....",
-    ".....e99cdde.....",
-    "......e9cde......",
-    ".......ede.......",
-    "........e........",
     ".................",
-    "......ddddd......",
+    ".................",
+    "..ee........ee...",
+    "..eee......eee...",
+    "...eee....eee....",
+    "....eee..eee.....",
+    ".....eeeeee......",
+    "......eeee.......",
+    "......eeee.......",
+    ".....eeeeee......",
+    "....eee..eee.....",
+    "...eee....eee....",
+    "..eee......eee...",
+    "..ee........ee...",
+    ".................",
     "................."};
 
-// A written sheet with a folded corner.
+// A serif T, for the text a note writes.
 constexpr std::array<std::string_view, 16> kNoteIcon{
     ".................",
-    "..eeeeeeeeee.....",
-    "..e99999999eae...",
-    "..e999999999eae..",
-    "..e999999999eeee.",
-    "..e9dddddd99999e.",
-    "..e999999999999e.",
-    "..e9dddddddddd9e.",
-    "..e999999999999e.",
-    "..e9ddddddddd99e.",
-    "..e999999999999e.",
-    "..e9dddddd99999e.",
-    "..e999999999999e.",
-    "..e999999999999e.",
-    "..eeeeeeeeeeeeee.",
+    ".................",
+    "..eeeeeeeeeeee...",
+    "..eeeeeeeeeeee...",
+    "..ee...ee...ee...",
+    "..e....ee....e...",
+    ".......ee........",
+    ".......ee........",
+    ".......ee........",
+    ".......ee........",
+    ".......ee........",
+    ".......ee........",
+    ".......ee........",
+    ".....eeeeee......",
+    ".................",
     "................."};
 
 // Dividers.
@@ -242,15 +242,15 @@ constexpr std::array<std::string_view, 9> kCrossIcon{
     "........."};
 
 constexpr std::array<std::string_view, 9> kRingIcon{
-    "...eee...",
+    "..eeeee..",
     ".eeeeeee.",
-    ".ee...ee.",
+    "eee...eee",
     "ee.....ee",
     "ee.....ee",
     "ee.....ee",
-    ".ee...ee.",
+    "eee...eee",
     ".eeeeeee.",
-    "...eee..."};
+    "..eeeee.."};
 
 constexpr std::array<std::string_view, 9> kTriangleIcon{
     "....e....",
@@ -922,7 +922,7 @@ void draw_chart_tools_button(const Viewport& vp, int x, int y, int w, int h, boo
   draw_plate(vp, x, y, w, h, down);
   const int ox = x + (w - kChartToolsButtonW) / 2 + (down ? 1 : 0);
   const int oy = y + (h - kChartToolButtonH) / 2 + (down ? 1 : 0);
-  // The dividers and the pencil of the toolbox.
+  // The dividers and the marker of the toolbox.
   draw_icon(vp, ox + 3, oy + 2, kRulerIcon);
   draw_icon(vp, ox + 22, oy + 2, kPencilIcon);
 }
