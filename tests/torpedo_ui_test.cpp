@@ -191,6 +191,36 @@ TEST_CASE("Moving a torpedo frames its type's card", "[torpedo_ui]") {
   CHECK(white > 100);
 }
 
+TEST_CASE("A Mark 27 put back in its rack leaves no empty slot outline around it", "[torpedo_ui]") {
+  SH_REQUIRE_INSTALL(install);
+  TorpedoRig rig(install, test::mixed_scenario(install, true), Features::extended(), test::torpedo_rules(true));
+  StatusStation& s = open_torpedo_page(rig);
+  const auto& rack = rig.mission().player_combat().tubes.stern_rack();
+  const auto slot = std::ranges::find(rack, static_cast<std::int32_t>(kMark27Id));
+  REQUIRE(slot != rack.end());
+  const auto it = std::ranges::find_if(s.hotspots(), [&](const StatusStation::Hotspot& h) {
+    return h.kind == 12 && h.index == slot - rack.begin();
+  });
+  REQUIRE(it != s.hotspots().end());
+  const StatusStation::Hotspot h = *it;
+  const Image8 before = rig.screen().screen();
+  rig.click((h.x0 + h.x1) / 2, (h.y0 + h.y1) / 2);
+  rig.gui.mouse().update(300, 250, 0, 0);
+  rig.frames(2);
+  REQUIRE(s.dragged() == -static_cast<std::int32_t>(kMark27Id));
+  rig.click((h.x0 + h.x1) / 2, (h.y0 + h.y1) / 2);
+  rig.frames(2);
+  REQUIRE(s.dragged() == 0);
+  // The slot's box (the hotspot is 5 pixels taller each way) as before.
+  int changed = 0;
+  for (int y = h.y0 + 5; y <= h.y1 - 5; ++y) {
+    for (int x = h.x0; x <= h.x1; ++x) {
+      changed += rig.screen().screen().at(x, y) != before.at(x, y) ? 1 : 0;
+    }
+  }
+  CHECK(changed == 0);
+}
+
 // ------------------------------------------------------------ TDC
 
 namespace {
@@ -377,6 +407,27 @@ TEST_CASE("Torpedo type screenshots", "[.torpedo_screens]") {
     rig.settle();
     rig.frames(6);
     rig.save("torpedo_tbt_mixed");
+  }
+  {
+    // A stern Mark 27 picked from its rack and carried across the page.
+    TorpedoRig rig(install, test::mixed_scenario(install, true), Features::extended(), test::torpedo_rules(true));
+    StatusStation& s = open_torpedo_page(rig);
+    const auto& rack = rig.mission().player_combat().tubes.stern_rack();
+    const auto slot = std::ranges::find(rack, static_cast<std::int32_t>(kMark27Id));
+    REQUIRE(slot != rack.end());
+    const auto it = std::ranges::find_if(s.hotspots(), [&](const StatusStation::Hotspot& h) {
+      return h.kind == 12 && h.index == slot - rack.begin();
+    });
+    REQUIRE(it != s.hotspots().end());
+    rig.click((it->x0 + it->x1) / 2, (it->y0 + it->y1) / 2);
+    for (int x = 300; x >= 200; x -= 20) {
+      rig.gui.mouse().update(x, 250, 0, 0);
+      rig.frames(1);
+    }
+    rig.save("torpedo_status_drag_mark27");
+    rig.click((it->x0 + it->x1) / 2, (it->y0 + it->y1) / 2);
+    rig.frames(2);
+    rig.save("torpedo_status_dropped_mark27");
   }
   // One and two types aboard, under the torpedo rules: the knob's slots
   // hold the types carried, the others unavailable (no label).

@@ -211,6 +211,10 @@ class StatusStation : public Station {
   Image8 scratch_;               // sprite_draw_transformed's buffer
   // The extended variant's torpedo pictures (`Features::torpedo_types`).
   std::unique_ptr<TorpedoArt> art_;
+  // With the pictures, the page under the racks (from `kRacksY`), each
+  // slot cleared from it before it is drawn: a Mark 27 is shorter than the
+  // empty slot's outline it may be put on.
+  Image8 racks_background_;
   // The cards' weapon ids and x, the screen under them, the framed card.
   std::vector<std::uint32_t> card_ids_;
   std::vector<int> card_x_;

@@ -42,6 +42,10 @@ constexpr std::size_t kAlertTimer = 6;
 constexpr int kCardsY = 0x158;
 constexpr int kCardsStripY = kCardsY - 2;
 constexpr int kCardsHeight = 104;
+// The racks' first row and the half width of a slot's box, the mirrored
+// stern ones included (the slots are 0x62 apart).
+constexpr int kRacksY = 0xa6;
+constexpr int kSlotHalfWidth = 46;
 constexpr std::uint8_t kHighlightColour = 240;
 
 // The compartment report panel (STATUS.SHP frame 1) at (461, 154).
@@ -376,6 +380,9 @@ void StatusStation::draw_screen() {
     seen_stern_rack_ = tubes.stern_rack();
     draw_sprite_clipped(full, sprites_.frame(1), 0x144, 0x9a);
     draw_sprite_clipped(full, sprites_.frame(2), 6, 0x9a);
+    if (art_) {
+      racks_background_ = grab(env_.screen(), 0, kRacksY, kScreenWidth, kCardsStripY - kRacksY);
+    }
     draw_tubes(false);
     draw_racks(false);
     // The boat's torpedo types: the available ones of the TDC's table; with
@@ -813,6 +820,21 @@ void StatusStation::draw_racks(bool redraw) {
   const auto id_of = [](std::int32_t slot) {
     return static_cast<std::uint32_t>(slot < 0 ? std::abs(slot) >> 8 : slot);
   };
+  // With the pictures (not in the original, where every torpedo covers the
+  // empty slot's outline), the page under the slot at (x, y) put back first.
+  const auto clear_slot = [&](int x, int y) {
+    if (!art_) {
+      return;
+    }
+    const int h = sprites_.frame(9).y0 + sprites_.frame(9).height();
+    for (int j = 0; j < h; ++j) {
+      for (int i = -kSlotHalfWidth; i <= kSlotHalfWidth; ++i) {
+        if (racks_background_.contains(x + i, y + j - kRacksY)) {
+          full.bitmap->set(x + i, y + j, racks_background_.at(x + i, y + j - kRacksY));
+        }
+      }
+    }
+  };
   {
     const auto& rack = tubes.bow_rack();
     std::int32_t half = (static_cast<std::int32_t>(rack.size()) + 1) / 2;
@@ -826,6 +848,7 @@ void StatusStation::draw_racks(bool redraw) {
       }
       const std::int32_t slot = rack[static_cast<std::size_t>(i)];
       const SpriteFrame& f = sprites_.frame(std::min(frame_of(slot), sprites_.frame_count() - 1));
+      clear_slot(x, y);
       if (slot == 0) {
         draw_sprite_clipped(full, f, x, y);
       } else {
@@ -850,6 +873,7 @@ void StatusStation::draw_racks(bool redraw) {
     }
     const std::int32_t slot = rack[static_cast<std::size_t>(i)];
     const SpriteFrame& f = sprites_.frame(std::min(frame_of(slot), sprites_.frame_count() - 1));
+    clear_slot(x, y);
     if (slot == 0) {
       sprite_draw_transformed(full, f, x, y, scratch_, Angle10(0), -one, one, 0);
     } else {
