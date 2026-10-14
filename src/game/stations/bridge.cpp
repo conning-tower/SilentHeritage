@@ -67,7 +67,29 @@ int dither_level(int x, int y) {
 // `vp`: each of the two frames resampled to their outline in between
 // (left and right of the hotspot and above it, apart), the second frame's
 // pixels where the dither level is under `weight` (not in the original).
+// Nothing is decoded when the outline is out of `vp`.
 void draw_wide_deck(const Viewport& vp, const Shp& sprites, const WideDeckView& view, const ColourRemap& remap) {
+  const SpriteFrame& fa = sprites.frame(static_cast<std::size_t>(view.frame));
+  const SpriteFrame& fb = sprites.frame(static_cast<std::size_t>(view.next));
+  const auto lerp = [&](int p, int q) {
+    return view.warp ? (p * (kDeckLevels - view.weight) + q * view.weight) / kDeckLevels : p;
+  };
+  // The outline: columns left of the hotspot as drawn, from it rightwards,
+  // rows above it and from it downwards.
+  const auto side = [&](const SpriteFrame& f, bool left) { return left != view.mirror ? -f.x0 : f.x1 + 1; };
+  const int left = lerp(side(fa, true), side(fb, true));
+  const int right = lerp(side(fa, false), side(fb, false));
+  const int top = lerp(-fa.y0, -fb.y0);
+  const int bottom = lerp(fa.y1 + 1, fb.y1 + 1);
+  // The outline's part inside the clip rectangle, from the hotspot.
+  const ClipRect clip = vp.clip();
+  const int dx0 = std::max(-left, clip.left - vp.x0 - view.x);
+  const int dx1 = std::min(right - 1, clip.right - vp.x0 - view.x);
+  const int dy0 = std::max(-top, clip.top - vp.y0 - kDeckY);
+  const int dy1 = std::min(bottom - 1, clip.bottom - vp.y0 - kDeckY);
+  if (dx0 > dx1 || dy0 > dy1) {
+    return;
+  }
   struct Source {
     DecodedFrame pixels;
     int left;   // columns left of the hotspot, as drawn (mirrored or not)
@@ -76,23 +98,11 @@ void draw_wide_deck(const Viewport& vp, const Shp& sprites, const WideDeckView& 
     int bottom;
     bool mirror;
   };
-  const auto source = [&](std::int32_t index) {
-    const SpriteFrame& f = sprites.frame(static_cast<std::size_t>(index));
-    Source s{f.decode(), -f.x0, f.x1 + 1, -f.y0, f.y1 + 1, view.mirror};
-    if (s.mirror) {
-      std::swap(s.left, s.right);
-    }
-    return s;
+  const auto source = [&](const SpriteFrame& f) {
+    return Source{f.decode(), side(f, true), side(f, false), -f.y0, f.y1 + 1, view.mirror};
   };
-  const Source a = source(view.frame);
-  const Source b = source(view.next);
-  const auto lerp = [&](int p, int q) {
-    return view.warp ? (p * (kDeckLevels - view.weight) + q * view.weight) / kDeckLevels : p;
-  };
-  const int left = lerp(a.left, b.left);
-  const int right = lerp(a.right, b.right);
-  const int top = lerp(a.top, b.top);
-  const int bottom = lerp(a.bottom, b.bottom);
+  const Source a = source(fa);
+  const Source b = source(fb);
   // The pixel of `s` at (`dx`, `dy`) from the hotspot of the outline, each
   // side scaled to the frame's own; nothing when transparent.
   const auto sample = [&](const Source& s, int dx, int dy) -> std::optional<std::uint8_t> {
@@ -109,18 +119,13 @@ void draw_wide_deck(const Viewport& vp, const Shp& sprites, const WideDeckView& 
     }
     return s.pixels.image.at(sx, py);
   };
-  for (int dy = -top; dy < bottom; ++dy) {
-    for (int dx = -left; dx < right; ++dx) {
+  for (int dy = dy0; dy <= dy1; ++dy) {
+    for (int dx = dx0; dx <= dx1; ++dx) {
       const int x = view.x + dx;
       const int y = kDeckY + dy;
       const bool second = dither_level(x, y) < view.weight;
-      const int bx = vp.x0 + x;
-      const int by = vp.y0 + y;
-      if (!vp.clip().contains(bx, by)) {
-        continue;
-      }
       if (const std::optional<std::uint8_t> c = sample(second ? b : a, dx, dy)) {
-        vp.bitmap->set(bx, by, remap[*c]);
+        vp.bitmap->set(vp.x0 + x, vp.y0 + y, remap[*c]);
       }
     }
   }
@@ -193,10 +198,8 @@ WideDeckView bridge_wide_deck_view(Angle10 bearing, int width, DeckTransition tr
     v.weight = v.weight * 2 < kDeckLevels ? 0 : kDeckLevels;
   }
   v.warp = transition != DeckTransition::kStepped;
-  // The original's moving deck, held at a column from the screen's edge on
-  // the axis' side so that it stays in view.
-  const std::int32_t x = deck_axis_column(b, aft ? 1800 : 0, width);
-  v.x = right ? std::max(x, kWideDeckPin) : std::min(x, width - 1 - kWideDeckPin);
+  // The original's moving deck, sliding on out of the view.
+  v.x = deck_axis_column(b, aft ? 1800 : 0, width);
   return v;
 }
 

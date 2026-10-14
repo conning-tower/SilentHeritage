@@ -28,22 +28,22 @@ struct DeckView {
 };
 std::optional<DeckView> bridge_deck_view(Angle10 bearing, int width = kBridgeViewWidth);
 
-// The deck of the wide bridge (not in the original), wider than 640: shown
-// at every look bearing, the bow's frames up to 90 degrees off it and the
-// stern's beyond (the original stops at 45 degrees, its frames of the sides
-// unused), blended from one frame to the next as the bearing turns.
+// The deck of the wide bridge (not in the original), wider than 640: the
+// bow's frames up to 90 degrees off it and the stern's beyond, blended from
+// one frame to the next as the bearing turns, the deck sliding sideways as
+// the original's (faster than the world) until it is out of the view, where
+// the original's stops at 45 degrees.
 enum class DeckTransition : std::uint8_t {
   kStepped,     // the frame of the bearing, as the original
   kWarp,        // the nearer frame, resampled to the outline in between
   kWarpDither,  // both, resampled and mixed by an ordered dither
 };
-// The blending levels (the 4x4 dither's), and the column from the screen's
-// edge the deck's axis is held at once the original's moving deck reaches it.
+// The blending levels (the 4x4 dither's).
 inline constexpr std::int32_t kDeckLevels = 16;
-inline constexpr std::int32_t kWideDeckPin = 150;
 // The frames to draw: `frame`, and `next` where the dither level is under
 // `weight` (0..kDeckLevels); their outlines resampled to the one in between
-// when `warp`; with the hotspot at column `x`, mirrored as `DeckView`.
+// when `warp`; with the hotspot at column `x` (off the view once the deck
+// turned out of it: nothing drawn then), mirrored as `DeckView`.
 struct WideDeckView {
   std::int32_t frame = 0;
   std::int32_t next = 0;

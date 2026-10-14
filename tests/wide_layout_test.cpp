@@ -6,6 +6,9 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <filesystem>
 #include <format>
 #include <memory>
 #include <optional>
@@ -24,6 +27,7 @@
 #include "game/stations/panel_ends.h"
 #include "game_data.h"
 #include "golden_rig.h"
+#include "platform/screenshot.h"
 #include "synthetic/synthetic_install.h"
 #include "ui/dialog.h"
 
@@ -309,21 +313,64 @@ TEST_CASE("Wide bridge: the deck at every bearing, blended between its frames", 
   CHECK(v.weight == 0);
   CHECK(v.mirror);
   // Looking 70 degrees to port: the side frame of 60 degrees, a third of
-  // the way to the next, the deck's axis held near the screen's edge.
+  // the way to the next.
   v = bridge_wide_deck_view(Angle10(3600 - 700), kWide, DeckTransition::kWarpDither);
   CHECK(v.frame == 4);
   CHECK(v.next == 5);
   CHECK(v.weight == 10 * kDeckLevels / 15);
   CHECK_FALSE(v.mirror);
-  CHECK(v.x == kWide - 1 - kWideDeckPin);
   // The stern's frames looking aft.
   v = bridge_wide_deck_view(Angle10(1800 + 300), kWide, DeckTransition::kWarp);
   CHECK(v.frame == 9 + 2);
   CHECK(v.weight == 0);
+  CHECK(v.x == bridge_wide_deck_view(Angle10(300), kWide, DeckTransition::kWarp).x);
   // 130 degrees to starboard: the stern 50 degrees off, to port of it.
   v = bridge_wide_deck_view(Angle10(1300), kWide, DeckTransition::kWarpDither);
   CHECK(v.frame == 9 + 3);
   CHECK_FALSE(v.mirror);
+}
+
+TEST_CASE("Wide bridge: the deck slides out of the view at the original's pace", "[wide]") {
+  const auto x = [](std::int32_t b) { return bridge_wide_deck_view(Angle10(b), kWide, DeckTransition::kWarpDither).x; };
+  // Where the original shows it, at its column.
+  for (const std::int32_t b : {0, 100, 300, 3300, 1800, 2000}) {
+    const std::optional<DeckView> original = bridge_deck_view(Angle10(b), kWide);
+    REQUIRE(original);
+    CHECK(x(b) == original->x);
+  }
+  CHECK(std::abs(x(0) - kWide / 2) <= 1);
+  // Further round, still moving as fast, to port and to starboard, until
+  // the axis is far past the screen's edge.
+  const std::int32_t step = x(3600 - 100) - x(0);
+  CHECK(step > 0);
+  for (std::int32_t b = 100; b <= 900; b += 100) {
+    CHECK(std::abs(x(3600 - b) - x(3600 - b + 100) - step) <= 1);
+    CHECK(std::abs(x(b - 100) - x(b) - step) <= 1);
+  }
+  CHECK(x(3600 - 900) > 2 * kWide);
+  CHECK(x(900) < -kWide);
+  // The stern's the same way round.
+  CHECK(x(1800 - 600) == x(3600 - 600));
+  CHECK(x(1800 + 600) == x(600));
+}
+
+TEST_CASE("Wide bridge: the deck drawn at every bearing, also off the screen", "[wide]") {
+  const Install& install = data_or_synthetic();
+  const GoldenGame game(install);
+  GoldenMissionRig rig(game, hist01(game), wide_screen(), kWide);
+  rig.play("-60,f4,-30");
+  REQUIRE(rig.screen().screen().width() == kWide);
+  const char* dir = std::getenv("SH_SCREENS");
+  // Every 5 degrees round: the deck half off the screen or past its edges
+  // is clipped (the address sanitizer watches the drawing).
+  for (std::int32_t b = 0; b < 3600; b += 50) {
+    rig.mission().player_combat().view_bearing = Angle10(b);
+    rig.frames(2);
+    if (dir != nullptr && *dir != '\0' && b % 100 == 0) {
+      save_bmp(std::filesystem::path(dir) / std::format("wide_bridge_{:03}.bmp", b / 10), rig.screen().screen(),
+               to_palette(rig.screen().dac()));
+    }
+  }
 }
 
 }  // namespace
