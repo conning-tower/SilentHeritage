@@ -7,6 +7,7 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <functional>
 #include <optional>
 #include <set>
 #include <string>
@@ -467,6 +468,50 @@ TEST_CASE("The scale bar has four blocks of five divisions", "[charttools]") {
     }
   }
   CHECK(image.at(257, 3) == 6);
+}
+
+TEST_CASE("The toolbox buttons draw inside their plates, each its own picture", "[charttools]") {
+  // Draws a button `w` x `h` at (4, 4) of a blank image and returns its
+  // pixels, after checking that nothing was drawn outside.
+  const auto drawn = [](int w, int h, const std::function<void(const Viewport&)>& draw) {
+    constexpr std::uint8_t kBlank = 0xff;
+    Image8 image(w + 8, h + 8, kBlank);
+    draw(Viewport::full(image));
+    std::vector<std::uint8_t> pixels;
+    for (int y = 0; y < image.height(); ++y) {
+      for (int x = 0; x < image.width(); ++x) {
+        const bool inside = x >= 4 && x < 4 + w && y >= 4 && y < 4 + h;
+        if (inside) {
+          pixels.push_back(image.at(x, y));
+        } else {
+          INFO("pixel " << x << ", " << y);
+          CHECK(image.at(x, y) == kBlank);
+        }
+      }
+    }
+    return pixels;
+  };
+  for (const bool down : {false, true}) {
+    std::set<std::vector<std::uint8_t>> pictures;
+    for (std::size_t i = 0; i < kChartToolCount; ++i) {
+      pictures.insert(drawn(kChartToolButtonW, kChartToolButtonH, [&](const Viewport& vp) {
+        draw_chart_tool_button(vp, 4, 4, static_cast<ChartTool>(i), down);
+      }));
+    }
+    pictures.insert(drawn(kChartToolButtonW, kChartToolButtonH,
+                          [&](const Viewport& vp) { draw_chart_undo_button(vp, 4, 4, down); }));
+    CHECK(pictures.size() == kChartToolCount + 1);
+    pictures.clear();
+    for (std::size_t i = 0; i < kChartSymbolCount; ++i) {
+      pictures.insert(drawn(kChartSmallButton, kChartSmallButton, [&](const Viewport& vp) {
+        draw_chart_symbol_button(vp, 4, 4, static_cast<ChartSymbol>(i), down);
+      }));
+    }
+    CHECK(pictures.size() == kChartSymbolCount);
+    drawn(kChartSmallButton, kChartSmallButton, [&](const Viewport& vp) { draw_chart_ink_swatch(vp, 4, 4, 1, down); });
+    drawn(kChartToolsWideButtonW, 0x15,
+          [&](const Viewport& vp) { draw_chart_tools_button(vp, 4, 4, kChartToolsWideButtonW, 0x15, down); });
+  }
 }
 
 }  // namespace sh

@@ -6,6 +6,8 @@
 #include <functional>
 #include <limits>
 #include <numbers>
+#include <span>
+#include <string_view>
 #include <utility>
 
 #include "core/byte_reader.h"
@@ -20,7 +22,6 @@ namespace {
 // The greys of the CHART.SHP buttons (CONN.PCX's colours 0..15).
 constexpr std::uint8_t kBlack = 0;
 constexpr std::uint8_t kBevelLight = 0x05;
-constexpr std::uint8_t kEngraveLight = 0x0a;
 constexpr std::uint8_t kPlate = 0x0b;
 constexpr std::uint8_t kBevelDark = 0x0e;
 
@@ -70,20 +71,227 @@ void draw_plate(const Viewport& vp, int x, int y, int w, int h, bool down) {
   ui::draw_line(vp, x + w - 1, y + 1, x + w - 1, y + h - 1, shade);
 }
 
-// Draws the engraved segments `lines` (x0, y0, x1, y1 from the plate's
-// corner): a dark groove lit on its lower right.
-void engrave(const Viewport& vp, int x, int y, std::initializer_list<std::array<int, 4>> lines) {
-  for (const std::array<int, 4>& l : lines) {
-    ui::draw_line(vp, x + l[0] + 1, y + l[1] + 1, x + l[2] + 1, y + l[3] + 1, kEngraveLight);
-  }
-  for (const std::array<int, 4>& l : lines) {
-    ui::draw_line(vp, x + l[0], y + l[1], x + l[2], y + l[3], kBevelDark);
-  }
-}
+// The buttons' pictures, one string per row: each character is the index
+// of a grey of the CHART.SHP buttons (a hex digit), '.' leaves the plate.
+// They follow the original's: dark strokes (0xe), lit on their upper side
+// (0xa), bodies shaded from the upper left (0x5, 0x9 to 0xc, 0xd).
+// The tools' pictures are 17 x 16, inside the buttons' 2-pixel margin, the
+// symbols' 9 x 9.
 
-void engrave_symbol(const Viewport& vp, int x, int y, ChartSymbol symbol) {
-  draw_chart_symbol(vp, x + 1, y + 1, symbol, kEngraveLight);
-  draw_chart_symbol(vp, x, y, symbol, kBevelDark);
+// A pencil, its point at the lower left.
+constexpr std::array<std::string_view, 16> kPencilIcon{
+    ".................",
+    ".............eee.",
+    "............eaace",
+    "...........eaace.",
+    "..........e5dde..",
+    ".........edcee...",
+    "........e59de....",
+    ".......e59de.....",
+    "......e59de......",
+    ".....e59de.......",
+    "....e59de........",
+    "...eaaae.........",
+    "...eaae..........",
+    "...e0............",
+    "...0.............",
+    "................."};
+
+// A course of three legs between four nodes.
+constexpr std::array<std::string_view, 16> kLineIcon{
+    ".................",
+    ".................",
+    ".....eee.....eee.",
+    ".....e5e.....e5e.",
+    ".....eee.....eee.",
+    ".....e.ea....e...",
+    "....aea.ea...ea..",
+    "....e....e..aea..",
+    "....ea...ea.e....",
+    "...aea....eaea...",
+    "...e......eee....",
+    "..aea.....e5e....",
+    ".eee......eee....",
+    ".e5e.............",
+    ".eee.............",
+    "................."};
+
+// A range circle, its centre and a radius.
+constexpr std::array<std::string_view, 16> kCircleIcon{
+    "......aaaaa......",
+    "....aaeeeeeaa....",
+    "...aee.....eea...",
+    "...e........ee...",
+    "..aea......e.ea..",
+    "..e.......e...e..",
+    "..ea...eee....ea.",
+    "..ea...e5e....ea.",
+    "..ea...eee....ea.",
+    "..ea.........aea.",
+    "...e.........e...",
+    "...eaa.....aaea..",
+    "....eeaaaaaee....",
+    "......eeeee......",
+    ".................",
+    "................."};
+
+// A map pin.
+constexpr std::array<std::string_view, 16> kMarkIcon{
+    ".......eee.......",
+    ".....ee999ee.....",
+    "....e9999999e....",
+    "...e999eee99ce...",
+    "...e99e...e9ce...",
+    "...e99e...ecde...",
+    "...e99e...ecde...",
+    "....e99eeecde....",
+    "....e9999cdde....",
+    ".....e99cdde.....",
+    "......e9cde......",
+    ".......ede.......",
+    "........e........",
+    ".................",
+    "......ddddd......",
+    "................."};
+
+// A written sheet with a folded corner.
+constexpr std::array<std::string_view, 16> kNoteIcon{
+    ".................",
+    "..eeeeeeeeee.....",
+    "..e99999999eae...",
+    "..e999999999eae..",
+    "..e999999999eeee.",
+    "..e9dddddd99999e.",
+    "..e999999999999e.",
+    "..e9dddddddddd9e.",
+    "..e999999999999e.",
+    "..e9ddddddddd99e.",
+    "..e999999999999e.",
+    "..e9dddddd99999e.",
+    "..e999999999999e.",
+    "..e999999999999e.",
+    "..eeeeeeeeeeeeee.",
+    "................."};
+
+// Dividers.
+constexpr std::array<std::string_view, 16> kRulerIcon{
+    "........e........",
+    "........e........",
+    ".......eee.......",
+    "......e959e......",
+    "......eeeee......",
+    "......ee.ee......",
+    ".....eea.eea.....",
+    ".....ea...ea.....",
+    "....eea...eea....",
+    "....ea.....ea....",
+    "...eea.....eea...",
+    "...ea.......ea...",
+    "..eea.......eea..",
+    "..ea.........ea..",
+    "..e...........e..",
+    "................."};
+
+// An eraser, half in its sleeve, over a rubbed-out line.
+constexpr std::array<std::string_view, 16> kEraserIcon{
+    ".................",
+    "...........ee....",
+    "..........e9ce...",
+    ".........e9ccce..",
+    "........e9ccccde.",
+    ".......e9ccccdde.",
+    "......eeccccdde..",
+    ".....e59eccdde...",
+    "....e5999edde....",
+    "...e59999cee.....",
+    "..e59999cce......",
+    "..e9999cce.......",
+    "...e99cce........",
+    "....ecce.........",
+    ".....ee..........",
+    ".......dd.ddd...."};
+
+// An arrow turning back.
+constexpr std::array<std::string_view, 16> kUndoIcon{
+    ".................",
+    ".................",
+    ".......eeeee.....",
+    ".....eeeeeeeee...",
+    "....eee.....eee..",
+    "...eee.......eee.",
+    "...ee.........ee.",
+    "...ee.........ee.",
+    "eeeeeeee......ee.",
+    ".eeeeee.......ee.",
+    "..eeee.......eee.",
+    "...ee.......eee..",
+    "..........eeee...",
+    "........eeee.....",
+    ".................",
+    "................."};
+
+constexpr std::array<std::string_view, 9> kCrossIcon{
+    ".........",
+    "ee.....ee",
+    ".ee...ee.",
+    "..ee.ee..",
+    "...eee...",
+    "..ee.ee..",
+    ".ee...ee.",
+    "ee.....ee",
+    "........."};
+
+constexpr std::array<std::string_view, 9> kRingIcon{
+    "...eee...",
+    ".eeeeeee.",
+    ".ee...ee.",
+    "ee.....ee",
+    "ee.....ee",
+    "ee.....ee",
+    ".ee...ee.",
+    ".eeeeeee.",
+    "...eee..."};
+
+constexpr std::array<std::string_view, 9> kTriangleIcon{
+    "....e....",
+    "....e....",
+    "...e.e...",
+    "...e.e...",
+    "..e...e..",
+    "..e...e..",
+    ".e.....e.",
+    ".e.....e.",
+    "eeeeeeeee"};
+
+constexpr std::array<std::string_view, 9> kSquareIcon{
+    "eeeeeeeee",
+    "e.......e",
+    "e.......e",
+    "e.......e",
+    "e.......e",
+    "e.......e",
+    "e.......e",
+    "e.......e",
+    "eeeeeeeee"};
+
+// The symbols' pictures: the marks of `draw_chart_symbol`, the circle smoothed.
+constexpr std::array<std::span<const std::string_view>, kChartSymbolCount> kSymbolIcons{kCrossIcon, kRingIcon,
+                                                                                        kTriangleIcon, kSquareIcon};
+// The tools' pictures, in `ChartTool` order.
+constexpr std::array<std::span<const std::string_view>, kChartToolCount> kToolIcons{
+    kPencilIcon, kLineIcon, kCircleIcon, kMarkIcon, kNoteIcon, kRulerIcon, kEraserIcon};
+
+// Draws the picture `rows` with its upper left corner at (x, y).
+void draw_icon(const Viewport& vp, int x, int y, std::span<const std::string_view> rows) {
+  for (std::size_t r = 0; r < rows.size(); ++r) {
+    for (std::size_t c = 0; c < rows[r].size(); ++c) {
+      const char ch = rows[r][c];
+      if (ch != '.') {
+        const int colour = ch <= '9' ? ch - '0' : ch - 'a' + 10;
+        ui::put_pixel(vp, x + static_cast<int>(c), y + static_cast<int>(r), static_cast<std::uint8_t>(colour));
+      }
+    }
+  }
 }
 
 }  // namespace
@@ -682,72 +890,41 @@ void draw_chart_ruler(const Viewport& vp, const ChartView& view, geom::WorldXZ f
 
 void draw_chart_tool_button(const Viewport& vp, int x, int y, ChartTool tool, bool down) {
   draw_plate(vp, x, y, kChartToolButtonW, kChartToolButtonH, down);
-  const int ox = x + (down ? 1 : 0);
-  const int oy = y + (down ? 1 : 0);
-  switch (tool) {
-    case ChartTool::kPencil:
-      engrave(vp, ox, oy,
-              {{7, 13, 14, 6}, {8, 14, 15, 7}, {14, 6, 15, 7}, {12, 6, 15, 9}, {7, 13, 4, 16}, {8, 14, 4, 16}});
-      break;
-    case ChartTool::kLine:
-      engrave(vp, ox, oy, {{5, 14, 15, 5}, {3, 13, 5, 13}, {3, 15, 5, 15}, {15, 4, 17, 4}, {15, 6, 17, 6}});
-      break;
-    case ChartTool::kCircle:
-      draw_circle(vp, ox + 11, oy + 10, 6, kEngraveLight);
-      draw_circle(vp, ox + 10, oy + 9, 6, kBevelDark);
-      engrave(vp, ox, oy, {{10, 9, 15, 6}, {9, 9, 11, 9}, {10, 8, 10, 10}});
-      break;
-    case ChartTool::kMark:
-      engrave_symbol(vp, ox + 7, oy + 9, ChartSymbol::kCross);
-      engrave_symbol(vp, ox + 13, oy + 9, ChartSymbol::kCircle);
-      break;
-    case ChartTool::kNote:
-      engrave(vp, ox, oy, {{4, 4, 14, 4}, {9, 4, 9, 15}, {7, 15, 11, 15}, {4, 4, 4, 6}, {14, 4, 14, 6}});
-      break;
-    case ChartTool::kRuler:
-      // Dividers: the hinge and two legs.
-      engrave(vp, ox, oy, {{9, 3, 11, 3}, {10, 2, 10, 5}, {9, 5, 5, 16}, {11, 5, 15, 16}, {7, 11, 13, 11}});
-      break;
-    case ChartTool::kEraser:
-      engrave(vp, ox, oy, {{3, 12, 10, 5}, {10, 5, 16, 11}, {16, 11, 9, 18}, {9, 18, 3, 12}, {6, 9, 12, 15}});
-      break;
-  }
+  const int shift = down ? 1 : 0;
+  draw_icon(vp, x + 2 + shift, y + 2 + shift, kToolIcons[static_cast<std::size_t>(tool)]);
 }
 
 void draw_chart_undo_button(const Viewport& vp, int x, int y, bool down) {
   draw_plate(vp, x, y, kChartToolButtonW, kChartToolButtonH, down);
-  const int ox = x + (down ? 1 : 0);
-  const int oy = y + (down ? 1 : 0);
-  // A hooked arrow turning back.
-  engrave(vp, ox, oy,
-          {{5, 9, 8, 6}, {8, 6, 12, 6}, {12, 6, 15, 9}, {15, 9, 15, 11}, {15, 11, 12, 14}, {12, 14, 8, 14},
-           {5, 9, 5, 5}, {5, 9, 9, 9}});
+  const int shift = down ? 1 : 0;
+  draw_icon(vp, x + 2 + shift, y + 2 + shift, kUndoIcon);
 }
 
 void draw_chart_symbol_button(const Viewport& vp, int x, int y, ChartSymbol symbol, bool down) {
   draw_plate(vp, x, y, kChartSmallButton, kChartSmallButton, down);
-  engrave_symbol(vp, x + 7 + (down ? 1 : 0), y + 7 + (down ? 1 : 0), symbol);
+  const int shift = down ? 1 : 0;
+  draw_icon(vp, x + 3 + shift, y + 3 + shift, kSymbolIcons[static_cast<std::size_t>(symbol)]);
 }
 
 void draw_chart_ink_swatch(const Viewport& vp, int x, int y, std::uint8_t colour, bool selected) {
   draw_plate(vp, x, y, kChartSmallButton, kChartSmallButton, selected);
   ui::fill_rect(vp, x + 3, y + 3, x + 12, y + 12, colour);
-  if (selected) {
-    ui::draw_line(vp, x + 2, y + 2, x + 13, y + 2, kBlack);
-    ui::draw_line(vp, x + 2, y + 13, x + 13, y + 13, kBlack);
-    ui::draw_line(vp, x + 2, y + 2, x + 2, y + 13, kBlack);
-    ui::draw_line(vp, x + 13, y + 2, x + 13, y + 13, kBlack);
-  }
+  // The colour sits in a well, framed in black when selected.
+  const std::uint8_t lit = selected ? kBlack : kBevelLight;
+  const std::uint8_t shade = selected ? kBlack : kBevelDark;
+  ui::draw_line(vp, x + 2, y + 2, x + 13, y + 2, shade);
+  ui::draw_line(vp, x + 2, y + 2, x + 2, y + 13, shade);
+  ui::draw_line(vp, x + 3, y + 13, x + 13, y + 13, lit);
+  ui::draw_line(vp, x + 13, y + 3, x + 13, y + 13, lit);
 }
 
 void draw_chart_tools_button(const Viewport& vp, int x, int y, int w, int h, bool down) {
   draw_plate(vp, x, y, w, h, down);
   const int ox = x + (w - kChartToolsButtonW) / 2 + (down ? 1 : 0);
   const int oy = y + (h - kChartToolButtonH) / 2 + (down ? 1 : 0);
-  // The dividers over a pencil.
-  engrave(vp, ox, oy,
-          {{11, 3, 13, 3}, {12, 2, 12, 5}, {11, 5, 7, 16}, {13, 5, 17, 16}, {9, 11, 15, 11}, {22, 13, 33, 5},
-           {23, 14, 34, 6}, {33, 5, 34, 6}, {22, 13, 20, 16}, {23, 14, 20, 16}});
+  // The dividers and the pencil of the toolbox.
+  draw_icon(vp, ox + 3, oy + 2, kRulerIcon);
+  draw_icon(vp, ox + 22, oy + 2, kPencilIcon);
 }
 
 }  // namespace sh

@@ -201,7 +201,7 @@ inline constexpr int kChartToolsWideButtonW = 72;
 // Draws the button of `tool` at (x, y) of `vp`: a grey plate with the tool
 // engraved, sunk when `down`.
 void draw_chart_tool_button(const Viewport& vp, int x, int y, ChartTool tool, bool down);
-// Draws the undo button (a hooked arrow).
+// Draws the undo button (an arrow turning back).
 void draw_chart_undo_button(const Viewport& vp, int x, int y, bool down);
 void draw_chart_symbol_button(const Viewport& vp, int x, int y, ChartSymbol symbol, bool down);
 // Draws an ink swatch, framed when `selected`.
