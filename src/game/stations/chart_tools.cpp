@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <format>
 #include <functional>
 #include <limits>
 #include <numbers>
@@ -29,8 +30,13 @@ constexpr std::uint8_t kBevelDark = 0x0e;
 constexpr double kWorldPerYard = 48.0;
 constexpr double kYardsPerMile = 2025.4;
 
-// The version of the "CHRT" save section.
-constexpr std::uint32_t kSectionVersion = 1;
+// The version of the "CHRT" save section, and the first with the marks'
+// times.
+constexpr std::uint32_t kSectionVersion = 2;
+constexpr std::uint32_t kTimedVersion = 2;
+// A time in the section: none.
+constexpr std::uint16_t kNoTime = 0xffff;
+constexpr std::uint16_t kMinutesPerDay = 24 * 60;
 
 // The inks' colours (6-bit DAC values).
 constexpr std::array<std::array<int, 3>, kChartInkCount> kInkRgb{{{0, 0, 0}, {52, 0, 0}, {63, 54, 0}, {63, 63, 63}}};
@@ -364,13 +370,17 @@ std::vector<std::uint8_t> ChartAnnotations::encode() const {
     const std::size_t length = std::min(a.text.size(), kChartNoteMaxLength);
     out.u8(static_cast<std::uint8_t>(length));
     out.bytes(std::span(reinterpret_cast<const std::uint8_t*>(a.text.data()), length));
+    const std::uint16_t time = a.time.value_or(kNoTime);
+    out.u8(static_cast<std::uint8_t>(time));
+    out.u8(static_cast<std::uint8_t>(time >> 8));
   }
   return out.take();
 }
 
 std::vector<ChartAnnotation> ChartAnnotations::decode(std::span<const std::uint8_t> data) {
   ByteReader in(data, "chart annotations");
-  if (in.u32() != kSectionVersion) {
+  const std::uint32_t version = in.u32();
+  if (version < 1 || version > kSectionVersion) {
     in.fail("unknown chart annotations version");
   }
   const std::uint32_t count = in.u32();
@@ -402,6 +412,15 @@ std::vector<ChartAnnotation> ChartAnnotations::decode(std::span<const std::uint8
     }
     const std::span<const std::uint8_t> text = in.bytes(in.u8());
     a.text.assign(text.begin(), text.end());
+    if (version >= kTimedVersion) {
+      const std::uint16_t time = in.u16();
+      if (time != kNoTime) {
+        if (time >= kMinutesPerDay) {
+          in.fail("bad chart annotation time");
+        }
+        a.time = time;
+      }
+    }
     items.push_back(std::move(a));
   }
   if (!in.at_end()) {
@@ -517,6 +536,9 @@ bool clip(const ScreenMap& map, Point& a, Point& b) {
 }
 
 int px(double v) { return static_cast<int>(std::lround(v)); }
+
+// The left of a mark's time from the mark's point (pixels).
+constexpr int kMarkTimeDx = 7;
 
 // Draws segment `a`-`b`, clipped; returns the visible part when there is
 // one.
@@ -661,10 +683,15 @@ Box draw_one(const Viewport& vp, const ScreenMap& map, const ChartAnnotation& a,
     }
     case ChartAnnotation::Kind::kMark: {
       const Point p = map(a.points[0]);
-      if (p.x > -8 && p.x < map.width() + 8 && p.y > -8 && p.y < map.height() + 8) {
+      const int left = a.time ? -kMarkTimeDx - 32 : -8;
+      if (p.x > left && p.x < map.width() + 8 && p.y > -8 && p.y < map.height() + 8) {
         draw_chart_symbol(vp, px(p.x), px(p.y), a.symbol, colour);
         box.add(px(p.x) - 4, px(p.y) - 4);
         box.add(px(p.x) + 5, px(p.y) + 5);
+        if (a.time) {
+          draw_label(vp, px(p.x) + kMarkTimeDx, px(p.y) - font.height() / 2, font, chart_time_text(*a.time), colour,
+                     box);
+        }
       }
       break;
     }
@@ -776,6 +803,10 @@ void draw_chart_scale_bar(const Viewport& vp, int x, int y, int length) {
   }
 }
 
+std::string chart_time_text(std::uint16_t minutes) {
+  return std::format("{:02}:{:02}", minutes / 60 % 24, minutes % 60);
+}
+
 std::string chart_ruler_text(geom::WorldXZ from, geom::WorldXZ to) {
   return chart_range_text(yards_between(from, to)) + "  " + bearing_text(from, to);
 }
@@ -840,6 +871,12 @@ std::optional<std::size_t> pick_chart_annotation(const ChartView& view, const Ch
       case ChartAnnotation::Kind::kMark: {
         const Point m = map(a.points[0]);
         hit = std::abs(m.x - p.x) <= 4 + radius && std::abs(m.y - p.y) <= 4 + radius;
+        if (a.time) {
+          // Or on its time.
+          const double top = m.y - font.height() / 2;
+          hit = hit || (p.x >= m.x && p.x <= m.x + kMarkTimeDx + font.text_width(chart_time_text(*a.time)) &&
+                        p.y >= top && p.y <= top + font.height());
+        }
         break;
       }
       case ChartAnnotation::Kind::kNote: {
@@ -861,6 +898,11 @@ void draw_chart_ruler(const Viewport& vp, const ChartView& view, geom::WorldXZ f
                       std::uint8_t colour, const Font& font) {
   const ScreenMap map(view);
   const Point pa = map(from);
+  if (from == to) {
+    // Its first end alone.
+    draw_circle(vp, px(pa.x), px(pa.y), 4, colour);
+    return;
+  }
   const Point pb = map(to);
   Point a = pa;
   Point b = pb;

@@ -7,7 +7,8 @@
 // - `draw_chart_annotations`, `draw_chart_ruler`, `pick_chart_annotation`:
 //   their pictures over the map of a `ChartView` and the eraser's hit test;
 // - `chart_range_text`, `chart_ruler_text`: the readings, in yards below 10
-//   nautical miles, else in nautical miles;
+//   nautical miles, else in nautical miles; `chart_time_text`: a mark's
+//   time;
 // - `ChartPointer`: tells a click on the map from a drag;
 // - the toolbox buttons, in the style of the CHART.SHP buttons.
 #pragma once
@@ -50,6 +51,9 @@ struct ChartAnnotation {
   Kind kind = Kind::kStroke;
   ChartInk ink = ChartInk::kBlack;
   ChartSymbol symbol = ChartSymbol::kCross;  // kMark
+  // kMark: the mission's clock when it was put, in minutes after midnight
+  // (0 to 1439), written by it; none for the marks of older saves.
+  std::optional<std::uint16_t> time = std::nullopt;
   std::vector<geom::WorldXZ> points;
   std::string text;  // kNote
 
@@ -75,12 +79,12 @@ class ChartAnnotations {
   // Replaces the items, forgetting the undo step (a restored save).
   void assign(std::vector<ChartAnnotation> items);
 
-  // Returns the "CHRT" save section: u32 version 1, u32 count, then per
+  // Returns the "CHRT" save section: u32 version 2, u32 count, then per
   // item u8 kind, ink and symbol, u32 point count, i32 x and z per point,
-  // u8 text length and the text.
+  // u8 text length and the text, u16 time (0xffff none).
   std::vector<std::uint8_t> encode() const;
-  // Returns the items of a "CHRT" section. Throws `DataError` when it is
-  // truncated or malformed.
+  // Returns the items of a "CHRT" section, of version 2 or of version 1
+  // (no times). Throws `DataError` when it is truncated or malformed.
   static std::vector<ChartAnnotation> decode(std::span<const std::uint8_t> data);
 
  private:
@@ -100,6 +104,9 @@ struct ChartInks {
 // Returns a range as the tools show it: tens of yards below 10 nautical
 // miles ("4210 YDS"), else nautical miles and tenths ("12.4 NM").
 std::string chart_range_text(double yards);
+// Returns a mark's time, `minutes` after midnight, as the clock of the
+// command bar shows hours and minutes ("14:23").
+std::string chart_time_text(std::uint16_t minutes);
 // Returns the range and true bearing from `from` to `to` ("8450 YDS 047"
 // and the degree glyph).
 std::string chart_ruler_text(geom::WorldXZ from, geom::WorldXZ to);
@@ -107,8 +114,8 @@ std::string chart_ruler_text(geom::WorldXZ from, geom::WorldXZ to);
 // Draws `annotations` into `vp` (the map's viewport) as `view` shows them:
 // lines with the range and bearing of each segment long enough to hold it
 // and a polyline's total by its last point, circles with their radius by
-// their north-east point. Parts off the view are clipped. Item `highlight`
-// (the eraser's, -1 none) is framed.
+// their north-east point, marks with their time on their right. Parts off
+// the view are clipped. Item `highlight` (the eraser's, -1 none) is framed.
 void draw_chart_annotations(const Viewport& vp, const ChartView& view, const ChartAnnotations& annotations,
                             const ChartInks& inks, const Font& font, int highlight = -1);
 // Draws `a` alone as `draw_chart_annotations` does (the drawing in
@@ -117,13 +124,14 @@ void draw_chart_annotation(const Viewport& vp, const ChartView& view, const Char
                            const Font& font);
 
 // Returns the newest annotation drawn within `radius` pixels of viewport
-// pixel (`x`, `y`): near a line, a circle's outline, a mark, or a note's
-// point or text.
+// pixel (`x`, `y`): near a line, a circle's outline, a mark or its time,
+// or a note's point or text.
 std::optional<std::size_t> pick_chart_annotation(const ChartView& view, const ChartAnnotations& annotations,
                                                  const Font& font, int x, int y, int radius = 4);
 
 // Draws the ruler from `from` to `to`: a dashed line between two rings,
-// its reading boxed by its middle.
+// its reading boxed by its middle; only the ring of `from` when `to` is
+// the same point.
 void draw_chart_ruler(const Viewport& vp, const ChartView& view, geom::WorldXZ from, geom::WorldXZ to,
                       std::uint8_t colour, const Font& font);
 

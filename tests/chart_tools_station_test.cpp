@@ -522,13 +522,18 @@ TEST_CASE("The chart tools draw, erase and undo", "[charttools]") {
   REQUIRE(chart.panel() == ChartPanel::kTools);
   const auto& items = chart.annotations().items();
 
-  // A mark where clicked, no target.
+  // A mark where clicked, at the mission's time, no target.
   rig.click(tool_button(ChartTool::kMark)[0], tool_button(ChartTool::kMark)[1]);
   CHECK(chart.tool() == ChartTool::kMark);
+  const GameClock& clock = rig.mission().sim().clock();
+  const std::uint16_t minutes_before = static_cast<std::uint16_t>(clock.hour() * 60 + clock.minute());
   rig.click(450, 100);
   REQUIRE(items.size() == 1);
   CHECK(items[0].kind == Kind::kMark);
   CHECK(items[0].points[0] == world_at(chart, 450, 100));
+  REQUIRE(items[0].time);
+  CHECK(*items[0].time >= minutes_before);
+  CHECK(*items[0].time <= clock.hour() * 60 + clock.minute());
   CHECK(rig.mission().player_combat().tdc.target() == nullptr);
 
   // A pencil stroke along the drag.
@@ -573,7 +578,7 @@ TEST_CASE("The chart tools draw, erase and undo", "[charttools]") {
   REQUIRE(chart.ruler());
   CHECK((*chart.ruler())[1] == world_at(chart, 420, 229));
   rig.save("charttools_8x");
-  rig.click(500, 350);
+  rig.key(ui::kKeyEsc);
   CHECK_FALSE(chart.ruler());
 
   // The eraser frames, then removes, what is under it.
@@ -610,7 +615,7 @@ TEST_CASE("The line tool's drags place its points: from its end, else a new line
   drag(rig, {100, 50}, {200, 50});
   REQUIRE(chart.draft());
   CHECK(chart.draft()->points == std::vector{world_at(chart, 100, 50), world_at(chart, 200, 50)});
-  CHECK(chart.tools_prompt()[0] == "CLICK OR DRAG THE NEXT POINT");
+  CHECK(chart.tools_prompt()[0] == "CLICK NEXT POINT OR DRAG FROM LAST");
   // From its end: the next point.
   drag(rig, {201, 51}, {200, 120});
   REQUIRE(chart.draft());
@@ -628,6 +633,186 @@ TEST_CASE("The line tool's drags place its points: from its end, else a new line
   CHECK_FALSE(chart.draft());
 }
 
+TEST_CASE("Circles and measures are clicked or tapped at both ends, or dragged", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kTools);
+  const auto& items = chart.annotations().items();
+  const fx::Vec3 sub = rig.mission().player().position();
+  look(chart, sub.x, sub.z, 8);
+  rig.frames(1);
+
+  // The circle's edge follows the pointer from the click of its centre.
+  chart.select_tool(ChartTool::kCircle);
+  CHECK(chart.tools_prompt()[0] == "CLICK THE CENTRE, OR DRAG FROM IT");
+  rig.click(300, 200);
+  REQUIRE(chart.draft());
+  CHECK(chart.draft()->points[0] == world_at(chart, 300, 200));
+  CHECK(chart.tools_prompt() == std::array<std::string, 2>{"CLICK THE EDGE OF THE CIRCLE", "RIGHT CLICK TO CANCEL"});
+  rig.gui.mouse().update(330, 240, 0, 0);
+  rig.frames(2);
+  const std::vector<std::uint8_t> following = screen_bytes(rig);
+  rig.gui.mouse().update(340, 200, 0, 0);
+  rig.frames(2);
+  CHECK(screen_bytes(rig) != following);
+  rig.save("charttools_circle_following");
+  rig.click(350, 200);
+  CHECK_FALSE(chart.draft());
+  REQUIRE(items.size() == 1);
+  CHECK(items[0].kind == Kind::kCircle);
+  CHECK(items[0].points == std::vector{world_at(chart, 300, 200), world_at(chart, 350, 200)});
+  // A right click, or a click on the centre, cancels it.
+  rig.click(100, 100);
+  REQUIRE(chart.draft());
+  right_click(rig, 150, 100);
+  CHECK_FALSE(chart.draft());
+  CHECK(chart.panel() == ChartPanel::kTools);
+  rig.click(100, 100);
+  rig.click(101, 102);
+  CHECK_FALSE(chart.draft());
+  CHECK(items.size() == 1);
+  // A drag after the click draws the dragged circle.
+  rig.click(100, 100);
+  drag(rig, {200, 280}, {240, 280});
+  CHECK_FALSE(chart.draft());
+  REQUIRE(items.size() == 2);
+  CHECK(items[1].points == std::vector{world_at(chart, 200, 280), world_at(chart, 240, 280)});
+
+  // The measure: its end follows the pointer until the second click.
+  chart.select_tool(ChartTool::kRuler);
+  rig.click(320, 229);
+  REQUIRE(chart.ruler());
+  CHECK(chart.tools_prompt()[0] == "CLICK THE OTHER END TO MEASURE");
+  rig.gui.mouse().update(380, 260, 0, 0);
+  rig.frames(2);
+  rig.click(420, 229);
+  REQUIRE(chart.ruler());
+  CHECK(*chart.ruler() == std::array{world_at(chart, 320, 229), world_at(chart, 420, 229)});
+  CHECK(chart.tools_prompt()[0] == "CLICK ONE END, OR DRAG FROM IT");
+  CHECK(items.size() == 2);
+  // Esc removes it, then closes the toolbox.
+  rig.key(ui::kKeyEsc);
+  CHECK_FALSE(chart.ruler());
+  CHECK(chart.panel() == ChartPanel::kTools);
+  // A click on the first end cancels it; a right click too.
+  rig.click(320, 229);
+  rig.click(320, 229);
+  CHECK_FALSE(chart.ruler());
+  rig.click(320, 229);
+  right_click(rig, 400, 229);
+  CHECK_FALSE(chart.ruler());
+  CHECK(chart.panel() == ChartPanel::kTools);
+
+  // With a finger: a tap at each end, no pointer to follow.
+  rig.gui.mouse().set_edges(ui::PointerEdges::kNone);
+  chart.select_tool(ChartTool::kCircle);
+  CHECK(chart.tools_prompt()[0] == "TAP THE CENTRE, OR DRAG FROM IT");
+  rig.click(400, 150);
+  CHECK(chart.tools_prompt() ==
+        std::array<std::string, 2>{"TAP THE EDGE OF THE CIRCLE", "TAP THE CENTRE AGAIN TO CANCEL"});
+  rig.click(430, 150);
+  REQUIRE(items.size() == 3);
+  CHECK(items[2].points == std::vector{world_at(chart, 400, 150), world_at(chart, 430, 150)});
+}
+
+TEST_CASE("The measure goes once another drawing begins; the prompt keeps up", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kTools);
+  const fx::Vec3 sub = rig.mission().player().position();
+  look(chart, sub.x, sub.z, 8);
+  rig.frames(1);
+  // The pixels of the prompt's two fields on the screen (not the row
+  // between them, which the synthetic font's glyphs overflow into).
+  const auto prompt_pixels = [&rig] {
+    std::vector<std::uint8_t> p;
+    for (int line = 0; line < 2; ++line) {
+      const int top = kPanelY + 0x7c + line * 0xc;
+      for (int y = top; y <= top + 0xa; ++y) {
+        for (int x = kPanelX + 8; x <= kPanelX + 0x11f; ++x) {
+          p.push_back(rig.screen_image.at(x, y));
+        }
+      }
+    }
+    return p;
+  };
+  const auto measure = [&rig, &chart] {
+    chart.select_tool(ChartTool::kRuler);
+    rig.frames(1);
+    drag(rig, {320, 229}, {420, 229});
+    REQUIRE(chart.ruler());
+  };
+  std::array<std::vector<std::uint8_t>, kChartToolCount> prompts;
+  for (std::size_t i = 0; i < kChartToolCount; ++i) {
+    chart.select_tool(static_cast<ChartTool>(i));
+    rig.frames(2);
+    prompts[i] = prompt_pixels();
+  }
+  CHECK(prompts[static_cast<std::size_t>(ChartTool::kPencil)] != prompts[static_cast<std::size_t>(ChartTool::kRuler)]);
+
+  // The measure is no reading in the prompt, which shows each tool's
+  // instructions after it.
+  measure();
+  rig.frames(1);
+  CHECK(prompt_pixels() == prompts[static_cast<std::size_t>(ChartTool::kRuler)]);
+  CHECK(chart.tools_prompt()[0] == "CLICK ONE END, OR DRAG FROM IT");
+  for (std::size_t i = 0; i < kChartToolCount; ++i) {
+    INFO("tool " << i);
+    chart.select_tool(static_cast<ChartTool>(i));
+    rig.frames(2);
+    CHECK(prompt_pixels() == prompts[i]);
+  }
+  // Its click and move: the other end's prompt, then the tool's again.
+  chart.select_tool(ChartTool::kRuler);
+  rig.frames(1);
+  rig.click(320, 229);
+  rig.frames(1);
+  CHECK(prompt_pixels() != prompts[static_cast<std::size_t>(ChartTool::kRuler)]);
+  rig.click(420, 229);
+  rig.frames(1);
+  CHECK(prompt_pixels() == prompts[static_cast<std::size_t>(ChartTool::kRuler)]);
+
+  // Each tool's first drawing removes it; another tool alone does not.
+  measure();
+  chart.select_tool(ChartTool::kMark);
+  CHECK(chart.ruler());
+  drag(rig, {100, 100}, {150, 120});  // a scroll
+  CHECK(chart.ruler());
+  rig.click(450, 100);
+  CHECK_FALSE(chart.ruler());
+  measure();
+  chart.select_tool(ChartTool::kPencil);
+  drag(rig, {100, 50}, {200, 90});
+  CHECK_FALSE(chart.ruler());
+  measure();
+  chart.select_tool(ChartTool::kLine);
+  rig.click(100, 250);
+  CHECK_FALSE(chart.ruler());
+  chart.select_tool(ChartTool::kCircle);
+  CHECK(chart.annotations().items().size() == 2);
+  measure();
+  chart.select_tool(ChartTool::kCircle);
+  rig.click(100, 250);
+  CHECK_FALSE(chart.ruler());
+  chart.select_tool(ChartTool::kEraser);
+  measure();
+  chart.select_tool(ChartTool::kEraser);
+  rig.click(600, 400);
+  CHECK_FALSE(chart.ruler());
+  CHECK(chart.annotations().items().size() == 2);
+  // Using the ruler again replaces it.
+  measure();
+  rig.click(200, 200);
+  REQUIRE(chart.ruler());
+  CHECK((*chart.ruler())[0] == world_at(chart, 200, 200));
+}
+
 TEST_CASE("The toolbox's prompt fits its two lines, for the mouse and for a finger", "[charttools]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);
@@ -638,15 +823,7 @@ TEST_CASE("The toolbox's prompt fits its two lines, for the mouse and for a fing
   constexpr int kWidth = 0x11f - 8 + 1;
   for (const ui::PointerEdges edges : {ui::PointerEdges::kBand, ui::PointerEdges::kNone}) {
     rig.gui.mouse().set_edges(edges);
-    for (std::size_t i = 0; i < kChartToolCount; ++i) {
-      chart.select_tool(static_cast<ChartTool>(i));
-      if (static_cast<ChartTool>(i) == ChartTool::kLine) {
-        for (const std::string& line : chart.tools_prompt()) {
-          CHECK(font.text_width(line) <= kWidth);
-        }
-        rig.click(400, 100);
-        REQUIRE(chart.draft());
-      }
+    const auto check = [&] {
       for (const std::string& line : chart.tools_prompt()) {
         CAPTURE(line);
         CHECK(font.text_width(line) <= kWidth);
@@ -655,6 +832,17 @@ TEST_CASE("The toolbox's prompt fits its two lines, for the mouse and for a fing
                                                                   : std::array{"TAP", "FINGER"}) {
           CHECK(line.find(word) == std::string::npos);
         }
+      }
+    };
+    for (std::size_t i = 0; i < kChartToolCount; ++i) {
+      const auto tool = static_cast<ChartTool>(i);
+      chart.select_tool(tool);
+      check();
+      if (tool == ChartTool::kLine || tool == ChartTool::kCircle || tool == ChartTool::kRuler) {
+        // After the first click.
+        rig.click(400, 100);
+        REQUIRE((chart.draft() || chart.ruler()));
+        check();
       }
     }
   }

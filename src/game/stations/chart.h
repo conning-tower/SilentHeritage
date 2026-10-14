@@ -137,12 +137,14 @@ class ChartStation : public Station, private PanelSuspender {
   const ChartAnnotations& annotations() const { return annotations_; }
   // Replaces the annotations (a restored save).
   void restore_annotations(std::vector<ChartAnnotation> items);
-  // The ruler shown (from, to), if any.
+  // The ruler shown (from, to), if any; `to` is `from` until the click of
+  // its other end.
   const std::optional<std::array<geom::WorldXZ, 2>>& ruler() const { return ruler_; }
-  // The line being drawn with the line tool, if any.
+  // The stroke, line or circle being drawn, if any (a circle clicked has
+  // its centre twice until the click of its edge).
   const std::optional<ChartAnnotation>& draft() const { return draft_; }
   // Returns the toolbox's two prompt lines: how to use the tool, with the
-  // mouse or on a touch screen, or the ruler's reading.
+  // mouse or on a touch screen.
   std::array<std::string, 2> tools_prompt() const;
   // Zooms continuously by `notches` of the wheel (four double the zoom,
   // negative zooms out) about viewport pixel (`x`, `y`), which keeps its
@@ -199,6 +201,9 @@ class ChartStation : public Station, private PanelSuspender {
   // The reach of a click on a drawing or on the line's last point (wider
   // for a finger).
   int pick_radius() const;
+  // Returns whether viewport pixel (`x`, `y`) is within the pick radius of
+  // world point `p`.
+  bool on_point(geom::WorldXZ p, std::int32_t x, std::int32_t y) const;
   // Returns whether viewport pixel (`x`, `y`) is on the last point of the
   // line being drawn.
   bool on_line_end(std::int32_t x, std::int32_t y) const;
@@ -227,7 +232,11 @@ class ChartStation : public Station, private PanelSuspender {
   bool pinch();
   // A drag on the map: the tool's, else the scroll.
   void drag_map(ChartPointer::Step step, std::int32_t x, std::int32_t y);
-  void finish_line();
+  // Ends the drawing in progress: keeps the line being drawn when it has
+  // two points, drops a circle or a measure awaiting its second click.
+  void finish_drawing();
+  // Removes the ruler's measure (another annotation begins).
+  void drop_ruler();
   void ask_note(geom::WorldXZ at);
   // Draws the annotations under the overlays / the ruler and the drawing in
   // progress over them.
@@ -388,6 +397,9 @@ class ChartStation : public Station, private PanelSuspender {
   bool panning_ = false;
   // The line tool's drag under way, which places the line's next point.
   bool extending_ = false;
+  // The circle placed by a click (`draft_`) or the measure (`ruler_`)
+  // awaits the click of its edge or other end, following the pointer.
+  bool following_ = false;
   // The pinch under way: the fingers' distance and the zoom when it began,
   // and the chart point under their middle.
   struct Pinch {

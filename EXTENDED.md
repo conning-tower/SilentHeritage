@@ -13,11 +13,13 @@ kept with it.
 - **Crew log:** click the message strip at the bottom of the screen, or press
   L, to read the mission's last 100 crew messages with their game times.
 - **Chart tools:** the chart's TOOLS button opens a toolbox to draw on the
-  map (pencil, lines labelled with range and bearing, range circles, marks,
-  notes, a ruler, an eraser and undo), and the drawings follow the map at
-  every zoom and are kept with saved missions. A line's points are clicked
-  or tapped one by one, or dragged from its end. The toolbox tells how to
-  use each tool, with the mouse or a finger. The tool's cross pointer shows
+  map (pencil, lines labelled with range and bearing, range circles, marks
+  with the time they were put, notes, a ruler, an eraser and undo), and the
+  drawings follow the map at every zoom and are kept with saved missions. A
+  line's points are clicked or tapped one by one, or dragged from its end;
+  a circle or a measure is dragged, or clicked or tapped at both ends. The
+  ruler's measure goes as soon as another drawing begins. The toolbox tells
+  how to use each tool, with the mouse or a finger. The tool's cross pointer shows
   only over the map, the ordinary pointer over the toolbox and the command
   bar.
 - **Chart scrolling and zoom:** drag the chart with the mouse or a finger to

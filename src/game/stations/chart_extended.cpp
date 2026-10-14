@@ -197,9 +197,6 @@ std::unique_ptr<ui::Dialog> ChartStation::make_tools_panel() {
 }
 
 std::array<std::string, 2> ChartStation::tools_prompt() const {
-  if (ruler_) {
-    return {"RANGE AND BEARING", chart_ruler_text((*ruler_)[0], (*ruler_)[1])};
-  }
   const bool touch = touch_screen();
   const std::string click = touch ? "TAP" : "CLICK";
   // How to scroll the chart when the tool takes the drags.
@@ -209,18 +206,26 @@ std::array<std::string, 2> ChartStation::tools_prompt() const {
       return {"DRAG TO DRAW ON THE CHART", scroll};
     case ChartTool::kLine:
       if (draft_) {
-        return {click + " OR DRAG THE NEXT POINT",
+        // A drag elsewhere starts another line.
+        return {click + " NEXT POINT OR DRAG FROM LAST",
                 touch ? "TAP THE LAST POINT TO END" : "RIGHT CLICK OR CLICK THE LAST TO END"};
       }
       return {click + " THE FIRST POINT, OR DRAG", scroll};
     case ChartTool::kCircle:
-      return {"DRAG FROM THE CENTRE TO THE EDGE", scroll};
+      if (following_) {
+        return {click + " THE EDGE OF THE CIRCLE", touch ? "TAP THE CENTRE AGAIN TO CANCEL" : "RIGHT CLICK TO CANCEL"};
+      }
+      return {click + " THE CENTRE, OR DRAG FROM IT", scroll};
     case ChartTool::kMark:
       return {click + " TO PUT THE MARK", "DRAG TO SCROLL THE CHART"};
     case ChartTool::kNote:
       return {click + " WHERE THE NOTE GOES", "DRAG TO SCROLL THE CHART"};
     case ChartTool::kRuler:
-      return {"DRAG FROM ONE POINT TO ANOTHER", scroll};
+      if (following_) {
+        return {click + " THE OTHER END TO MEASURE",
+                touch ? "TAP THE FIRST END TO CANCEL" : "RIGHT CLICK TO CANCEL"};
+      }
+      return {click + " ONE END, OR DRAG FROM IT", scroll};
     case ChartTool::kEraser:
       return {touch ? "TAP A DRAWING TO ERASE IT" : "CLICK WHAT TO ERASE (FRAMED)", "DRAG TO SCROLL THE CHART"};
   }
@@ -239,15 +244,15 @@ bool ChartStation::touch_screen() const { return env_.gui.mouse().edges() == ui:
 
 int ChartStation::pick_radius() const { return touch_screen() ? kTouchPickRadius : kPickRadius; }
 
+bool ChartStation::on_point(geom::WorldXZ p, std::int32_t x, std::int32_t y) const {
+  std::int32_t px = 0;
+  std::int32_t py = 0;
+  return view_.point_on_screen(p.x, p.z, px, py) && std::abs(px - x) <= pick_radius() &&
+         std::abs(py - y) <= pick_radius();
+}
+
 bool ChartStation::on_line_end(std::int32_t x, std::int32_t y) const {
-  if (!draft_ || draft_->kind != ChartAnnotation::Kind::kLine) {
-    return false;
-  }
-  const geom::WorldXZ last = draft_->points.back();
-  std::int32_t lx = 0;
-  std::int32_t ly = 0;
-  return view_.point_on_screen(last.x, last.z, lx, ly) && std::abs(lx - x) <= pick_radius() &&
-         std::abs(ly - y) <= pick_radius();
+  return draft_ && draft_->kind == ChartAnnotation::Kind::kLine && on_point(draft_->points.back(), x, y);
 }
 
 // --- Commands ----------------------------------------------------------------
@@ -261,7 +266,7 @@ void ChartStation::start_annotating() {
 }
 
 void ChartStation::exit_annotating() {
-  finish_line();
+  finish_drawing();
   panels_.request(static_cast<int>(ChartPanel::kMap));
   std::swap(click_mode_, saved_click_mode_);
   set_cursor(kDefaultCursor);
@@ -273,7 +278,7 @@ void ChartStation::exit_annotating() {
 }
 
 void ChartStation::select_tool(ChartTool tool) {
-  finish_line();
+  finish_drawing();
   tool_ = tool;
   if (highlight_ != -1) {
     highlight_ = -1;
@@ -287,6 +292,9 @@ void ChartStation::select_ink(ChartInk ink) { ink_ = ink; }
 void ChartStation::select_symbol(ChartSymbol symbol) { symbol_ = symbol; }
 
 void ChartStation::undo_annotation() {
+  if (following_) {
+    finish_drawing();
+  }
   draft_.reset();
   if (annotations_.undo()) {
     highlight_ = -1;
@@ -295,7 +303,7 @@ void ChartStation::undo_annotation() {
 }
 
 void ChartStation::clear_annotations() {
-  finish_line();
+  finish_drawing();
   if (annotations_.empty()) {
     return;
   }
@@ -310,6 +318,9 @@ void ChartStation::clear_annotations() {
 
 void ChartStation::restore_annotations(std::vector<ChartAnnotation> items) {
   annotations_.assign(std::move(items));
+  if (following_) {
+    finish_drawing();
+  }
   draft_.reset();
   highlight_ = -1;
   dirty_ = true;
@@ -377,11 +388,15 @@ bool ChartStation::pinch() {
 // --- The pointer ---------------------------------------------------------------
 
 bool ChartStation::tools_event(const ui::Event& event) {
-  // Esc or a right click ends the line being drawn, else the toolbox.
+  // Esc or a right click ends the line being drawn or cancels the circle
+  // or measure awaiting its second click, else removes the measure, else
+  // closes the toolbox.
   if (!zoom_box_.is_open() && panel() == ChartPanel::kTools &&
       ((event.is_key() && event.key == ui::kKeyEsc) || (event.flags & ui::kEventRightUp) != 0)) {
-    if (draft_) {
-      finish_line();
+    if (draft_ || following_) {
+      finish_drawing();
+    } else if (ruler_) {
+      drop_ruler();
     } else {
       exit_annotating();
     }
@@ -444,8 +459,9 @@ void ChartStation::update_map_pointer() {
       highlight_ = highlight;
       dirty_ = true;
     }
-    // The line tool's rubber band follows the pointer.
-    if (draft_ && tool_ == ChartTool::kLine && tools_mouse_ != std::array{x, y}) {
+    // The line tool's rubber band, the circle's edge and the measure's end
+    // follow the pointer.
+    if (((draft_ && tool_ == ChartTool::kLine) || following_) && tools_mouse_ != std::array{x, y}) {
       force_overlays_ = true;
     }
   }
@@ -469,9 +485,19 @@ void ChartStation::drag_map(ChartPointer::Step step, std::int32_t x, std::int32_
     const bool tool = pointer_.button() == ui::kButtonLeft && click_mode_ == ChartClickMode::kAnnotate;
     extending_ = tool && tool_ == ChartTool::kLine;
     panning_ = !tool || (!drag_tool(tool_) && !extending_);
+    if (!panning_) {
+      if (tool_ != ChartTool::kRuler) {
+        drop_ruler();
+      }
+      if (following_) {
+        // The drag replaces the circle or measure clicked.
+        following_ = false;
+        tools_prompt_changed();
+      }
+    }
     if (extending_ && !on_line_end(pointer_.start_x(), pointer_.start_y())) {
       // Away from the line's end: a new line from the press.
-      finish_line();
+      finish_drawing();
       const std::array<std::int32_t, 2> s = view_.screen_to_world(pointer_.start_x(), pointer_.start_y());
       draft_ = ChartAnnotation{.kind = ChartAnnotation::Kind::kLine, .ink = ink_, .points = {{s[0], s[1]}}, .text = {}};
       tools_prompt_changed();
@@ -552,15 +578,15 @@ void ChartStation::drag_map(ChartPointer::Step step, std::int32_t x, std::int32_
     }
     draft_.reset();
   }
-  if (ruler_) {
-    tools_prompt_changed();
-  }
   force_overlays_ = true;
 }
 
 void ChartStation::tools_click(std::int32_t x, std::int32_t y) {
   const std::array<std::int32_t, 2> p = view_.screen_to_world(x, y);
   const geom::WorldXZ at{p[0], p[1]};
+  if (tool_ != ChartTool::kRuler && tool_ != ChartTool::kPencil) {
+    drop_ruler();
+  }
   switch (tool_) {
     case ChartTool::kLine: {
       if (!draft_) {
@@ -568,7 +594,7 @@ void ChartStation::tools_click(std::int32_t x, std::int32_t y) {
       } else {
         // A click on the last point ends the line.
         if (on_line_end(x, y)) {
-          finish_line();
+          finish_drawing();
         } else {
           draft_->points.push_back(at);
         }
@@ -577,19 +603,49 @@ void ChartStation::tools_click(std::int32_t x, std::int32_t y) {
       force_overlays_ = true;
       break;
     }
-    case ChartTool::kMark:
-      annotations_.add({.kind = ChartAnnotation::Kind::kMark, .ink = ink_, .symbol = symbol_, .points = {at}, .text = {}});
+    case ChartTool::kCircle:
+      if (!following_) {
+        draft_ = ChartAnnotation{.kind = ChartAnnotation::Kind::kCircle, .ink = ink_, .points = {at, at}, .text = {}};
+        following_ = true;
+      } else if (draft_) {
+        // The edge; on the centre, no circle.
+        following_ = false;
+        if (!on_point(draft_->points[0], x, y)) {
+          draft_->points[1] = at;
+          annotations_.add(std::move(*draft_));
+          dirty_ = true;
+        }
+        draft_.reset();
+      }
+      tools_prompt_changed();
+      force_overlays_ = true;
+      break;
+    case ChartTool::kMark: {
+      const GameClock& clock = env_.mission.sim().clock();
+      annotations_.add({.kind = ChartAnnotation::Kind::kMark, .ink = ink_, .symbol = symbol_,
+                        .time = static_cast<std::uint16_t>(clock.hour() * 60 + clock.minute()), .points = {at},
+                        .text = {}});
       dirty_ = true;
       break;
+    }
     case ChartTool::kNote:
       ask_note(at);
       break;
     case ChartTool::kRuler:
-      if (ruler_) {
-        ruler_.reset();
-        tools_prompt_changed();
-        force_overlays_ = true;
+      if (!following_) {
+        ruler_ = std::array{at, at};
+        following_ = true;
+      } else if (ruler_) {
+        // The other end; on the first, no measure.
+        following_ = false;
+        if (on_point((*ruler_)[0], x, y)) {
+          ruler_.reset();
+        } else {
+          (*ruler_)[1] = at;
+        }
       }
+      tools_prompt_changed();
+      force_overlays_ = true;
       break;
     case ChartTool::kEraser:
       if (const std::optional<std::size_t> i =
@@ -600,12 +656,22 @@ void ChartStation::tools_click(std::int32_t x, std::int32_t y) {
       }
       break;
     case ChartTool::kPencil:
-    case ChartTool::kCircle:
       break;
   }
 }
 
-void ChartStation::finish_line() {
+void ChartStation::finish_drawing() {
+  if (following_) {
+    following_ = false;
+    if (draft_) {
+      draft_.reset();
+    } else {
+      ruler_.reset();
+    }
+    tools_prompt_changed();
+    force_overlays_ = true;
+    return;
+  }
   if (!draft_ || draft_->kind != ChartAnnotation::Kind::kLine) {
     return;
   }
@@ -616,6 +682,13 @@ void ChartStation::finish_line() {
   draft_.reset();
   tools_prompt_changed();
   force_overlays_ = true;
+}
+
+void ChartStation::drop_ruler() {
+  if (ruler_) {
+    ruler_.reset();
+    force_overlays_ = true;
+  }
 }
 
 void ChartStation::ask_note(geom::WorldXZ at) {
@@ -657,18 +730,28 @@ void ChartStation::draw_annotations() {
 void ChartStation::draw_tool_overlays() {
   Image8& screen = env_.screen();
   const Viewport vp{&screen, view_.x0(), view_.y0(), view_.x1(), view_.y1()};
+  const ui::Mouse& mouse = env_.gui.mouse();
+  const std::array<std::int32_t, 2> p = view_.screen_to_world(mouse.x() - view_.x0(), mouse.y() - view_.y0());
+  const geom::WorldXZ pointer{p[0], p[1]};
+  // The pointer is followed while over the map (a finger's only while it
+  // drags).
+  const bool hover = !panels_.hovered() && !touch_screen();
   if (draft_) {
     ChartAnnotation shown = *draft_;
-    if (shown.kind == ChartAnnotation::Kind::kLine && !panels_.hovered() && (extending_ || !touch_screen())) {
-      // The rubber band to the pointer (a finger's only while it drags).
-      const ui::Mouse& mouse = env_.gui.mouse();
-      const std::array<std::int32_t, 2> p = view_.screen_to_world(mouse.x() - view_.x0(), mouse.y() - view_.y0());
-      shown.points.push_back({p[0], p[1]});
+    if (shown.kind == ChartAnnotation::Kind::kLine && !panels_.hovered() && (extending_ || hover)) {
+      shown.points.push_back(pointer);
+    } else if (following_) {
+      // The circle to the pointer, else its centre.
+      if (hover) {
+        shown.points[1] = pointer;
+      } else {
+        shown.points.resize(1);
+      }
     }
     if (shown.points.size() >= 2) {
       draw_chart_annotation(vp, view_, shown, inks_, env_.assets.font1);
     } else {
-      // The first point of a line, the pointer over the panel.
+      // A line's first point or a circle's centre alone.
       std::int32_t x = 0;
       std::int32_t y = 0;
       if (view_.point_on_screen(shown.points[0].x, shown.points[0].z, x, y)) {
@@ -677,7 +760,8 @@ void ChartStation::draw_tool_overlays() {
     }
   }
   if (ruler_) {
-    draw_chart_ruler(vp, view_, (*ruler_)[0], (*ruler_)[1], inks_[ChartInk::kWhite], env_.assets.font1);
+    const geom::WorldXZ end = following_ && hover ? pointer : (*ruler_)[1];
+    draw_chart_ruler(vp, view_, (*ruler_)[0], end, inks_[ChartInk::kWhite], env_.assets.font1);
   }
 }
 

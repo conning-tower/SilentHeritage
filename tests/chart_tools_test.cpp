@@ -178,15 +178,20 @@ TEST_CASE("Chart annotations round-trip through their save section", "[charttool
   a.add({.kind = Kind::kCircle, .ink = ChartInk::kRed, .symbol = ChartSymbol::kCross, .points = {{10, 10}, {20, 10}},
          .text = {}});
   a.add({.kind = Kind::kMark, .ink = ChartInk::kBlack, .symbol = ChartSymbol::kSquare, .points = {{8, 9}}, .text = {}});
+  a.add({.kind = Kind::kMark, .ink = ChartInk::kRed, .symbol = ChartSymbol::kCross, .time = 14 * 60 + 23,
+         .points = {{8, 9}}, .text = {}});
   a.add({.kind = Kind::kNote, .ink = ChartInk::kRed, .symbol = ChartSymbol::kCross, .points = {{8, 9}},
          .text = "Convoy at 0412"});
   const std::vector<std::uint8_t> data = a.encode();
   CHECK(ChartAnnotations::decode(data) == a.items());
 
-  // The layout: version, count, then the first item's kind, ink, symbol.
+  // The layout: version, count, then the first item's kind, ink, symbol;
+  // the last item's time (none, a note) last.
   REQUIRE(data.size() > 11);
-  CHECK(data[0] == 1);
-  CHECK(data[4] == 5);
+  CHECK(data[0] == 2);
+  CHECK(data[4] == 6);
+  CHECK(data[data.size() - 2] == 0xff);
+  CHECK(data.back() == 0xff);
   CHECK(data[8] == static_cast<std::uint8_t>(Kind::kStroke));
   CHECK(data[9] == static_cast<std::uint8_t>(ChartInk::kYellow));
 
@@ -199,6 +204,20 @@ TEST_CASE("Chart annotations round-trip through their save section", "[charttool
   CHECK(ChartAnnotations::decode(ChartAnnotations{}.encode()).empty());
 }
 
+TEST_CASE("Chart sections of version 1 load with no times", "[charttools]") {
+  // A mark and a line, written before the marks' times.
+  const std::vector<std::uint8_t> v1{1, 0, 0, 0, 2, 0, 0, 0,                 // version, count
+                                     3, 1, 2, 1, 0, 0, 0, 8, 0, 0, 0, 9, 0, 0, 0, 0,  // the mark
+                                     1, 0, 0, 2, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0,     // the line
+                                     3, 0, 0, 0, 4, 0, 0, 0, 0};
+  const std::vector<ChartAnnotation> items = ChartAnnotations::decode(v1);
+  REQUIRE(items.size() == 2);
+  CHECK(items[0] == ChartAnnotation{.kind = Kind::kMark, .ink = ChartInk::kRed, .symbol = ChartSymbol::kTriangle,
+                                    .points = {{8, 9}}, .text = {}});
+  CHECK_FALSE(items[0].time);
+  CHECK(items[1] == line({{1, 2}, {3, 4}}));
+}
+
 TEST_CASE("A damaged chart section is refused", "[charttools]") {
   ChartAnnotations a;
   a.add(line({{1, 2}, {3, 4}}));
@@ -208,7 +227,13 @@ TEST_CASE("A damaged chart section is refused", "[charttools]") {
     CHECK_THROWS_AS(ChartAnnotations::decode(std::span(good).first(n)), DataError);
   }
   std::vector<std::uint8_t> bad = good;
-  bad[0] = 2;  // version
+  bad[0] = 3;  // version
+  CHECK_THROWS_AS(ChartAnnotations::decode(bad), DataError);
+  bad[0] = 0;
+  CHECK_THROWS_AS(ChartAnnotations::decode(bad), DataError);
+  bad = good;
+  bad[bad.size() - 2] = 0xa0;  // a time of 1440
+  bad.back() = 0x05;
   CHECK_THROWS_AS(ChartAnnotations::decode(bad), DataError);
   bad = good;
   bad[8] = 9;  // kind
@@ -290,6 +315,35 @@ TEST_CASE("Annotations stay on their world points at every zoom", "[charttools]"
     CHECK(rig.count(kInks[ChartInk::kRed], 0, 0, kViewW - 1, kViewH - 1) ==
           rig.count(kInks[ChartInk::kRed], p[0] - 5, p[1] - 5, p[0] + 5, p[1] + 5));
   }
+}
+
+TEST_CASE("Marks show their time on their right", "[charttools]") {
+  CHECK(chart_time_text(14 * 60 + 23) == "14:23");
+  CHECK(chart_time_text(5) == "00:05");
+  CHECK(chart_time_text(23 * 60 + 59) == "23:59");
+
+  Rig rig;
+  const geom::WorldXZ m = middle(rig.world);
+  rig.look(m, 8);
+  const std::uint8_t ink = kInks[ChartInk::kRed];
+  ChartAnnotations untimed;
+  untimed.add(mark(m));
+  rig.draw(untimed);
+  const std::array<int, 2> c = rig.at(m);
+  CHECK(rig.count(ink, c[0] + 6, c[1] - 8, c[0] + 60, c[1] + 8) == 0);
+
+  ChartAnnotation timed = mark(m);
+  timed.time = 14 * 60 + 23;
+  ChartAnnotations a;
+  a.add(timed);
+  rig.draw(a);
+  // "14:23" in the mark's ink, five glyphs of the block font.
+  const int text = rig.count(ink, c[0] + 6, c[1] - 8, c[0] + 60, c[1] + 8);
+  CHECK(text == 5 * 4 * 6);
+  CHECK(rig.count(ink, c[0] - 60, c[1] - 8, c[0] - 6, c[1] + 8) == 0);
+  // The eraser takes it by its time too.
+  CHECK(pick_chart_annotation(rig.view, a, rig.font, c[0] + 25, c[1]) == 0);
+  CHECK_FALSE(pick_chart_annotation(rig.view, untimed, rig.font, c[0] + 25, c[1]));
 }
 
 TEST_CASE("Lines are labelled when long enough", "[charttools]") {
