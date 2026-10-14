@@ -199,6 +199,10 @@ enum DialogFlag : unsigned {
   kDialogFramed = 2,        // the frame hook draws the background
   kDialogCancel = 4,        // Esc / a right click returns -2
   kDialogNoNavigation = 8,  // no Tab / Enter / Space handling
+  // No control takes the focus, by default or by a click or a hotkey: no
+  // default control for Enter / Space, no Tab cycling, no focus highlight
+  // (not in the original; the chart's panels).
+  kDialogNoFocus = 16,
 };
 
 // A dialog. Its geometry is in screen coordinates; its gfx viewport draws

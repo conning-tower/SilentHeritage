@@ -177,6 +177,12 @@ class ChartStation : public Station, private PanelSuspender {
   // MAP CONTROLS and NAVIGATION then have no clock, time compression or
   // CONN, and TOOLS takes CONN's place.
   bool full_bar() const { return env_.ui.features.chart_tools; }
+  // Returns the panels' dialog flags: framed and, in the extended chart,
+  // with no focused control, so that Enter and Space press no panel button
+  // (in the original the plotting panel's EXIT has the focus).
+  unsigned panel_flags() const {
+    return ui::kDialogFramed | (env_.ui.features.chart_tools ? ui::kDialogNoFocus : 0u);
+  }
   // MAP CONTROLS with the full bar.
   std::unique_ptr<ui::Dialog> make_bar_map_panel();
   // Moves the panels' shared place left so that a panel `width` wide stays

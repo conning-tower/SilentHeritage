@@ -58,6 +58,7 @@ struct Features {
   // lists the crew's messages with their game times.
   bool crew_log = false;
   // The chart's annotation tools: marks, lines and notes drawn on the map.
+  // The chart's panels then have no focused button (Enter presses none).
   bool chart_tools = false;
   // The SUB CLASS screen of the encounters selects the class last chosen
   // when it is in service at the date, instead of the first.

@@ -121,10 +121,11 @@ void ChartStation::add_tools_button(ui::Dialog& d, ui::Rect r, int w, int h) {
 }
 
 std::unique_ptr<ui::Dialog> ChartStation::make_tools_panel() {
-  // In the plotting panel's place, with its drag strip and zoom group.
+  // In the plotting panel's place, with its drag strip and zoom group. No
+  // button has the focus: Enter must not press CLEAR.
   constexpr int kToolsPanelW = 0x129;
   auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kToolsPanelW, kChartToolsPanelH,
-                                        ui::kDialogFramed, &env_.screen());
+                                        ui::kDialogFramed | ui::kDialogNoFocus, &env_.screen());
   d->emplace<ui::OwnerDraw>([](const Viewport& gfx, ui::OwnerDraw&) {
     const int row_h = kChartToolButtonH + 2;
     const int small_h = kChartSmallButton + 2;

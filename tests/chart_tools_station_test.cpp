@@ -688,6 +688,57 @@ TEST_CASE("CLEAR asks before erasing the chart", "[charttools]") {
   CHECK(chart.annotations().items().size() == 2);
 }
 
+TEST_CASE("Enter and Space press no button of the extended chart's panels", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  chart.select_tool(ChartTool::kMark);
+  rig.click(450, 100);
+  rig.click(470, 100);
+  REQUIRE(chart.annotations().items().size() == 2);
+  // Not even after CLEAR was clicked once.
+  for (const bool clicked : {false, true}) {
+    if (clicked) {
+      rig.click(kClearButton[0], kClearButton[1]);
+      rig.frames(5);
+      REQUIRE(rig.screen->env().modals.modal_active());
+      rig.key(0x314e);  // N
+      rig.frames(5);
+    }
+    for (const std::uint16_t key : {ui::kKeyEnter, ui::kKeySpace}) {
+      rig.key(key, 5);
+      CHECK_FALSE(rig.screen->env().modals.modal_active());
+      CHECK(chart.panel() == ChartPanel::kTools);
+      CHECK(chart.annotations().items().size() == 2);
+    }
+  }
+  // The plotting panel's EXIT neither.
+  rig.key(ui::kKeyEsc);
+  REQUIRE(chart.panel() == ChartPanel::kMap);
+  chart.start_plotting();
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kPlot);
+  for (const std::uint16_t key : {ui::kKeyEnter, ui::kKeySpace}) {
+    rig.key(key, 5);
+    CHECK(chart.panel() == ChartPanel::kPlot);
+    CHECK(chart.click_mode() == ChartClickMode::kPlot);
+  }
+}
+
+TEST_CASE("The original plotting panel's EXIT has the focus: Enter ends the plotting", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, false);
+  chart.start_plotting();
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kPlot);
+  rig.key(ui::kKeyEnter, 5);
+  CHECK(chart.panel() == ChartPanel::kMap);
+  CHECK(chart.click_mode() == ChartClickMode::kSelectTarget);
+}
+
 TEST_CASE("The note tool asks for the note", "[charttools]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);

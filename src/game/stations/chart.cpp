@@ -2125,6 +2125,7 @@ void ChartStation::open_nav_panel() {
   frame.w = kNavPanelW;
   frame.h = kNavPanelH;
   frame.background = &nav_background_;
+  frame.flags = panel_flags();
   // The extended chart's bar has the clock and CONN; TOOLS takes CONN's
   // place (not in the original).
   const bool bar = full_bar();
@@ -2234,7 +2235,7 @@ std::unique_ptr<ui::Dialog> ChartStation::make_map_panel() {
   if (full_bar()) {
     return make_bar_map_panel();
   }
-  auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kMapPanelW, kMapPanelH, ui::kDialogFramed,
+  auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kMapPanelW, kMapPanelH, panel_flags(),
                                         &env_.screen());
   d->emplace<ui::OwnerDraw>([this](const Viewport& gfx, ui::OwnerDraw&) {
     // chart_draw_map_panel_frame (0x21747)
@@ -2293,7 +2294,7 @@ std::unique_ptr<ui::Dialog> ChartStation::make_map_panel() {
 
 std::unique_ptr<ui::Dialog> ChartStation::make_plot_panel() {
   // The waypoint plotting panel (dialog 0x118278).
-  auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kMapPanelW, kPlotPanelH, ui::kDialogFramed,
+  auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kMapPanelW, kPlotPanelH, panel_flags(),
                                         &env_.screen());
   d->emplace<ui::OwnerDraw>([this](const Viewport& gfx, ui::OwnerDraw&) {
     // chart_draw_plot_panel_frame (0x21c41)
@@ -2370,7 +2371,7 @@ std::unique_ptr<ui::Dialog> ChartStation::make_bar_map_panel() {
   constexpr int kZoomDx = kRowEnd - 0x113;
   constexpr int kScaleRight = kBarMapPanelW - 9;
   auto d = std::make_unique<ui::Dialog>(env_.gui, panel_pos_.x, panel_pos_.y, kBarMapPanelW, kMapPanelH,
-                                        ui::kDialogFramed, &env_.screen());
+                                        panel_flags(), &env_.screen());
   d->emplace<ui::OwnerDraw>([this](const Viewport& gfx, ui::OwnerDraw&) {
     ui::gui_fill_rect(gfx, 0xba + kZoomDx, 0x2a, 0x5a, 0x17, 0);
     ui::gui_fill_rect(gfx, 0xd, 0x44, kRowEnd - 0xd + 1, 0x17, 0);

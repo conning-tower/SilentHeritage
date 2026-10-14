@@ -129,6 +129,9 @@ void Dialog::register_hotspots() {
 }
 
 void Dialog::focus_first_focusable() {
+  if ((flags_ & kDialogNoFocus) != 0) {
+    return;
+  }
   for (int i = 0; i < hotspot_count_; ++i) {
     const Hotspot& h = rel_hotspot(i);
     if (h.focus != kFocusNone && !h.control->is_disabled(h.sub)) {
@@ -266,7 +269,7 @@ void Dialog::handle_event(const Event& event) {
     if ((event.flags & kEventLeftDown) != 0 && hover_ != -1 && !rel_disabled(hover_)) {
       pending_msg_ = Msg::kPress;
       target_index_ = pressed_index_ = hover_;
-      const int redirect = rel_hotspot(hover_).focus;
+      const int redirect = (flags_ & kDialogNoFocus) != 0 ? kFocusNone : rel_hotspot(hover_).focus;
       if (redirect >= 0) {
         focus_ = redirect;
       } else if (redirect == kFocusSelf) {
@@ -295,7 +298,7 @@ void Dialog::handle_event(const Event& event) {
     return;
   }
   const std::uint16_t key = event.key;
-  const bool navigation = (flags_ & kDialogNoNavigation) == 0;
+  const bool navigation = (flags_ & (kDialogNoNavigation | kDialogNoFocus)) == 0;
   const auto cycle_focus = [&](int step) {
     if (focus_ == -1) {
       return;
@@ -370,7 +373,8 @@ void Dialog::handle_event(const Event& event) {
   if (redirect != kFocusSelf) {
     focus_ = redirect;
   }
-  if (focus_ == kFocusNone) {
+  if (focus_ == kFocusNone || (flags_ & kDialogNoFocus) != 0) {
+    // Without focus a hotkey (or Back) only presses its control.
     focus_ = prev_focus_;
   }
 }

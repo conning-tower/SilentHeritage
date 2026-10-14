@@ -263,6 +263,44 @@ TEST_CASE("Dialog: clicks, Esc, Tab order, Enter, hotkeys", "[ui]") {
   }
 }
 
+TEST_CASE("Dialog without focus: no default button, clicks and hotkeys still press theirs", "[ui]") {
+  Harness h;
+  Dialog d(h.gui, 100, 100, 300, 200, kDialogFramed | kDialogNoFocus);
+  int ok = 0;
+  int other = 0;
+  d.emplace<Button>(10, 10, 80, "OK", [&ok](int) {
+    ++ok;
+    return 0;
+  });
+  d.emplace<Button>(10, 50, 80, "Other", [&other](int) {
+    ++other;
+    return 0;
+  }, 0xff43);
+  REQUIRE(d.run_begin() == kResultContinue);
+  CHECK(d.focus() == -1);
+  for (const std::uint16_t key : {kKeyEnter, kKeySpace, kKeyTab, kKeyShiftTab}) {
+    h.key(key);
+    CHECK(h.steps(d) == 0);
+    CHECK(d.focus() == -1);
+  }
+  CHECK(ok == 0);
+  CHECK(other == 0);
+  h.click(150, 120);
+  CHECK(h.steps(d) == 0);
+  CHECK(ok == 1);
+  CHECK(d.focus() == -1);
+  h.key(0x2e63);  // 'c'
+  CHECK(h.steps(d) == 0);
+  CHECK(other == 1);
+  CHECK(d.focus() == -1);
+  // Neither the clicked button nor the hotkey's became the default.
+  h.key(kKeyEnter);
+  CHECK(h.steps(d) == 0);
+  CHECK(ok == 1);
+  CHECK(other == 1);
+  d.close();
+}
+
 TEST_CASE("Back activates the dialog's back control, else acts as Esc", "[ui][back]") {
   Harness h;
   const auto back = [&h] { h.gui.mouse().post_back(0); };
