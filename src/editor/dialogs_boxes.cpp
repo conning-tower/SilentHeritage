@@ -60,7 +60,7 @@ void show_message_box(EditorUi& ui, std::string_view title, std::string_view lin
                       std::string_view line3) {
   const int width = std::max(text_width(ui, title, line1, line2, line3), kButtonWidth);
   const int w = width + 40;
-  ui::Dialog d(ui.gui(), (kScreenWidth - w) / 2, 200, w, 128, kBoxFlags);
+  EditorDialog d(ui, (kScreenWidth - w) / 2, 200, w, 128, kBoxFlags);
   d.emplace<ui::TitleBar>(std::string(title));
   d.emplace<ui::Button>((w - kButtonWidth) / 2, 93, kButtonWidth, ui.str(kMessageOk), ui::return_accept);
   add_lines(ui, d, width + 20, line1, line2, line3);
@@ -71,7 +71,7 @@ int ask_yes_no(EditorUi& ui, std::string_view title, std::string_view line1, std
                std::string_view line3, std::string_view yes, std::string_view no) {
   const int width = std::max(text_width(ui, title, line1, line2, line3), 2 * kButtonWidth);
   const int w = width + 40;
-  ui::Dialog d(ui.gui(), (kScreenWidth - w) / 2, 192, w, 135, kBoxFlags);
+  EditorDialog d(ui, (kScreenWidth - w) / 2, 192, w, 135, kBoxFlags);
   d.emplace<ui::TitleBar>(std::string(title));
   d.emplace<ui::Button>(15, 100, kButtonWidth, std::string(no), ui::return_cancel, 0xff4e);
   d.emplace<ui::Button>(width + 25 - kButtonWidth, 100, kButtonWidth, std::string(yes), ui::return_accept, 0xff59);
@@ -83,7 +83,7 @@ int ask_save_changes(EditorUi& ui, bool modified, const std::function<int()>& sa
   if (!modified) {
     return ui::kResultAccept;
   }
-  ui::Dialog d(ui.gui(), 203, 142, 233, 224, kBoxFlags);
+  EditorDialog d(ui, 203, 142, 233, 224, kBoxFlags);
   d.emplace<ui::TitleBar>(ui.str(kSaveChangesTitle));
   d.emplace<ui::Button>(67, 131, kButtonWidth, ui.str(kSaveChangesSave), [](int) { return kSaveChangesOnSave; });
   d.emplace<ui::Button>(67, 92, kButtonWidth, ui.str(kSaveChangesDiscard), ui::return_accept);
@@ -103,7 +103,7 @@ int ask_save_changes(EditorUi& ui, bool modified, const std::function<int()>& sa
 bool quit_to_dos_prompt(EditorUi& ui) {
   const ExeImage& se = ui.se().image();
   bool quit = false;
-  ui::Dialog d(ui.gui(), 211, 191, 219, 116, kBoxFlags);
+  EditorDialog d(ui, 211, 191, 219, 116, kBoxFlags);
   d.emplace<ui::TitleBar>(ui.str(kQuitTitle));
   d.emplace<ui::GroupBox>(11, 44, 208, 105);
   std::vector<ui::GridCell> cells;
@@ -133,7 +133,7 @@ bool quit_to_dos_prompt(EditorUi& ui) {
 
 void show_about_box(EditorUi& ui) {
   const ExeImage& se = ui.se().image();
-  ui::Dialog d(ui.gui(), 54, 125, 532, 230, kBoxFlags);
+  EditorDialog d(ui, 54, 125, 532, 230, kBoxFlags);
   // about_box_draw (0x2b5e5)
   d.emplace<ui::OwnerDraw>([&ui, &se](const Viewport& gfx, ui::OwnerDraw&) {
     ui::GuiResources& res = ui.resources();

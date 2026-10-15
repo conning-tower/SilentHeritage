@@ -120,6 +120,10 @@ class DefaultMenuHooks final : public MenuHooks, private DefaultSkin {
   // `resources` must outlive the hooks.
   explicit DefaultMenuHooks(GuiResources& resources) : DefaultSkin(resources) {}
 
+  // Sets the menu bar's width (the skin's 640 at first): a bar across a
+  // wider screen (not in the original).
+  void set_menu_bar_width(int width) { metrics_.menu_bar_width = width; }
+
   Rect menu_bar(const Viewport& gfx, bool fill) override;
   Rect menu_bar_item(const Viewport& gfx, int x, const MenuBarItem& item, bool highlighted) override;
   Rect popup_frame(const Viewport& gfx, int x, int y, int h, bool shadow) override;

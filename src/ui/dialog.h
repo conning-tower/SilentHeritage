@@ -86,6 +86,10 @@ class Gui {
   // original): a new blank picture, the mouse limited to it. Nothing when
   // it already has that width.
   void set_screen_width(int width);
+  // Returns the left column of a 640-wide frame centred on the screen,
+  // where the dialogs placed for the original's screen go on a wider one
+  // (not in the original): 0 on a 640-wide screen.
+  int frame_left() const { return (screen_->width() - kScreenWidth) / 2; }
   EventQueue& events() { return events_; }
   HotspotTable& hotspots() { return hotspots_; }
   Mouse& mouse() { return mouse_; }

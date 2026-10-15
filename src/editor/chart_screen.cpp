@@ -241,6 +241,12 @@ void ChartScreen::build_view() {
   view_->set_zoom(0x10000);
   const std::array<std::int32_t, 2> home = view_home_center(world);
   view_->set_center(home[0], home[1]);
+  const int width = env_.gui.screen().width();
+  if (width != kScreenWidth) {
+    // The map fills a wider screen (not in the original), on the same
+    // centre.
+    view_->set_extent(width - 1, kViewY1);
+  }
 }
 
 Viewport ChartScreen::view_viewport() {
@@ -263,9 +269,28 @@ void ChartScreen::open() {
   env_.palette = se_chart_palette(env_.install, scenario_.world().world(), started_by_game_,
                                   env_.features.editor_fixes);
   center_on_player();
-  dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, 0, kViewX1 + 1, kViewY1 + 1, 0, &screen);
+  open_view_dialog();
+  zoom_box_.reset(screen);
+  dirty_ = true;
+  panels_.reset();
+  zoom_box_.close();
+  force_overlays_ = false;
+  view_suspended_ = false;
+  toolbox_reopen_ = false;
+  popup_owner_ = nullptr;
+  objects_drawn_ = false;
+  select_on_open_ = nullptr;
+  last_requested_ = panels_.requested();
+  course_line_.forget();
+  set_click_mode(ClickMode::kSelect);
+}
+
+void ChartScreen::open_view_dialog() {
+  // The view's dialog of chart_view_init: the map area and the zoom keys.
+  const int x1 = view_->x1();
+  dialog_ = std::make_unique<ui::Dialog>(env_.gui, 0, 0, x1 + 1, kViewY1 + 1, 0, &env_.gui.screen());
   dialog_->emplace<ui::Area>(
-      0, 0, kViewX1, kViewY1,
+      0, 0, x1, kViewY1,
       [this](ui::Dialog& d, ui::Area& a, ui::Msg msg, int, const ui::Event& e) {
         // chart_view_on_click (0x1251e)
         if (msg != ui::Msg::kPress) {
@@ -304,19 +329,39 @@ void ChartScreen::open() {
       0xff58);
   dialog_->open();
   panels_.set_view_dialog(dialog_.get());
-  zoom_box_.reset(screen);
-  dirty_ = true;
-  panels_.reset();
-  zoom_box_.close();
-  force_overlays_ = false;
-  view_suspended_ = false;
-  toolbox_reopen_ = false;
-  popup_owner_ = nullptr;
-  objects_drawn_ = false;
-  select_on_open_ = nullptr;
-  last_requested_ = panels_.requested();
-  course_line_.forget();
-  set_click_mode(ClickMode::kSelect);
+}
+
+void ChartScreen::set_width(int width) {
+  Image8& screen = env_.gui.screen();
+  if (width == screen.width()) {
+    return;
+  }
+  const bool open = dialog_ != nullptr;
+  const bool panel_open = open && panels_.is_open();
+  if (open) {
+    // What is drawn over the old screen goes with it; the view's dialog
+    // and the panel are made again over the new one.
+    zoom_box_.reset(screen);
+    course_line_.forget();
+    close_popup();
+    if (panel_open) {
+      panels_.close_panel();
+    }
+    dialog_->close();
+    dialog_.reset();
+  }
+  env_.gui.set_screen_width(width);
+  view_->set_extent(width - 1, kViewY1);
+  panels_.set_bounds({0, 0, width - 1, kViewY1});
+  if (open) {
+    open_view_dialog();
+    dirty_ = true;
+    if (panel_open) {
+      panels_.open_panel();
+    }
+    // The status bar is drawn again at the next frame.
+    panels_.force_mouse_move();
+  }
 }
 
 void ChartScreen::close() {
@@ -417,7 +462,8 @@ void ChartScreen::view_update() {
     view_suspended_ = false;
   }
   if (!panels_.locked() && !view_suspended_) {
-    chart_edge_scroll(*view_, env_.gui.mouse(), panels_.hovered(), dirty_, edge_hold_, env_.gui.ticks());
+    chart_edge_scroll(*view_, env_.gui.mouse(), panels_.hovered(), dirty_, edge_hold_, env_.gui.ticks(),
+                      kScreenHeight, env_.gui.screen().width());
   }
   if (dirty_) {
     redraw_map();
@@ -1716,13 +1762,13 @@ void ChartScreen::mouse_moved(std::int32_t x, std::int32_t y) {
   }
   // The status bar.
   Image8& screen = env_.gui.screen();
-  const Viewport bar{&screen, 0, kStatusY, kScreenWidth, kScreenHeight};
+  const Viewport bar{&screen, 0, kStatusY, screen.width(), kScreenHeight};
   ui::fill_rect(bar, 0, 0, bar.x1 - bar.x0, bar.y1 - bar.y0, 0);
   status_latitude_.clear();
   status_longitude_.clear();
   status_depth_.clear();
   status_hint_.clear();
-  if (x > kViewX1 || x < 0 || y > kViewY1 || y < 0) {
+  if (x > view_->x1() || x < 0 || y > view_->y1() || y < 0) {
     return;
   }
   GlyphColourTable table = gui_colour_table();
@@ -2134,7 +2180,7 @@ void ChartScreen::panel_hover(bool over) {
     close_popup();
     course_line_.erase();
     Image8& screen = env_.gui.screen();
-    const Viewport bar{&screen, 0, kStatusY, kScreenWidth, kScreenHeight};
+    const Viewport bar{&screen, 0, kStatusY, screen.width(), kScreenHeight};
     ui::fill_rect(bar, 0, 0, bar.x1 - bar.x0, bar.y1 - bar.y0, 0);
   }
 }

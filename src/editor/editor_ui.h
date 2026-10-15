@@ -151,4 +151,14 @@ class EditorUi {
   VgaPalette grey_saved_{};
 };
 
+// A modal dialog of the editor, placed at (`x`, `y`) of the original's
+// 640-wide screen: on a wider screen (the wide chart,
+// `Features::wide_screen`; not in the original) it is centred with that
+// frame (`ui::Gui::frame_left`).
+class EditorDialog : public ui::Dialog {
+ public:
+  EditorDialog(EditorUi& ui, int x, int y, int w, int h, unsigned flags)
+      : ui::Dialog(ui.gui(), ui.gui().frame_left() + x, y, w, h, flags) {}
+};
+
 }  // namespace sh::editor

@@ -113,7 +113,7 @@ ColourRemap subpics_remap() {
 int select_sub_name_run(EditorUi& ui, const EditorData& data, std::int32_t sub_class, ScnChars<31>& name,
                         const std::optional<ScenarioDate>& commissioned_by) {
   const ClassList list = sub_name_list(data, static_cast<std::size_t>(sub_class), scn_text(name), commissioned_by);
-  ui::Dialog d(ui.gui(), 154, 100, 332, 262, kDialogFlags);
+  EditorDialog d(ui, 154, 100, 332, 262, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x90893), ui::return_cancel);
   ui::List& rows = add_list(d, 14, 54, 278, list);
   d.emplace<ui::Button>(16, 225, kButtonWidth, ui.str(0x908a3), ui::return_cancel);
@@ -148,7 +148,7 @@ int select_sub_type(EditorUi& ui, const Scenario& scenario, const EditorOptions&
     const ClassList list = sub_type_list(data, options, scenario.header.month, scenario.header.year,
                                          static_cast<std::size_t>(sub_class));
     entries = list.entries;
-    ui::Dialog d(ui.gui(), 137, 47, 366, 356, kDialogFlags);
+    EditorDialog d(ui, 137, 47, 366, 356, kDialogFlags);
     // sub_type_sheet_draw (0x25cef): the sheet of list row `row`.
     const auto sheet = [&](const Viewport& gfx, std::int32_t row) {
       if (list.entries.empty()) {
@@ -219,7 +219,7 @@ void select_ship_type(EditorUi& ui, const Scenario& scenario, const EditorOption
     // the program); it is read once here.
     const CatArchive idbook = CatArchive::load(ui.install(), art_path(ui, kIdBook));
     ship_class = -1;
-    ui::Dialog d(ui.gui(), 137, 10, 366, 437, kDialogFlags);
+    EditorDialog d(ui, 137, 10, 366, 437, kDialogFlags);
     // ship_type_sheet_draw (0x26a1a)
     const auto sheet = [&](const Viewport& gfx, std::int32_t row) {
       if (list.entries.empty()) {
@@ -271,7 +271,7 @@ int select_aircraft_type(EditorUi& ui, const Scenario& scenario, const EditorOpt
     const Shp pictures = Shp::load(ui.install(), art_path(ui, kAirPics));
     const ListMetricsScope metrics(ui.skin(), kListRows, kListHeight, kListTrack);
     const ClassList list = aircraft_type_list(data, options, scenario.header.month, scenario.header.year, aircraft);
-    ui::Dialog d(ui.gui(), 137, 47, 366, 376, kDialogFlags);
+    EditorDialog d(ui, 137, 47, 366, 376, kDialogFlags);
     // aircraft_type_sheet_draw (0x275db)
     const auto sheet = [&](const Viewport& gfx, std::int32_t row) {
       if (list.entries.empty()) {

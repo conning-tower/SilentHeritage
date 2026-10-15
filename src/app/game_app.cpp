@@ -29,6 +29,7 @@
 #include "core/install.h"
 #include "core/platform.h"
 #include "editor/editor.h"
+#include "game/extended_config.h"
 #include "game/frontend.h"
 #include "game/frontend_results.h"
 #include "game/game_runner.h"
@@ -450,13 +451,15 @@ class GameApp final : public FrontendHost, public EditorRunner {
   EditorExit run_editor() override { return run_scenario_editor(true); }
 
   // Runs the scenario editor on this host; `started_by_game` false for
-  // `--editor`.
+  // `--editor`. It follows the player's EXTENDED OPTIONS (the wide
+  // screen), as the front end does.
   EditorExit run_scenario_editor(bool started_by_game) {
     editor::Editor editor({.install = install_,
                            .paths = paths_,
                            .saves = saves_,
                            .custom = custom_,
-                           .features = options_.features,
+                           .features = options_.extended_config ? load_features(saves_, options_.features)
+                                                                : options_.features,
                            .extended_torpedoes = options_.extended_config},
                           *this,
                           started_by_game, [] { return static_cast<std::int32_t>(std::time(nullptr)); });

@@ -135,6 +135,10 @@ kept with it.
 
 ## Scenario editor
 
+- **Wide screens:** with the wide screen on, the editor's chart fills the
+  window's width, as the game's does, and follows it when the window is
+  resized; its menu bar runs across the screen and its dialogs open in the
+  middle.
 - **No size limit:** the memory gauge and the "SCENARIO IS TOO LARGE"
   warning of the original's 16 MB machine are gone; your scenarios still
   load in the original game.

@@ -125,6 +125,9 @@ class Editor {
   void open_intro();
   void close_intro();
   ChartHooks chart_hooks();
+  // Lays the chart out at the screen's width, when it changed: the
+  // window's with `Features::wide_screen` (not in the original), else 640.
+  void fit_screen();
   // The date SELECT SUB NAME's boats are commissioned by: the scenario's
   // with the corrections and "Limit by date: Subs", else none (not in the
   // original).

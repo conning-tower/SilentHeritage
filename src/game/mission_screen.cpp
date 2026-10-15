@@ -192,7 +192,7 @@ void MissionScreen::show(GameOverReason reason) {
   const std::string text(setup_.exe.c_string(
       setup_.exe.u32(kGameOverTexts + 4 * static_cast<std::uint32_t>(static_cast<std::int32_t>(reason)))));
   ui::Dialog popup(setup_.gui, 0x99, 0xc4, 0x146, 0x50, ui::kDialogFramed, &setup_.gui.screen());
-  popup.move_by((setup_.gui.screen().width() - kScreenWidth) / 2, 0);  // centred on a wide screen
+  popup.move_by(setup_.gui.frame_left(), 0);  // centred on a wide screen
   popup.emplace<ui::TitleBar>(std::string(setup_.exe.c_string(kGameOverTitle)));
   auto& field = popup.emplace<ui::TextField>(9, 0x2f, 0x13c, 0x3a, [text] { return text; }, ui::FontSlot::kSmall,
                                              TextAlign::kCentre);
@@ -251,7 +251,7 @@ void MissionScreen::run_modal(std::unique_ptr<ui::Dialog> dialog, ModalFrame fra
 
 void MissionScreen::begin_modal(Modal& m) {
   // The menus are placed for the 640-wide screen: centred on a wider one.
-  m.dialog->move_by((setup_.gui.screen().width() - kScreenWidth) / 2, 0);
+  m.dialog->move_by(setup_.gui.frame_left(), 0);
   ++ui_.pause;
   if (m.frame == ModalFrame::kMenu) {
     sound_.stop_all();

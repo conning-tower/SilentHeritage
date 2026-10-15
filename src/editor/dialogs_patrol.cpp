@@ -196,7 +196,7 @@ void PatrolAreaDialog::idle(ui::Dialog& d, const Viewport& gfx, bool first) {
 
 std::optional<std::size_t> PatrolAreaDialog::run() {
   EditorUi& ui = ui_;
-  ui::Dialog d(ui.gui(), 0, 0, 640, 459, ui::kDialogFramed | ui::kDialogCancel);
+  EditorDialog d(ui, 0, 0, 640, 459, ui::kDialogFramed | ui::kDialogCancel);
   d.emplace<ui::OwnerDraw>([this, &d](const Viewport& gfx, ui::OwnerDraw&) { draw_map(d, gfx); });
   d.emplace<ui::TitleBar>(ui.str(kTitle), ui::return_cancel);
   // The list's on_activate (`dialog_return_accept`) is dropped by the list.
@@ -353,8 +353,7 @@ int orders_popup_run(EditorUi& ui, const std::vector<std::string>& labels, const
     y += 0x17;
   }
   const int h = y + 0xc;
-  ui::Dialog d(ui.gui(), 203, (kScreenHeight - h) / 2, 227, h,
-               ui::kDialogTitled | ui::kDialogFramed | ui::kDialogCancel);
+  EditorDialog d(ui, 203, (kScreenHeight - h) / 2, 227, h, ui::kDialogTitled | ui::kDialogFramed | ui::kDialogCancel);
   d.emplace<ui::TitleBar>(ui.str(kOrdersTitle), ui::return_cancel);
   // orders_popup_on_select (0x2a172): the index + 1.
   d.emplace<ui::ButtonGrid>(std::move(cells), [](int cell) { return cell + 1; }, initial);

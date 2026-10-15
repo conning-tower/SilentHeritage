@@ -155,7 +155,8 @@ std::vector<WorldPoint> chart_circle_points(WorldPoint centre, std::int32_t radi
 
 class ChartScreen {
  public:
-  // The view covers (0, 0)..(0x27f, 0x1ca); the status bar is below.
+  // The view covers (0, 0)..(0x27f, 0x1ca), wider on a wide screen
+  // (`set_width`); the status bar is below.
   static constexpr int kViewX1 = 0x27f;
   static constexpr int kViewY1 = 0x1ca;
   static constexpr int kStatusY = 0x1cb;
@@ -193,6 +194,11 @@ class ChartScreen {
   // possibly loaded again): the view of the scenario's world at zoom 1 on
   // the map's centre, its palette, the city list emptied, a redraw.
   void world_changed();
+  // Lays the screen out `width` wide, the GUI's screen made that wide (the
+  // wide chart, `Features::wide_screen`; not in the original): the map
+  // fills it, the panels are kept on the map, the status bar runs across.
+  // Open or closed; nothing when the screen is already that wide.
+  void set_width(int width);
 
   // ------------------------------------------------------------ state
 
@@ -362,6 +368,7 @@ class ChartScreen {
 
   // The view (chart_view_* with the sbchart callbacks).
   void build_view();
+  void open_view_dialog();  // the map's dialog, as wide as the view
   void view_update();      // chart_view_update
   void redraw_map();       // chart_view_redraw_if_dirty
   void redraw_overlays();  // chart_view_redraw_overlays

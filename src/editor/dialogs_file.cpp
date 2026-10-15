@@ -77,7 +77,7 @@ void save_name_on_done(std::string& name) {
 
 bool run_save_scenario_dialog(EditorUi& ui, const std::vector<std::string>& names, std::string& name) {
   const std::string old = name;
-  ui::Dialog d(ui.gui(), 164, 110, 312, 282, kDialogFlags);
+  EditorDialog d(ui, 164, 110, 312, 282, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(kSaveTitle), ui::return_cancel);
   auto& entry = d.emplace<ui::TextEntry>(35, 210, 217, 9, name, [](std::string& text, int) {
     save_name_on_done(text);
@@ -108,7 +108,7 @@ std::optional<std::size_t> run_scenario_list_dialog(EditorUi& ui, ScenarioListMo
   BriefingViewSkin skin(ui.resources(), ui.skin(), ui.font1());
   const SkinScope scope(ui.gui(), skin);
   const auto& texts = kListTexts[static_cast<std::size_t>(mode)];
-  ui::Dialog d(ui.gui(), 134, 50, 372, 367, kDialogFlags);
+  EditorDialog d(ui, 134, 50, 372, 367, kDialogFlags);
   // The owner draw 0x2a7e3 draws nothing.
   d.emplace<ui::TitleBar>(ui.str(texts[0]), ui::return_cancel);
   auto& list = d.emplace<ui::List>(

@@ -38,12 +38,16 @@ inline constexpr std::uint16_t kKeyYes = 0x1559;
 inline constexpr std::uint16_t kKeyNo = 0x314e;
 
 struct EditorRig {
-  EditorRig(const Install& game, bool started_by_game)
+  // `features`: the improvements the editor runs with; `screen_width`: the
+  // window's (the wide-screen layouts).
+  EditorRig(const Install& game, bool started_by_game, const Features& features = {},
+            int screen_width = kScreenWidth)
       : paths(ShPaths::load(game)),
         saves(dir.path() / "SAVE", &game, paths.dir(GameDir::kSave)),
         custom(dir.path() / "CUSTOM", &game, paths.dir(GameDir::kCustom)),
-        editor(EditorServices{.install = game, .paths = paths, .saves = saves, .custom = custom}, host,
-               started_by_game, [] { return 1000; }) {
+        editor(EditorServices{.install = game, .paths = paths, .saves = saves, .custom = custom, .features = features},
+               host, started_by_game, [] { return 1000; }) {
+    host.width = screen_width;
     step(wait_running());
   }
 

@@ -21,6 +21,8 @@ add_executable(sh_editor_tests
   dialogs_patrol_test.cpp
   # The chart screen.
   chart_screen_test.cpp
+  # The wide screen (extended variant).
+  wide_screen_test.cpp
   # The toolbox and its object panels.
   toolbox_test.cpp
   # The File menu and the editor program.

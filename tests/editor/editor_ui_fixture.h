@@ -42,6 +42,8 @@ class ScriptedHost final : public FrontendHost {
   int frames = 0;
   // The frames a script may take.
   int frame_limit = 20'000;
+  // The window's screen width (`screen_width`, the wide-screen layouts).
+  int width = kScreenWidth;
 
   std::uint32_t ticks() override { return tick_; }
   void present(const Image8&, const VgaPalette&) override {
@@ -60,6 +62,7 @@ class ScriptedHost final : public FrontendHost {
     script.pop_front();
     step(gui);
   }
+  int screen_width() override { return width; }
   VideoSound* video_sound() override { return nullptr; }
   void play_sfx(std::int32_t, std::int32_t, std::int32_t) override {}
   void apply_sound_options(const GameOptions&) override {}

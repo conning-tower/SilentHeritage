@@ -161,7 +161,7 @@ std::function<int(bool)> EnvironmentDialog::callback(std::int32_t (EnvironmentFo
 bool EnvironmentDialog::run() {
   EditorUi& ui = ui_;
   const std::int32_t light = scenario_.sighting_light_pct;
-  ui::Dialog d(ui.gui(), 126, 1, 387, 454, kDialogFlags);
+  EditorDialog d(ui, 126, 1, 387, 454, kDialogFlags);
   d.emplace<ui::OwnerDraw>([this, &d](const Viewport& gfx, ui::OwnerDraw&) { redraw_weather(d, gfx, true); });
   d.emplace<ui::TitleBar>(ui.str(0x906f6), ui::return_cancel);
   d.emplace<ui::GroupBox>(32, 48, 356, 85);
@@ -267,7 +267,7 @@ bool cmd_equipment(EditorUi& ui, Scenario& scenario, const EditorOptions& option
   // The radar detector's row below the bathythermograph's makes the dialog
   // taller, kept centred (not in the original).
   const int extra = radar_detector ? kEquipmentRowH : 0;
-  ui::Dialog d(ui.gui(), 157, 109 - extra / 2, 312, 259 + extra, kDialogFlags);
+  EditorDialog d(ui, 157, 109 - extra / 2, 312, 259 + extra, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x90742), ui::return_cancel);
   d.emplace<ui::GroupBox>(12, 48, 300, 121);
   font1_label(ui, d, 20, 62, 0x9074c);
@@ -326,7 +326,7 @@ bool cmd_torpedoes(EditorUi& ui, Scenario& scenario, const EditorOptions& option
     }
     grow = std::max(0, rows - kMaxReloadRows) * kReloadRowHeight;
   }
-  ui::Dialog d(ui.gui(), 100, 80 - grow / 2, 419, 350 + grow, kDialogFlags);
+  EditorDialog d(ui, 100, 80 - grow / 2, 419, 350 + grow, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x90789), ui::return_cancel);
   d.emplace<ui::GroupBox>(14, 46, 207, 300 + grow);
   d.emplace<ui::GroupBox>(211, 46, 404, 300 + grow);
@@ -386,7 +386,7 @@ bool cmd_torpedoes(EditorUi& ui, Scenario& scenario, const EditorOptions& option
 }
 
 bool cmd_briefing_text(EditorUi& ui, Scenario& scenario) {
-  ui::Dialog d(ui.gui(), 53, 80, 534, 310, kDialogFlags);
+  EditorDialog d(ui, 53, 80, 534, 310, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x907bb), ui::return_cancel);
   auto& box = d.emplace<ui::TextBox>(20, 50, 450, 200, 15, 1000, std::string(scn_text(scenario.header.briefing)));
   // briefing_scroll_up / _down (0x2902c / 0x29043)
@@ -431,7 +431,7 @@ bool cmd_options(EditorUi& ui, Scenario& scenario, EditorOptions& options, const
       return value != 0;
     };
   };
-  ui::Dialog d(ui.gui(), 157, 52, 321, 359, kDialogFlags);
+  EditorDialog d(ui, 157, 52, 321, 359, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(0x907d7), ui::return_cancel);
   d.emplace<ui::GroupBox>(17, 44, 303, 193);
   d.emplace<ui::CheckBox>(54, 70, ui.str(0x907df), toggle(work.limit_ships));
@@ -477,7 +477,7 @@ namespace {
 // The PASSWORD dialog (0xa98b8) in SET (`enter` false) or ENTER mode
 // (0xa6d2c), on `entry`. Returns the dialog result.
 int run_password_dialog(EditorUi& ui, std::string& entry, bool enter) {
-  ui::Dialog d(ui.gui(), 163, 166, 313, 147, kDialogFlags);
+  EditorDialog d(ui, 163, 166, 313, 147, kDialogFlags);
   d.emplace<ui::TitleBar>(ui.str(enter ? 0x918ec : 0x91848), ui::return_cancel);
   // password_entry_on_done (0x2b552): spaces trimmed at both ends; Enter
   // ends the dialog in ENTER mode only, and not on an empty entry.

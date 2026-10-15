@@ -120,9 +120,10 @@ Editor::Editor(const EditorServices& services, FrontendHost& host, bool started_
 Editor::~Editor() = default;
 
 void Editor::open_intro() {
-  // sb_intro_open (0x461b3): the dialog draws into the screen itself.
-  intro_ = std::make_unique<ui::Dialog>(ui_.gui(), kIntroX, kIntroY, kIntroW, kIntroH, ui::kDialogTitled,
-                                        &ui_.screen());
+  // sb_intro_open (0x461b3): the dialog draws into the screen itself
+  // (centred over a wide chart).
+  intro_ = std::make_unique<ui::Dialog>(ui_.gui(), ui_.gui().frame_left() + kIntroX, kIntroY, kIntroW, kIntroH,
+                                        ui::kDialogTitled, &ui_.screen());
   intro_->emplace<ui::OwnerDraw>([this](const Viewport& gfx, ui::OwnerDraw&) {
     // sb_intro_draw (0x461e0): the picture's colours faded in, then the
     // picture and the version.
@@ -216,6 +217,7 @@ EditorExit Editor::run() {
                      ui_.cursors(), services_.features},
       *scenario_, options_, chart_hooks(), started_by_game_);
   close_intro();
+  fit_screen();
   chart_->open();
   // The title box applies its colours again; the chart's palette is the one
   // the first frame fades in.
@@ -241,6 +243,7 @@ EditorExit Editor::run() {
       }
       chart_->process();
     } while (events.peek() && event && (event->flags & ui::kEventMoved) != 0);
+    fit_screen();
     chart_->update(first);
     if (first) {
       // sbchart_update closes the title box after the fade in.
@@ -254,6 +257,10 @@ EditorExit Editor::run() {
   return exit_;
 }
 
+void Editor::fit_screen() {
+  chart_->set_width(services_.features.wide_screen ? ui_.host().screen_width() : kScreenWidth);
+}
+
 bool Editor::menu_event(const ui::Event& event) {
   // editor_menu_handle_event (0x2491b)
   selection_ = MenuCommand::kNone;
@@ -262,6 +269,9 @@ bool Editor::menu_event(const ui::Event& event) {
       chart_->leave_view();
       ui_.palette_grey_out(kMenuGrey, kLastGreyed);
       ui::DefaultMenuHooks hooks(ui_.resources());
+      // Across a wide chart, its titles where they were (not in the
+      // original).
+      hooks.set_menu_bar_width(ui_.screen().width());
       ui::menu_bar_run(ui_.gui(), hooks, menu_->bar());
       if (selection_ != MenuCommand::kNone) {
         run_command(selection_);

@@ -22,15 +22,11 @@
 #include "editor/data.h"
 #include "editor/options.h"
 #include "editor/scenario.h"
+#include "editor_ui_fixture.h"
 #include "platform/screenshot.h"
 #include "ui/default_skin.h"
 
 namespace sh::editor::test {
-
-inline const EditorData& editor_data(const Install& install) {
-  static const EditorData data = EditorData::load(install);
-  return data;
-}
 
 // The answers and records of the fake dialogs.
 struct FakeDialogs {
