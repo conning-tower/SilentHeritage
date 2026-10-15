@@ -123,6 +123,11 @@ class ChartPanelHost {
   // Forces the next `handle_mouse` to call the mouse-move callback
   // (0x118a88).
   void force_mouse_move() { last_mouse_.reset(); }
+  // Updates the hover from a press at (`x`, `y`) before it is handled (not
+  // in the original, whose pointer always moved there first): a finger
+  // lands away from where it last tapped, so a press on the map just after
+  // a tap on the panel would find the view's hotspot still disabled.
+  void hover_at_press(int x, int y);
 
   // The open panel's event / process / update / redraw callbacks.
   void event(const ui::Event& event);

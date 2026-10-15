@@ -813,6 +813,31 @@ TEST_CASE("The measure goes once another drawing begins; the prompt keeps up", "
   CHECK((*chart.ruler())[0] == world_at(chart, 200, 200));
 }
 
+TEST_CASE("The first tap on the map after a tap on the toolbox is taken", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kTools);
+  const auto& items = chart.annotations().items();
+  // A finger: the pointer jumps from the button to the map as it presses.
+  const auto tap = [&rig](std::array<int, 2> at) {
+    rig.gui.mouse().update(at[0], at[1], ui::kButtonLeft, 0);
+    rig.frames(1);
+    rig.gui.mouse().update(at[0], at[1], 0, 0);
+    rig.frames(1);
+  };
+  tap(tool_button(ChartTool::kMark));
+  REQUIRE(chart.tool() == ChartTool::kMark);
+  tap({450, 100});
+  REQUIRE(items.size() == 1);
+  tap(tool_button(ChartTool::kEraser));
+  REQUIRE(chart.tool() == ChartTool::kEraser);
+  tap({450, 100});
+  CHECK(items.empty());
+}
+
 TEST_CASE("The toolbox's prompt fits its two lines, for the mouse and for a finger", "[charttools]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);

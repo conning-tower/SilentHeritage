@@ -160,6 +160,17 @@ void ChartPanelHost::handle_mouse() {
   }
 }
 
+void ChartPanelHost::hover_at_press(int x, int y) {
+  if (!open_ || dragging_) {
+    return;
+  }
+  const ui::Rect r = *active_rect();
+  const bool inside = x >= r.x0 && y >= r.y0 && x <= r.x1 && y <= r.y1;
+  if (inside != hovered_) {
+    set_hovered(inside);
+  }
+}
+
 void ChartPanelHost::drag(int mx, int my) {
   // chart_view_drag_panel (0x2b0d6): the panel follows the pointer, kept
   // within the view.

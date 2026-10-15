@@ -483,6 +483,9 @@ void ChartStation::event(const ui::Event& event) {
   if (env_.ui.features.chart_tools && tools_event(event)) {
     return;
   }
+  if ((event.flags & ui::kEventLeftDown) != 0) {
+    panels_.hover_at_press(event.x, event.y);
+  }
   dialog_->handle_event(event);
   panels_.event(event);
 }
