@@ -1611,7 +1611,8 @@ void ControlBar::menu_extended_options() {
   const int cycle_w = d->skin().check_box_width(" ");
   int y = 0x32;
   for (const FeatureOption& o : kFeatureOptions) {
-    add_feature_control(*d, 0x36, y, cycle_w, o, features, !o.in_mission, [changed] { *changed = true; });
+    add_feature_control(*d, 0x36, y, cycle_w, o, features, on_orders != nullptr, !o.in_mission,
+                        [changed] { *changed = true; });
     y += kRow;
   }
   if (display) {

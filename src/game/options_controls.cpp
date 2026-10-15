@@ -1,5 +1,7 @@
 #include "game/options_controls.h"
 
+#include <algorithm>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -9,7 +11,7 @@
 namespace sh {
 
 void add_feature_control(ui::Dialog& d, int x, int y, int cycle_w, const FeatureOption& option, Features& features,
-                         bool disabled, std::function<void()> changed) {
+                         bool touch_panel, bool disabled, std::function<void()> changed) {
   if (option.choices.empty()) {
     auto& box = d.emplace<ui::CheckBox>(x, y, std::string(option.label),
                                         [&features, &option, changed = std::move(changed)](bool flip) {
@@ -22,6 +24,33 @@ void add_feature_control(ui::Dialog& d, int x, int y, int cycle_w, const Feature
                                           return option.get(features) != 0;
                                         });
     box.disabled = disabled;
+    return;
+  }
+  if (!touch_panel && !option.desktop_choices.empty()) {
+    const std::span<const FeatureChoice> choices = option.desktop_choices;
+    std::vector<std::string> labels;
+    for (const FeatureChoice& c : choices) {
+      labels.emplace_back(c.label);
+    }
+    auto& cycle = d.emplace<ui::CycleButton>(
+        x, y, cycle_w, std::move(labels), [&features, &option, choices, changed = std::move(changed)](bool advance) {
+          if (advance) {
+            const int value = option.get(features);
+            const auto next =
+                std::ranges::find_if(choices, [value](const FeatureChoice& c) { return c.value > value; });
+            option.set(features, (next != choices.end() ? *next : choices.front()).value);
+            if (changed) {
+              changed();
+            }
+          }
+          // The last choice not above the value.
+          int shown = 0;
+          while (shown + 1 < static_cast<int>(choices.size()) && choices[shown + 1].value <= option.get(features)) {
+            ++shown;
+          }
+          return shown;
+        });
+    cycle.disabled = disabled;
     return;
   }
   auto& cycle = d.emplace<ui::CycleButton>(

@@ -12,6 +12,7 @@
 #include "assets/fnt.h"
 #include "core/features.h"
 #include "game/command_bar.h"
+#include "game/extended_config.h"
 #include "game_data.h"
 #include "sim/clock.h"
 #include "stations_control_fixture.h"
@@ -220,6 +221,10 @@ TEST_CASE("controls: the command bar labels fit the options pages", "[controls]"
                                   CommandBarStyle::kBarOrders, CommandBarStyle::kBarOrdersTime}) {
     CHECK(small.text_width(command_bar_label(s)) <= 178);
     CHECK(bold.text_width(command_bar_label(s)) <= 190);
+  }
+  for (const FeatureChoice& c : kDesktopCommandBarChoices) {
+    CHECK(small.text_width(c.label) <= 178);
+    CHECK(bold.text_width(c.label) <= 190);
   }
 }
 

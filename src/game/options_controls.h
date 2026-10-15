@@ -15,9 +15,11 @@ namespace sh {
 
 // Adds the control of `option` at (`x`, `y`) to `d`, editing `features`
 // (which must outlive the dialog): a check box, or a cycle button `cycle_w`
-// wide. `disabled` greys it. `changed` runs after each change.
+// wide, through `option.desktop_choices` unless `touch_panel` (the touch
+// command panel exists). `disabled` greys it. `changed` runs after each
+// change.
 void add_feature_control(ui::Dialog& d, int x, int y, int cycle_w, const FeatureOption& option, Features& features,
-                         bool disabled, std::function<void()> changed = {});
+                         bool touch_panel, bool disabled, std::function<void()> changed = {});
 
 // Adds a check box labelled `label` at (`x`, `y`) to `d`, editing `value`
 // (which must outlive the dialog). With `fixed`, it is greyed and shows

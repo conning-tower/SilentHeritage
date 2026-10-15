@@ -38,6 +38,13 @@ std::string read_config(const SaveDir& dir);
 // false when it cannot be written.
 bool write_config(const SaveDir& dir, std::string_view prefix, std::string_view lines);
 
+// One value of a choice offered without the touch command panel, and its
+// label there.
+struct FeatureChoice {
+  int value;
+  std::string_view label;
+};
+
 // One improvement of `Features` the player sets on the EXTENDED OPTIONS
 // pages: a check box (a `bool` member) or a choice (an enum member whose
 // values are 0 .. `choices.size() - 1`, shown by a cycle button). Its value
@@ -52,6 +59,10 @@ struct FeatureOption {
   void (*set)(Features&, int);
   // Whether it can change during a mission (else greyed there).
   bool in_mission;
+  // The choice's values offered without the touch command panel, in
+  // increasing order (the others are shown as the last of these below
+  // them); empty: all of `choices`.
+  std::span<const FeatureChoice> desktop_choices = {};
 
   // Returns the number of values.
   constexpr int values() const { return choices.empty() ? 2 : static_cast<int>(choices.size()); }
@@ -73,17 +84,23 @@ template <auto Member>
 constexpr FeatureOption feature_check_box(std::string_view key, std::string_view label, bool in_mission) {
   return {key, label, {}, &detail::get_feature<Member>, &detail::set_feature<Member>, in_mission};
 }
-// Returns the choice of the enum member `Member`, `choices` by value.
+// Returns the choice of the enum member `Member`, `choices` by value
+// (`desktop_choices` without the touch command panel).
 template <auto Member>
 constexpr FeatureOption feature_choice(std::string_view key, std::span<const std::string_view> choices,
-                                       bool in_mission) {
-  return {key, {}, choices, &detail::get_feature<Member>, &detail::set_feature<Member>, in_mission};
+                                       bool in_mission, std::span<const FeatureChoice> desktop_choices = {}) {
+  return {key, {}, choices, &detail::get_feature<Member>, &detail::set_feature<Member>, in_mission, desktop_choices};
 }
 
 // The command bar's layouts by `CommandBarStyle`.
 inline constexpr std::array<std::string_view, 4> kCommandBarChoices{
     command_bar_label(CommandBarStyle::kOriginal), command_bar_label(CommandBarStyle::kOrdersButton),
     command_bar_label(CommandBarStyle::kBarOrders), command_bar_label(CommandBarStyle::kBarOrdersTime)};
+// Without the touch command panel there is no ORDERS button: the original
+// bar, or - and + around its time compression.
+inline constexpr std::array<FeatureChoice, 2> kDesktopCommandBarChoices{
+    {{static_cast<int>(CommandBarStyle::kOriginal), command_bar_label(CommandBarStyle::kOriginal)},
+     {static_cast<int>(CommandBarStyle::kBarOrdersTime), "EXTENDED BAR"}}};
 
 // The improvements the player sets on the EXTENDED OPTIONS pages, in page
 // order (two per row on the main menu's); the extended variant's others are
@@ -91,7 +108,7 @@ inline constexpr std::array<std::string_view, 4> kCommandBarChoices{
 // the stations' layout follow the wide screen, the bar its layout.
 inline constexpr std::array kFeatureOptions{
     feature_check_box<&Features::wide_screen>("wide_screen", "WIDE SCREEN", true),
-    feature_choice<&Features::command_bar>("command_bar", kCommandBarChoices, true),
+    feature_choice<&Features::command_bar>("command_bar", kCommandBarChoices, true, kDesktopCommandBarChoices),
 };
 
 // Returns `defaults` with the `ui.` lines of `dir`'s EXTENDED.CFG over them.

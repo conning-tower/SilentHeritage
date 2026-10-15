@@ -80,7 +80,8 @@ void FrontEnd::extended_options_screen() {
   const int interface_top = kGroupsTop + (kGroupsBottom - kGroupsTop - block) / 2;
   const int display_top = interface_top + interface_height + kGroupGap;
   for (std::size_t i = 0; i < kFeatureOptions.size(); ++i) {
-    add_feature_control(d, item_x(i), item_y(interface_top, i), kCycleWidth, kFeatureOptions[i], edited, false);
+    add_feature_control(d, item_x(i), item_y(interface_top, i), kCycleWidth, kFeatureOptions[i], edited,
+                        host_.has_orders_panel(), false);
   }
   if (display) {
     add_setting_check_box(d, item_x(0), item_y(display_top, 0), kFullscreen, edited_display.fullscreen,

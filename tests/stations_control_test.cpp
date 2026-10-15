@@ -408,6 +408,7 @@ TEST_CASE("Extended: GAME OPTIONS' EXTENDED page switches the interface at once"
     std::vector<Features> saved;
     if (extended) {
       rig.screen->bar().on_features_changed = [&saved](const Features& f) { saved.push_back(f); };
+      rig.screen->bar().on_orders = [](const ui::Rect&) {};
     }
     Features& features = rig.screen->env().ui.features;
     // Alt-O, then the EXTENDED button beside SAVE (the dialog at (0x9d, 0x1c)).
@@ -464,8 +465,9 @@ TEST_CASE("Extended: the in-mission EXTENDED page sets the command bar and the w
   const int y0 = (kScreenHeight - h) / 2;
   const int display_y = y0 + 0x32 + static_cast<int>(kFeatureOptions.size()) * 0x17 + 0x18;
   open_page();
+  // No touch panel: the extended bar after the original.
   rig.click(0x9d + 0x36 + 60, y0 + 0x32 + 0x17 + 8);
-  CHECK(features.command_bar == CommandBarStyle::kOrdersButton);
+  CHECK(features.command_bar == CommandBarStyle::kBarOrdersTime);
   rig.click(0x9d + 0x36 + 8, display_y + 8);
   REQUIRE(applied.size() == 1);
   CHECK(applied[0] == DisplaySettings{.fullscreen = true, .smoothing = true});
@@ -476,7 +478,7 @@ TEST_CASE("Extended: the in-mission EXTENDED page sets the command bar and the w
   rig.frames(2);
   CHECK(rig.screen->in_play());
   REQUIRE(saved.size() == 1);
-  CHECK(saved[0].command_bar == CommandBarStyle::kOrdersButton);
+  CHECK(saved[0].command_bar == CommandBarStyle::kBarOrdersTime);
 
   // Android and --sharp: both greyed, clicks change nothing.
   display = DisplayOptions{

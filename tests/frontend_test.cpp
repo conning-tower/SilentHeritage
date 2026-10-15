@@ -13,6 +13,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "assets/exe_image.h"
@@ -295,6 +296,7 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
   void apply_sound_options(const GameOptions& options) override { sound_options = options; }
   void report(std::string_view message) override { reports.emplace_back(message); }
   std::optional<DisplayOptions> display_options() const override { return display; }
+  bool has_orders_panel() const override { return orders_panel; }
   void set_display_settings(const DisplaySettings& settings) override { applied_display.push_back(settings); }
   void set_side_fill(const SideFill& fill) override { side_fills.push_back(fill.kind); }
   // The side fills the front end set, in order.
@@ -302,6 +304,8 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
   // The window's settings the host offers (none by default), and those the
   // front end applied.
   std::optional<DisplayOptions> display;
+  // Whether the touch command panel exists (Android).
+  bool orders_panel = false;
   std::vector<DisplaySettings> applied_display;
   std::int32_t run(const MissionRequest& request) override {
     requests.push_back(request);
@@ -632,9 +636,10 @@ TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL re
   const TempDir dir;
   const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
   {
-    // ALL COMMANDS, then ORIGINAL BAR, FLOATING ORDERS.
+    // With the touch panel: ALL COMMANDS, then ORIGINAL BAR, FLOATING ORDERS.
     ScriptedHost host;
     host.display = kDesktopDisplay;
+    host.orders_panel = true;
     host.script = {kOptionsExt, kCommandBarCycle, kCommandBarCycle, kOptionsOk, kExitToDosExt};
     run_extended(install, host, saves);
     CHECK(load_features(saves, Features::extended()).command_bar == CommandBarStyle::kOrdersButton);
@@ -643,6 +648,7 @@ TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL re
   {
     ScriptedHost host;
     host.display = kDesktopDisplay;
+    host.orders_panel = true;
     host.script = {kOptionsExt, kCommandBarCycle, kOptionsOk, kExitToDosExt};
     run_extended(install, host, saves);
     CHECK(load_features(saves, Features::extended()).command_bar == CommandBarStyle::kBarOrders);
@@ -665,6 +671,29 @@ TEST_CASE("Extended: OPTIONS' command bar choice cycles and is kept; ORIGINAL re
     const auto keys = parse_config(read_config(saves));
     CHECK(keys.size() == kFeatureOptions.size());
     CHECK_FALSE(keys.contains("ui.crew_log"));
+  }
+}
+
+TEST_CASE("Extended: without the touch panel OPTIONS' command bar is the original or the extended one",
+          "[frontend][extended]") {
+  SH_REQUIRE_INSTALL(install);
+  const TempDir dir;
+  const SaveDir saves(dir.path(), &install, ShPaths::load(install).dir(GameDir::kSave));
+  // From ALL COMMANDS (shown EXTENDED BAR) and from each layout with the
+  // ORDERS button (shown ORIGINAL BAR), one click.
+  for (const auto& [from, to] : {std::pair{CommandBarStyle::kBarOrdersTime, CommandBarStyle::kOriginal},
+                                 std::pair{CommandBarStyle::kOriginal, CommandBarStyle::kBarOrdersTime},
+                                 std::pair{CommandBarStyle::kOrdersButton, CommandBarStyle::kBarOrdersTime},
+                                 std::pair{CommandBarStyle::kBarOrders, CommandBarStyle::kBarOrdersTime}}) {
+    INFO("from " << static_cast<int>(from));
+    Features f = Features::extended();
+    f.command_bar = from;
+    REQUIRE(save_features(saves, f));
+    ScriptedHost host;
+    host.display = kDesktopDisplay;
+    host.script = {kOptionsExt, kCommandBarCycle, kOptionsOk, kExitToDosExt};
+    run_extended(install, host, saves);
+    CHECK(load_features(saves, Features::extended()).command_bar == to);
   }
 }
 

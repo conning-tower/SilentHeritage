@@ -233,7 +233,8 @@ class ControlBar : public CommandBar {
   std::function<void(const Features&)> on_features_changed;
   // Not in the original: opens the touch command panel above the bar's
   // ORDERS button (`Features::command_bar`), given its screen rectangle;
-  // without it the bar has no ORDERS button.
+  // without it the bar has no ORDERS button and the EXTENDED page offers
+  // the desktop's layouts.
   std::function<void(const ui::Rect&)> on_orders;
   // Not in the original: the window's settings for the EXTENDED page
   // (`FrontendHost::display_options`; unset or nothing: not shown), and
