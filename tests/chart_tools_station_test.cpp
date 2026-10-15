@@ -838,6 +838,36 @@ TEST_CASE("The first tap on the map after a tap on the toolbox is taken", "[char
   CHECK(items.empty());
 }
 
+TEST_CASE("The eraser frames the drawing under the mouse, not under a finger", "[charttools]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  ChartStation& chart = open_chart(rig, true);
+  rig.click(kToolsButton[0], kToolsButton[1]);
+  rig.frames(2);
+  REQUIRE(chart.panel() == ChartPanel::kTools);
+  chart.select_tool(ChartTool::kMark);
+  rig.click(450, 100);
+  REQUIRE(chart.annotations().items().size() == 1);
+  chart.select_tool(ChartTool::kEraser);
+  // The screen round the mark with the pointer at `at`.
+  const auto around_mark = [&rig](std::array<int, 2> at) {
+    rig.gui.mouse().update(at[0], at[1], 0, 0);
+    rig.frames(2);
+    std::vector<std::uint8_t> p;
+    for (int y = 80; y <= 120; ++y) {
+      for (int x = 425; x <= 520; ++x) {
+        p.push_back(rig.screen_image.at(x, y));
+      }
+    }
+    return p;
+  };
+  const std::vector<std::uint8_t> plain = around_mark({600, 400});
+  CHECK(around_mark({450, 100}) != plain);
+  rig.gui.mouse().set_edges(ui::PointerEdges::kNone);
+  CHECK(around_mark({600, 400}) == plain);
+  CHECK(around_mark({450, 100}) == plain);
+}
+
 TEST_CASE("The toolbox's prompt fits its two lines, for the mouse and for a finger", "[charttools]") {
   SH_REQUIRE_INSTALL(install);
   ControlRig rig(install);

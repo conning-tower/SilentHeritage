@@ -448,8 +448,9 @@ void ChartStation::update_map_pointer() {
     drag_map(step, x, y);
   }
   if (click_mode_ == ChartClickMode::kAnnotate) {
+    // A finger has no hover to preview the erase with.
     int highlight = -1;
-    if (tool_ == ChartTool::kEraser && on_map && !pointer_.active()) {
+    if (tool_ == ChartTool::kEraser && on_map && !pointer_.active() && !touch_screen()) {
       if (const std::optional<std::size_t> i =
               pick_chart_annotation(view_, annotations_, env_.assets.font1, x, y, pick_radius())) {
         highlight = static_cast<int>(*i);

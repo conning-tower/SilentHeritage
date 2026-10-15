@@ -115,7 +115,8 @@ std::string chart_ruler_text(geom::WorldXZ from, geom::WorldXZ to);
 // lines with the range and bearing of each segment long enough to hold it
 // and a polyline's total by its last point, circles with their radius by
 // their north-east point, marks with their time on their right. Parts off
-// the view are clipped. Item `highlight` (the eraser's, -1 none) is framed.
+// the view are clipped. Item `highlight` (the one the eraser would remove
+// under the mouse, -1 none) is framed.
 void draw_chart_annotations(const Viewport& vp, const ChartView& view, const ChartAnnotations& annotations,
                             const ChartInks& inks, const Font& font, int highlight = -1);
 // Draws `a` alone as `draw_chart_annotations` does (the drawing in
