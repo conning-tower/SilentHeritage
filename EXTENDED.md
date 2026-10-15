@@ -54,6 +54,9 @@ kept with it.
   game options and saves the mission or the career.
 - **Closing menus:** a click outside the 1MC, crew log, time compression,
   game options, detail level or mission menu closes it.
+- **Tab order:** Tab goes through the SINGLE MISSION menu's buttons row by
+  row, where the original jumped to BEST MISSIONS and MAIN MENU before the
+  SPECIAL MISSION row.
 - **Wide screens:** the game fills windows and screens wider than 4:3, up to
   21:9. The chart shows more of the map and the bridge a wider view, with its
   gauge panel running to the screen's edges; looking out to the side from the

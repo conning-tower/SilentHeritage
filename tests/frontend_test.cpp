@@ -30,6 +30,9 @@
 #include "game/shpath.h"
 #include "game_data.h"
 #include "ui/controls.h"
+#include "ui/dialog.h"
+#include "ui/event.h"
+#include "ui/hotspot.h"
 #include "ui/popup_menu.h"
 
 namespace sh {
@@ -254,6 +257,9 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
   // The hotspots when each step was replayed: which screen was shown.
   using Screen = std::vector<std::array<int, 4>>;
   std::vector<Screen> screens;
+  // The focused hotspot of the top dialog when each step was replayed
+  // ({-1, -1, -1, -1} without focus).
+  std::vector<std::array<int, 4>> focused;
   std::vector<MissionRequest> requests;
   std::vector<std::string> reports;
   int frames = 0;
@@ -282,6 +288,14 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
       shown.push_back({h.x0, h.y0, h.x1, h.y1});
     }
     screens.push_back(std::move(shown));
+    focused.push_back({-1, -1, -1, -1});
+    if (gui.hotspots().size() != 0) {
+      const ui::Dialog& top = *gui.hotspots()[static_cast<int>(gui.hotspots().size()) - 1].owner;
+      if (top.focus() >= 0) {
+        const ui::Hotspot& h = gui.hotspots()[top.first_hotspot() + top.focus()];
+        focused.back() = {h.x0, h.y0, h.x1, h.y1};
+      }
+    }
     if (s.back) {
       gui.mouse().post_back(0);
     } else if (s.key != 0) {
@@ -1056,6 +1070,59 @@ constexpr ScriptedHost::Step kBestMissions = ScriptedHost::Step{0, 69 + 261 + 90
 // The REALISM button of the scenario lists and NOVICE in the REALISM menu.
 constexpr ScriptedHost::Step kListRealism = ScriptedHost::Step{0, 69 + 185 + 60, 19 + 395 + 17};
 constexpr ScriptedHost::Step kNovice = ScriptedHost::Step{0, 52 + 27 + 60, 10 + 125 + 17};
+
+TEST_CASE("Tab goes through the SINGLE MISSION buttons row by row only in the extended variant",
+          "[frontend][extended]") {
+  SH_REQUIRE_INSTALL(install);
+  const ShPaths paths = ShPaths::load(install);
+  const ExeImage exe = ExeImage::load(install);
+  // HISTORIC to PATROL, SPECIAL and CONTINUE, BUILD and LOAD CUSTOM with the
+  // editor, MAIN MENU and BEST MISSIONS.
+  const int buttons = install.exists("SE.EXE") ? 10 : 8;
+  // Returns the focused hotspots on the menu, from its first focus through
+  // one Tab per button (back to the first).
+  const auto tab_order = [&](bool extended) {
+    const TempDir dir;
+    const SaveDir saves(dir.path(), &install, paths.dir(GameDir::kSave));
+    ScriptedHost host;
+    FrontEnd front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .extended_config = extended},
+                       host, host, 1234);
+    front_end.set_play_intro(false);
+    host.script = {extended ? kSingleMissionExt : kSingleMission};
+    for (int i = 0; i < buttons; ++i) {
+      host.script.push_back(ScriptedHost::key(ui::kKeyTab));
+    }
+    host.script.push_back(ScriptedHost::back());
+    host.script.push_back(ScriptedHost::back());
+    front_end.run();
+    CHECK(host.script.empty());
+    REQUIRE(host.focused.size() == static_cast<std::size_t>(buttons) + 3);
+    return std::vector<std::array<int, 4>>(host.focused.begin() + 1, host.focused.begin() + 2 + buttons);
+  };
+  // The buttons as shown: row by row, left to right.
+  const auto row_by_row = [](std::vector<std::array<int, 4>> spots) {
+    std::ranges::sort(spots,
+                      [](const auto& a, const auto& b) { return std::pair(a[1], a[0]) < std::pair(b[1], b[0]); });
+    return spots;
+  };
+
+  const std::vector<std::array<int, 4>> extended = tab_order(true);
+  const std::vector<std::array<int, 4>> once_round(extended.begin(), extended.end() - 1);
+  const std::vector<std::array<int, 4>> shown = row_by_row(once_round);
+  CHECK(std::ranges::adjacent_find(shown) == shown.end());  // each button once
+  CHECK(once_round == shown);
+  CHECK(extended.back() == extended.front());
+
+  // The original's order: BEST MISSIONS and MAIN MENU before the rows from
+  // SPECIAL on.
+  const std::vector<std::array<int, 4>> classic = tab_order(false);
+  std::vector<std::array<int, 4>> original(shown.begin(), shown.begin() + 4);
+  original.push_back(shown[buttons - 1]);
+  original.push_back(shown[buttons - 2]);
+  original.insert(original.end(), shown.begin() + 4, shown.end() - 2);
+  original.push_back(shown.front());
+  CHECK(classic == original);
+}
 
 // Each script below ends on the main menu's Back: `run` returns (EXIT TO
 // DOS, without its box). The screen shown at each step (its hotspots)

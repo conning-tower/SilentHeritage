@@ -456,23 +456,41 @@ int FrontEnd::single_mission_menu(bool show_background) {
     }
   });
   d.emplace<ui::TitleBar>(exe_string(addr::kSingleTitle));
-  d.emplace<ui::Button>(38, 125, 198, exe_string(0xfbd34), returns(code::kHistoric));
-  d.emplace<ui::Button>(261, 125, 198, exe_string(0xfbd45), returns(code::kConvoy));
-  d.emplace<ui::Button>(38, 165, 198, exe_string(0xfbd56), returns(code::kWarship));
-  d.emplace<ui::Button>(261, 165, 198, exe_string(0xfbd68), returns(code::kPatrol));
-  d.emplace<ui::Button>(261, 299, 198, exe_string(0xfbd79), returns(code::kBestMissions));
-  d.set_back(d.emplace<ui::Button>(38, 299, 198, exe_string(0xfbd87), returns(code::kMainMenu)));
+  const auto button = [&](int x, int y, std::uint32_t label, int result) -> ui::Button& {
+    return d.emplace<ui::Button>(x, y, 198, exe_string(label), returns(result));
+  };
+  button(38, 125, 0xfbd34, code::kHistoric);
+  button(261, 125, 0xfbd45, code::kConvoy);
+  button(38, 165, 0xfbd56, code::kWarship);
+  button(261, 165, 0xfbd68, code::kPatrol);
   // The upper box grows by one row of buttons for SPECIAL / CONTINUE and
   // one more when the scenario editor is installed (0x11a7d0).
   const bool editor = install_.exists("SE.EXE");
+  const auto special_rows = [&] {
+    button(38, 205, 0xfbd91, code::kSpecial);
+    button(261, 205, 0xfbda1, code::kContinue);
+    if (editor) {
+      button(38, 245, 0xfbdb2, code::kBuildCustom);
+      button(261, 245, 0xfbdc7, code::kLoadCustom);
+    }
+  };
+  // Tab goes through the buttons in the order they are added. The original
+  // adds SPECIAL to LOAD CUSTOM last, after BEST MISSIONS and MAIN MENU;
+  // with the extended settings they come row by row, left to right (not in
+  // the original).
+  if (extended_config_) {
+    special_rows();
+    d.set_back(button(38, 299, 0xfbd87, code::kMainMenu));
+    button(261, 299, 0xfbd79, code::kBestMissions);
+  } else {
+    button(261, 299, 0xfbd79, code::kBestMissions);
+    d.set_back(button(38, 299, 0xfbd87, code::kMainMenu));
+  }
   d.emplace<ui::GroupBox>(25, 116, 472, 209 + 40 + (editor ? 40 : 0));
   d.emplace<ui::GroupBox>(25, 290, 472, 342);
   add_exit_area(d);
-  d.emplace<ui::Button>(38, 205, 198, exe_string(0xfbd91), returns(code::kSpecial));
-  d.emplace<ui::Button>(261, 205, 198, exe_string(0xfbda1), returns(code::kContinue));
-  if (editor) {
-    d.emplace<ui::Button>(38, 245, 198, exe_string(0xfbdb2), returns(code::kBuildCustom));
-    d.emplace<ui::Button>(261, 245, 198, exe_string(0xfbdc7), returns(code::kLoadCustom));
+  if (!extended_config_) {
+    special_rows();
   }
   return run_menu_dialog(d);
 }
