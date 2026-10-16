@@ -716,14 +716,8 @@ class DigitCounter final : public PanelControl {
     }
     if (const std::optional<std::int32_t> v = scrub_ && ctx_.scrub ? ctx_.scrub->pending(*scrub_) : std::nullopt) {
       // Not in the original: the pending value, dark digits on amber cells.
-      GlyphColourTable amber = ctx_.colours;
-      for (int i = 0xc0; i <= 0xcb; ++i) {
-        amber[static_cast<std::size_t>(i)] = ctx_.ghost;
-      }
-      for (int i = 0xe0; i <= 0xef; ++i) {
-        amber[static_cast<std::size_t>(i)] = ctx_.ghost_back;
-      }
-      draw_padded_number(dialog.gfx(), def_.text_x, def_.text_y, *v, def_.digits, ctx_.big_digits, amber);
+      draw_padded_number(dialog.gfx(), def_.text_x, def_.text_y, *v, def_.digits, ctx_.big_digits,
+                         ui::ghost_digit_colours(ctx_.colours, ctx_.ghost, ctx_.ghost_back));
     } else {
       draw_padded_number(dialog.gfx(), def_.text_x, def_.text_y, value_(), def_.digits, ctx_.big_digits,
                          ctx_.colours);

@@ -1,6 +1,8 @@
 #include "game/stations/radar.h"
 
 #include <array>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 
@@ -12,6 +14,7 @@
 #include "gfx/text.h"
 #include "sim/sensor_environment.h"
 #include "ui/controls.h"
+#include "ui/dial_scrub.h"
 #include "ui/dialog.h"
 #include "ui/draw.h"
 
@@ -109,6 +112,13 @@ struct RadarStation::Impl {
   std::int32_t sd_shown_nearest = -1;  // 0x1255b8
   std::int32_t sd_shown_damage = -1;   // 0x1255bc
   std::int32_t sd_shown_on = -1;       // 0x1255c0
+  // Extended `precise_dials` (not in the original): the scrubber of the
+  // train knob and the bearing counter (null when off), their indices and
+  // the ghosts' colours.
+  std::unique_ptr<ui::DialScrubber> scrub;
+  std::array<std::size_t, 2> scrub_index{};
+  std::uint8_t ghost = 0;
+  std::uint8_t ghost_back = 0;
 
   Mission& mission() { return services.mission(); }
   RadarSets& radar() { return mission().sim().sensors().radar(); }
@@ -139,9 +149,17 @@ struct RadarStation::Impl {
   // Adds a sprite push button (`push_button_proc` with its definition):
   // `state(pressed)` acts on a press and returns the frame offset.
   ui::Area& add_push_button(ui::Dialog& d, Box box, std::int32_t first_frame, std::function<int(bool)> state);
+  // `pending` (extended `precise_dials`) returns the pending value the
+  // counter shows instead, if any.
   ui::Area& add_digit_counter(ui::Dialog& d, Box box, std::function<std::int32_t&()> value, int digits,
-                              std::function<void()> on_change);
+                              std::function<void()> on_change,
+                              std::function<std::optional<std::int32_t>()> pending = {});
   void draw_knob();
+  // Extended `precise_dials`: registers the train knob and the bearing
+  // counter, which take a pending bearing while the beam is held.
+  void add_scrub_targets();
+  // Returns the pending bearing (tenths) of the knob or the counter, if any.
+  std::optional<std::int32_t> pending_bearing() const;
   void hover(ui::Area& a, ui::CursorId cursor);
   std::uint8_t sj_base() { return (options() & kSjMask) > kSjImproved ? 0x18 : 0x10; }
 };
@@ -182,10 +200,12 @@ ui::Area& RadarStation::Impl::add_push_button(ui::Dialog& d, Box box, std::int32
 }
 
 ui::Area& RadarStation::Impl::add_digit_counter(ui::Dialog& d, Box box, std::function<std::int32_t&()> value,
-                                                int digits, std::function<void()> on_change) {
+                                                int digits, std::function<void()> on_change,
+                                                std::function<std::optional<std::int32_t>()> pending) {
   // digit_counter_proc (0x4ac23): a click on a digit increments it (9 -> 0).
-  auto on_message = [this, box, value = std::move(value), digits, on_change = std::move(on_change)](
-                        ui::Dialog& dlg, ui::Area& self, ui::Msg msg, int, const ui::Event& event) {
+  auto on_message = [this, box, value = std::move(value), digits, on_change = std::move(on_change),
+                     pending = std::move(pending)](ui::Dialog& dlg, ui::Area& self, ui::Msg msg, int,
+                                                   const ui::Event& event) {
     if (msg != ui::Msg::kPress && msg != ui::Msg::kPaint) {
       return 0;
     }
@@ -218,6 +238,12 @@ ui::Area& RadarStation::Impl::add_digit_counter(ui::Dialog& d, Box box, std::fun
         on_change();
       }
     }
+    if (const std::optional<std::int32_t> v = pending ? pending() : std::nullopt) {
+      // Not in the original: the pending value, dark digits on amber cells.
+      draw_padded_number(dlg.gfx(), box.x0, box.y0, *v, digits, *digit_font,
+                         ui::ghost_digit_colours(colours, ghost, ghost_back));
+      return -1;
+    }
     // digit_counter_draw (0x4ad1e)
     draw_padded_number(dlg.gfx(), box.x0, box.y0, value(), digits, *digit_font, colours);
     return -1;
@@ -239,6 +265,57 @@ void RadarStation::Impl::draw_knob() {
   }
   sprite_draw_transformed(screen_vp(kKnob), sprites.frame(kFrameNeedle), 0x114 - kKnob.x0, 0x141 - kKnob.y0, scratch,
                           Angle10(bearing_tenths), Fixed16::from_int(1), Fixed16::from_int(1), 0);
+  if (const std::optional<std::int32_t> v = pending_bearing()) {
+    // Not in the original: the pending bearing's ghost needle, over the
+    // needle's span at the knob's rim.
+    ui::draw_ghost_needle(screen_vp(kKnob), 0x114 - kKnob.x0, 0x141 - kKnob.y0, *v, 12, 21, ghost);
+  }
+}
+
+void RadarStation::Impl::add_scrub_targets() {
+  // Not in the original: the bearing of the held beam by tenths, 1 degree
+  // steps, on the knob or the counter (extended `precise_dials`). Both are
+  // disabled while the beam sweeps.
+  scrub = std::make_unique<ui::DialScrubber>();
+  ghost = ui::ghost_colour(services.palette());
+  ghost_back = ui::nearest_colour(services.palette(), 16, 16, 16);
+  const auto add = [this](ui::Area& a) {
+    return scrub->add({
+        .rect = {a.x0, a.y0, a.x1, a.y1},
+        .scale = {.units_per_px = 2.5, .min = 0, .max = 3599, .wrap = true, .snap = 10},
+        .current = [this] { return Angle10(bearing_tenths).normalized().tenths(); },
+        .commit =
+            [this](std::int32_t v) {
+              // As the knob's press does (sj_radar_set_bearing).
+              bearing_tenths = v;
+              bearing_deg = v / 10;
+              radar().sj().beam = v << 16;
+            },
+        .tap =
+            [this, &a](const ui::Event& e) {
+              a.handle(*sj_dialog, ui::Msg::kPress, 0, e);
+              a.dirty = true;
+            },
+        .changed =
+            [this] {
+              knob->dirty = true;
+              bearing_counter->dirty = true;
+            },
+        .enabled = [&a] { return !a.disabled; },
+    });
+  };
+  scrub_index = {add(*knob), add(*bearing_counter)};
+}
+
+std::optional<std::int32_t> RadarStation::Impl::pending_bearing() const {
+  if (scrub) {
+    for (const std::size_t i : scrub_index) {
+      if (const std::optional<std::int32_t> v = scrub->pending(i)) {
+        return v;
+      }
+    }
+  }
+  return std::nullopt;
 }
 
 void RadarStation::Impl::build_sj_dialog() {
@@ -260,6 +337,10 @@ void RadarStation::Impl::build_sj_dialog() {
           bearing_deg -= 360;
         }
         radar().sj().beam = bearing_deg * 0xa0000;
+      },
+      [this]() -> std::optional<std::int32_t> {
+        const std::optional<std::int32_t> v = pending_bearing();
+        return v ? std::optional<std::int32_t>(*v / 10) : std::nullopt;
       });
   // The train knob (def 0x10cd68, knob_dial_proc): sj_radar_set_bearing.
   auto knob_message = [this](ui::Dialog& dlg, ui::Area& self, ui::Msg msg, int, const ui::Event& event) {
@@ -406,6 +487,9 @@ void RadarStation::Impl::init_sj_display() {
   draw_sprite_clipped(full, sprites.frame(kFrameSjLabel + ((options() & kSjMask) == kSjMask ? 1 : 0)), 0x9f, 0x19b);
   background = screen;
   build_sj_dialog();
+  if (services.features.precise_dials) {
+    add_scrub_targets();
+  }
   sj_dialog->open();
   sj_redraw();
 }
@@ -655,6 +739,9 @@ void RadarStation::open() {
 }
 
 void RadarStation::event(const ui::Event& event) {
+  if (impl_->scrub && impl_->scrub->event(event, services_.gui().ticks())) {
+    return;
+  }
   if (impl_->sj_view) {
     impl_->sj_dialog->handle_event(event);
   }
@@ -664,6 +751,9 @@ void RadarStation::event(const ui::Event& event) {
 }
 
 void RadarStation::process() {
+  if (impl_->scrub) {
+    impl_->scrub->process(services_.gui().ticks());
+  }
   if (impl_->sj_view) {
     impl_->sj_dialog->process();
   }
@@ -679,6 +769,8 @@ void RadarStation::update() {
     services_.host().fade_in();
   }
 }
+
+bool RadarStation::capturing() const { return impl_ && impl_->scrub && impl_->scrub->capturing(); }
 
 void RadarStation::close() {
   // sj_radar_close_display, sd_radar_close_display

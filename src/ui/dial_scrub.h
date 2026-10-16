@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "assets/pal.h"
+#include "gfx/text.h"
 #include "gfx/viewport.h"
 #include "ui/drag_gesture.h"
 #include "ui/event.h"
@@ -102,6 +103,9 @@ class DialScrubber {
 std::uint8_t nearest_colour(const VgaPalette& palette, int r, int g, int b);
 // Returns the amber of the ghosts in `palette`.
 std::uint8_t ghost_colour(const VgaPalette& palette);
+// Returns `base` with the ink of DIGITS3.FNT (0xc0..0xcb) in `ink` and its
+// cells (0xe0..0xef) in `back` (the digits of a pending value).
+GlyphColourTable ghost_digit_colours(const GlyphColourTable& base, std::uint8_t ink, std::uint8_t back);
 // Draws `frame` turned by `angle` (tenths) about (x, y) of `vp` with every
 // opaque pixel in `colour` (the ghost of a needle or marker).
 void draw_ghost_sprite(const Viewport& vp, const SpriteFrame& frame, int x, int y, std::int32_t angle,

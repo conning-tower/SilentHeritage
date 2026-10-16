@@ -56,6 +56,7 @@ class RadarStation final : public Station {
   void update() override;
   // `radar_station_close` (0x65374).
   void close() override;
+  bool capturing() const override;
   bool expensive() const override { return true; }
   bool rig_red_redraw() const override { return true; }
 

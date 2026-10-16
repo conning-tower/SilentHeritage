@@ -67,8 +67,9 @@ struct Features {
   // (the sea follows the pointer), with inertia after a fast release.
   bool drag_rotate = false;
   // The settable dials (ordered course, helm and depth; the TDC's knobs,
-  // counters and torpedo depth) take a pending value by a horizontal drag
-  // or the wheel, shown as an amber ghost and given on release.
+  // counters and torpedo depth; the held SJ beam's knob and counter) take a
+  // pending value by a horizontal drag or the wheel, shown as an amber ghost
+  // and given on release.
   bool precise_dials = false;
   // The touch command panel shows the depth order in effect and each
   // tube's state.

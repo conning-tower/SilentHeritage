@@ -1,10 +1,11 @@
 // The extended variant's controls in the stations, on HIST01: the view
 // drags of the periscope, bridge and deck gun, and the precise dials of the
-// gauges' nav panel and the TDC. Each feature on, then off: off, the same
+// gauges' nav panel, the TDC and the SJ radar. Each feature on, then off: off, the same
 // input gives exactly the original's state and pixels.
 #include <catch2/catch_test_macros.hpp>
 
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
@@ -21,6 +22,7 @@
 #include "game/stations/deckgun.h"
 #include "game/stations/gauges.h"
 #include "game/stations/nav_panel.h"
+#include "game/stations/radar.h"
 #include "game/stations/scope.h"
 #include "game/stations/tdc.h"
 #include "game/stations/view_drag.h"
@@ -28,6 +30,7 @@
 #include "game_data.h"
 #include "platform/screenshot.h"
 #include "sim/player_combat.h"
+#include "sim/sensor_environment.h"
 #include "stations_control_fixture.h"
 #include "ui/default_skin.h"
 
@@ -460,6 +463,143 @@ TEST_CASE("controls: off, the TDC dials are the original clicks", "[controls][st
   CHECK(da.bearing().tenths() == 900);
   CHECK(da.bearing().tenths() == cb.bearing().tenths());
   CHECK(std::equal(dragged.screen.pixels().begin(), dragged.screen.pixels().end(), clicked.screen.pixels().begin()));
+}
+
+namespace {
+
+// The SJ train knob's centre and the bearing counter's.
+constexpr int kKnobX = 0x114;
+constexpr int kKnobY = 0x141;
+constexpr int kCounterX = 0x114;
+constexpr int kCounterY = 0x11d;
+
+// Fits the SJ (A-scope) on `h`'s boat, switched on with its beam at the
+// bow, held when `held` (else sweeping), and opens `station` on it. The
+// harness runs no simulation: the beam stays where it is put.
+void open_sj(Harness& h, RadarStation& station, bool held) {
+  h.mission->sim().conditions().options |= sensor_option::kSjRadarMask;
+  RadarSets::Sj& sj = h.mission->sim().sensors().radar().sj();
+  sj.mode = SjMode::kAScope;
+  sj.hold = held;
+  sj.beam = 0;
+  station.open();
+  h.frame(station);
+}
+
+// Turns the wheel `notches` at (x, y), a frame.
+void wheel(Harness& h, Station& station, int x, int y, int notches) {
+  h.mouse(station, x, y, 0);
+  h.gui.mouse().post_wheel(notches, 0);
+  h.frame(station);
+}
+
+// Runs the frames after which the wheel's pending value is given.
+void wheel_settle(Harness& h, Station& station) {
+  for (std::uint32_t t = 0; t <= ui::kWheelCommitTicks; t += 5) {
+    h.frame(station);
+  }
+}
+
+// Returns whether `a` and `b` differ within the train knob.
+bool knob_differs(const Image8& a, const Image8& b) {
+  for (int y = 0x12b; y <= 0x157; ++y) {
+    for (int x = 0xfe; x <= 0x12a; ++x) {
+      if (a.at(x, y) != b.at(x, y)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+}  // namespace
+
+TEST_CASE("controls: the held SJ beam takes a dragged or wheeled bearing", "[controls][stations2]") {
+  SH_REQUIRE_INSTALL(install);
+  Harness h(install, with_dials());
+  RadarStation station(h.services);
+  open_sj(h, station, true);
+  const RadarSets::Sj& sj = h.mission->sim().sensors().radar().sj();
+
+  // 40 px right on the knob is 10 degrees, nothing before the release.
+  const Image8 before = h.screen;
+  h.mouse(station, kKnobX, kKnobY - 10, 0);
+  h.mouse(station, kKnobX, kKnobY - 10, ui::kButtonLeft);
+  for (int i = 1; i <= 4; ++i) {
+    h.mouse(station, kKnobX + 10 * i, kKnobY - 10, ui::kButtonLeft);
+  }
+  CHECK(sj.beam == 0);
+  CHECK(station.capturing());
+  // The ghost needle and the counter's amber digits.
+  CHECK(knob_differs(before, h.screen));
+  save_screenshot("controls_sj_bearing_pending", h.screen, h.palette);
+  h.mouse(station, kKnobX + 40, kKnobY - 10, 0);
+  CHECK(sj.beam == 100 << 16);
+  CHECK(!station.capturing());
+
+  // The wheel: a degree a notch on the knob or the counter, given once
+  // the notches stop.
+  wheel(h, station, kKnobX, kKnobY, 3);
+  CHECK(sj.beam == 100 << 16);
+  CHECK(station.capturing());
+  wheel_settle(h, station);
+  CHECK(sj.beam == 130 << 16);
+  wheel(h, station, kCounterX, kCounterY, -5);
+  wheel_settle(h, station);
+  CHECK(sj.beam == 80 << 16);
+
+  // A tap on the knob is the original press: the bearing of the pointer.
+  h.mouse(station, kKnobX + 21, kKnobY + 1, ui::kButtonLeft);
+  h.mouse(station, kKnobX + 21, kKnobY + 1, 0);
+  CHECK(sj.beam == 900 << 16);
+  station.close();
+}
+
+TEST_CASE("controls: the sweeping SJ beam takes no drag or wheel", "[controls][stations2]") {
+  SH_REQUIRE_INSTALL(install);
+  Harness h(install, with_dials());
+  RadarStation station(h.services);
+  open_sj(h, station, false);
+  const RadarSets::Sj& sj = h.mission->sim().sensors().radar().sj();
+  h.drag(station, kKnobX, kKnobY - 10, 10, 4);
+  CHECK(sj.beam == 0);
+  wheel(h, station, kKnobX, kKnobY, 3);
+  CHECK(!station.capturing());
+  wheel(h, station, kCounterX, kCounterY, 2);
+  wheel_settle(h, station);
+  CHECK(sj.beam == 0);
+  station.close();
+}
+
+TEST_CASE("controls: off, a drag on the SJ train knob is the original press", "[controls][stations2]") {
+  SH_REQUIRE_INSTALL(install);
+  // A press, a drag and a release on the knob sets the bearing of the
+  // press, as a plain click does; the wheel does nothing.
+  Harness dragged(install, Features::classic());
+  Harness clicked(install, Features::classic());
+  RadarStation a(dragged.services);
+  RadarStation b(clicked.services);
+  open_sj(dragged, a, true);
+  open_sj(clicked, b, true);
+  dragged.drag(a, kKnobX + 21, kKnobY + 1, 10, 4);
+  wheel(dragged, a, kKnobX, kKnobY, 3);
+  wheel_settle(dragged, a);
+  clicked.mouse(b, kKnobX + 21, kKnobY + 1, 0);
+  clicked.mouse(b, kKnobX + 21, kKnobY + 1, ui::kButtonLeft);
+  clicked.mouse(b, kKnobX + 21, kKnobY + 1, 0);
+  for (int i = 0; i < 4; ++i) {
+    clicked.frame(b);
+  }
+  clicked.mouse(b, kKnobX, kKnobY, 0);
+  wheel_settle(clicked, b);
+  const RadarSets::Sj& da = dragged.mission->sim().sensors().radar().sj();
+  const RadarSets::Sj& cb = clicked.mission->sim().sensors().radar().sj();
+  CHECK(da.beam == 900 << 16);
+  CHECK(da.beam == cb.beam);
+  // The controls under the scopes (whose noise is drawn at random).
+  const std::ptrdiff_t controls = std::ptrdiff_t{0x110} * kScreenWidth;
+  CHECK(std::equal(dragged.screen.pixels().begin() + controls, dragged.screen.pixels().end(),
+                   clicked.screen.pixels().begin() + controls));
 }
 
 namespace {

@@ -201,6 +201,17 @@ std::uint8_t nearest_colour(const VgaPalette& palette, int r, int g, int b) {
 
 std::uint8_t ghost_colour(const VgaPalette& palette) { return nearest_colour(palette, 255, 190, 40); }
 
+GlyphColourTable ghost_digit_colours(const GlyphColourTable& base, std::uint8_t ink, std::uint8_t back) {
+  GlyphColourTable amber = base;
+  for (int i = 0xc0; i <= 0xcb; ++i) {
+    amber[static_cast<std::size_t>(i)] = ink;
+  }
+  for (int i = 0xe0; i <= 0xef; ++i) {
+    amber[static_cast<std::size_t>(i)] = back;
+  }
+  return amber;
+}
+
 void draw_ghost_sprite(const Viewport& vp, const SpriteFrame& frame, int x, int y, std::int32_t angle,
                        std::uint8_t colour) {
   ColourRemap remap{};
