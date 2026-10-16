@@ -45,9 +45,6 @@ std::int32_t relative_degrees(const PlayerSub& player, const Vehicle& v) {
 
 void ContactReports::forget(const Vehicle& removed) {
   std::erase_if(contacts_, [&](const PlayerContact& c) { return c.vehicle == &removed; });
-  if (gun_crew_target_ == &removed) {
-    gun_crew_target_ = nullptr;
-  }
   if (nearest_aircraft_ == &removed) {
     nearest_aircraft_ = nullptr;
   }
@@ -130,7 +127,6 @@ void ContactReports::report(SimContext& ctx, PlayerSub& player, RadarSets& radar
   recon_in_view_ = nullptr;
   recon_target_ = nullptr;
   std::int32_t nearest_recon_yd = 0x7fffffff;
-  gun_crew_target_.reset();
   torpedo_warning_ = false;
   contacts_.clear();
   const bool groups = (options & sensor_option::kContactGroups) != 0;
@@ -149,6 +145,17 @@ void ContactReports::report(SimContext& ctx, PlayerSub& player, RadarSets& radar
   std::int32_t torpedoes = 0;
   std::int32_t activity = 0;
 
+  // The deck gun's target (0x11c1c4), which the crew's pick changes during
+  // the pass.
+  PlayerCombat* const combat = ctx.sim != nullptr ? ctx.sim->player_combat() : nullptr;
+  const Vehicle* gun_target = env.gun_target;
+  // deckgun_crew_set_target (0x38548), with the nearest hostile seen so far.
+  const auto crew_set_gun_target = [&](Vehicle* target) {
+    if (combat != nullptr) {
+      combat->deck_gun.crew_set_target(target);
+      gun_target = combat->deck_gun.target();
+    }
+  };
   const PlayerLookoutState lookout = player_lookout_state(player, env.crew);
   const SightingConditions conditions = env.sighting(ctx.env);
   const fx::Vec3 own = player.position();
@@ -233,7 +240,7 @@ void ContactReports::report(SimContext& ctx, PlayerSub& player, RadarSets& radar
         if (&v == env.tdc_target) {
           tdc_target_range_ = range;
         }
-        if (&v == env.gun_target) {
+        if (&v == gun_target) {
           gun_target_range_ = range;
         }
       };
@@ -245,7 +252,7 @@ void ContactReports::report(SimContext& ctx, PlayerSub& player, RadarSets& radar
           nearest_d = d;
           nearest = &v;
         }
-        gun_crew_target_ = nearest;
+        crew_set_gun_target(nearest);
         note_target_range();
       } else if ((!v.is_aircraft() && v.plane_count() == 0) || v.sinking()) {
         if (v.is_pilot()) {
@@ -266,7 +273,7 @@ void ContactReports::report(SimContext& ctx, PlayerSub& player, RadarSets& radar
             nearest_d = d;
             nearest = &v;
           }
-          gun_crew_target_ = nearest;
+          crew_set_gun_target(nearest);
           note_target_range();
         }
       } else {
@@ -288,7 +295,7 @@ void ContactReports::report(SimContext& ctx, PlayerSub& player, RadarSets& radar
         ++torpedoes;
       }
       v.mark_sighted(ctx.clock);
-      v.add_track_time(dt, &v == env.tdc_target || &v == env.gun_target);
+      v.add_track_time(dt, &v == env.tdc_target || &v == gun_target);
       if (v.is_torpedo()) {
         const std::int32_t t = motion_intercept_time({pos.x, pos.z, v.heading(), v.speed()},
                                                      {own.x, own.z, player.motion().heading, player.motion().speed},

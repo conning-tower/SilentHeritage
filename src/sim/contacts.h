@@ -9,7 +9,6 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <vector>
 
 #include "core/fixed.h"
@@ -46,7 +45,9 @@ class ContactReports {
   friend class StateIo;  // The state files (game/vehicle_state.h).
  public:
   // Runs the lookouts for `dt` (16.16 s) and posts the crew calls
-  // (`player_report_contacts`).
+  // (`player_report_contacts`); when the crew mans the deck gun, its target
+  // becomes the nearest hostile ship or submarine seen
+  // (`DeckGun::crew_set_target`).
   void report(SimContext& ctx, PlayerSub& player, RadarSets& radar, const SensorEnvironment& env, std::int32_t dt);
 
   // Drops the pointers to `removed`, about to be deleted.
@@ -54,9 +55,6 @@ class ContactReports {
 
   // The contacts seen in the last report, in vehicle order.
   const std::vector<PlayerContact>& contacts() const { return contacts_; }
-  // The nearest hostile ship or submarine seen, the deck-gun crew's target
-  // (`deckgun_crew_set_target`), when one was seen in the last report.
-  std::optional<Vehicle*> deck_gun_crew_target() const { return gun_crew_target_; }
   // The lookouts' range for the TDC and deck-gun targets (0x129a24,
   // 0x11c1d4), kept until seen again.
   std::int32_t tdc_target_range_yd() const { return tdc_target_range_; }
@@ -96,7 +94,6 @@ class ContactReports {
                           std::int32_t& nearest_yd);
 
   std::vector<PlayerContact> contacts_;
-  std::optional<Vehicle*> gun_crew_target_;
   std::int32_t tdc_target_range_ = 0;
   std::int32_t gun_target_range_ = 0;
   Vehicle* nearest_aircraft_ = nullptr;

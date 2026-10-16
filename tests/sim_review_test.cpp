@@ -330,6 +330,32 @@ TEST_CASE("The deck-gun crew fires a mount on its own solution quality", "[simre
   CHECK(p.player_shells() > 0);
 }
 
+TEST_CASE("The manned deck gun's crew picks the nearest hostile ship and fires at it", "[simreview]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  BoatRig p(tables);
+  // 45 deg off the bow, out of either mount's dead zone, within 7000 yd.
+  Ship& target = p.add_ship("LFREIGHT", 2000, 2000, Angle10(900), 0, ShipOrder::kNone);
+  p.add_ship("LFREIGHT", 4000, 4000, Angle10(900), 0, ShipOrder::kNone);
+  DeckGun& gun = p.combat.deck_gun;
+  gun.reset(p.sub, 50, p.player->systems());
+  SimContext ctx = p.sim.context();
+  gun.set_manned(ctx, *p.player, false, false);
+  REQUIRE_FALSE(gun.manual());
+  REQUIRE(gun.target() == nullptr);
+  // The frame of Mission::simulate_frame: the contact pass (in the step)
+  // picks the crew's target, then the guns update.
+  for (int frame = 0; frame < 2000 && p.player_shells() == 0; ++frame) {
+    p.sim.step(5);
+    gun.set_sighting_range(p.sim.sensors().reports().gun_target_range_yd());
+    p.combat.update_frame(ctx, *p.player);
+  }
+  CHECK(gun.target() == &target);
+  CHECK(p.sim.sensors().environment().gun_target == &target);
+  CHECK(p.player_shells() > 0);
+  CHECK(gun.ammo() < 50);
+}
+
 TEST_CASE("The deck guns start trained fore and aft", "[simreview]") {
   SH_REQUIRE_INSTALL(install);
   const GameTables tables = GameTables::load(install);

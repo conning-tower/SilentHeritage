@@ -1,6 +1,7 @@
 #include "sim/sensors.h"
 
 #include "sim/ai_ship.h"
+#include "sim/player_combat.h"
 #include "sim/player_sub.h"
 #include "sim/simulation.h"
 #include "sim/sonar.h"
@@ -19,6 +20,10 @@ constexpr std::int32_t kGameOverMissionOver = 9;    // "Mission over."
 void Sensors::update_player_reports(SimContext& ctx, PlayerSub& player, Fixed16 dt) {
   quiet_time_ += dt.raw();
   reports_.report(ctx, player, radar_, env_, dt.raw());
+  // The crew may have picked the deck gun's target, which the ships see.
+  if (const PlayerCombat* combat = ctx.sim != nullptr ? ctx.sim->player_combat() : nullptr; combat != nullptr) {
+    env_.gun_target = combat->deck_gun.target();
+  }
   // player_update (0x5bf89): a minute without contact ends a single
   // mission whose scenario asks for it.
   if (quiet_time_ > kLostContactTime && (ctx.env.options & sensor_option::kContactGroups) == 0 &&
