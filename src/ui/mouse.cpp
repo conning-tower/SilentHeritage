@@ -17,9 +17,20 @@ void Mouse::set_bounds(int width, int height) {
 
 void Mouse::set_band(std::optional<ClipRect> band) {
   band_ = band;
-  if (!band_ || y_ < band_->top) {
+  if (!in_band(y_)) {
     x_ = std::clamp(x_, 0, width_ - 1);
   }
+}
+
+void Mouse::set_band_rows(std::optional<std::pair<int, int>> rows) {
+  band_rows_ = rows;
+  if (!in_band(y_)) {
+    x_ = std::clamp(x_, 0, width_ - 1);
+  }
+}
+
+bool Mouse::in_band(int y) const {
+  return band_ && (y >= band_->top || (band_rows_ && y >= band_rows_->first && y <= band_rows_->second));
 }
 
 void Mouse::update(int x, int y, std::uint8_t buttons, std::uint8_t shift) {
@@ -30,7 +41,7 @@ void Mouse::update(int x, int y, std::uint8_t buttons, std::uint8_t shift) {
     pointer_x_ = x;
     pointer_y_ = y;
     const int ny = std::clamp(y, 0, height_ - 1);
-    const int nx = band_ && ny >= band_->top ? std::clamp(x, band_->left, band_->right) : std::clamp(x, 0, width_ - 1);
+    const int nx = in_band(ny) ? std::clamp(x, band_->left, band_->right) : std::clamp(x, 0, width_ - 1);
     moved = nx != x_ || ny != y_;
     x_ = nx;
     y_ = ny;

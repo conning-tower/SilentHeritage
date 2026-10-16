@@ -238,7 +238,7 @@ void BridgeStation::open() {
   dialog_->open();
   if (s_.features.drag_rotate) {
     drag_ = std::make_unique<ViewDrag>(view_bearing_hooks(s_, nullptr, [this] { return dialog_.get(); }));
-    drag_->set_regions({{0, 0, kBridgeViewWidth - 1, kViewRows - 1}});
+    drag_->set_regions({{0, 0, width - 1, kViewRows - 1}});
   }
 
   // bridge_load_nav (0x17a29): the menu 0x11667c (conn, TBT, deck gun),

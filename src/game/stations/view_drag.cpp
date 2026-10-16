@@ -38,7 +38,8 @@ bool ViewDrag::event(const ui::Event& event, std::uint32_t tick) {
   if ((flags & ui::kEventLeftDown) != 0) {
     rate_ = 0;
     const auto hit = [&](const ui::Rect& r) { return inside(r, event.x, event.y); };
-    if ((hooks_.enabled && !hooks_.enabled()) || !std::any_of(regions_.begin(), regions_.end(), hit)) {
+    if ((hooks_.enabled && !hooks_.enabled()) || !std::any_of(regions_.begin(), regions_.end(), hit) ||
+        std::any_of(holes_.begin(), holes_.end(), hit)) {
       return false;
     }
     drag_.press(event.x, event.y, tick);

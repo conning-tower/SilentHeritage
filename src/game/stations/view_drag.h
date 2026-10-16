@@ -64,6 +64,8 @@ class ViewDrag {
 
   // The areas (screen coordinates) whose presses can drag.
   void set_regions(std::vector<ui::Rect> regions) { regions_ = std::move(regions); }
+  // The areas within them whose presses never drag (their controls).
+  void set_holes(std::vector<ui::Rect> holes) { holes_ = std::move(holes); }
   // Takes `event` at GUI tick `tick`; returns whether it belongs to a drag
   // (then the station's dialog must not see it). A press is never taken.
   bool event(const ui::Event& event, std::uint32_t tick);
@@ -79,6 +81,7 @@ class ViewDrag {
  private:
   Hooks hooks_;
   std::vector<ui::Rect> regions_;
+  std::vector<ui::Rect> holes_;
   ui::PointerDrag drag_;
   double across_ = 0;
   double up_ = 0;

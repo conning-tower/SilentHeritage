@@ -317,6 +317,65 @@ TEST_CASE("controls: the deck gun drag trains and elevates within its stops", "[
   gun_station.close();
 }
 
+TEST_CASE("controls: the deck gun drags from anywhere in the sight's rows, its controls there kept",
+          "[controls][stations2]") {
+  SH_REQUIRE_INSTALL(install);
+  // The sight's rows 0x4f..0x116; beside it, the breech and the elevation
+  // areas.
+  const int y = 0x4f + 100;
+  for (const bool drag : {true, false}) {
+    CAPTURE(drag);
+    Harness h(install, drag ? with_drag() : Features{});
+    DeckGunStation gun_station(h.services);
+    gun_station.open();
+    h.frame(gun_station);
+    DeckGun& gun = h.mission->player_combat().deck_gun;
+    gun.set_manual(true);
+    h.frame(gun_station);
+    const std::int32_t m = gun.selected();
+    const std::int32_t start = m == 0 ? 300 : 2000;
+
+    // Left of the sight, right of it, and on a wide window's side fill
+    // (the command bar's band across the window, as the mission screen
+    // sets it): 100 px left trains 125 tenths right, 100 px right as much
+    // left. Off, none of them drags.
+    gun.mount(m).train = Angle10(start);
+    h.drag(gun_station, 100, y, -10, 10);
+    CHECK(gun.mount(m).train.tenths() == (drag ? start + 125 : start));
+    gun.mount(m).train = Angle10(start);
+    h.drag(gun_station, 570, y, -10, 10);
+    CHECK(gun.mount(m).train.tenths() == (drag ? start + 125 : start));
+    h.gui.mouse().set_band(ClipRect{-107, 0x1cb, 746, kScreenHeight - 1});
+    gun.mount(m).train = Angle10(start);
+    h.drag(gun_station, -80, y, 10, 10);
+    CHECK(gun.mount(m).train.tenths() == (drag ? start - 125 : start));
+    // Below the rows, the breech's panel does not drag.
+    h.drag(gun_station, 100, 0x4f + 200, -10, 10);
+    CHECK(gun.mount(m).train.tenths() == (drag ? start - 125 : start));
+
+    // The zoom knob in the rows: pressed, it zooms once; moved on it, it
+    // does not drag.
+    const Fixed16 zoom = h.services.zoom;
+    h.drag(gun_station, 0x104, 0xc0, 10, 3);
+    CHECK(h.services.zoom.raw() == next_magnification(zoom).raw());
+    CHECK(gun.mount(m).train.tenths() == (drag ? start - 125 : start));
+
+    // The elevation area in the rows: held, it raises the gun.
+    gun.mount(m).elevation_offset = Angle10(0);
+    h.mouse(gun_station, 0x260, 0x80, 0);
+    h.mouse(gun_station, 0x260, 0x80, ui::kButtonLeft);
+    for (int i = 0; i < 4; ++i) {
+      h.frame(gun_station);
+    }
+    h.mouse(gun_station, 0x260, 0x80, 0);
+    CHECK(fx::angle_diff(gun.mount(m).elevation_offset, Angle10(0)) > 0);
+    gun_station.close();
+    // Closed, the band no longer reaches the sight's rows.
+    h.gui.mouse().update(-80, y, 0, 0);
+    CHECK(h.gui.mouse().x() == 0);
+  }
+}
+
 TEST_CASE("controls: the TDC dials take a dragged value, only in manual", "[controls][stations2]") {
   SH_REQUIRE_INSTALL(install);
   Harness h(install, with_dials());

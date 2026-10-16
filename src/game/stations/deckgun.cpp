@@ -4,7 +4,10 @@
 #include <array>
 #include <cmath>
 #include <functional>
+#include <limits>
+#include <optional>
 #include <string>
+#include <utility>
 
 #include "assets/game_exe.h"
 #include "assets/pcx.h"
@@ -40,6 +43,9 @@ constexpr std::uint8_t kTargetMarkerColour = 0xe5;
 // The view: the 201 x 200 sight blitted at (0x15e, 0x4f).
 constexpr int kViewX = 0x15e;
 constexpr int kViewY = 0x4f;
+constexpr int kViewRows = 200;
+// The zoom knob's button.
+constexpr ui::Rect kZoomKnobArea{0x100, 0xac, 0x131, 0xf0};
 // The marker row in the view and the muzzle flash's breech area
 // (0x105348: screen (0xb2, 0x46)-(0x110, 0xaa)).
 constexpr int kMarkerY = 0xaa;
@@ -367,7 +373,7 @@ DeckGunStation::DeckGunStation(AttackServices& services)
       d, 0x23b, 0x121, 0x27f, 0x1ca, 0x342e, [this](std::int32_t s) { train(s, 1); },
       cursor(ui::CursorId::kRotateRightFast));
   d.emplace<SpriteButton>(
-      ui::Rect{0x100, 0xac, 0x131, 0xf0}, 0xff5a, SpritePlace{&sprites_, 0x100, 0xac}, kZoomKnob, kZoomKnob + 1,
+      kZoomKnobArea, 0xff5a, SpritePlace{&sprites_, 0x100, 0xac}, kZoomKnob, kZoomKnob + 1,
       [this] { cycle_zoom(); }, click, cursor(ui::CursorId::kZoom));
   c.lock = &add_hotkey(d, 0x3920, [this] { toggle_lock(); });
   // The range (5 digits) and rounds (3 digits) counters (digit_counter_proc).
@@ -441,12 +447,15 @@ void DeckGunStation::open() {
   digits_ = Font::load(services_.install(), "ART/DIGITS3.FNT");
   dialog_->open();
   if (services_.features.drag_rotate) {
-    // The sight, the train areas and the elevation areas.
+    // The sight's rows across the screen (and beside it on a wide
+    // window), but the zoom knob; the train areas.
+    constexpr int kAny = std::numeric_limits<int>::max();
     drag_ = std::make_unique<ViewDrag>(drag_hooks());
-    drag_->set_regions({{kViewX, kViewY, kViewX + 200, kViewY + 199},
+    drag_->set_regions({{-kAny, kViewY, kAny, kViewY + kViewRows - 1},
                         {0, 0x121, 0x57, 0x1ca},
-                        {0x23b, 0x121, 0x27f, 0x1ca},
-                        {0x247, 0x5b, 0x27f, 0x111}});
+                        {0x23b, 0x121, 0x27f, 0x1ca}});
+    drag_->set_holes({kZoomKnobArea});
+    services_.gui().mouse().set_band_rows(std::pair{kViewY, kViewY + kViewRows - 1});
   }
   last_tick_ = services_.gui().ticks();
   fire_ticks_ = 0;
@@ -483,7 +492,10 @@ void DeckGunStation::process() { dialog_->process(); }
 
 void DeckGunStation::close() {
   // deckgun_close (0x36f34)
-  drag_.reset();
+  if (drag_) {
+    drag_.reset();
+    services_.gui().mouse().set_band_rows(std::nullopt);
+  }
   dialog_->close();
 }
 

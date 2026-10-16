@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <functional>
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include "assets/shp.h"
@@ -112,6 +113,10 @@ class Mouse {
   // `top` and below: the command bar drawn across a wide window over a
   // 640-wide screen (not in the original). Nothing for none.
   void set_band(std::optional<ClipRect> band);
+  // Also lets the pointer reach the band's columns on the rows `rows`
+  // (first..last) while a band is set: the view of a 640-wide station
+  // grabbed beside it (not in the original). Nothing for none.
+  void set_band_rows(std::optional<std::pair<int, int>> rows);
 
   int x() const { return x_; }
   int y() const { return y_; }
@@ -190,11 +195,14 @@ class Mouse {
   bool hidden_by_rect(const ClipRect& r) const;
   // Whether the cursor is drawn and part of it lies beyond the screen.
   bool reaches_beyond() const;
+  // Whether row `y` reaches the band's columns.
+  bool in_band(int y) const;
 
   EventQueue* events_;
   int width_;
   int height_;
   std::optional<ClipRect> band_;
+  std::optional<std::pair<int, int>> band_rows_;
   int x_ = 0;
   int y_ = 0;
   int pointer_x_ = 0;

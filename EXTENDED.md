@@ -40,7 +40,8 @@ kept with it.
 - **Display options:** OPTIONS turns fullscreen (on at first, like
   Alt+Enter) and smoothing on and off, and the game remembers both.
 - **Turning the views:** drag the bridge, periscope, TBT or deck gun view to
-  turn it, and a quick flick keeps it turning for a moment.
+  turn it (the deck gun's from anywhere level with its sight, beside it
+  too), and a quick flick keeps it turning for a moment.
 - **Precise dials:** drag a dial sideways to set its value, shown by an amber
   ghost needle and given when you let go.
 - **Live ORDERS panel:** the touch ORDERS panel shows the depth order in

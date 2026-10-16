@@ -8,6 +8,7 @@
 #include <SDL3/SDL.h>
 
 #include <optional>
+#include <utility>
 #include <vector>
 
 #include "assets/shp.h"
@@ -188,6 +189,25 @@ TEST_CASE("Pointer: beyond the screen, its cursor follows while the game's posit
     REQUIRE(shown.size() == 1);
     CHECK(shown[0].frame != nullptr);
     CHECK(shown[0].x == -50);
+  }
+  SECTION("In a station's rows added to the band: the game follows there too") {
+    mouse.set_band_rows(std::pair{79, 278});
+    // Without a band, the rows alone reach nothing.
+    mouse.update(-50, 200, 0, 0);
+    CHECK(mouse.x() == 0);
+    mouse.set_band(ClipRect{-107, 400, 746, 479});
+    mouse.update(-50, 200, 0, 0);
+    CHECK(mouse.x() == -50);
+    mouse.update(700, 278, 0, 0);
+    CHECK(mouse.x() == 700);
+    // Above the rows, then the rows removed under the pointer.
+    mouse.update(700, 78, 0, 0);
+    CHECK(mouse.x() == kScreenWidth - 1);
+    mouse.update(-50, 200, 0, 0);
+    mouse.set_band_rows(std::nullopt);
+    CHECK(mouse.x() == 0);
+    mouse.update(-60, 450, 0, 0);
+    CHECK(mouse.x() == -60);
   }
   SECTION("Hidden: drawn nowhere") {
     mouse.update(-40, 200, 0, 0);
