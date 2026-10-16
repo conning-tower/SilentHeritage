@@ -94,8 +94,10 @@ class MissionScreen : private MissionSound,
   // once the mission is over (end code set, station closed, the GAME OVER
   // presentation finished); `finish` then gives the end code.
   bool frame(std::int32_t timer_ticks);
-  // Ends the mission (`Mission::finish`) and returns its end code.
-  std::int32_t finish() { return mission_->finish(); }
+  // Ends the mission (`Mission::finish`) and returns its end code. The
+  // mouse is shown again (`mission_shutdown`'s `mouse_show`): the GAME OVER
+  // box hid it.
+  std::int32_t finish();
   // Returns whether the mission is in play with nothing holding it: no
   // fade, modal menu or message box, GAME OVER wait or pause (the pause
   // counter at 0), and its main loop still running. The floating command

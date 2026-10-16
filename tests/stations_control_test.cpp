@@ -308,6 +308,21 @@ TEST_CASE("GAME OVER fades to blue and ends the mission", "[stations]") {
   rig.save("game_over");
 }
 
+TEST_CASE("The mouse hidden by GAME OVER is shown again when the mission ends", "[stations]") {
+  SH_REQUIRE_INSTALL(install);
+  ControlRig rig(install);
+  rig.gui.mouse().show();  // as the front end leaves it
+  rig.frames(1);
+  rig.settle();
+  REQUIRE(rig.gui.mouse().shown());
+  rig.mission().trigger_game_over(GameOverReason::kOxygen);
+  for (int frames = 0; rig.frames(1) && frames < 500; ++frames) {
+  }
+  CHECK_FALSE(rig.gui.mouse().shown());
+  rig.screen->finish();
+  CHECK(rig.gui.mouse().shown());
+}
+
 }  // namespace sh
 
 namespace sh {

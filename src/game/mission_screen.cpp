@@ -180,6 +180,13 @@ bool MissionScreen::frame(std::int32_t timer_ticks) {
   return true;
 }
 
+std::int32_t MissionScreen::finish() {
+  // mission_shutdown (0x506cc) also selects the WAIT cursor; the front
+  // end's cursor comes back with the front end here.
+  setup_.gui.mouse().show();
+  return mission_->finish();
+}
+
 void MissionScreen::show(GameOverReason reason) {
   // show_game_over (0x10358): the GAME OVER box (`show_text_popup`, dialog
   // 0x120514, drawn onto the screen), then the fade to blue. The original
