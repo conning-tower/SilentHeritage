@@ -1,9 +1,10 @@
 # Silent Heritage
 
 Silent Heritage is an open-source reimplementation of *Silent Hunter*, the
-World War II US submarine simulation published by MicroProse in 1995. It runs
-on Windows, macOS, Linux and Android, and includes both the game itself and
-the scenario editor that came with the Commander's Edition.
+World War II US submarine simulation published by Strategic Simulations,
+Inc. (SSI) in 1996. It runs on Windows, macOS, Linux and Android, and
+includes both the game itself and the scenario editor that came with the
+Commander's Edition.
 
 ![The bridge of USS Skate, on a wide screen](docs/screenshots/bridge.png)
 
@@ -178,7 +179,7 @@ many more quality-of-life improvements and new content to the game.
 
 ## Disclaimer
 
-This project is not affiliated with or endorsed by MicroProse, Ubisoft, or
+This project is not affiliated with or endorsed by SSI, Ubisoft, or
 any owner of the Silent Hunter trademark or of the original game. Its source
 code contains no data from the original game, although the screenshots show
 the original art, as played with Silent Heritage. "Silent Hunter" is a

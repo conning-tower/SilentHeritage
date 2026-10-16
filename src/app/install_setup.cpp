@@ -85,7 +85,7 @@ bool ask_to_choose(const std::string& lead) {
   constexpr Choice kChoices[] = {{1, "Choose folder..."}, {0, "Quit"}};
   return ask(SDL_MESSAGEBOX_INFORMATION,
              lead + edition::kName +
-                 " needs the files of the original game, Silent Hunter (MicroProse, 1995): the folder where it "
+                 " needs the files of the original game, Silent Hunter (SSI, 1996): the folder where it "
                  "is installed, which holds SH.EXE and the DATA folder (an install copied from another computer "
                  "works too).\n\nChoose that folder?",
              kChoices) == 1;

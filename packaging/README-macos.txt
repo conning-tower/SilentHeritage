@@ -1,7 +1,7 @@
 @NAME@ @VERSION@
 ==============================
 
-An open-source reimplementation of Silent Hunter (MicroProse, 1995). It is
+An open-source reimplementation of Silent Hunter (SSI, 1996). It is
 only an engine: you need your own copy of the original game.
 
 https://github.com/conning-tower/SilentHeritage
@@ -37,5 +37,5 @@ Licences
 Silent Heritage: MIT licence. SDL: zlib licence. Both in the app:
 @NAME@.app/Contents/Resources/licenses.
 
-Silent Heritage is not affiliated with or endorsed by MicroProse, Ubisoft,
+Silent Heritage is not affiliated with or endorsed by SSI, Ubisoft,
 or any owner of the Silent Hunter trademark or of the original game.

@@ -816,7 +816,7 @@ void FrontEnd::run_scenario_editor() {
     end = run_mission(request);
   } catch (const DataError& e) {
     // A file the reader rejects (SE could leave a truncated one after a
-    // write error; the editor no longer does): SH 1995 ends with a fatal
+    // write error; the editor no longer does): the original ends with a fatal
     // error (`scen_report_load_error` 0x53c2a: 0x37 read error, 0x20 other)
     // back to DOS. Deviation: the error is shown and the menu comes back.
     show_message_box(exe_string(addr::kCustomTitle), e.what(), request.scenario_path);

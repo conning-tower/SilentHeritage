@@ -2,7 +2,7 @@
 Type=Application
 Name=@NAME@
 GenericName=Submarine simulation
-Comment=An open-source engine for Silent Hunter (1995); needs the original game's files
+Comment=An open-source engine for Silent Hunter (1996); needs the original game's files
 Exec=@EXECUTABLE@
 Icon=@APP_ID@
 Terminal=false
