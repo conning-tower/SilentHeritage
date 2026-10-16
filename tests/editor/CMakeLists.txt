@@ -40,5 +40,5 @@ target_link_libraries(sh_editor_tests PRIVATE sh_test_support sh_editor Catch2::
 target_link_libraries(sh_editor_tests PRIVATE sh_platform)
 if(NOT CMAKE_CROSSCOMPILING)
   include(Catch)
-  catch_discover_tests(sh_editor_tests)
+  catch_discover_tests(sh_editor_tests PROPERTIES ${SH_SYNTHETIC_INSTALL_PROPERTIES})
 endif()

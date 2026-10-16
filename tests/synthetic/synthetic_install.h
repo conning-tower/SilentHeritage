@@ -22,7 +22,9 @@ struct SyntheticOptions {
 InstallFiles synthetic_install_files(const SyntheticOptions& options);
 
 // Returns the synthetic install of the default options, built once per
-// process.
+// process, or read from the directory SH_SYNTHETIC_INSTALL names (written by
+// make_synthetic_install with the default seed: CTest writes it once for
+// all the test processes).
 const Install& synthetic_install();
 
 }  // namespace sh::test

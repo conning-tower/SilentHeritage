@@ -191,8 +191,18 @@ target_link_libraries(sh_tests PRIVATE sh_editor)
 # UI and game: the BIOS key tests name SDL keycodes.
 target_link_libraries(sh_tests PRIVATE SDL3::Headers)
 if(NOT CMAKE_CROSSCOMPILING)
+  # The synthetic install, generated once for every test process instead of
+  # by each (it takes the tests' longest time otherwise).
+  set(SH_SYNTHETIC_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/synthetic_install" CACHE PATH
+      "Where the tests' synthetic install is written (replaced at each run): a fast disk speeds the tests up")
+  add_test(NAME synthetic_install_clear COMMAND ${CMAKE_COMMAND} -E rm -rf "${SH_SYNTHETIC_INSTALL_DIR}")
+  add_test(NAME synthetic_install_write COMMAND make_synthetic_install "${SH_SYNTHETIC_INSTALL_DIR}")
+  set_tests_properties(synthetic_install_clear synthetic_install_write PROPERTIES FIXTURES_SETUP synthetic_install)
+  set_tests_properties(synthetic_install_write PROPERTIES DEPENDS synthetic_install_clear)
+  set(SH_SYNTHETIC_INSTALL_PROPERTIES FIXTURES_REQUIRED synthetic_install
+      ENVIRONMENT "SH_SYNTHETIC_INSTALL=${SH_SYNTHETIC_INSTALL_DIR}")
   include(Catch)
-  catch_discover_tests(sh_tests)
+  catch_discover_tests(sh_tests PROPERTIES ${SH_SYNTHETIC_INSTALL_PROPERTIES})
 endif()
 
 # The scenario editor: its own executable, sh_editor_tests.

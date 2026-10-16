@@ -28,5 +28,8 @@ Install traced_install(const std::filesystem::path& root, const std::filesystem:
 // Writes `files` under directory `dir` (created); throws
 // `std::runtime_error` when a file cannot be written.
 void write_install_files(const InstallFiles& files, const std::filesystem::path& dir);
+// Returns the files under directory `dir`, as `write_install_files` wrote
+// them; throws `std::runtime_error` when one cannot be read.
+InstallFiles read_install_files(const std::filesystem::path& dir);
 
 }  // namespace sh::test

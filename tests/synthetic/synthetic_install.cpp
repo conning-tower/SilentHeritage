@@ -1,8 +1,10 @@
 #include "synthetic/synthetic_install.h"
 
+#include <cstdlib>
 #include <format>
 #include <memory>
 #include <stdexcept>
+#include <utility>
 
 #include "synthetic/generators.h"
 #include "synthetic/manifest.h"
@@ -51,8 +53,11 @@ InstallFiles synthetic_install_files(const SyntheticOptions& options) {
 }
 
 const Install& synthetic_install() {
-  static const Install install =
-      install_from_files(std::make_shared<const InstallFiles>(synthetic_install_files({})), "synthetic install");
+  static const Install install = [] {
+    const char* dir = std::getenv("SH_SYNTHETIC_INSTALL");
+    InstallFiles files = dir != nullptr && *dir != '\0' ? read_install_files(dir) : synthetic_install_files({});
+    return install_from_files(std::make_shared<const InstallFiles>(std::move(files)), "synthetic install");
+  }();
   return install;
 }
 

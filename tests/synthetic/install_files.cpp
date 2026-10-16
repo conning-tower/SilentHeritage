@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <iterator>
 #include <mutex>
 #include <stdexcept>
 #include <string_view>
+#include <utility>
 
 namespace sh::test {
 
@@ -75,6 +77,22 @@ void write_install_files(const InstallFiles& files, const std::filesystem::path&
       throw std::runtime_error("cannot write " + out_path.string());
     }
   }
+}
+
+InstallFiles read_install_files(const std::filesystem::path& dir) {
+  InstallFiles files;
+  for (const auto& e : std::filesystem::recursive_directory_iterator(dir)) {
+    if (!e.is_regular_file()) {
+      continue;
+    }
+    std::vector<std::uint8_t> data(e.file_size());
+    std::ifstream in(e.path(), std::ios::binary);
+    if (!in.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(data.size()))) {
+      throw std::runtime_error("cannot read " + e.path().string());
+    }
+    files.emplace(std::filesystem::relative(e.path(), dir).generic_string(), std::move(data));
+  }
+  return files;
 }
 
 }  // namespace sh::test
