@@ -91,6 +91,8 @@ class CareerFlow {
   bool request_torpedo_load();
   // DECK GUN.
   void request_deck_gun();
+  // PATROL AREA: the zone of the next patrol among the candidates.
+  void request_patrol_area();
 
   CareerUi& ui_;
   const GameTables& tables_;

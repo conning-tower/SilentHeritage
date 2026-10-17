@@ -23,6 +23,7 @@ constexpr std::string_view kSecondGun = "boat.second_gun";
 constexpr std::string_view kTubes = "request.tubes";
 constexpr std::string_view kBowRacks = "request.bow_racks";
 constexpr std::string_view kSternRacks = "request.stern_racks";
+constexpr std::string_view kPatrolZone = "request.patrol_zone";
 
 // The supply of a short type, by name.
 struct ShortSupply {
@@ -125,7 +126,7 @@ BoatFit career_boat_fit(const Career& career) {
 }
 
 std::string career_requests_config(const CareerRequests& requests) {
-  if (requests.fit.empty() && !requests.torpedo_load) {
+  if (requests.fit.empty() && !requests.torpedo_load && !requests.patrol_zone) {
     return {};
   }
   std::string text = std::format("{} = {}\n{} = {}\n", kBoatName, requests.boat, kBoatClass, requests.class_name);
@@ -138,6 +139,9 @@ std::string career_requests_config(const CareerRequests& requests) {
   if (const std::optional<TorpedoLoad>& load = requests.torpedo_load) {
     text += std::format("{} = {}\n{} = {}\n{} = {}\n", kTubes, id_list(load->tubes), kBowRacks,
                         id_list(load->bow_racks), kSternRacks, id_list(load->stern_racks));
+  }
+  if (requests.patrol_zone) {
+    text += std::format("{} = {}\n", kPatrolZone, *requests.patrol_zone);
   }
   return text;
 }
@@ -162,6 +166,13 @@ CareerRequests parse_career_requests(std::string_view text) {
   if (tubes && bow && stern && parse_ids(*tubes, load.tubes) && parse_ids(*bow, load.bow_racks) &&
       parse_ids(*stern, load.stern_racks)) {
     r.torpedo_load = load;
+  }
+  if (const auto zone = get(kPatrolZone)) {
+    std::int32_t z = 0;
+    const auto [end, ec] = std::from_chars(zone->data(), zone->data() + zone->size(), z);
+    if (ec == std::errc() && end == zone->data() + zone->size() && z >= 0) {
+      r.patrol_zone = z;
+    }
   }
   return r;
 }
@@ -373,6 +384,35 @@ std::optional<TorpedoLoad> TorpedoLoadEditor::chosen() const {
     return std::nullopt;
   }
   return load_;
+}
+
+// --------------------------------------------------------- patrol area
+
+bool can_request_patrol_area(const Career& career, const CampaignData& data) {
+  return requests_enabled(career) && in_good_standing(career.record) &&
+         !patrol_zone_candidates(career, data).empty();
+}
+
+std::optional<PatrolAssignment> assign_requested_patrol(Career& career, const CampaignData& data,
+                                                        WatcomRandom& random) {
+  // The candidates before the draw, which moves the career's last zone.
+  const bool may_ask = requests_for_boat(career.requests, career.record) && career.requests.patrol_zone &&
+                       can_request_patrol_area(career, data);
+  const std::vector<std::int32_t> candidates =
+      may_ask ? patrol_zone_candidates(career, data) : std::vector<std::int32_t>{};
+  std::optional<PatrolAssignment> a = assign_patrol(career, data, random);
+  const std::optional<std::int32_t> asked = career.requests.patrol_zone;
+  if (!a || !asked || std::ranges::find(candidates, *asked) == candidates.end()) {
+    return a;
+  }
+  CareerRecord& r = career.record;
+  const Transit t = compute_transit(*find_home_port(data, r, r.home_port), *asked, r);
+  a->zone_index = *asked;
+  a->zone = data.zones.at(static_cast<std::size_t>(*asked));
+  a->transit_hours = t.hours;
+  a->transit_fuel = t.fuel;
+  r.last_patrol_zone = *asked;
+  return a;
 }
 
 // ----------------------------------------------------------- deck gun

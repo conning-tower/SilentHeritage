@@ -119,6 +119,7 @@ PatrolPlan build_patrol_scenario(Career& career, const PatrolZone& zone, std::in
       }
     }
     career.requests.torpedo_load.reset();
+    career.requests.patrol_zone.reset();
   }
 
   r.location = zone.name.substr(0, 19);
@@ -150,7 +151,7 @@ std::optional<PatrolPlan> preview_patrol(const Career& career, const CampaignDat
   copy.requests.torpedo_load.reset();
   WatcomRandom random;
   random.srand(copy.record.seed);
-  std::optional<PatrolAssignment> assigned = assign_patrol(copy, data, random);
+  std::optional<PatrolAssignment> assigned = assign_requested_patrol(copy, data, random);
   if (!assigned) {
     return std::nullopt;
   }

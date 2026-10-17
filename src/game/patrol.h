@@ -82,8 +82,8 @@ struct PatrolPlan {
 // With the career's requests (`MissionRules::career_requests`, not in the
 // original), after every draw: the boat's deck gun fit, and for a new patrol
 // the torpedo load the career requested, when it is still allowed
-// (`torpedo_load_allowed` with the patrol's offers); the request is then
-// cleared.
+// (`torpedo_load_allowed` with the patrol's offers); that request and the
+// patrol zone's (`assign_requested_patrol`) are then cleared.
 PatrolPlan build_patrol_scenario(Career& career, const PatrolZone& zone, std::int32_t zone_index,
                                  std::int32_t transit_fuel, std::int32_t transit_hours, const GameTables& tables,
                                  WatcomRandom& random);
@@ -97,8 +97,8 @@ PatrolPlan depart_on_patrol(Career& career, PatrolAssignment& assignment, const 
 // Returns the plan START WAR PATROL would make now for `career` without a
 // torpedo load request, on copies of the career and of the game's
 // generator seeded from it (not in the original; the requests' preview):
-// `assign_patrol`, then `depart_on_patrol`. Nothing when no zone can be
-// assigned.
+// `assign_requested_patrol`, then `depart_on_patrol`. Nothing when no zone
+// can be assigned.
 std::optional<PatrolPlan> preview_patrol(const Career& career, const CampaignData& data, const GameTables& tables);
 
 // A start position of the boat.

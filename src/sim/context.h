@@ -93,8 +93,9 @@ struct MissionRules {
   // It takes the place of LIMITED DEPTH DATA with `fathometer_soundings`.
   bool realistic_depths = false;
   // The career's REQUESTS at the base (rule and simulation change;
-  // game/career_requests.h): the torpedo load of the next patrol chosen by
-  // the player, and the boat's deck gun moved or a second one fitted.
+  // game/career_requests.h): the torpedo load and the zone of the next
+  // patrol chosen by the player, and the boat's deck gun moved or a second
+  // one fitted.
   bool career_requests = false;
 
   // Returns the rules of a new extended game (the extended variant's

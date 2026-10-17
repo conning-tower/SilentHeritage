@@ -38,6 +38,28 @@ std::int32_t zone_weight(const HomePort& port, std::int32_t zone, std::int32_t m
   return port_i32(port, 0xe4 + static_cast<std::size_t>(zone) * 0xb4 + static_cast<std::size_t>(month) * 4);
 }
 
+// The zones `patrol_pick_zone` draws from for a new patrol, into
+// `eligible`: the enabled zones, leaving out the last zone after a repeat
+// unless no other has a weight. Returns their total weight for `month`.
+std::int32_t drawable_zones(const Career& career, const CampaignData& data, const HomePort& port, std::int32_t month,
+                            std::vector<bool>& eligible) {
+  const CareerRecord& r = career.record;
+  const auto count = static_cast<std::int32_t>(data.zones.size());
+  eligible.assign(data.zones.size(), false);
+  std::int32_t total = 0;
+  for (int pass = 1; pass >= 0 && total == 0; --pass) {
+    for (std::int32_t z = 0; z < count; ++z) {
+      const auto zi = static_cast<std::size_t>(z);
+      eligible[zi] = data.zone_enabled[zi] &&
+                     (career.summary.same_zone_repeats < 1 || pass == 0 || z != r.last_patrol_zone);
+      if (eligible[zi]) {
+        total += zone_weight(port, z, month);
+      }
+    }
+  }
+  return total;
+}
+
 std::int32_t career_month(const CareerRecord& r) { return campaign_month_index_abs(r.month, r.year + kCalendarBaseYear); }
 
 // `homeport_load_dat(-1)`: ComSubSoWesPac is ComSubsAsiatic before it
@@ -169,31 +191,19 @@ std::optional<std::int32_t> pick_patrol_zone(Career& career, const CampaignData&
   std::int32_t pick = -1;
   if (r.on_patrol == 0) {
     const auto count = static_cast<std::int32_t>(data.zones.size());
-    std::vector<bool> eligible(data.zones.size());
-    std::int32_t total = 0;
-    for (int pass = 1; pass >= 0; --pass) {
-      total = 0;
+    std::vector<bool> eligible;
+    const std::int32_t total = drawable_zones(career, data, *port, month, eligible);
+    if (total > 0) {
+      const std::int32_t draw = random.random_int(total);
+      std::int32_t sum = 0;
       for (std::int32_t z = 0; z < count; ++z) {
-        const auto zi = static_cast<std::size_t>(z);
-        eligible[zi] = data.zone_enabled[zi] &&
-                       (career.summary.same_zone_repeats < 1 || pass == 0 || z != r.last_patrol_zone);
-        if (eligible[zi]) {
-          total += zone_weight(*port, z, month);
-        }
-      }
-      if (total > 0) {
-        const std::int32_t draw = random.random_int(total);
-        std::int32_t sum = 0;
-        for (std::int32_t z = 0; z < count; ++z) {
-          if (eligible[static_cast<std::size_t>(z)]) {
-            sum += zone_weight(*port, z, month);
-            pick = z;
-            if (sum > draw) {
-              break;
-            }
+        if (eligible[static_cast<std::size_t>(z)]) {
+          sum += zone_weight(*port, z, month);
+          pick = z;
+          if (sum > draw) {
+            break;
           }
         }
-        break;
       }
     }
   } else {
@@ -206,6 +216,10 @@ std::optional<std::int32_t> pick_patrol_zone(Career& career, const CampaignData&
   return pick;
 }
 
+bool transit_fits(const Transit& transit, const CareerRecord& r) {
+  return transit.fuel <= 0 || transit.fuel * 2 < r.fuel_capacity - r.fuel_capacity * 10 / 100;
+}
+
 Transit compute_transit(const HomePort& port, std::int32_t zone, const CareerRecord& r) {
   // patrol_compute_transit (0x638d0)
   Transit t;
@@ -215,6 +229,25 @@ Transit compute_transit(const HomePort& port, std::int32_t zone, const CareerRec
   const std::int32_t per_hour = fx::trunc(fx::mul(r.fuel_use, 0xe100000));
   t.fuel = per_hour * 35 / 100 * t.hours;
   return t;
+}
+
+std::vector<std::int32_t> patrol_zone_candidates(const Career& career, const CampaignData& data) {
+  const CareerRecord& r = career.record;
+  std::vector<std::int32_t> zones;
+  const std::optional<HomePort> port = find_home_port(data, r, r.home_port);
+  if (r.on_patrol != 0 || !port) {
+    return zones;
+  }
+  const std::int32_t month = campaign_month_index(r.year + kCalendarBaseYear, r.month + 1);
+  std::vector<bool> eligible;
+  drawable_zones(career, data, *port, month, eligible);
+  for (std::int32_t z = 0; z < static_cast<std::int32_t>(eligible.size()); ++z) {
+    if (eligible[static_cast<std::size_t>(z)] && zone_weight(*port, z, month) > 0 &&
+        transit_fits(compute_transit(*port, z, r), r)) {
+      zones.push_back(z);
+    }
+  }
+  return zones;
 }
 
 std::uint32_t career_realism_options(std::uint32_t options, const CareerRecord& r) {
@@ -252,7 +285,7 @@ std::optional<PatrolAssignment> assign_patrol(Career& career, const CampaignData
     a.zone = data.zones[static_cast<std::size_t>(*zone)];
     a.transit_hours = t.hours;
     a.transit_fuel = t.fuel;
-    if (t.fuel <= 0 || t.fuel * 2 < r.fuel_capacity - r.fuel_capacity * 10 / 100) {
+    if (transit_fits(t, r)) {
       return a;
     }
   }

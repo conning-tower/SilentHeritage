@@ -362,22 +362,55 @@ std::optional<std::size_t> requests_menu_screen(CareerUi& ui, std::span<const Re
     ui.palette_fade_out(0, 0x100);
     ui.palette_fade_in(ui.palette(), 0, 10);
   }
-  const int back_y = kFirstButtonY + kButtonStep * static_cast<int>(items.size());
+  const int count = static_cast<int>(items.size());
+  const int back_y = kFirstButtonY + kButtonStep * count;
   const int h = back_y + kMenuBottom;
   ui::Dialog d(ui.gui(), kMenuX, (kScreenHeight - h) / 2, kMenuWidth, h, kMenuFlags);
   ui.add_exit_area(d);
   d.emplace<ui::TitleBar>(std::string(kRequestsLabel));
-  for (std::size_t i = 0; i < items.size(); ++i) {
-    auto& b = d.emplace<ui::Button>(kButtonX, kFirstButtonY + kButtonStep * static_cast<int>(i), kButtonWidth,
-                                    items[i].label, [i](int) { return static_cast<int>(i) + 1; });
-    b.disabled = !items[i].enabled;
+  for (int i = 0; i < count; ++i) {
+    const RequestItem& item = items[static_cast<std::size_t>(i)];
+    auto& b = d.emplace<ui::Button>(kButtonX, kFirstButtonY + kButtonStep * i, kButtonWidth, item.label,
+                                    [i](int) { return i + 1; });
+    b.disabled = !item.enabled;
   }
   d.set_back(d.emplace<ui::Button>(kButtonX, back_y, kButtonWidth, std::string(kBaseMenuLabel), ui::return_cancel));
   const int result = ui.run_menu_dialog(d);
-  if (result < 1 || result > static_cast<int>(items.size())) {
+  if (result < 1 || result > count) {
     return std::nullopt;
   }
   return static_cast<std::size_t>(result - 1);
+}
+
+std::optional<std::size_t> list_choice_screen(CareerUi& ui, std::string_view title,
+                                              std::span<const std::string> rows, std::size_t selection) {
+  constexpr int kWidth = 0x1c0;
+  constexpr int kHeight = 0x170;
+  constexpr int kListY = 0x84;
+  constexpr int kButtonsY = kHeight - 0x46;
+  constexpr int kSmallButton = 0x79;
+  ui.gui().set_skin(ui.menu_skin());
+  ui::Dialog d(ui.gui(), (kScreenWidth - kWidth) / 2, (kScreenHeight - kHeight) / 2, kWidth, kHeight, kMenuFlags);
+  d.emplace<ui::TitleBar>(std::string(title));
+  auto& list = d.emplace<ui::List>(
+      0x1e, kListY, kWidth - 0x3c, [&rows] { return static_cast<int>(rows.size()); },
+      [&rows](int row) { return rows[static_cast<std::size_t>(row)]; });
+  list.on_activate = [&d](int) { d.set_result(ui::kResultAccept); };
+  d.set_back(d.emplace<ui::Button>(0x2a, kButtonsY, kSmallButton, "CANCEL", ui::return_cancel));
+  d.emplace<ui::Button>(kWidth - 0x2a - kSmallButton, kButtonsY, kSmallButton, "SELECT", ui::return_accept);
+  ui.add_exit_area(d);
+  d.set_idle([&](const Viewport&, int first) {
+    if (first != 0) {
+      list.selection = static_cast<int>(selection);
+      list.top = 0;
+      list.dirty = true;
+    }
+  });
+  const int result = ui.run_menu_dialog(d);
+  if (result != ui::kResultAccept || list.selection < 0 || list.selection >= static_cast<int>(rows.size())) {
+    return std::nullopt;
+  }
+  return static_cast<std::size_t>(list.selection);
 }
 
 bool torpedo_load_screen(CareerUi& ui, const GameTables& tables, const SubClass& sub, TorpedoLoadEditor& editor,

@@ -81,6 +81,15 @@ SubClass small_boat(std::uint32_t tubes, std::uint32_t racks) {
   return s;
 }
 
+// The y of the second row of PATROL AREA's list in its dialog.
+constexpr int kAreaRow1Y = 0xa0;
+
+// The REQUESTS menu: its entries (then BASE MENU), centred.
+constexpr int kRequestEntries = 3;
+ScriptedHost::Step request_button(int entry) {
+  return button(5, (480 - (0x82 + kRequestEntries * 0x28 + 0x46)) / 2, 0x1e, 0x82 + 0x28 * entry, 0xc6);
+}
+
 std::vector<PatrolZone> load_zones(const Install& install) {
   return parse_patrol_zones(install.read("DATA/PZ.DAT"), "PZ.DAT");
 }
@@ -490,17 +499,16 @@ TEST_CASE("REQUESTS on the BASE MENU: DECK GUN moves the gun and fits a second",
   // SAVE CAREER, MAIN MENU; the requests: TORPEDO LOAD, DECK GUN, BASE
   // MENU; DECK GUN: MOVE, FIT SECOND GUN, DONE.
   const int base_y = (480 - 0x190) / 2;
-  const int menu_y = (480 - 0x118) / 2;
   const int gun_x = (640 - 0x1a4) / 2;
   const int gun_y = (480 - 0x158) / 2;
   const int gun_button = (0x1a4 - 0xc6) / 2;
   f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6),
-                   button(5, menu_y, 0x1e, 0xaa, 0xc6),
+                   request_button(1),
                    button(gun_x, gun_y, gun_button, 0xc2, 0xc6),
                    button(gun_x, gun_y, gun_button, 0xea, 0xc6),
                    ScriptedHost::key(0x1559),
                    button(gun_x, gun_y, gun_button, 0x112, 0xc6),
-                   button(5, menu_y, 0x1e, 0xd2, 0xc6),
+                   request_button(kRequestEntries),
                    button(5, base_y, 0x1e, 0x14a, 0xc6)};
   flow.resume(career);
   CHECK(f.host.script.empty());
@@ -529,14 +537,13 @@ TEST_CASE("REQUESTS: TORPEDO LOAD adds a torpedo to the generated load and keeps
   // (first of the supply), which the Gato does not carry. Five types are
   // supplied, 0x80 apart from x 0x40.
   const int base_y = (480 - 0x190) / 2;
-  const int menu_y = (480 - 0x118) / 2;
   const auto minus = [](int column) { return ScriptedHost::click(0x40 + 0x80 * column - 0x22 + 0xf, 0x4e + 8); };
   const auto plus = [](int column) { return ScriptedHost::click(0x40 + 0x80 * column + 4 + 0xf, 0x4e + 8); };
   const std::vector<std::uint32_t> carried = carried_torpedo_types(generated, gato);
   REQUIRE(carried.size() <= 2);
   const int carried_column = carried.front() == kMk14 ? 1 : carried.front() == kMk18_1 ? 2 : 3;
-  f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6), button(5, menu_y, 0x1e, 0x82, 0xc6), minus(carried_column),
-                   plus(0), ScriptedHost::click(0x1e0 + 0x46, 0x1c4 + 8), button(5, menu_y, 0x1e, 0xd2, 0xc6),
+  f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6), request_button(0), minus(carried_column),
+                   plus(0), ScriptedHost::click(0x1e0 + 0x46, 0x1bd + 8), request_button(kRequestEntries),
                    button(5, base_y, 0x1e, 0x14a, 0xc6)};
   flow.resume(career);
   CHECK(f.host.script.empty());
@@ -566,6 +573,106 @@ TEST_CASE("Without the rule the BASE MENU has no REQUESTS", "[requests][career]"
   CHECK(base_menu_screen(f.ui, career, true, [] {}) == career_code::kLeaveCareer);
 }
 
+TEST_CASE("PATROL AREA: a zone the command may assign, after the same draws", "[requests][career]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  const CampaignData campaign = CampaignData::load(install, tables);
+  Career career = saipan_career();
+  const std::vector<std::int32_t> zones = patrol_zone_candidates(career, campaign);
+  REQUIRE(zones.size() >= 2);
+  // Every zone drawn is a candidate.
+  for (std::uint32_t seed = 1; seed <= 30; ++seed) {
+    Career c = saipan_career();
+    WatcomRandom random(seed);
+    const std::optional<PatrolAssignment> a = assign_patrol(c, campaign, random);
+    REQUIRE(a);
+    CHECK(std::ranges::find(zones, a->zone_index) != zones.end());
+  }
+  // Not in good standing (rank 1, no medal): no request.
+  CHECK_FALSE(can_request_patrol_area(career, campaign));
+  career.record.award(Award::kSilverStar) = 1;
+  CHECK(can_request_patrol_area(career, campaign));
+
+  for (const std::int32_t asked : zones) {
+    Career plain = career;
+    WatcomRandom plain_random(5);
+    const std::optional<PatrolAssignment> drawn = assign_patrol(plain, campaign, plain_random);
+    Career c = career;
+    current_requests(c).patrol_zone = asked;
+    WatcomRandom random(5);
+    const std::optional<PatrolAssignment> a = assign_requested_patrol(c, campaign, random);
+    REQUIRE(a);
+    CHECK(random.state() == plain_random.state());
+    CHECK(a->zone_index == asked);
+    CHECK(a->zone.name == campaign.zones.at(static_cast<std::size_t>(asked)).name);
+    CHECK(a->previous_zone == drawn->previous_zone);
+    CHECK(c.record.last_patrol_zone == asked);
+    const Transit t = compute_transit(*find_home_port(campaign, c.record, c.record.home_port), asked, c.record);
+    CHECK(a->transit_hours == t.hours);
+    CHECK(a->transit_fuel == t.fuel);
+    // The patrol clears the request.
+    PatrolAssignment departing = *a;
+    depart_on_patrol(c, departing, tables, random);
+    CHECK_FALSE(c.requests.patrol_zone);
+  }
+  // Ignored: out of good standing since, a zone not assigned now, the rule
+  // off, or another boat's request.
+  const auto drawn_zone = [&](Career c) {
+    WatcomRandom random(5);
+    return assign_requested_patrol(c, campaign, random)->zone_index;
+  };
+  Career plain = career;
+  const std::int32_t usual = drawn_zone(plain);
+  const std::int32_t other = zones.front() != usual ? zones.front() : zones.back();
+  Career asked = career;
+  current_requests(asked).patrol_zone = other;
+  CHECK(drawn_zone(asked) == other);
+  Career poor = asked;
+  poor.record.poor_patrol_streak = 1;
+  CHECK(drawn_zone(poor) == usual);
+  Career off = asked;
+  off.rules->career_requests = false;
+  CHECK(drawn_zone(off) == usual);
+  Career moved = asked;
+  moved.record.boat = "(SS-213) Greenling";
+  CHECK(drawn_zone(moved) == usual);
+  Career nowhere = asked;
+  nowhere.requests.patrol_zone = 9999;
+  CHECK(drawn_zone(nowhere) == usual);
+
+  CareerRequests r{.boat = "B", .class_name = "C"};
+  r.patrol_zone = 7;
+  CHECK(career_requests_config(r) == "boat.name = B\nboat.class = C\nrequest.patrol_zone = 7\n");
+  CHECK(parse_career_requests(career_requests_config(r)) == r);
+}
+
+TEST_CASE("REQUESTS: PATROL AREA keeps the zone chosen for the next patrol", "[requests][career]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  const CampaignData campaign = CampaignData::load(install, tables);
+  Fixture f(install, true);
+  CareerFlow flow(f.ui, tables, campaign);
+  Career career = saipan_career();
+  career.record.rank = 2;
+  const std::vector<std::int32_t> zones = patrol_zone_candidates(career, campaign);
+  REQUIRE(!zones.empty());
+  // PATROL AREA's list: AS ASSIGNED, then the zones; the first zone, SELECT.
+  const int list_x = (640 - 0x1c0) / 2;
+  const int list_y = (480 - 0x170) / 2;
+  const int base_y = (480 - 0x190) / 2;
+  f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6),
+                   request_button(2),
+                   ScriptedHost::screenshot("requests_patrol_area"),
+                   ScriptedHost::click(list_x + 0x60, list_y + kAreaRow1Y),
+                   button(list_x, list_y, 0x1c0 - 0x2a - 0x79, 0x170 - 0x46, 0x79),
+                   request_button(kRequestEntries),
+                   button(5, base_y, 0x1e, 0x14a, 0xc6)};
+  flow.resume(career);
+  CHECK(f.host.script.empty());
+  CHECK(flow.career().requests.patrol_zone == zones.front());
+  CHECK(load_career_requests(f.saves, career.record.roster_slot).patrol_zone == zones.front());
+}
+
 TEST_CASE("Request screenshots", "[.request_screens]") {
   SH_REQUIRE_INSTALL(install);
   GameTables tables = GameTables::load(install);
@@ -576,19 +683,18 @@ TEST_CASE("Request screenshots", "[.request_screens]") {
   Career career = saipan_career();
   career.record.rank = 2;
   const int base_y = (480 - 0x190) / 2;
-  const int menu_y = (480 - 0x118) / 2;
   using S = ScriptedHost;
   f.host.script = {S::screenshot("requests_base_menu"), button(5, base_y, 0x1e, 0xfa, 0xc6),
-                   S::screenshot("requests_menu"), button(5, menu_y, 0x1e, 0x82, 0xc6),
+                   S::screenshot("requests_menu"), request_button(0),
                    S::screenshot("requests_torpedo_load"),
                    // Picks up the first stern tube's torpedo, then the Mark 27.
                    S::click(0x38 - 20, 0x9e + 8), S::screenshot("requests_torpedo_held"),
                    S::click(0x40 + 0x80 * 2, 0x10), S::click(0x40 + 0x80 * 4 + 4 + 0xf, 0x4e + 8),
                    S::click(0x40 + 0x80 * 4 + 4 + 0xf, 0x4e + 8), S::click(0x40 + 0x80 * 4 + 4 + 0xf, 0x4e + 8),
-                   S::screenshot("requests_torpedo_limit"), S::click(0x1e0 + 0x46, 0x1c4 + 8),
-                   button(5, menu_y, 0x1e, 0xaa, 0xc6), S::screenshot("requests_deck_gun"),
+                   S::screenshot("requests_torpedo_limit"), S::click(0x1e0 + 0x46, 0x1bd + 8),
+                   request_button(1), S::screenshot("requests_deck_gun"),
                    button((640 - 0x1a4) / 2, (480 - 0x158) / 2, (0x1a4 - 0xc6) / 2, 0x112, 0xc6),
-                   button(5, menu_y, 0x1e, 0xd2, 0xc6), button(5, base_y, 0x1e, 0x14a, 0xc6)};
+                   request_button(kRequestEntries), button(5, base_y, 0x1e, 0x14a, 0xc6)};
   flow.resume(career);
   CHECK(f.host.script.empty());
 }

@@ -10,6 +10,9 @@
 //                 (`TorpedoLoadEditor`); the patrol carries it as chosen.
 //   DECK GUN      a fleet boat's single gun moved fore or aft, or a second
 //                 gun fitted for a commander in good standing (`BoatFit`).
+//   PATROL AREA   for a commander in good standing, the zone of the next
+//                 patrol among those the command may assign
+//                 (`assign_requested_patrol`).
 //
 // Without a request the patrol is the one the game draws: the requests
 // apply after its random draws and change none of them.
@@ -25,6 +28,7 @@
 #include "assets/dat_tables.h"
 #include "assets/scenario.h"
 #include "game/career.h"
+#include "game/career_rules.h"
 #include "sim/context.h"
 
 namespace sh {
@@ -57,7 +61,7 @@ BoatFit career_boat_fit(const Career& career);
 // none when nothing was asked: `boat.name`, `boat.class`, `boat.gun_mount`
 // (when moved), `boat.second_gun` (when fitted), and the chosen load as
 // comma-separated WEAPONS.DAT ids in `request.tubes`, `request.bow_racks`
-// and `request.stern_racks`.
+// and `request.stern_racks`, and the zone asked in `request.patrol_zone`.
 std::string career_requests_config(const CareerRequests& requests);
 // Returns the requests of the lines of `text`; other lines, and a load
 // whose lines are missing or malformed, are ignored.
@@ -183,6 +187,19 @@ class TorpedoLoadEditor {
   std::uint32_t held_ = 0;
 };
 
+// --------------------------------------------------------- patrol area
+
+// Returns whether the career may ask for its next patrol's zone: requests
+// on, a commander in good standing, zones to choose from
+// (`patrol_zone_candidates`).
+bool can_request_patrol_area(const Career& career, const CampaignData& data);
+// `assign_patrol` (with all its draws), then the zone the career asked for
+// in place of the one drawn, with its transit, when it may still ask
+// (`can_request_patrol_area`) and the zone is still a candidate; the
+// career's last zone becomes it.
+std::optional<PatrolAssignment> assign_requested_patrol(Career& career, const CampaignData& data,
+                                                        WatcomRandom& random);
+
 // ----------------------------------------------------------- deck gun
 
 // Returns whether the gun of the career's boat can be moved: a fleet boat
@@ -197,6 +214,9 @@ bool can_fit_second_gun(const SubClass& sub, const BoatFit& fit, const CareerRec
 // The labels of the REQUESTS menu's entries.
 inline constexpr std::string_view kTorpedoLoadLabel = "TORPEDO LOAD";
 inline constexpr std::string_view kDeckGunLabel = "DECK GUN";
+inline constexpr std::string_view kPatrolAreaLabel = "PATROL AREA";
+// PATROL AREA's choice of the zone the command assigns.
+inline constexpr std::string_view kAsAssignedLabel = "AS ASSIGNED";
 
 // One entry of the REQUESTS menu.
 struct RequestItem {
@@ -207,8 +227,14 @@ struct RequestItem {
 
 // The REQUESTS menu over RTNPORT.PCX (loaded and faded in when `redraw`),
 // laid out as BASE MENU: one button per item, then BASE MENU. Returns the
-// index of the item chosen, nothing for BASE MENU (or Esc).
+// index of the item chosen, nothing for BASE MENU.
 std::optional<std::size_t> requests_menu_screen(CareerUi& ui, std::span<const RequestItem> items, bool redraw);
+
+// A choice among `rows` over the screen as it is: `title`, the list
+// starting on row `selection`, CANCEL and SELECT (or a double click).
+// Returns the row selected, nothing for CANCEL.
+std::optional<std::size_t> list_choice_screen(CareerUi& ui, std::string_view title,
+                                              std::span<const std::string> rows, std::size_t selection);
 
 // TORPEDO LOAD over STATUSBG.PCX: the supply of each offered type above
 // (its torpedo, the number aboard and its limit, - and + buttons), the

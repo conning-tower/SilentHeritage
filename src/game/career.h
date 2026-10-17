@@ -198,11 +198,14 @@ struct CareerRequests {
   std::string boat;
   std::string class_name;
   // The deck gun fit, kept until the boat changes.
-  BoatFit fit;
+  BoatFit fit{};
   // The torpedo load chosen for the next patrol (WEAPONS.DAT ids, 0 for an
   // empty place), nothing for the generated one; cleared once the patrol
   // starts.
-  std::optional<TorpedoLoad> torpedo_load;
+  std::optional<TorpedoLoad> torpedo_load{};
+  // The patrol zone (PZ.DAT index) asked for the next patrol, nothing for
+  // the one assigned; cleared once the patrol starts.
+  std::optional<std::int32_t> patrol_zone{};
 
   friend bool operator==(const CareerRequests&, const CareerRequests&) = default;
 };

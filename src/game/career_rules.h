@@ -110,6 +110,14 @@ struct Transit {
   std::int32_t fuel = 0;
 };
 Transit compute_transit(const HomePort& port, std::int32_t zone, const CareerRecord& record);
+// Returns whether `assign_patrol` takes a zone at `transit`: twice its fuel
+// fits in 90 % of the boat's tank (zero fuel always fits).
+bool transit_fits(const Transit& transit, const CareerRecord& record);
+// Returns the zones `assign_patrol` may give a new patrol on the career's
+// date, in PZ.DAT order: those `pick_patrol_zone` draws with a weight above
+// 0 whose transit fits; none on patrol or when the home port is not open
+// (not in the original: the career's PATROL AREA request).
+std::vector<std::int32_t> patrol_zone_candidates(const Career& career, const CampaignData& data);
 // Returns the options word `options` with its realism bits replaced by the
 // career's realism values (`career_assign_patrol`); the mode bits and the
 // bits above 16 are kept.

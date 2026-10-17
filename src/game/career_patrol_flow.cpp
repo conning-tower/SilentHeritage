@@ -7,6 +7,7 @@
 #include "game/awards.h"
 #include "game/career_boats.h"
 #include "game/career_flow.h"
+#include "game/career_requests.h"
 #include "game/career_save.h"
 #include "game/career_ui.h"
 #include "game/mission.h"
@@ -36,7 +37,8 @@ bool CareerFlow::start_patrol() {
 
   // career_assign_patrol (0x62df9): the zone, then the orders until BEGIN
   // PATROL or CANCEL.
-  std::optional<PatrolAssignment> assigned = assign_patrol(career_, campaign_, random);
+  // With the extended career requests, the zone asked for after the draws.
+  std::optional<PatrolAssignment> assigned = assign_requested_patrol(career_, campaign_, random);
   if (!assigned) {
     return false;
   }

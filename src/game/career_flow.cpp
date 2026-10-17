@@ -1,6 +1,8 @@
 #include "game/career_flow.h"
 
+#include <functional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -260,28 +262,39 @@ int CareerFlow::base_loop() {
 }
 
 void CareerFlow::requests_menu() {
+  // An entry: whether it can be asked now, and its screen, which returns
+  // whether the menu's picture must be loaded again.
+  struct Entry {
+    std::string_view label;
+    bool enabled;
+    std::function<bool()> open;
+  };
   bool redraw = false;
   while (true) {
     const SubClass* boat = tables_.find_sub(career_.record.class_name);
-    const std::vector<RequestItem> items{
-        {std::string(kTorpedoLoadLabel), boat != nullptr && preview_patrol(career_, campaign_, tables_).has_value()},
-        {std::string(kDeckGunLabel), boat != nullptr && fleet_boat_with_one_gun(*boat)},
+    const std::vector<Entry> entries{
+        {kTorpedoLoadLabel, boat != nullptr && preview_patrol(career_, campaign_, tables_).has_value(),
+         [this] { return request_torpedo_load(); }},
+        {kDeckGunLabel, boat != nullptr && fleet_boat_with_one_gun(*boat),
+         [this] {
+           request_deck_gun();
+           return false;
+         }},
+        {kPatrolAreaLabel, can_request_patrol_area(career_, campaign_),
+         [this] {
+           request_patrol_area();
+           return false;
+         }},
     };
+    std::vector<RequestItem> items;
+    for (const Entry& e : entries) {
+      items.push_back({std::string(e.label), e.enabled});
+    }
     const std::optional<std::size_t> chosen = requests_menu_screen(ui_, items, redraw);
     if (!chosen) {
       return;
     }
-    redraw = false;
-    switch (*chosen) {
-      case 0:
-        redraw = request_torpedo_load();
-        break;
-      case 1:
-        request_deck_gun();
-        break;
-      default:
-        break;
-    }
+    redraw = entries.at(*chosen).open();
   }
 }
 
@@ -318,6 +331,31 @@ void CareerFlow::request_deck_gun() {
   deck_gun_screen(ui_, *boat, career_.record, fit);
   if (fit != career_boat_fit(career_)) {
     current_requests(career_).fit = fit;
+    save();
+  }
+}
+
+void CareerFlow::request_patrol_area() {
+  const std::vector<std::int32_t> zones = patrol_zone_candidates(career_, campaign_);
+  const std::optional<std::int32_t> asked =
+      requests_for_boat(career_.requests, career_.record) ? career_.requests.patrol_zone : std::nullopt;
+  // The zone as assigned, then the zones.
+  std::vector<std::string> rows{std::string(kAsAssignedLabel)};
+  std::size_t selection = 0;
+  for (const std::int32_t z : zones) {
+    if (asked == z) {
+      selection = rows.size();
+    }
+    rows.push_back(campaign_.zones.at(static_cast<std::size_t>(z)).name);
+  }
+  const std::optional<std::size_t> chosen = list_choice_screen(ui_, kPatrolAreaLabel, rows, selection);
+  if (!chosen) {
+    return;
+  }
+  const std::optional<std::int32_t> zone =
+      *chosen == 0 ? std::nullopt : std::optional(zones.at(*chosen - 1));
+  if (zone != asked) {
+    current_requests(career_).patrol_zone = zone;
     save();
   }
 }
