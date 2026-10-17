@@ -11,7 +11,9 @@ sh_add_module(sh_game
     mission_loop.cpp
     screen_shake.cpp
     torpedo_art.cpp
+    torpedo_room.cpp
     torpedo_load.cpp
+    boat_fit.cpp
     mission_session.cpp
     # Control-room stations and the in-mission screen host: the command
     # bar, conn, chart, gauges, status, captain's quarters.
@@ -87,6 +89,8 @@ sh_add_module(sh_game
     career_menus_view.cpp
     career_flow.cpp
     career_patrol_flow.cpp
+    career_requests.cpp
+    career_requests_screens.cpp
     # Mission saves: MISSn.SAV, the simulation state lists, the career
     # saved on patrol.
     vehicle_state.cpp

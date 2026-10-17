@@ -462,6 +462,9 @@ std::unique_ptr<Mission> restore_mission(const Install& install, const GameTable
 
   setup.options = h.options();
   setup.patrol = nullptr;
+  if (!save.state.boat_extension.empty()) {
+    setup.boat_fit = decode_boat_fit(save.state.boat_extension);
+  }
   setup.saved_world = MissionSetup::SavedWorld{h.world_file(1), h.world_file(2), h.sea_picture};
   if (std::ranges::any_of(h.zone, [](std::uint8_t b) { return b != 0; })) {
     // bases_load(0x11b808)

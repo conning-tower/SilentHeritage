@@ -8,6 +8,7 @@
 #include "assets/fnt.h"
 #include "core/byte_reader.h"
 #include "core/error.h"
+#include "game/career_requests.h"
 #include "game/mission_rules.h"
 #include "game/saves_options.h"
 #include "ui/menu_skin.h"
@@ -145,6 +146,14 @@ std::optional<MissionRules> load_career_rules(const SaveDir& saves, std::int32_t
                                     MissionRules::extended());
 }
 
+CareerRequests load_career_requests(const SaveDir& saves, std::int32_t slot) {
+  const std::optional<std::vector<std::uint8_t>> data = saves.read(career_rules_file_name(slot));
+  if (!data) {
+    return {};
+  }
+  return parse_career_requests({reinterpret_cast<const char*>(data->data()), data->size()});
+}
+
 RosterFile parse_roster(std::span<const std::uint8_t> data) {
   std::size_t offset = 0;
   RosterFile f = parse_header(data, offset);
@@ -187,7 +196,7 @@ bool save_career(const SaveDir& saves, Career& career) {
     return false;
   }
   if (career.rules) {
-    const std::string text = mission_rules_config(*career.rules);
+    const std::string text = mission_rules_config(*career.rules) + career_requests_config(career.requests);
     return saves.write(career_rules_file_name(career.record.roster_slot),
                        {reinterpret_cast<const std::uint8_t*>(text.data()), text.size()});
   }

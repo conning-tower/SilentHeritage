@@ -18,7 +18,9 @@
 #include <string>
 #include <vector>
 
+#include "game/boat_fit.h"
 #include "game/frontend_results.h"
+#include "game/torpedo_load.h"
 
 namespace sh {
 
@@ -187,6 +189,24 @@ struct CareerLogEntry {
   std::array<std::uint8_t, kSize> serialize() const;
 };
 
+// What the career's commander asked for at the base and was granted (the
+// extended variant's REQUESTS, game/career_requests.h; not in the
+// original), for the boat named here: requests made on another boat do not
+// apply. Kept in ROSTER<n>.EXT.
+struct CareerRequests {
+  // The boat (`CareerRecord::boat`) and its class (`class_name`).
+  std::string boat;
+  std::string class_name;
+  // The deck gun fit, kept until the boat changes.
+  BoatFit fit;
+  // The torpedo load chosen for the next patrol (WEAPONS.DAT ids, 0 for an
+  // empty place), nothing for the generated one; cleared once the patrol
+  // starts.
+  std::optional<TorpedoLoad> torpedo_load;
+
+  friend bool operator==(const CareerRequests&, const CareerRequests&) = default;
+};
+
 // A whole career: what a ROSTER<n>.SAV holds.
 struct Career {
   CareerRecord record;
@@ -203,6 +223,9 @@ struct Career {
   // in ROSTER<n>.EXT beside its roster; none for the original's rules (the
   // classic variant writes no such file).
   std::optional<MissionRules> rules;
+  // The requests granted (ROSTER<n>.EXT; not in the original), empty
+  // without the extended rules.
+  CareerRequests requests;
 };
 
 }  // namespace sh

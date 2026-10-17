@@ -20,6 +20,7 @@
 #include "game/station.h"
 #include "game/station_env.h"
 #include "game/torpedo_art.h"
+#include "game/torpedo_room.h"
 #include "gfx/text.h"
 
 namespace sh {
@@ -99,11 +100,7 @@ class StatusStation : public Station {
   // The hotspots of the page (screen rectangles, inclusive) by kind: 10
   // tubes, 11 bow rack, 12 stern rack, 0xb compartments (damage page; the
   // index is the compartment - 1).
-  struct Hotspot {
-    int x0, y0, x1, y1;
-    std::int32_t kind;
-    std::int32_t index;
-  };
+  using Hotspot = TorpedoRoom::Hotspot;
   const std::vector<Hotspot>& hotspots() const { return hotspots_; }
   // The weapon ids of the torpedo page's type cards, left to right.
   const std::vector<std::uint32_t>& card_types() const { return card_ids_; }
@@ -139,13 +136,10 @@ class StatusStation : public Station {
   // Torpedo page.
   void draw_tubes(bool redraw);              // status_draw_tubes (0x7622e)
   void draw_racks(bool redraw);              // status_draw_torpedo_racks (0x765f2)
-  void draw_torpedo_info(int x, int y, std::uint32_t weapon_id);  // status_draw_torpedo_info (0x75922)
   // The cards, centred (the original's torpedo page open). Not in the
-  // original: the card of `id` framed (0: none), the others redrawn plain;
-  // torpedo `id` (STATUST.SHP `frame`) or, with `art_`, its picture.
+  // original: the card of `id` framed (0: none), the others redrawn plain.
   void draw_cards();
   void highlight_card(std::uint32_t id);
-  void draw_torpedo(std::size_t frame, std::uint32_t id, bool moving, int x, int y, bool mirror);
   void draw_dragged(bool force);             // status_draw_dragged_torpedo (0x76078)
   void erase_dragged();                      // status_erase_dragged_torpedo (0x76194)
   void update_torpedo_page();                // status_torpedo_page_update (0x75ee7)
@@ -208,7 +202,8 @@ class StatusStation : public Station {
   int drawn_x_ = -1;             // 0x127d44
   int drawn_y_ = -1;             // 0x127d48
   Image8 drag_background_;       // 0x127d4c
-  Image8 scratch_;               // sprite_draw_transformed's buffer
+  // The tubes, racks and cards as drawn.
+  TorpedoRoom room_;
   // The extended variant's torpedo pictures (`Features::torpedo_types`).
   std::unique_ptr<TorpedoArt> art_;
   // With the pictures, the page under the racks (from `kRacksY`), each

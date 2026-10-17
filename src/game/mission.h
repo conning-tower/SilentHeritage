@@ -24,6 +24,7 @@
 #include "core/fixed.h"
 #include "core/install.h"
 #include "core/random.h"
+#include "game/boat_fit.h"
 #include "game/torpedo_load.h"
 #include "sim/air_sorties.h"
 #include "sim/aircraft.h"
@@ -110,6 +111,14 @@ struct MissionSetup {
   // The extended variant's rules of the mission (the original's by
   // default); a saved mission takes those of its save when it has them.
   MissionRules rules;
+  // The career boat's deck gun fit (not in the original): the boat's class
+  // becomes `fitted_sub_class` of its SUBS.DAT class (game/boat_fit.h).
+  BoatFit boat_fit;
+  // The torpedo load the player chose for a career patrol (not in the
+  // original; game/career_requests.h): carried as it is in place of the
+  // header's, with no Mark 18 replacement nor type limit by date; nothing
+  // for the header's.
+  std::optional<TorpedoLoad> torpedo_load;
   // A career patrol (`init_simulation` in career mode, options bit 0):
   // the patrol's part of the set-up (game/patrol.h); null for a single
   // mission. Must outlive the build.
@@ -240,7 +249,9 @@ class Mission {
   const Simulation& sim() const { return *sim_; }
   PlayerSub& player() { return *player_; }
   const PlayerSub& player() const { return *player_; }
+  // The boat's class, with the career boat's fit (`MissionSetup::boat_fit`).
   const SubClass& player_class() const { return *player_class_; }
+  const BoatFit& boat_fit() const { return boat_fit_; }
   // The boat's weapons and damage (`Simulation::player_combat`), set up
   // with the crew, the torpedo load and the TDC's type table.
   PlayerCombat& player_combat() { return *combat_; }
@@ -379,6 +390,10 @@ class Mission {
   std::unique_ptr<Simulation> sim_;
   PlayerSub* player_ = nullptr;
   const SubClass* player_class_ = nullptr;
+  // `MissionSetup::boat_fit` and, when it is not empty, the class it makes
+  // (`player_class_` then points to it).
+  BoatFit boat_fit_;
+  std::optional<SubClass> fitted_class_;
   std::string player_name_;
   std::int32_t player_crew_ = 0;
   AirSorties air_sorties_;

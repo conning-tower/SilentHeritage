@@ -18,10 +18,10 @@ namespace sh {
 namespace {
 
 // The hotspot kinds (the `focus` field of the original's raw hotspots).
-constexpr std::int32_t kTubeHotspot = 10;
-constexpr std::int32_t kBowRackHotspot = 11;
+constexpr std::int32_t kTubeHotspot = TorpedoRoom::kTubeHotspot;
+constexpr std::int32_t kBowRackHotspot = TorpedoRoom::kBowRackHotspot;
 constexpr std::int32_t kCompartmentHotspot = 11;
-constexpr std::int32_t kSternRackHotspot = 12;
+constexpr std::int32_t kSternRackHotspot = TorpedoRoom::kSternRackHotspot;
 
 // The bar buttons (GLOBAL.SHP frames): conn, and the other page.
 constexpr std::uint8_t kConnFrame = 2;
@@ -39,13 +39,11 @@ constexpr std::size_t kAlertTimer = 6;
 // The torpedo page's type cards: their row, and (not in the original) the
 // strip saved under them with the frame of a highlighted card, and the
 // highlight colour (white in STATUSBG.PCX).
-constexpr int kCardsY = 0x158;
+constexpr int kCardsY = TorpedoRoom::kCardsY;
 constexpr int kCardsStripY = kCardsY - 2;
 constexpr int kCardsHeight = 104;
-// The racks' first row and the half width of a slot's box, the mirrored
-// stern ones included (the slots are 0x62 apart).
-constexpr int kRacksY = 0xa6;
-constexpr int kSlotHalfWidth = 46;
+// The racks' first row.
+constexpr int kRacksY = TorpedoRoom::kRacksY;
 constexpr std::uint8_t kHighlightColour = 240;
 
 // The compartment report panel (STATUS.SHP frame 1) at (461, 154).
@@ -62,14 +60,6 @@ constexpr std::uint32_t kUnlimitedTorpedoes = 0x800;
 // not fitted), as `status_list_compartment_systems` filters them.
 bool radar_absent(std::size_t s, std::uint32_t options) {
   return (s == 7 && (options & kSdFitted) == 0) || (s == 8 && (options & kSjFitted) == 0);
-}
-
-// The box of `frame` drawn with its hotspot at (x, y).
-struct Box {
-  int x0, y0, x1, y1;
-};
-Box frame_box(const SpriteFrame& f, int x, int y) {
-  return {x + f.x0, y + f.y0, x + f.x0 + f.width() - 1, y + f.y0 + f.height() - 1};
 }
 
 // Copies the `w` x `h` screen part at (x, y) into `out` (clipped).
@@ -199,6 +189,7 @@ std::string status_format_repair_time(std::int32_t seconds, const StatusTexts& t
 }
 
 StatusStation::StatusStation(StationEnv& env) : env_(env), texts_(StatusTexts::load(env.exe)) {
+  room_.set_sprites(&sprites_, nullptr);
   light_[0xff] = 0xff;
   dark_[0xff] = 0xff;
 }
@@ -369,6 +360,7 @@ void StatusStation::draw_screen() {
     } else {
       art_.reset();
     }
+    room_.set_sprites(&sprites_, art_.get());
     drag_ = 0;
     drag_tube_ = -1;
     const TorpedoTubes& tubes = mission.player_combat().tubes;
@@ -535,11 +527,7 @@ void StatusStation::draw_selected() {
 }
 
 void StatusStation::shadowed_text(int x, int y, std::string_view text) {
-  // status_draw_shadowed_text (0x754d1)
-  const Viewport full = Viewport::full(env_.screen());
-  const GlyphColourTable identity = ui::GuiResources::identity_table();
-  gui_draw_text(full, x, y + 1, font_, text, &identity);
-  gui_draw_text(full, x, y, font_, text, &light_);
+  TorpedoRoom::shadowed_text(Viewport::full(env_.screen()), x, y, text, font_, light_);
 }
 
 void StatusStation::wrapped_text(std::string text, int x, int& y, int width) {
@@ -760,148 +748,29 @@ void StatusStation::damage_event(const ui::Event& event) {
 // --- Torpedo page ---------------------------------------------------------
 
 void StatusStation::draw_tubes(bool redraw) {
-  // status_draw_tubes (0x7622e): the bow tubes on the right, the stern
-  // tubes mirrored on the left, 29 pixels apart; a damaged tube is frame 4,
-  // a torpedo in it frame 0xc + 2 x (type - 1), + 1 while moving.
-  const Viewport full = Viewport::full(env_.screen());
+  // status_draw_tubes (0x7622e)
   const TorpedoTubes& tubes = env_.mission.player_combat().tubes;
-  std::size_t t = 0;
-  for (std::int32_t i = 0; i < tubes.bow_count(); ++i, ++t) {
-    const std::int32_t content = tubes.content(t);
-    const SpriteFrame& tube = sprites_.frame(tubes.damage(t).flags != 0 ? 4 : 3);
-    const int y = 0x9e + 0x1d * i;
-    draw_sprite_clipped(full, tube, 0x246, y);
-    if (content != 0) {
-      const std::size_t f = (tubes.timer(t) > 0 ? 0xd : 0xc) + 2 * static_cast<std::size_t>(std::abs(content)) - 2;
-      draw_torpedo(f, static_cast<std::uint32_t>(std::abs(content)), tubes.timer(t) > 0, 0x246, 0xa5 + 0x1d * i,
-                   false);
-    }
-    if (!redraw) {
-      const Box b = frame_box(tube, 0x246, y);
-      hotspots_.push_back({b.x0, b.y0, b.x1, b.y1, kTubeHotspot, static_cast<std::int32_t>(t)});
-    }
+  std::array<TorpedoRoom::Tube, TorpedoLoad::kTubes> shown{};
+  const auto count = static_cast<std::size_t>(tubes.count());
+  for (std::size_t t = 0; t < count; ++t) {
+    shown[t] = {tubes.content(t), tubes.damage(t).flags != 0, tubes.timer(t) > 0};
   }
-  const Fixed16 one = Fixed16::from_int(1);
-  for (std::int32_t i = 0; i < tubes.stern_count(); ++i, ++t) {
-    const std::int32_t content = tubes.content(t);
-    const SpriteFrame& tube = sprites_.frame(tubes.damage(t).flags != 0 ? 4 : 3);
-    const int y = 0x9e + 0x1d * i;
-    sprite_draw_transformed(full, tube, 0x38, y, scratch_, Angle10(0), -one, one, 0);
-    if (content != 0) {
-      const std::size_t f = (tubes.timer(t) > 0 ? 0xd : 0xc) + 2 * static_cast<std::size_t>(std::abs(content)) - 2;
-      draw_torpedo(f, static_cast<std::uint32_t>(std::abs(content)), tubes.timer(t) > 0, 0x38, 0xa5 + 0x1d * i, true);
-    }
-    if (!redraw) {
-      // The original's rectangle: 4 pixels wider than the sprite.
-      const int x0 = 0x38 + tube.x0;
-      const int y0 = y + tube.y0;
-      hotspots_.push_back({x0, y0, x0 + tube.width() + 4 - 1, y0 + tube.height() - 1, kTubeHotspot,
-                           static_cast<std::int32_t>(t)});
-    }
-  }
+  room_.draw_tubes(Viewport::full(env_.screen()), std::span(shown).first(count), tubes.bow_count(),
+                   redraw ? nullptr : &hotspots_);
 }
 
 void StatusStation::draw_racks(bool redraw) {
-  // status_draw_torpedo_racks (0x765f2): two columns per room, 17 pixels
-  // apart: empty (frame 9), a torpedo (0xc + 2 x (type - 1)), or one being
-  // unloaded into it (0xd + ...).
-  const Viewport full = Viewport::full(env_.screen());
+  // status_draw_torpedo_racks (0x765f2)
   const TorpedoTubes& tubes = env_.mission.player_combat().tubes;
-  const auto frame_of = [](std::int32_t slot) -> std::size_t {
-    if (slot == 0) {
-      return 9;
-    }
-    if (slot > 0) {
-      return 0xc + 2 * static_cast<std::size_t>(slot) - 2;
-    }
-    return 0xd + 2 * static_cast<std::size_t>(std::abs(slot) >> 8) - 2;
-  };
-  // A torpedo's weapon id (in a slot being unloaded into: -(id << 8 | tube)).
-  const auto id_of = [](std::int32_t slot) {
-    return static_cast<std::uint32_t>(slot < 0 ? std::abs(slot) >> 8 : slot);
-  };
-  // With the pictures (not in the original, where every torpedo covers the
-  // empty slot's outline), the page under the slot at (x, y) put back first.
-  const auto clear_slot = [&](int x, int y) {
-    if (!art_) {
-      return;
-    }
-    const int h = sprites_.frame(9).y0 + sprites_.frame(9).height();
-    for (int j = 0; j < h; ++j) {
-      for (int i = -kSlotHalfWidth; i <= kSlotHalfWidth; ++i) {
-        if (racks_background_.contains(x + i, y + j - kRacksY)) {
-          full.bitmap->set(x + i, y + j, racks_background_.at(x + i, y + j - kRacksY));
-        }
-      }
-    }
-  };
-  {
-    const auto& rack = tubes.bow_rack();
-    std::int32_t half = (static_cast<std::int32_t>(rack.size()) + 1) / 2;
-    int x = 0x1d9;
-    int y = 0xa6;
-    for (std::int32_t i = 0; i < static_cast<std::int32_t>(rack.size()); ++i, y += 0x11) {
-      if (i >= half) {
-        half = 1000;
-        y = 0xa6;
-        x -= 0x62;
-      }
-      const std::int32_t slot = rack[static_cast<std::size_t>(i)];
-      const SpriteFrame& f = sprites_.frame(std::min(frame_of(slot), sprites_.frame_count() - 1));
-      clear_slot(x, y);
-      if (slot == 0) {
-        draw_sprite_clipped(full, f, x, y);
-      } else {
-        draw_torpedo(frame_of(slot), id_of(slot), slot < 0, x, y, false);
-      }
-      if (!redraw) {
-        const Box b = frame_box(f, x, y);
-        hotspots_.push_back({b.x0, b.y0 - 5, b.x1, b.y1 + 5, kBowRackHotspot, i});
-      }
-    }
-  }
-  const auto& rack = tubes.stern_rack();
-  std::int32_t half = (static_cast<std::int32_t>(rack.size()) + 1) / 2;
-  int x = 0xa7;
-  int y = 0xa6;
-  const Fixed16 one = Fixed16::from_int(1);
-  for (std::int32_t i = 0; i < static_cast<std::int32_t>(rack.size()); ++i, y += 0x11) {
-    if (i >= half) {
-      half = 1000;
-      y = 0xa6;
-      x += 0x62;
-    }
-    const std::int32_t slot = rack[static_cast<std::size_t>(i)];
-    const SpriteFrame& f = sprites_.frame(std::min(frame_of(slot), sprites_.frame_count() - 1));
-    clear_slot(x, y);
-    if (slot == 0) {
-      sprite_draw_transformed(full, f, x, y, scratch_, Angle10(0), -one, one, 0);
-    } else {
-      draw_torpedo(frame_of(slot), id_of(slot), slot < 0, x, y, true);
-    }
-    if (!redraw) {
-      const int x0 = x + f.x0;
-      const int y0 = y + f.y0;
-      hotspots_.push_back({x0, y0 - 5, x0 + f.width() - 1, y0 + f.height() - 1 + 5, kSternRackHotspot, i});
-    }
-  }
+  room_.draw_racks(Viewport::full(env_.screen()), tubes.bow_rack(), tubes.stern_rack(),
+                   art_ ? &racks_background_ : nullptr, redraw ? nullptr : &hotspots_);
 }
 
 void StatusStation::draw_cards() {
-  // The cards centred around x 320 (the original's torpedo page open).
-  const auto n = static_cast<std::int32_t>(card_ids_.size());
-  const int w = sprites_.frame(0).width();
-  const std::int32_t half = n / 2;
-  int tx = (n & 1) != 0 ? 0x140 - w / 2 : 0x13d;
-  tx -= half * w;
-  if (half != 0) {
-    tx -= (half - 1) * 7;
-  }
-  card_x_.clear();
-  for (const std::uint32_t id : card_ids_) {
-    card_x_.push_back(tx);
-    draw_torpedo_info(tx, kCardsY, id);
-    tx += w + 7;
+  card_x_ = room_.card_positions(card_ids_.size());
+  for (std::size_t i = 0; i < card_ids_.size(); ++i) {
+    room_.draw_card(Viewport::full(env_.screen()), card_x_[i], kCardsY, card_ids_[i], env_.tables, font_, light_,
+                    texts_);
   }
 }
 
@@ -929,53 +798,6 @@ void StatusStation::highlight_card(std::uint32_t id) {
     ui::draw_line(full, x - k, kCardsY + 2 - k, x - k, kCardsY + 1 + h + k, kHighlightColour);
     ui::draw_line(full, x + w - 1 + k, kCardsY + 2 - k, x + w - 1 + k, kCardsY + 1 + h + k, kHighlightColour);
   }
-}
-
-void StatusStation::draw_torpedo(std::size_t frame, std::uint32_t id, bool moving, int x, int y, bool mirror) {
-  const Viewport full = Viewport::full(env_.screen());
-  if (art_ && id >= 1 && id <= TorpedoArt::kTypes) {
-    TorpedoArt::draw(full, art_->picture(id, moving), x, y, mirror, scratch_);
-  } else if (frame >= sprites_.frame_count()) {
-    return;
-  } else if (mirror) {
-    const Fixed16 one = Fixed16::from_int(1);
-    sprite_draw_transformed(full, sprites_.frame(frame), x, y, scratch_, Angle10(0), -one, one, 0);
-  } else {
-    draw_sprite_clipped(full, sprites_.frame(frame), x, y);
-  }
-}
-
-void StatusStation::draw_torpedo_info(int x, int y, std::uint32_t weapon_id) {
-  // status_draw_torpedo_info (0x75922): the card of a torpedo type.
-  const Viewport full = Viewport::full(env_.screen());
-  draw_sprite_clipped(full, sprites_.frame(0), x, y + 2);
-  draw_torpedo(2 * weapon_id + 0xa, weapon_id, false, x + 0x49, y + 8, false);
-  const Torpedo* t = env_.tables.find_torpedo_by_id(weapon_id);
-  if (t == nullptr) {
-    return;
-  }
-  const std::string& name = t->long_name;
-  const int tw = font_.text_width(name);
-  const int nx = x + (sprites_.frame(0).width() - tw) / 2;
-  shadowed_text(nx, y + 0x1e, name);
-  ui::draw_line(full, nx, y + 0x27, nx + tw - 1, y + 0x27, 0);
-  ui::draw_line(full, nx, y + 0x26, nx + tw - 1, y + 0x26, 0xd8);
-  const bool two_speeds = t->speed_settings > 1;
-  std::string range = std::to_string(t->range_long_yd);
-  std::string speed = std::to_string(t->speed_low_kts);
-  if (two_speeds) {
-    range += "/" + std::to_string(t->range_short_yd);
-    speed += "/" + std::to_string(t->speed_high_kts);
-  }
-  shadowed_text(x + 3, y + 0x32, texts_.range);
-  shadowed_text(x + 0x41, y + 0x32, range + texts_.yards);
-  shadowed_text(x + 3, y + 0x3c, texts_.speed);
-  shadowed_text(x + 0x41, y + 0x3c, speed + texts_.knots);
-  shadowed_text(x + 3, y + 0x46, texts_.warhead);
-  shadowed_text(x + 0x41, y + 0x46, std::to_string(t->warhead_lb) + texts_.pounds);
-  shadowed_text(x + 3, y + 0x50, texts_.motor);
-  const auto motor = static_cast<std::size_t>(t->propulsion);
-  shadowed_text(x + 0x41, y + 0x50, motor < texts_.motors.size() ? texts_.motors[motor] : std::string());
 }
 
 void StatusStation::erase_dragged() {
@@ -1006,8 +828,8 @@ void StatusStation::draw_dragged(bool force) {
   drag_background_ = grab(env_.screen(), x, y, drag_background_.width(), drag_background_.height());
   if (art_ && static_cast<std::uint32_t>(std::abs(drag_)) <= TorpedoArt::kTypes) {
     // The type's own picture (not in the original: its outline).
-    TorpedoArt::draw(Viewport::full(env_.screen()), art_->picture(static_cast<std::uint32_t>(std::abs(drag_)), true),
-                     drawn_x_, drawn_y_, drag_ < 0, scratch_);
+    room_.draw_torpedo(Viewport::full(env_.screen()), 0, static_cast<std::uint32_t>(std::abs(drag_)), true, drawn_x_,
+                       drawn_y_, drag_ < 0);
   } else {
     draw_sprite_clipped(Viewport::full(env_.screen()), sprites_.frame(drag_ < 0 ? 0xb : 0xa), drawn_x_, drawn_y_);
   }

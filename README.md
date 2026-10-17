@@ -137,6 +137,8 @@ many more quality-of-life improvements and new content to the game.
 - **Realistic depths:** a realism option, in place of "Limited Depth Data",
   gives the boats the periscope, radar and bridge depths of the Historical
   Realism Patch.
+- **Requests:** in a career, the base's REQUESTS menu lets you choose the next
+  patrol's torpedo load and move your deck gun, or fit a second one.
 
 #### Bug fixes
 

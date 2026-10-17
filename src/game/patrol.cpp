@@ -7,6 +7,7 @@
 #include "assets/campaign_month.h"
 #include "core/byte_reader.h"
 #include "core/error.h"
+#include "game/career_requests.h"
 #include "game/career_rules.h"
 #include "game/vehicle_state.h"
 #include "sim/geometry.h"
@@ -102,12 +103,58 @@ PatrolPlan build_patrol_scenario(Career& career, const PatrolZone& zone, std::in
   plan.return_hours = transit_hours;
   plan.home_port = r.home_port;
 
+  // The career's requests (not in the original), which draw nothing.
+  if (requests_enabled(career)) {
+    plan.boat_fit = career_boat_fit(career);
+    const std::optional<TorpedoLoad> chosen =
+        requests_for_boat(career.requests, r) ? career.requests.torpedo_load : std::nullopt;
+    if (chosen && r.on_patrol == 0) {
+      const MissionRules rules = *career.rules;
+      const TorpedoLoad generated = generated_torpedo_load(h, *sub, tables, rules);
+      const std::vector<TorpedoOffer> offers =
+          torpedo_offers(*sub, tables, h.year, h.month, static_cast<SubCommand>(career.summary.current_command),
+                         rules, in_good_standing(r), generated);
+      if (torpedo_load_allowed(*chosen, *sub, offers)) {
+        plan.torpedo_load = chosen;
+      }
+    }
+    career.requests.torpedo_load.reset();
+  }
+
   r.location = zone.name.substr(0, 19);
   r.status = CareerStatus::kOnPatrol;
   if (r.on_patrol == 0) {
     r.raids_this_patrol = 0;
   }
   return plan;
+}
+
+PatrolPlan depart_on_patrol(Career& career, PatrolAssignment& assignment, const GameTables& tables,
+                            WatcomRandom& random) {
+  accept_patrol_zone(career, assignment);
+  CareerRecord& r = career.record;
+  if (r.on_patrol == 0) {
+    r.transit_hours = 0;
+    if (assignment.transit_hours != 0) {
+      const std::int32_t hours = jitter_transit_hours(assignment.transit_hours, random);
+      career_advance_hours(r, hours);
+      r.transit_hours = hours;
+    }
+  }
+  return build_patrol_scenario(career, assignment.zone, assignment.zone_index, assignment.transit_fuel,
+                               assignment.transit_hours, tables, random);
+}
+
+std::optional<PatrolPlan> preview_patrol(const Career& career, const CampaignData& data, const GameTables& tables) {
+  Career copy = career;
+  copy.requests.torpedo_load.reset();
+  WatcomRandom random;
+  random.srand(copy.record.seed);
+  std::optional<PatrolAssignment> assigned = assign_patrol(copy, data, random);
+  if (!assigned) {
+    return std::nullopt;
+  }
+  return depart_on_patrol(copy, *assigned, tables, random);
 }
 
 PlayerStart career_player_start(const ZoneData& zone, std::string_view home_port,
@@ -376,6 +423,13 @@ std::unique_ptr<Mission> Patrol::create_mission(MissionSetup setup) {
       return std::string(begin, std::find(begin, begin + static_cast<std::ptrdiff_t>(kName), std::uint8_t{0}));
     };
     setup.saved_world = MissionSetup::SavedWorld{name(1), name(2), r.sea_picture};
+  }
+  // The career's requests (not in the original): the fit the patrol was
+  // saved with, and the chosen load of a new patrol.
+  setup.boat_fit = resume_ && !resume_->boat_extension.empty() ? decode_boat_fit(resume_->boat_extension)
+                                                               : plan_.boat_fit;
+  if (!resume_) {
+    setup.torpedo_load = plan_.torpedo_load;
   }
   std::unique_ptr<Mission> mission = Mission::create(install_, tables_, plan_.scenario, std::move(setup));
   mission->add_frame_task(*this);

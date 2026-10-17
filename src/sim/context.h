@@ -92,12 +92,17 @@ struct MissionRules {
   // Historical Realism Patch instead of SUBS.DAT's (game/class_params.h).
   // It takes the place of LIMITED DEPTH DATA with `fathometer_soundings`.
   bool realistic_depths = false;
+  // The career's REQUESTS at the base (rule and simulation change;
+  // game/career_requests.h): the torpedo load of the next patrol chosen by
+  // the player, and the boat's deck gun moved or a second one fitted.
+  bool career_requests = false;
 
   // Returns the rules of a new extended game (the extended variant's
   // defaults, where EXTENDED.CFG or a career's rules do not set them): the
   // corrections, the quiet sonar reacquisition, the extended realism with
   // DETECTABLE RADAR and REALISTIC DEPTHS (as at EXPERT), the mixed Mark
-  // 18s, the Mark 27, the ST, the APR-1 and the fathometer soundings.
+  // 18s, the Mark 27, the ST, the APR-1, the fathometer soundings and the
+  // career's requests.
   static constexpr MissionRules extended() {
     return {.fix_obvious_errors = true,
             .quiet_sonar_reacquire = true,
@@ -108,7 +113,8 @@ struct MissionRules {
             .st_radar = true,
             .apr1 = true,
             .fathometer_soundings = true,
-            .realistic_depths = true};
+            .realistic_depths = true,
+            .career_requests = true};
   }
   // Returns whether depth-charge blasts deafen the escorts' sonar, and the
   // noises near an escort's estimate cancel it by the true geometry.
@@ -124,7 +130,7 @@ struct MissionRuleField {
 };
 
 // The saved fields of `MissionRules`; keys must stay as they are once saved.
-inline const std::array<MissionRuleField, 11> kMissionRuleFields{{
+inline const std::array<MissionRuleField, 12> kMissionRuleFields{{
     {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
     {"quiet_sonar_reacquire", &MissionRules::quiet_sonar_reacquire},
     {"keen_escort_sonar", &MissionRules::keen_escort_sonar},
@@ -136,6 +142,7 @@ inline const std::array<MissionRuleField, 11> kMissionRuleFields{{
     {"apr1", &MissionRules::apr1},
     {"fathometer_soundings", &MissionRules::fathometer_soundings},
     {"realistic_depths", &MissionRules::realistic_depths},
+    {"career_requests", &MissionRules::career_requests},
 }};
 
 // Scenario conditions and player options.

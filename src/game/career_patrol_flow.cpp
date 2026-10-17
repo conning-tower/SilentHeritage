@@ -65,31 +65,20 @@ bool CareerFlow::start_patrol() {
       save();
     }
   }
-  accept_patrol_zone(career_, assignment_);
-
-  // The outbound transit (unless resumed on patrol).
-  if (r.on_patrol == 0) {
-    r.transit_hours = 0;
-    if (assignment_.transit_hours != 0) {
-      const std::int32_t hours = jitter_transit_hours(assignment_.transit_hours, random);
-      career_advance_hours(r, hours);
-      r.transit_hours = hours;
-    }
-  }
-
+  // The outbound transit (unless resumed on patrol), then
   // career_build_patrol_scenario (0x1c1e2), whose port departure ends it.
   const bool departing = r.on_patrol == 0;
   options = (options & ~option::kModeMask) | option::kModeCareer;
   PatrolRequest request;
   request.career = &career_;
-  request.plan = build_patrol_scenario(career_, assignment_.zone, assignment_.zone_index, assignment_.transit_fuel,
-                                       assignment_.transit_hours, tables_, random);
+  request.plan = depart_on_patrol(career_, assignment_, tables_, random);
   if (departing) {
     const SubClass* boat = tables_.find_sub(r.class_name);
     if (boat == nullptr) {
       throw DataError("SUBS.DAT: no class " + r.class_name);
     }
-    ui_.show_port_departure(boat->sprite_profile);
+    // With the extended deck gun fit, the class's port picture may change.
+    ui_.show_port_departure(fitted_sub_class(*boat, request.plan.boat_fit).sprite_profile);
   }
 
   // run_mission (0xa1b10), with GOPTION.SAV reloaded by init_simulation.

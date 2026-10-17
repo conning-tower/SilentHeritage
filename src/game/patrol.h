@@ -31,6 +31,7 @@
 #include "core/install.h"
 #include "core/random.h"
 #include "game/career.h"
+#include "game/career_rules.h"
 #include "game/frontend_results.h"
 #include "game/mission.h"
 #include "game/patrol_contacts.h"
@@ -62,6 +63,11 @@ struct PatrolPlan {
   std::int32_t transit_fuel = 0;  // 0x1260b0: one transit's fuel
   std::int32_t return_hours = 0;  // 0x1260b4: the return transit's hours
   std::string home_port;          // 0x1260ac: the career's home port
+  // The career's requests (not in the original; game/career_requests.h):
+  // the boat's deck gun fit, and the torpedo load the player chose for this
+  // patrol, which the mission carries in place of the header's.
+  BoatFit boat_fit;
+  std::optional<TorpedoLoad> torpedo_load;
 };
 
 // `career_build_patrol_scenario` (0x1c1e2) for `career` in patrol zone
@@ -72,9 +78,28 @@ struct PatrolPlan {
 // spent). Sets the career's location to the zone and its status to on
 // patrol, clearing the patrol's raid count. Throws `DataError` when the
 // boat's class or a torpedo is missing.
+//
+// With the career's requests (`MissionRules::career_requests`, not in the
+// original), after every draw: the boat's deck gun fit, and for a new patrol
+// the torpedo load the career requested, when it is still allowed
+// (`torpedo_load_allowed` with the patrol's offers); the request is then
+// cleared.
 PatrolPlan build_patrol_scenario(Career& career, const PatrolZone& zone, std::int32_t zone_index,
                                  std::int32_t transit_fuel, std::int32_t transit_hours, const GameTables& tables,
                                  WatcomRandom& random);
+
+// The draws of START WAR PATROL (`career_base_loop`, code 0x78) once the
+// orders are accepted: `patrol_accept_zone`, for a new patrol the outbound
+// transit (its hours jittered, the career's date moved on by them and kept
+// in `CareerRecord::transit_hours`), then `build_patrol_scenario`.
+PatrolPlan depart_on_patrol(Career& career, PatrolAssignment& assignment, const GameTables& tables,
+                            WatcomRandom& random);
+// Returns the plan START WAR PATROL would make now for `career` without a
+// torpedo load request, on copies of the career and of the game's
+// generator seeded from it (not in the original; the requests' preview):
+// `assign_patrol`, then `depart_on_patrol`. Nothing when no zone can be
+// assigned.
+std::optional<PatrolPlan> preview_patrol(const Career& career, const CampaignData& data, const GameTables& tables);
 
 // A start position of the boat.
 struct PlayerStart {

@@ -123,6 +123,7 @@ add_executable(sh_tests
   career_patrol_test.cpp
   career_letters_test.cpp
   career_menus_test.cpp
+  career_requests_test.cpp
   # Main program and asset viewer.
   app_test.cpp
   # The asset setup: remembered source, folder checks, document trees.

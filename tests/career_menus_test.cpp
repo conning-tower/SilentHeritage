@@ -27,6 +27,7 @@
 #include "game/patrol.h"
 #include "game/saves_options.h"
 #include "game/shpath.h"
+#include "career_fixture.h"
 #include "game_data.h"
 #include "ui/dialog.h"
 #include "ui/menu_skin.h"
@@ -34,106 +35,9 @@
 namespace sh {
 namespace {
 
-// A scratch directory removed at the end of the test.
-class TempDir {
- public:
-  TempDir() {
-    const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
-    path_ = std::filesystem::temp_directory_path() / ("sh_career_menus_test_" + std::to_string(stamp));
-    std::filesystem::create_directories(path_);
-  }
-  ~TempDir() { std::filesystem::remove_all(path_); }
-  TempDir(const TempDir&) = delete;
-  TempDir& operator=(const TempDir&) = delete;
-  const std::filesystem::path& path() const { return path_; }
-
- private:
-  std::filesystem::path path_;
-};
-
-// Feeds scripted clicks and keys to the GUI, one every 40 polls.
-class ScriptedHost final : public FrontendHost, public MissionRunner {
- public:
-  struct Step {
-    std::uint16_t key = 0;  // a key, or a click at (x, y)
-    int x = 0;
-    int y = 0;
-    bool back = false;  // Android's Back instead
-  };
-  static Step click(int x, int y) { return {0, x, y}; }
-  static Step key(std::uint16_t k) { return {k, 0, 0}; }
-  static Step back() { return {0, 0, 0, true}; }
-
-  std::deque<Step> script;
-
-  std::uint32_t ticks() override { return tick_; }
-  void present(const Image8&, const VgaPalette&) override {
-    tick_ += 2;
-    if (++frames_ > 50'000) {
-      throw std::runtime_error("the script did not end the screen");
-    }
-  }
-  void poll_input(ui::Gui& gui) override {
-    if (++idle_ < 40 || script.empty()) {
-      return;
-    }
-    idle_ = 0;
-    const Step s = script.front();
-    script.pop_front();
-    if (s.back) {
-      gui.mouse().post_back(0);
-    } else if (s.key != 0) {
-      gui.mouse().post_key(s.key, 0);
-    } else {
-      gui.mouse().update(s.x, s.y, ui::kButtonLeft, 0);
-      gui.mouse().update(s.x, s.y, 0, 0);
-    }
-  }
-  VideoSound* video_sound() override { return nullptr; }
-  void play_sfx(std::int32_t, std::int32_t, std::int32_t) override {}
-  void apply_sound_options(const GameOptions&) override {}
-  void report(std::string_view) override {}
-  std::int32_t run(const MissionRequest&) override { return 1; }
-  MissionOutcome outcome() const override { return {}; }
-  // A patrol "played" by returning `patrol_result` with `patrol_end`; the
-  // request is kept.
-  std::int32_t run_patrol(const PatrolRequest& request, PatrolResult& result) override {
-    patrol_request = request;
-    result = patrol_result;
-    return patrol_end;
-  }
-
-  std::int32_t patrol_end = 1;
-  PatrolResult patrol_result;
-  std::optional<PatrolRequest> patrol_request;
-
- private:
-  std::uint32_t tick_ = 0;
-  int idle_ = 0;
-  int frames_ = 0;
-};
-
-// A front end over the install with the scripted host, for the screens.
-struct Fixture {
-  explicit Fixture(const Install& install, bool extended_config = false)
-      : paths(ShPaths::load(install)),
-        exe(ExeImage::load(install)),
-        saves(dir.path(), &install, paths.dir(GameDir::kSave)),
-        front_end({.install = install, .paths = paths, .exe = exe, .saves = saves, .extended_config = extended_config},
-                  host, host, 1234),
-        ui(front_end) {}
-
-  TempDir dir;
-  ShPaths paths;
-  ExeImage exe;
-  SaveDir saves;
-  ScriptedHost host;
-  FrontEnd front_end;
-  CareerUi ui;
-};
-
-// The centre of a button `w` wide at (x, y) of a titled dialog at (dx, dy).
-ScriptedHost::Step button(int dx, int dy, int x, int y, int w) { return ScriptedHost::click(dx + x + w / 2, dy + y + 17); }
+using test::Fixture;
+using test::ScriptedHost;
+using test::button;
 
 TEST_CASE("CAREER MENU returns the code of its buttons", "[career]") {
   SH_REQUIRE_INSTALL(install);
@@ -298,6 +202,10 @@ TEST_CASE("The career flow continues the shipped career up to the base and back"
 namespace sh {
 namespace {
 
+using test::Fixture;
+using test::ScriptedHost;
+using test::button;
+
 TEST_CASE("A career patrol updates the career from its results", "[career][content]") {
   SH_REQUIRE_GAME_DATA(install);
   Fixture f(install);
@@ -379,14 +287,16 @@ TEST_CASE("A career patrol takes the extended rules, and its port time their del
     sunk.type = 13;
     sunk.tonnage = 5000;
     o.patrol_log = {sunk};
-    const int base_y = (480 - 0x168) / 2;
+    // Extended, REQUESTS adds a button after VIEW CAREER.
+    const int base_y = (480 - (extended ? 0x190 : 0x168)) / 2;
+    const int main_menu_y = extended ? 0x14a : 0x122;
     // As above, with the APR-1's letter in port when extended (6 screens).
     f.host.script = {button(0x159, 0x4b, 0x23, 0xaa, 0xc6), button(0xb, 0xe, 0x1bb, 400, 0x79),
                      button(5, base_y, 0x1e, 0x82, 0xc6), ScriptedHost::click(0x1b2 + 0x63, 0x168 + 12)};
     for (int i = 0; i < (extended ? 6 : 5); ++i) {
       f.host.script.push_back(ScriptedHost::key(ui::kKeyEnter));
     }
-    f.host.script.push_back(button(5, base_y, 0x1e, 0x122, 0xc6));
+    f.host.script.push_back(button(5, base_y, 0x1e, main_menu_y, 0xc6));
     flow.run();
     CHECK(f.host.script.empty());
     REQUIRE(f.host.patrol_request.has_value());

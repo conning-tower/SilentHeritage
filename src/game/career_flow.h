@@ -83,6 +83,14 @@ class CareerFlow {
   // The new equipment, the save and the calendar that end the time in port
   // after a patrol or a transfer.
   void finish_port_time();
+  // REQUESTS (not in the original; game/career_requests.h): the menu until
+  // BASE MENU, each request granted saved with the career.
+  void requests_menu();
+  // TORPEDO LOAD from the patrol START WAR PATROL would make
+  // (`preview_patrol`); false when there is none.
+  bool request_torpedo_load();
+  // DECK GUN.
+  void request_deck_gun();
 
   CareerUi& ui_;
   const GameTables& tables_;

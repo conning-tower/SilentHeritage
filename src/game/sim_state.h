@@ -21,8 +21,9 @@
 // state the original does not save, "UI  " the session's, "RULE" the
 // extended variant's rules of the mission (game/mission_rules.h), only when
 // they are not the original's, and "CLOG" the extended variant's crew log
-// (`Features::crew_log`, game/crew_log.h). Readers skip the sections they
-// do not know.
+// (`Features::crew_log`, game/crew_log.h), "CHRT" the extended chart's
+// annotations and "BOAT" a career boat's deck gun fit (game/boat_fit.h),
+// only when there is one. Readers skip the sections they do not know.
 //
 // Deviations from the original's bytes: the unused stack and heap bytes it
 // writes (free radio buffer records, unknown fields) are zeros; the TDC's
@@ -129,6 +130,10 @@ struct SimStateFile {
   // `ChartAnnotations::encode`; not in the original), empty when there are
   // none.
   std::vector<std::uint8_t> chart_extension;
+  // The career boat's deck gun fit (section "BOAT", `encode_boat_fit`; not
+  // in the original), empty for the class's guns. The mission is built
+  // with it (`MissionSetup::boat_fit`) before the lists are restored.
+  std::vector<std::uint8_t> boat_extension;
 
   // Parses the lists at `in` of a file of `version` (`sim_read_state`),
   // then the extension when it follows; with `log_only`, stops after the

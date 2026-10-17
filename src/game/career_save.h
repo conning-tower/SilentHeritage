@@ -37,12 +37,15 @@ inline constexpr std::int32_t kRosterSlots = 100;
 // Returns "ROSTER<slot>.SAV".
 std::string roster_file_name(std::int32_t slot);
 // Returns "ROSTER<slot>.EXT", the extended variant's file of the career's
-// rules (`Career::rules`, `rule.<key> = <value>` lines, game/mission_rules.h;
-// not in the original).
+// rules (`Career::rules`, `rule.<key> = <value>` lines, game/mission_rules.h)
+// and requests (`Career::requests`, game/career_requests.h); not in the
+// original.
 std::string career_rules_file_name(std::int32_t slot);
 // Returns the rules of ROSTER<slot>.EXT over the extended defaults, or
 // nothing without the file.
 std::optional<MissionRules> load_career_rules(const SaveDir& saves, std::int32_t slot);
+// Returns the requests of ROSTER<slot>.EXT, none without the file.
+CareerRequests load_career_requests(const SaveDir& saves, std::int32_t slot);
 
 // A parsed roster file.
 struct RosterFile {
@@ -64,7 +67,7 @@ std::vector<std::uint8_t> serialize_roster(const Career& career);
 
 // `career_save` (0x18e52): writes the career to ROSTER<roster_slot>.SAV,
 // first setting the record's log count, and its rules, when it has some, to
-// ROSTER<roster_slot>.EXT. Returns false when it cannot be written; the file
+// ROSTER<roster_slot>.EXT with its requests. Returns false when it cannot be written; the file
 // then keeps its previous content (the original deletes it).
 bool save_career(const SaveDir& saves, Career& career);
 // Reads ROSTER<slot>.SAV whole, or nothing when it is missing, empty or

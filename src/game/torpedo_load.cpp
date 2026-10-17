@@ -57,6 +57,36 @@ void select_first_tube_type(TorpedoTypes& table, const TorpedoLoad& load, const 
 // The straight runners from the oldest to the newest.
 constexpr std::array<std::string_view, 4> kStraightRunners{"MARK10", "MARK14", "MARK18-1", "MARK18-2"};
 
+// The type table of the torpedo rules: the types carried in id order,
+// then the straight runners not carried (unavailable) to fill its three
+// entries.
+TorpedoTypes carried_types_table(const TorpedoLoad& load, const SubClass& sub, const GameTables& tables) {
+  TorpedoTypes table;
+  std::vector<const Torpedo*> entries;
+  for (const std::uint32_t id : carried_torpedo_types(load, sub)) {
+    if (const Torpedo* t = tables.find_torpedo_by_id(id); t != nullptr && entries.size() < table.types.size()) {
+      entries.push_back(t);
+    }
+  }
+  const std::size_t carried = entries.size();
+  for (const std::string_view name : kStraightRunners) {
+    const Torpedo& t = find_torpedo(tables, name);
+    if (entries.size() < table.types.size() && std::ranges::find(entries, &t) == entries.end()) {
+      entries.push_back(&t);
+    }
+  }
+  for (std::size_t i = 0; i < table.types.size(); ++i) {
+    table.types[i] = {entries[i]->short_name, static_cast<std::int32_t>(entries[i]->id), i < carried};
+  }
+  if (carried == 0) {
+    table.types[0].available = true;
+  }
+  table.selected = carried == 0 ? 0 : static_cast<std::int32_t>(carried) - 1;
+  table.single_type = carried <= 1;
+  select_first_tube_type(table, load, sub);
+  return table;
+}
+
 // `tdc_upgrade_mark18_by_date` under the torpedo rules (not in the
 // original); `gradual`: `rules.mixed_mark18`.
 TorpedoTypes mixed_upgrade(TorpedoLoad& load, const SubClass& sub, const GameTables& tables, std::int32_t year,
@@ -103,32 +133,7 @@ TorpedoTypes mixed_upgrade(TorpedoLoad& load, const SubClass& sub, const GameTab
       std::replace(group.begin(), group.end(), runners.front(), runners.back());
     }
   }
-  // The table: the types carried in id order, then the straight runners
-  // not carried (unavailable) to fill its three entries.
-  TorpedoTypes table;
-  std::vector<const Torpedo*> entries;
-  for (const std::uint32_t id : carried_torpedo_types(load, sub)) {
-    if (const Torpedo* t = tables.find_torpedo_by_id(id); t != nullptr && entries.size() < table.types.size()) {
-      entries.push_back(t);
-    }
-  }
-  const std::size_t carried = entries.size();
-  for (const std::string_view name : kStraightRunners) {
-    const Torpedo& t = find_torpedo(tables, name);
-    if (entries.size() < table.types.size() && std::ranges::find(entries, &t) == entries.end()) {
-      entries.push_back(&t);
-    }
-  }
-  for (std::size_t i = 0; i < table.types.size(); ++i) {
-    table.types[i] = {entries[i]->short_name, static_cast<std::int32_t>(entries[i]->id), i < carried};
-  }
-  if (carried == 0) {
-    table.types[0].available = true;
-  }
-  table.selected = carried == 0 ? 0 : static_cast<std::int32_t>(carried) - 1;
-  table.single_type = carried <= 1;
-  select_first_tube_type(table, load, sub);
-  return table;
+  return carried_types_table(load, sub, tables);
 }
 
 }  // namespace
@@ -172,10 +177,13 @@ std::vector<std::uint32_t> carried_torpedo_types(const TorpedoLoad& load, const 
   return ids;
 }
 
-bool mark27_in_service(std::int32_t year, std::int32_t month, SubCommand command) {
+std::int32_t mark27_first_month(SubCommand command) {
   constexpr std::int32_t kYear = 1944 - kScenarioYearBase;
-  const std::int32_t first = command == SubCommand::kComSubPac ? 5 : 8;
-  return year > kYear || (year == kYear && month >= first);
+  return kYear * 12 + (command == SubCommand::kComSubPac ? 5 : 8);
+}
+
+bool mark27_in_service(std::int32_t year, std::int32_t month, SubCommand command) {
+  return year * 12 + month >= mark27_first_month(command);
 }
 
 void add_extended_torpedoes(GameTables& tables) {
@@ -201,6 +209,10 @@ void add_extended_torpedoes(GameTables& tables) {
     t.run_time_s[s] = kMark27RunTime;
   }
   tables.weapons.torpedoes.push_back(std::move(t));
+}
+
+TorpedoTypes kept_torpedo_types(const TorpedoLoad& load, const SubClass& sub, const GameTables& tables) {
+  return carried_types_table(load, sub, tables);
 }
 
 TorpedoTypes tdc_upgrade_mark18_by_date(TorpedoLoad& load, const SubClass& sub, const GameTables& tables,

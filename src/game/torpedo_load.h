@@ -24,6 +24,8 @@ struct TorpedoLoad {
   std::array<std::int32_t, kTubes> tubes{};              // 0x11ac98: bow tubes first, then stern
   std::array<std::int32_t, kRackCapacity> bow_racks{};   // 0x11ad60
   std::array<std::int32_t, kRackCapacity> stern_racks{}; // 0x11adb0
+
+  friend bool operator==(const TorpedoLoad&, const TorpedoLoad&) = default;
 };
 
 // Returns the load of a scenario header: its tube contents, and each reload
@@ -67,6 +69,11 @@ struct TorpedoTypes {
 TorpedoTypes tdc_upgrade_mark18_by_date(TorpedoLoad& load, const SubClass& sub, const GameTables& tables,
                                         std::int32_t year, std::int32_t month, const MissionRules& rules = {});
 
+// Returns the type table of a load the player chose (not in the original;
+// game/career_requests.h), whose torpedoes stay as they are: the table of
+// the torpedo rules above, for at most `kMaxTorpedoTypes` types carried.
+TorpedoTypes kept_torpedo_types(const TorpedoLoad& load, const SubClass& sub, const GameTables& tables);
+
 // The months of the gradual Mark 18-2 changeover (`rules.mixed_mark18`).
 inline constexpr std::int32_t kMark18Changeover = 3;
 // The most torpedo types a boat carries under the torpedo rules: the
@@ -83,6 +90,9 @@ inline constexpr std::int32_t kMark27Rack = 2;
 // `year` (since 1930) / `month` (0-based): from June 1944 for ComSubPac,
 // September 1944 elsewhere.
 bool mark27_in_service(std::int32_t year, std::int32_t month, SubCommand command);
+// Returns the month the Mark 27 is first supplied to `command`, as years
+// since 1930 x 12 + the 0-based month.
+std::int32_t mark27_first_month(SubCommand command);
 // Appends the Mark 27 record to `tables` (once): the Mark 18-1's run
 // model, slowed to 12 kn for 5000 yd, a 19-inch, 7.5-ft (8) body and a
 // 95-lb warhead. Throws `DataError` without the MARK18-1.

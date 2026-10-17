@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Extended career: a REQUESTS menu on the BASE MENU. TORPEDO LOAD places the
+  next patrol's torpedoes in the tubes and racks, among the types in service,
+  new types being short for their first three months; DECK GUN moves a fleet
+  boat's gun fore or aft, or fits a second gun for a commander in good
+  standing.
+
 ## [0.2.0] - 2026-10-16
 
 ### Added

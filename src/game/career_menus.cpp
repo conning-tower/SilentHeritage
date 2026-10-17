@@ -9,6 +9,7 @@
 
 #include "assets/exe_image.h"
 #include "game/career_boats.h"
+#include "game/career_requests.h"
 #include "game/career_ui.h"
 #include "ui/controls.h"
 #include "ui/menu_skin.h"
@@ -346,7 +347,8 @@ int base_menu_screen(CareerUi& ui, const Career& career, bool redraw, const std:
   // the dialog ends 0x6e below SAVE CAREER and is centred vertically.
   const bool transfer = career.summary.transfer_offered != 0;
   const bool retire = r.patrols > 4;
-  const int save_y = 0xd2 + 0x28 * (1 + (transfer ? 1 : 0) + (retire ? 1 : 0));
+  const bool requests = requests_enabled(career);
+  const int save_y = 0xd2 + 0x28 * (1 + (requests ? 1 : 0) + (transfer ? 1 : 0) + (retire ? 1 : 0));
   const int h = save_y + 0x6e;
   ui::Dialog d(ui.gui(), 5, (kScreenHeight - h) / 2, 0x104, h, kMenuFlags);
   ui.add_exit_area(d);
@@ -356,6 +358,10 @@ int base_menu_screen(CareerUi& ui, const Career& career, bool redraw, const std:
                         returns(career_code::kTopCommanders));
   d.emplace<ui::Button>(0x1e, 0xd2, 0xc6, ui.exe_string(addr::kViewCareer), returns(career_code::kViewCareer));
   int y = 0xfa;
+  if (requests) {
+    d.emplace<ui::Button>(0x1e, y, 0xc6, std::string(kRequestsLabel), returns(career_code::kRequests));
+    y += 0x28;
+  }
   if (transfer) {
     // career_request_transfer (0x1bad5)
     d.emplace<ui::Button>(0x1e, y, 0xc6, ui.exe_string(addr::kRequestTransfer), [&ui, &career](int) {

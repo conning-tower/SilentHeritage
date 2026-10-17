@@ -185,8 +185,10 @@ void Mission::build(const Install& install, MissionSetup& setup, const MissionSt
   restore_seed_ = draws.restore_seed;
   const std::int32_t fog_density = draws.fog_density;
 
-  // init_apply_scenario_header (0x5044a).
-  torpedoes_ = scenario_torpedo_load(h);
+  // init_apply_scenario_header (0x5044a); a load the player chose instead
+  // (not in the original).
+  torpedoes_ = setup.torpedo_load ? *setup.torpedo_load : scenario_torpedo_load(h);
+  boat_fit_ = setup.boat_fit;
   conditions_.options = (setup.options & ~option::kEquipmentMask) | equipment_options(h.equipment);
   conditions_.speech = setup.speech;
   conditions_.rules = setup.rules;
@@ -269,8 +271,10 @@ void Mission::build(const Install& install, MissionSetup& setup, const MissionSt
   // where the boat starts.
   air_sorties_.reset(sighting_reference_range(player_->position(), player_->sub().bridge_height_ft));
 
-  torpedo_types_ =
-      tdc_upgrade_mark18_by_date(torpedoes_, *player_class_, tables_, h.year, h.month, conditions_.rules);
+  torpedo_types_ = setup.torpedo_load
+                       ? kept_torpedo_types(torpedoes_, *player_class_, tables_)
+                       : tdc_upgrade_mark18_by_date(torpedoes_, *player_class_, tables_, h.year, h.month,
+                                                    conditions_.rules);
   start_torpedo_types_ = carried_torpedo_types(torpedoes_, *player_class_);
   combat_->tdc.set_type_index(torpedo_types_.selected);
   combat_->sensing = [this](const Vehicle& target) { return sense(target); };
@@ -656,6 +660,10 @@ void Mission::spawn_player(const PlayerSubRecord& record) {
   player_class_ = tables_.find_sub(record.sub_class);
   if (player_class_ == nullptr) {
     throw DataError("SUBS.DAT: no class " + record.sub_class);
+  }
+  if (!boat_fit_.empty()) {
+    fitted_class_ = fitted_sub_class(*player_class_, boat_fit_);
+    player_class_ = &*fitted_class_;
   }
   const SubClassParams params = sub_class_params(*player_class_, conditions_.rules);
   // Raises the start depth until the keel clears the terrain (mixing feet

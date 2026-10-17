@@ -8,6 +8,8 @@
 #include "game/career_boats.h"
 #include "game/career_letters.h"
 #include "game/career_menus.h"
+#include "game/career_requests.h"
+#include "game/patrol.h"
 #include "game/career_save.h"
 #include "game/career_ui.h"
 #include "game/mission_save.h"
@@ -108,8 +110,10 @@ void CareerFlow::adopt_rules() {
   // original or the classic variant) takes the extended defaults.
   if (ui_.extended_config()) {
     career_.rules = load_career_rules(ui_.saves(), career_.record.roster_slot).value_or(MissionRules::extended());
+    career_.requests = load_career_requests(ui_.saves(), career_.record.roster_slot);
   } else {
     career_.rules.reset();
+    career_.requests = {};
   }
 }
 
@@ -239,6 +243,10 @@ int CareerFlow::base_loop() {
         request_transfer();
         redraw = true;
         break;
+      case career_code::kRequests:
+        requests_menu();
+        redraw = true;
+        break;
       case career_code::kRetire:
         retire();
         return 0;
@@ -248,6 +256,69 @@ int CareerFlow::base_loop() {
         redraw = false;
         break;
     }
+  }
+}
+
+void CareerFlow::requests_menu() {
+  bool redraw = false;
+  while (true) {
+    const SubClass* boat = tables_.find_sub(career_.record.class_name);
+    const std::vector<RequestItem> items{
+        {std::string(kTorpedoLoadLabel), boat != nullptr && preview_patrol(career_, campaign_, tables_).has_value()},
+        {std::string(kDeckGunLabel), boat != nullptr && fleet_boat_with_one_gun(*boat)},
+    };
+    const std::optional<std::size_t> chosen = requests_menu_screen(ui_, items, redraw);
+    if (!chosen) {
+      return;
+    }
+    redraw = false;
+    switch (*chosen) {
+      case 0:
+        redraw = request_torpedo_load();
+        break;
+      case 1:
+        request_deck_gun();
+        break;
+      default:
+        break;
+    }
+  }
+}
+
+bool CareerFlow::request_torpedo_load() {
+  const SubClass* boat = tables_.find_sub(career_.record.class_name);
+  const std::optional<PatrolPlan> plan = preview_patrol(career_, campaign_, tables_);
+  if (boat == nullptr || !plan) {
+    return false;
+  }
+  const ScenarioHeader& h = plan->scenario.header;
+  const TorpedoLoad generated = generated_torpedo_load(h, *boat, tables_, rules());
+  TorpedoLoadEditor editor(*boat, generated,
+                           torpedo_offers(*boat, tables_, h.year, h.month,
+                                          static_cast<SubCommand>(career_.summary.current_command), rules(),
+                                          in_good_standing(career_.record), generated),
+                           requests_for_boat(career_.requests, career_.record) ? career_.requests.torpedo_load
+                                                                               : std::nullopt);
+  if (torpedo_load_screen(ui_, tables_, *boat, editor, h.month, h.year)) {
+    CareerRequests& requests = current_requests(career_);
+    if (requests.torpedo_load != editor.chosen()) {
+      requests.torpedo_load = editor.chosen();
+      save();
+    }
+  }
+  return true;
+}
+
+void CareerFlow::request_deck_gun() {
+  const SubClass* boat = tables_.find_sub(career_.record.class_name);
+  if (boat == nullptr) {
+    return;
+  }
+  BoatFit fit = career_boat_fit(career_);
+  deck_gun_screen(ui_, *boat, career_.record, fit);
+  if (fit != career_boat_fit(career_)) {
+    current_requests(career_).fit = fit;
+    save();
   }
 }
 

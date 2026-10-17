@@ -65,6 +65,7 @@ constexpr std::uint32_t kUiSection = 0x20204955;   // "UI  "
 constexpr std::uint32_t kRuleSection = 0x454c5552;  // "RULE"
 constexpr std::uint32_t kCrewLogSection = 0x474f4c43;  // "CLOG"
 constexpr std::uint32_t kChartSection = 0x54524843;  // "CHRT"
+constexpr std::uint32_t kBoatSection = 0x54414f42;  // "BOAT"
 
 std::vector<StateRange> group_ranges(ContactGroupKind kind) {
   std::vector<StateRange> r(kGroupBaseRanges.begin(), kGroupBaseRanges.end());
@@ -414,6 +415,8 @@ SimStateFile SimStateFile::parse(ByteReader& in, std::int32_t version, bool log_
         f.crew_log_extension.assign(data.begin(), data.end());
       } else if (tag == kChartSection) {
         f.chart_extension.assign(data.begin(), data.end());
+      } else if (tag == kBoatSection) {
+        f.boat_extension.assign(data.begin(), data.end());
       }
     }
   }
@@ -488,7 +491,7 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     write_ranges(out, v.image, vehicle_state_layout(v.cls).ranges);
   }
   if (!sim_extension.empty() || !ui_extension.empty() || !rules_extension.empty() ||
-      !crew_log_extension.empty() || !chart_extension.empty()) {
+      !crew_log_extension.empty() || !chart_extension.empty() || !boat_extension.empty()) {
     out.bytes(kExtensionMagic);
     out.u32(kExtensionVersion);
     write_section(out, kSimSection, sim_extension);
@@ -504,6 +507,10 @@ std::vector<std::uint8_t> SimStateFile::serialize() const {
     // Nor without annotations.
     if (!chart_extension.empty()) {
       write_section(out, kChartSection, chart_extension);
+    }
+    // Nor for the class's own guns.
+    if (!boat_extension.empty()) {
+      write_section(out, kBoatSection, boat_extension);
     }
   }
   return out.take();
@@ -1119,6 +1126,9 @@ SimStateFile StateIo::capture(Mission& mission, const SimStateParts& parts, cons
   f.sim_extension = ext.take();
   if (mission.conditions_.rules != MissionRules{}) {
     f.rules_extension = encode_mission_rules(mission.conditions_.rules);
+  }
+  if (!mission.boat_fit_.empty()) {
+    f.boat_extension = encode_boat_fit(mission.boat_fit_);
   }
 
   // The session (extension "UI  ").

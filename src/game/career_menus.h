@@ -43,6 +43,8 @@ inline constexpr int kViewCareer = 0x7b;
 inline constexpr int kLeaveCareer = 0x7d;  // MAIN MENU
 inline constexpr int kTransfer = 0x7e;
 inline constexpr int kRetire = 0x7f;
+// REQUESTS (not in the original; game/career_requests.h).
+inline constexpr int kRequests = 0x80;
 // CAREER ROSTER (dialog 0x119d20): VIEW and DELETE (-1 SELECT, -2 CANCEL).
 inline constexpr int kRosterView = 0x7b;
 inline constexpr int kRosterDelete = 0x82;
@@ -79,6 +81,8 @@ std::optional<std::string> backup_career_dialog(CareerUi& ui);
 // and faded in when `redraw`). REQUEST TRANSFER shows when transfers are
 // offered (`CareerSummary::transfer_offered`), RETIRE after 4 patrols; the OFFICERS
 // CLUB button stays out as in the original. Both ask for confirmation.
+// With the extended career requests (`requests_enabled`, not in the
+// original) REQUESTS follows VIEW CAREER and returns kRequests.
 // SAVE CAREER calls `save_career` (with the menu still up) and stays.
 // A career on patrol returns kStartPatrol at once. Returns a base code.
 int base_menu_screen(CareerUi& ui, const Career& career, bool redraw, const std::function<void()>& save_career);

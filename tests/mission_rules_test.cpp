@@ -83,11 +83,13 @@ TEST_CASE("Mission rules round-trip through their RULE section and EXTENDED.CFG 
                  {"st_radar", 1},
                  {"apr1", 1},
                  {"fathometer_soundings", 1},
-                 {"realistic_depths", 1}}));
+                 {"realistic_depths", 1},
+                 {"career_requests", 1}}));
   CHECK(mission_rules_config(fixed()) ==
         "rule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 1\nrule.keen_escort_sonar = 0\n"
         "rule.detectable_radar = 1\nrule.extended_realism = 1\nrule.mixed_mark18 = 1\nrule.mark27 = 1\n"
-        "rule.st_radar = 1\nrule.apr1 = 1\nrule.fathometer_soundings = 1\nrule.realistic_depths = 1\n");
+        "rule.st_radar = 1\nrule.apr1 = 1\nrule.fathometer_soundings = 1\nrule.realistic_depths = 1\n"
+        "rule.career_requests = 1\n");
   // The extended game's rules: the corrections, deafened escorts.
   CHECK(fixed().escorts_deafened());
   CHECK_FALSE(keen().escorts_deafened());
@@ -129,7 +131,8 @@ TEST_CASE("EXTENDED.CFG gives the rules of the save directory, the extended defa
   CHECK(std::string(text->begin(), text->end()) ==
         "ui.wide_screen = 1\nrule.fix_obvious_errors = 1\nrule.quiet_sonar_reacquire = 1\nrule.keen_escort_sonar = 1\n"
         "rule.detectable_radar = 1\nrule.extended_realism = 1\nrule.mixed_mark18 = 1\nrule.mark27 = 1\n"
-        "rule.st_radar = 1\nrule.apr1 = 1\nrule.fathometer_soundings = 1\nrule.realistic_depths = 1\n");
+        "rule.st_radar = 1\nrule.apr1 = 1\nrule.fathometer_soundings = 1\nrule.realistic_depths = 1\n"
+        "rule.career_requests = 1\n");
 }
 
 // Returns a historical mission run for a while with `rules`.
