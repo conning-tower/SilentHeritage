@@ -52,7 +52,11 @@ std::int32_t realism_rating(std::uint32_t options, const MissionRules& rules) {
       {option::kRealisticChartsOff, true, 0xe666},  // 0.90
       {option::kRunAground, false, 0xf333},         // 0.95
   }};
+  const bool depths_item = realistic_depths_item(rules);
   for (const Factor& f : kFactors) {
+    if (depths_item && f.bit == option::kLimitedDepthDataOff) {
+      continue;
+    }
     if (((options & f.bit) != 0) == f.when_set) {
       r = fx::mul(r, f.factor);
     }
@@ -64,6 +68,9 @@ std::int32_t realism_rating(std::uint32_t options, const MissionRules& rules) {
     if (!rules.detectable_radar) {
       r = fx::mul(r, kNoDetectableRadarFactor);
     }
+    if (depths_item && !rules.realistic_depths) {
+      r = fx::mul(r, kNoRealisticDepthsFactor);
+    }
   }
   return r;
 }
@@ -71,6 +78,9 @@ std::int32_t realism_rating(std::uint32_t options, const MissionRules& rules) {
 MissionRules apply_realism_preset_rules(MissionRules rules, RealismPreset preset) {
   rules.keen_escort_sonar = false;
   rules.detectable_radar = preset != RealismPreset::kNovice;
+  if (realistic_depths_item(rules)) {
+    rules.realistic_depths = preset == RealismPreset::kExpert;
+  }
   return rules;
 }
 

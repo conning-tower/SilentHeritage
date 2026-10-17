@@ -82,6 +82,42 @@ bool sonar_noise_cancels(const fx::Vec3& ship, Angle10 heading, std::int32_t bea
   return off >= -75 && off <= 75 && origin_range >= d;
 }
 
+std::int32_t sonar_active_range_yd(const Ship& ship, std::int32_t sea_state) {
+  const std::int32_t speed = ship.motion().speed_tenths;
+  std::int32_t active_yd = (ship.setup().crew + 1) * 2000 / 5 + 2000;
+  active_yd -= active_yd * sea_state / 8;
+  if (speed > 120) {
+    active_yd -= (speed - 120) * active_yd / 100;
+    if (active_yd < 0) {
+      active_yd = 0;
+    }
+  }
+  return active_yd;
+}
+
+bool sonar_deafened(const Ship& ship, const SimContext& ctx) {
+  // Only explosions mask in the original (see docs/structures.md "Bugs in
+  // the original"); with `MissionRules::escorts_deafened` the underwater
+  // blasts do too (not in the original).
+  if (ctx.sim == nullptr) {
+    return false;
+  }
+  const fx::Vec3 at = ship.position();
+  const bool deafened = ctx.env.rules.escorts_deafened();
+  for (const auto& v : ctx.sim->vehicles()) {
+    const bool masks = v->masks_sonar() || (deafened && v->class_id() == VehicleClass::kBlastNoise);
+    const std::int32_t noise = masks ? v->noise_level() : 0;
+    if (noise > 0) {
+      const fx::Vec3 p = v->position();
+      const auto d = static_cast<std::int32_t>(fx::approx_distance(p.x - at.x, p.z - at.z) / kUnitsPerYard);
+      if (d <= noise * 1200 / 100) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 void ship_hydrophone_check(Ship& ship, SimContext& ctx) {
   // ship_hydrophone_check (0x6fe2c); the screw sound loop within 1000 yd is
   // left to the audio layer, its quiet-time reset is kept.
@@ -195,8 +231,7 @@ void ai_ship_sonar_search(Ship& ship, SimContext& ctx, std::int32_t dt) {
   }
   const std::int32_t crew = ship.setup().crew;
   const std::int32_t sea = ctx.env.sea_state;
-  std::int32_t active_yd = (crew + 1) * 2000 / 5 + 2000;
-  active_yd -= active_yd * sea / 8;
+  const std::int32_t active_yd = sonar_active_range_yd(ship, sea);
   std::int32_t passive_yd = (crew + 1) * 5000 / 5 + 5000;
   passive_yd -= passive_yd * sea / 8;
   std::int32_t strength = 0;
@@ -206,35 +241,12 @@ void ai_ship_sonar_search(Ship& ship, SimContext& ctx, std::int32_t dt) {
       passive_yd = 0;
     }
   }
-  if (m.speed_tenths > 120) {
-    active_yd -= (m.speed_tenths - 120) * active_yd / 100;
-    if (active_yd < 0) {
-      active_yd = 0;
-    }
-  }
   if (ctx.sim == nullptr) {
     return;
   }
   const auto& vehicles = ctx.sim->vehicles();
-  // A loud noise near the ship deafens the whole search (only explosions
-  // mask; see docs/structures.md "Bugs in the original"). With
-  // `MissionRules::escorts_deafened` the underwater blasts do too (not in
-  // the original).
-  const bool deafened = ctx.env.rules.escorts_deafened();
-  std::size_t searched = vehicles.size();
-  for (const auto& v : vehicles) {
-    const bool masks = v->masks_sonar() || (deafened && v->class_id() == VehicleClass::kBlastNoise);
-    const std::int32_t noise = masks ? v->noise_level() : 0;
-    if (noise > 0) {
-      const fx::Vec3 p = v->position();
-      const auto d =
-          static_cast<std::int32_t>(fx::approx_distance(p.x - m.position.x, p.z - m.position.z) / kUnitsPerYard);
-      if (d <= noise * 1200 / 100) {
-        searched = 0;
-        break;
-      }
-    }
-  }
+  // A loud noise near the ship deafens the whole search.
+  const std::size_t searched = sonar_deafened(ship, ctx) ? 0 : vehicles.size();
   ShipAiContact estimate;
   for (std::size_t i = 0; i < searched; ++i) {
     Vehicle& v = *vehicles[i];

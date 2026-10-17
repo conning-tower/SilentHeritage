@@ -622,6 +622,9 @@ void NavPanel::open() {
   last_ordered_ = ordered_depth_;
   last_depth_ = player.depth_ft();
   last_pitch_ = m.pitch.tenths();
+  if (station_controls_) {
+    station_controls_(*dialog_);
+  }
   dialog_->open();
   if (env_.ui.features.precise_dials) {
     add_scrub_targets();

@@ -509,10 +509,13 @@ TEST_CASE("Extended: REALISM's UNDEAFENED ESCORTS and DETECTABLE RADAR rate and 
   const auto percent = [](std::uint32_t options, const MissionRules& rules) {
     return realism_rating_percent(realism_rating(options, rules));
   };
+  // Without the fathometer soundings, whose REALISTIC DEPTHS replace
+  // LIMITED DEPTH DATA (soundings_test.cpp).
   const auto with = [](bool undeafened, bool radar) {
     MissionRules r = MissionRules::extended();
     r.keen_escort_sonar = undeafened;
     r.detectable_radar = radar;
+    r.fathometer_soundings = false;
     return r;
   };
   // Without the extended realism the original's rating, whatever the items.
@@ -540,6 +543,8 @@ TEST_CASE("Extended: REALISM's UNDEAFENED ESCORTS and DETECTABLE RADAR rate and 
   // REALISM dialog at (52, 10)), OK, then BEGIN.
   const ScriptedHost::Step realism = ScriptedHost::click(69 + 185 + 60, 19 + 395 + 17);
   const ScriptedHost::Step keen_box = ScriptedHost::click(52 + 28 + 12, 10 + 165 + 5 * 30 + 12);
+  // REALISTIC DEPTHS, in LIMITED DEPTH DATA's place (soundings_test.cpp).
+  const ScriptedHost::Step depths_box = ScriptedHost::click(52 + 28 + 12, 10 + 165 + 3 * 30 + 12);
   const ScriptedHost::Step ok = ScriptedHost::click(52 + 367 + 60, 10 + 415 + 17);
   for (const bool extended : {false, true}) {
     const TempDir dir;
@@ -550,7 +555,7 @@ TEST_CASE("Extended: REALISM's UNDEAFENED ESCORTS and DETECTABLE RADAR rate and 
     front_end.set_play_intro(false);
     host.script = {extended ? kSingleMissionExt : kSingleMission, kHistoric, realism};
     if (extended) {
-      host.script.push_back(keen_box);
+      host.script.insert(host.script.end(), {keen_box, depths_box});
     }
     host.script.insert(host.script.end(), {ok, kBegin, kMainMenu, extended ? kExitToDosExt : kExitToDos});
     front_end.run();
@@ -561,6 +566,7 @@ TEST_CASE("Extended: REALISM's UNDEAFENED ESCORTS and DETECTABLE RADAR rate and 
     CHECK(read_bytes(dir.path() / "REALISM.SAV") == RealismFile::to_bytes(host.requests.front().options));
     if (extended) {
       CHECK(rules.keen_escort_sonar);
+      CHECK_FALSE(rules.realistic_depths);
       CHECK(rules.fix_obvious_errors);
       CHECK(load_mission_rules(saves) == rules);
     } else {

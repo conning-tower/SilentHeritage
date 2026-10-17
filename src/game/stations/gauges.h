@@ -3,7 +3,9 @@
 // instruments: the fathometer, fuel, compressed air, buoyancy and battery
 // dials, the oxygen bar, and either the engine lamps or the
 // bathythermograph (`gauges_set_page`; the bathythermograph needs option
-// bit 0x200000).
+// bit 0x200000). With the extended fathometer soundings (not in the
+// original), the fathometer holds the last sounding, which its SOUND
+// button takes (sim/fathometer.h).
 #pragma once
 
 #include <array>
@@ -84,6 +86,8 @@ class GaugesStation : public Station {
   bool capturing() const override { return panel_ && panel_->capturing(); }
 
   NavPanel* panel() { return panel_.get(); }
+  // The SOUND button (screen coordinates) while it is shown, else empty.
+  ui::Rect sounding_button() const { return sounding_button_; }
   const DiveRecorder& dive_recorder() const { return recorder_; }
 
  private:
@@ -94,6 +98,9 @@ class GaugesStation : public Station {
   void update_engine_lights();  // gauges_update_engine_lights (0x3a942)
   void draw_bathythermograph(); // 0x3aab0
   void update_dials();          // fathometer, fuel, battery, air, buoyancy, oxygen
+  // Whether the fathometer shows the soundings (extended
+  // `fathometer_soundings`, not in the original).
+  bool soundings() const;
 
   StationEnv& env_;
   const DiveRecorder& recorder_;
@@ -108,6 +115,10 @@ class GaugesStation : public Station {
   std::int32_t last_battery_ = -1, last_oxygen_ = -1, last_trace_ = -1;
   std::array<std::int32_t, 4> last_engines_{};
   std::int32_t last_diesel_mode_ = -1;
+  // The soundings count last drawn and the SOUND button (with
+  // `soundings`).
+  std::int32_t last_sounding_ = -1;
+  ui::Rect sounding_button_{};
 };
 
 }  // namespace sh

@@ -2,6 +2,7 @@
 // (0x1879c0) edits them: the presets, the toggles and the realism rating.
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include "game/saves_options.h"
@@ -45,18 +46,34 @@ std::uint32_t cycle_sailing_model(std::uint32_t options);
 
 // The factors of the extended variant's REALISM items (not in the
 // original): UNDEAFENED ESCORTS on 1.10, DETECTABLE RADAR off 0.95 (on, as
-// at EXPERT, it keeps the rating).
+// at EXPERT, it keeps the rating), REALISTIC DEPTHS off 0.95 (the factor of
+// the LIMITED DEPTH DATA it replaces).
 inline constexpr std::int32_t kUndeafenedEscortsFactor = 0x1199a;
 inline constexpr std::int32_t kNoDetectableRadarFactor = 0xf333;
+inline constexpr std::int32_t kNoRealisticDepthsFactor = 0xf333;
+
+// The index in `kRealismToggles` of LIMITED DEPTH DATA, whose place
+// REALISTIC DEPTHS takes with the extended items and the fathometer
+// soundings (`realistic_depths_item`).
+inline constexpr std::size_t kLimitedDepthDataToggle = 6;
+// Returns whether REALISTIC DEPTHS replaces LIMITED DEPTH DATA: with the
+// extended realism and the fathometer soundings, which do away with the
+// depth data bit.
+constexpr bool realistic_depths_item(const MissionRules& rules) {
+  return rules.extended_realism && rules.fathometer_soundings;
+}
 
 // `realism_rating` (0xa2d57): the realism rating of `options` in 16.16
 // (1.15 at most), computed with the original's rounded fixed-point
 // products. With `rules.extended_realism` (not in the original), the
-// extended items' factors follow.
+// extended items' factors follow, REALISTIC DEPTHS's in place of LIMITED
+// DEPTH DATA's with `realistic_depths_item`.
 std::int32_t realism_rating(std::uint32_t options, const MissionRules& rules = {});
 
 // The extended items of a REALISM preset (not in the original): DETECTABLE
-// RADAR on from INTERMEDIATE, UNDEAFENED ESCORTS off.
+// RADAR on from INTERMEDIATE, UNDEAFENED ESCORTS off, and with
+// `realistic_depths_item` REALISTIC DEPTHS on at EXPERT (as LIMITED DEPTH
+// DATA).
 MissionRules apply_realism_preset_rules(MissionRules rules, RealismPreset preset);
 // The rounded percentage `realism_rating_text` (0xa2c60) shows, e.g. 115.
 std::int32_t realism_rating_percent(std::int32_t rating);

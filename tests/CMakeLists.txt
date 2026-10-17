@@ -101,6 +101,7 @@ add_executable(sh_tests
   stations_deckgun_test.cpp
   stations_radar_test.cpp
   radar_rules_test.cpp
+  soundings_test.cpp
   # Station regressions (deck gun bar, redraws, conn periscope).
   stations_review_test.cpp
   # The recognition manual.

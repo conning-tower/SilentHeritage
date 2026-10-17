@@ -82,12 +82,22 @@ struct MissionRules {
   // ships and aircraft transmit by type and date, and a boat fitted with the
   // APR-1 hears them (sim/radar_emissions.h).
   bool apr1 = false;
+  // Fathometer soundings (rule and simulation change): every boat has the
+  // gauges' fathometer, which shows only the soundings taken on demand
+  // (the realism bit "Limited Depth Data" no longer applies), each a ping
+  // the escorts nearby can hear (sim/fathometer.h).
+  bool fathometer_soundings = false;
+  // The REALISM choice REALISTIC DEPTHS (rule and simulation change): the
+  // boat classes' periscope, radar, periscope eye and bridge depths of the
+  // Historical Realism Patch instead of SUBS.DAT's (game/class_params.h).
+  // It takes the place of LIMITED DEPTH DATA with `fathometer_soundings`.
+  bool realistic_depths = false;
 
   // Returns the rules of a new extended game (the extended variant's
   // defaults, where EXTENDED.CFG or a career's rules do not set them): the
   // corrections, the quiet sonar reacquisition, the extended realism with
-  // DETECTABLE RADAR (as at EXPERT), the mixed Mark 18s, the Mark 27, the ST
-  // and the APR-1.
+  // DETECTABLE RADAR and REALISTIC DEPTHS (as at EXPERT), the mixed Mark
+  // 18s, the Mark 27, the ST, the APR-1 and the fathometer soundings.
   static constexpr MissionRules extended() {
     return {.fix_obvious_errors = true,
             .quiet_sonar_reacquire = true,
@@ -96,7 +106,9 @@ struct MissionRules {
             .mixed_mark18 = true,
             .mark27 = true,
             .st_radar = true,
-            .apr1 = true};
+            .apr1 = true,
+            .fathometer_soundings = true,
+            .realistic_depths = true};
   }
   // Returns whether depth-charge blasts deafen the escorts' sonar, and the
   // noises near an escort's estimate cancel it by the true geometry.
@@ -112,7 +124,7 @@ struct MissionRuleField {
 };
 
 // The saved fields of `MissionRules`; keys must stay as they are once saved.
-inline const std::array<MissionRuleField, 9> kMissionRuleFields{{
+inline const std::array<MissionRuleField, 11> kMissionRuleFields{{
     {"fix_obvious_errors", &MissionRules::fix_obvious_errors},
     {"quiet_sonar_reacquire", &MissionRules::quiet_sonar_reacquire},
     {"keen_escort_sonar", &MissionRules::keen_escort_sonar},
@@ -122,6 +134,8 @@ inline const std::array<MissionRuleField, 9> kMissionRuleFields{{
     {"mark27", &MissionRules::mark27},
     {"st_radar", &MissionRules::st_radar},
     {"apr1", &MissionRules::apr1},
+    {"fathometer_soundings", &MissionRules::fathometer_soundings},
+    {"realistic_depths", &MissionRules::realistic_depths},
 }};
 
 // Scenario conditions and player options.

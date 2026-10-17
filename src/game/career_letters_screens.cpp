@@ -311,6 +311,7 @@ bool CareerLetters::patrol_orders_realism(CareerRecord& record, std::optional<Mi
   if (rules) {
     rules->keen_escort_sonar = ui_.realism_rules().keen_escort_sonar;
     rules->detectable_radar = ui_.realism_rules().detectable_radar;
+    rules->realistic_depths = ui_.realism_rules().realistic_depths;
   }
   return true;
 }

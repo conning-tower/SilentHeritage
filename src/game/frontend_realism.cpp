@@ -32,6 +32,9 @@ constexpr std::array<std::uint32_t, 10> kToggleLabels{0xfbdfe, 0xfbe0b, 0xfbe1b,
 // original); the rows then come closer to make room for them.
 constexpr std::string_view kUndeafenedLabel = "UNDEAFENED ESCORTS";
 constexpr std::string_view kDetectableRadarLabel = "DETECTABLE RADAR";
+// The extended check box in the place of LIMITED DEPTH DATA
+// (`realistic_depths_item`).
+constexpr std::string_view kRealisticDepthsLabel = "REALISTIC DEPTHS";
 constexpr int kRowSpacing = 36;
 constexpr int kExtendedRowSpacing = 30;
 
@@ -76,10 +79,24 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
       return 0;
     });
   }
+  const auto item = [this, &rating_dirty](bool MissionRules::* member) {
+    return [this, &rating_dirty, member](bool flip) {
+      if (flip) {
+        realism_rules_.*member = !(realism_rules_.*member);
+        rating_dirty = true;
+      }
+      return realism_rules_.*member;
+    };
+  };
+  const bool depths_item = extended_items && realistic_depths_item(realism_rules_);
   for (std::size_t i = 0; i < std::size(kRealismToggles); ++i) {
     const RealismToggle toggle = kRealismToggles[i];
     const int x = i % 2 == 0 ? 28 : 271;
     const int y = 165 + static_cast<int>(i / 2) * (extended_items ? kExtendedRowSpacing : kRowSpacing);
+    if (depths_item && i == kLimitedDepthDataToggle) {
+      d.emplace<ui::CheckBox>(x, y, std::string(kRealisticDepthsLabel), item(&MissionRules::realistic_depths));
+      continue;
+    }
     d.emplace<ui::CheckBox>(x, y, exe_string(kToggleLabels[i]), [this, toggle, &rating_dirty](bool flip) {
       if (flip) {
         options_ ^= toggle.bit;
@@ -90,15 +107,6 @@ int FrontEnd::realism_menu(bool load_and_save, bool cancel_disabled) {
   }
   if (extended_items) {
     const int y = 165 + static_cast<int>(std::size(kRealismToggles) / 2) * kExtendedRowSpacing;
-    const auto item = [this, &rating_dirty](bool MissionRules::* member) {
-      return [this, &rating_dirty, member](bool flip) {
-        if (flip) {
-          realism_rules_.*member = !(realism_rules_.*member);
-          rating_dirty = true;
-        }
-        return realism_rules_.*member;
-      };
-    };
     d.emplace<ui::CheckBox>(28, y, std::string(kUndeafenedLabel), item(&MissionRules::keen_escort_sonar));
     d.emplace<ui::CheckBox>(271, y, std::string(kDetectableRadarLabel), item(&MissionRules::detectable_radar));
   }

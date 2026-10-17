@@ -232,8 +232,9 @@ class FrontEnd {
   // and saved after OK when `load_and_save`; `cancel_disabled` greys
   // CANCEL. Returns the dialog result (-1 OK, -2 cancel). With
   // `extended_config`, the dialog also edits the extended items of
-  // `realism_rules` (UNDEAFENED ESCORTS, DETECTABLE RADAR; not in the
-  // original), loaded from and saved to EXTENDED.CFG with REALISM.SAV.
+  // `realism_rules` (UNDEAFENED ESCORTS, DETECTABLE RADAR, REALISTIC
+  // DEPTHS; not in the original), loaded from and saved to EXTENDED.CFG with
+  // REALISM.SAV.
   int realism_menu(bool load_and_save, bool cancel_disabled);
   MissionRules& realism_rules() { return realism_rules_; }
 

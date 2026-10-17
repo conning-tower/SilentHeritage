@@ -212,6 +212,10 @@ class NavPanel : public StationPanel {
   void close() override;  // gauges_panel_close
   bool capturing() const override { return scrub_ && scrub_->capturing(); }
 
+  // Sets the station's own controls (not in the original: the gauges'
+  // SOUND), added after the dials when the panel opens.
+  void set_station_controls(std::function<void(ui::Dialog&)> add) { station_controls_ = std::move(add); }
+
   // The dialog while open (the chart moves it), else null.
   ui::Dialog* dialog() { return dialog_.get(); }
   const NavTemplate& layout() const { return layout_; }
@@ -247,6 +251,7 @@ class NavPanel : public StationPanel {
   StationEnv& env_;
   NavTemplate layout_;
   std::optional<NavPanelFrame> frame_;
+  std::function<void(ui::Dialog&)> station_controls_;
   std::unique_ptr<ui::Dialog> dialog_;
   Shp sprites_;
   Image8 background_;

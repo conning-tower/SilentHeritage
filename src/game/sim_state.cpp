@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include "core/error.h"
+#include "game/class_params.h"
 #include "game/command_bar.h"
 #include "game/mission.h"
 #include "game/mission_rules.h"
@@ -251,6 +252,14 @@ void bind_apr1(Io& io, A& a) {
   io.x_i32(a.silence);
   io.x_i32(a.since_report);
   io.x_i32(a.reported);
+}
+
+// Not in the original: the extended fathometer's last sounding.
+template <class Io, class F>
+void bind_fathometer(Io& io, F& f) {
+  io.x_flag(f.sounded);
+  io.x_i32(f.keel_clearance);
+  io.x_i32(f.soundings);
 }
 
 template <class Io, class B>
@@ -1102,6 +1111,10 @@ SimStateFile StateIo::capture(Mission& mission, const SimStateParts& parts, cons
     if (mission.conditions_.rules.detectable_radar) {
       out.x_i32(sim.sensors().escort_detectors().state().heard);
     }
+    // Not in the original: the extended fathometer, with its rule.
+    if (mission.conditions_.rules.fathometer_soundings) {
+      bind_fathometer(out, sim.sensors().fathometer().state());
+    }
   }
   f.sim_extension = ext.take();
   if (mission.conditions_.rules != MissionRules{}) {
@@ -1141,6 +1154,8 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
     const MissionRules rules = decode_mission_rules(f.rules_extension);
     mission.conditions_.rules = rules;
     sim.env_.rules = rules;
+    // The boat's depths follow the saved REALISTIC DEPTHS.
+    mission.player_->sub_ = sub_class_params(*mission.player_class_, rules);
   }
   VehicleLinks links;
   {
@@ -1256,6 +1271,9 @@ void StateIo::restore(Mission& mission, const SimStateFile& f, const SimStatePar
     }
     if (mission.conditions_.rules.detectable_radar && !ext_reader.at_end()) {
       in.x_i32(sim.sensors().escort_detectors().state().heard);
+    }
+    if (mission.conditions_.rules.fathometer_soundings && !ext_reader.at_end()) {
+      bind_fathometer(in, sim.sensors().fathometer().state());
     }
     links.resolve(sim.vehicles_);
     if (!ext_reader.at_end()) {

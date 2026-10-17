@@ -657,7 +657,7 @@ void Mission::spawn_player(const PlayerSubRecord& record) {
   if (player_class_ == nullptr) {
     throw DataError("SUBS.DAT: no class " + record.sub_class);
   }
-  const SubClassParams params = sub_class_params(*player_class_);
+  const SubClassParams params = sub_class_params(*player_class_, conditions_.rules);
   // Raises the start depth until the keel clears the terrain (mixing feet
   // and world units, as the original); it always rises by at least 1 ft.
   const std::int32_t terrain = floor_.height_at(record.x, record.y);

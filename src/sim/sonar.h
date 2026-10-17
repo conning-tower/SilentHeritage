@@ -26,6 +26,16 @@ std::int32_t player_noise_level(const PlayerSub& player);
 // after 3 minutes (`ship_hydrophone_check`, the ship's slot +0x58).
 void ship_hydrophone_check(Ship& ship, SimContext& ctx);
 
+// Returns the range (yd) of `ship`'s echo ranging at sea state
+// `sea_state`: (crew + 1) x 400 + 2000, less an eighth per sea state, less
+// 1 % per tenth of a knot over 12 kn (`ai_ship_sonar_search`).
+std::int32_t sonar_active_range_yd(const Ship& ship, std::int32_t sea_state);
+
+// Returns whether a loud noise deafens `ship`'s sonar now: a masking noise
+// within noise x 12 yd (`ai_ship_sonar_search`; the underwater blasts with
+// `MissionRules::escorts_deafened`).
+bool sonar_deafened(const Ship& ship, const SimContext& ctx);
+
 // Returns whether a noise `noise` at `p` cancels a ship's sonar estimate at
 // `estimate` (`ai_ship_sonar_search` 0x705f4): the ship at `ship` heading
 // `heading`, its beam `beam` (tenths off the bow).

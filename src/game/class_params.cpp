@@ -1,10 +1,35 @@
 #include "game/class_params.h"
 
+#include <array>
+#include <optional>
+#include <string_view>
+
 namespace sh {
 
 namespace {
 
 std::int32_t to_i32(std::uint32_t v) { return static_cast<std::int32_t>(v); }
+
+// The Historical Realism Patch's depths by class, its periscope eye where
+// it changes it.
+struct RealisticDepths {
+  std::string_view index_name;
+  std::int32_t periscope_depth_ft;
+  std::int32_t radar_depth_ft;
+  std::optional<std::int32_t> periscope_eye_ft;
+  std::int32_t bridge_eye_ft;
+};
+constexpr std::array<RealisticDepths, 9> kRealisticDepths{{
+    {"S CLASS", 48, 36, 55, 25},
+    {"BARRACUDA", 55, 40, 62, 25},
+    {"NARWHAL", 60, 45, 67, 28},
+    {"P CLASS", 55, 40, 62, 24},
+    {"SALMON", 55, 40, 62, 24},
+    {"T CLASS", 60, 45, std::nullopt, 24},
+    {"GATO", 60, 45, std::nullopt, 26},
+    {"BALAO", 60, 45, std::nullopt, 26},
+    {"TENCH", 60, 45, std::nullopt, 26},
+}};
 
 }  // namespace
 
@@ -61,6 +86,32 @@ SubClassParams sub_class_params(const SubClass& sub) {
   s.power_surfaced = sub.power_surfaced;
   s.power_submerged = sub.power_submerged;
   return s;
+}
+
+SubClassParams sub_class_params(const SubClass& sub, const MissionRules& rules) {
+  SubClassParams s = sub_class_params(sub);
+  if (rules.realistic_depths) {
+    const SubDepths d = realistic_sub_depths(sub);
+    s.periscope_depth_ft = d.periscope_depth_ft;
+    s.radar_depth_ft = d.radar_depth_ft;
+    s.periscope_height_ft = d.periscope_eye_ft;
+    s.bridge_height_ft = d.bridge_eye_ft;
+  }
+  return s;
+}
+
+SubDepths realistic_sub_depths(const SubClass& sub) {
+  SubDepths d{to_i32(sub.periscope_depth_ft), to_i32(sub.radar_depth_ft), to_i32(sub.periscope_eye_ft),
+              to_i32(sub.bridge_eye_ft)};
+  for (const RealisticDepths& r : kRealisticDepths) {
+    if (r.index_name == sub.index_name) {
+      d.periscope_depth_ft = r.periscope_depth_ft;
+      d.radar_depth_ft = r.radar_depth_ft;
+      d.periscope_eye_ft = r.periscope_eye_ft.value_or(d.periscope_eye_ft);
+      d.bridge_eye_ft = r.bridge_eye_ft;
+    }
+  }
+  return d;
 }
 
 std::int32_t sub_deck_gun_rounds(const SubClass& sub) { return to_i32(sub.deck_gun_rounds); }

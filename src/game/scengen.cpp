@@ -7,6 +7,7 @@
 
 #include "core/error.h"
 #include "core/fixed_math.h"
+#include "game/class_params.h"
 #include "game/torpedo_load.h"
 #include "assets/exe_tables.h"
 #include "sim/clock.h"
@@ -1531,6 +1532,10 @@ GeneratedMission generate_single_mission(const Install& install, const GameTable
         break;
       case MissionType::kPatrol:
         built = mission.patrol();
+        // Not in the original: at the realistic periscope depth.
+        if (built && rules.realistic_depths) {
+          mission.result().scenario.player_sub->depth = sub_class_params(*sub, rules).periscope_depth_ft;
+        }
         break;
       case MissionType::kEnemySub:
         built = mission.enemy_subs();

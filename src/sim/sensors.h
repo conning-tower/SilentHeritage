@@ -16,6 +16,7 @@
 #include "core/random.h"
 #include "sim/contacts.h"
 #include "sim/context.h"
+#include "sim/fathometer.h"
 #include "sim/radar.h"
 #include "sim/radar_emissions.h"
 #include "sim/sensor_environment.h"
@@ -40,13 +41,17 @@ class Sensors {
   // Not in the original: the extended escorts' radar detectors.
   EscortDetectors& escort_detectors() { return escort_detectors_; }
   const EscortDetectors& escort_detectors() const { return escort_detectors_; }
+  // Not in the original: the extended fathometer soundings.
+  Fathometer& fathometer() { return fathometer_; }
+  const Fathometer& fathometer() const { return fathometer_; }
 
   // The first sensor part of `player_update` (0x5bf89) for `dt` (16.16 s):
   // the quiet time grows, the crew reports contacts.
   void update_player_reports(SimContext& ctx, PlayerSub& player, Fixed16 dt);
   // Its second part, after the ramming check: the radars sweep; then (not
-  // in the original, by the extended rules) the APR-1 listens and the
-  // escorts' detectors hear the boat's radars.
+  // in the original, by the extended rules) the APR-1 listens, the
+  // escorts' detectors hear the boat's radars and the fathometer takes the
+  // sounding asked for.
   void update_player_radar(SimContext& ctx, PlayerSub& player, Fixed16 dt);
   // Drops the pointers to `removed`, about to be deleted.
   void forget(const Vehicle& removed);
@@ -69,6 +74,7 @@ class Sensors {
   ContactReports reports_;
   Apr1Receiver apr1_;
   EscortDetectors escort_detectors_;
+  Fathometer fathometer_;
   std::int32_t frame_counter_ = 0;
   std::int32_t quiet_time_ = 0;
   bool collision_warning_ = false;

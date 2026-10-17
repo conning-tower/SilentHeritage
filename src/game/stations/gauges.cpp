@@ -3,10 +3,15 @@
 #include <algorithm>
 #include <cstdlib>
 #include <optional>
+#include <string>
+#include <string_view>
 
 #include "game/command_bar.h"
 #include "gfx/sprite.h"
 #include "sim/geometry.h"
+#include "sim/sensors.h"
+#include "sim/simulation.h"
+#include "ui/controls.h"
 #include "ui/draw.h"
 
 namespace sh {
@@ -46,6 +51,13 @@ constexpr std::uint8_t kTraceColour = 0x4f;
 constexpr std::uint8_t kConnFrame = 2;
 constexpr std::uint8_t kTraceButtonFrame = 0x1a;
 constexpr std::uint8_t kEnginesButtonFrame = 0x1c;
+
+// The SOUND button (not in the original), on the bezels between the
+// fathometer and the fuel dial, clear of both faces.
+constexpr std::string_view kSoundingLabel = "SOUND";
+constexpr int kSoundingX = 80;
+constexpr int kSoundingY = 434;
+constexpr int kSoundingW = 64;
 
 // Options word bits.
 constexpr std::uint32_t kOptionFathometer = 0x1000;
@@ -150,12 +162,24 @@ void GaugesStation::open() {
   }
   sprites_ = Shp::load(env_.install, env_.paths.path(GameDir::kArt, "GAUGES.SHP"));
   set_page(env_.ui.gauges_page, false);
-  if ((env_.mission.sim().conditions().options & kOptionFathometer) == 0) {
+  if (!soundings() && (env_.mission.sim().conditions().options & kOptionFathometer) == 0) {
     draw(kFathometerCover, 0, 0x152);
   }
   panel_ = std::make_unique<NavPanel>(env_, gauges_nav_template(env_.exe));
+  sounding_button_ = {};
+  if (soundings()) {
+    panel_->set_station_controls([this](ui::Dialog& d) {
+      auto& button =
+          d.emplace<ui::Button>(kSoundingX, kSoundingY, kSoundingW, std::string(kSoundingLabel), [this](int) {
+            env_.mission.sim().sensors().fathometer().request();
+            return 0;
+          });
+      sounding_button_ = {d.x() + button.x, d.y() + button.y, d.x() + button.x + button.w - 1,
+                          d.y() + button.y + d.skin().metrics().button_height - 1};
+    });
+  }
   panel_->open();
-  last_keel_ = last_fuel_ = last_air_ = last_flood_ = last_battery_ = last_oxygen_ = -1;
+  last_keel_ = last_fuel_ = last_air_ = last_flood_ = last_battery_ = last_oxygen_ = last_sounding_ = -1;
   background_ = env_.screen();
   env_.dac.fade_out(0x100);
   --env_.ui.pause;
@@ -275,7 +299,17 @@ void GaugesStation::update_dials() {
     draw_needle_dial(out, background_, NeedleDial::read(env_.exe, address), sprites_, env_.assets.digits, identity,
                      value, std::nullopt, digits);
   };
-  if ((options & kOptionFathometer) != 0 && p.motion().keel_clearance != last_keel_) {
+  if (soundings()) {
+    // The needle holds the last sounding; none before the first.
+    const Fathometer& fathometer = env_.mission.sim().sensors().fathometer();
+    if (fathometer.state().soundings != last_sounding_) {
+      last_sounding_ = fathometer.state().soundings;
+      if (const std::optional<std::int32_t> keel = fathometer.sounded_keel_clearance()) {
+        const std::int32_t feet = fathometer_feet(*keel);
+        dial(kFathometerDial, feet, feet);
+      }
+    }
+  } else if ((options & kOptionFathometer) != 0 && p.motion().keel_clearance != last_keel_) {
     last_keel_ = p.motion().keel_clearance;
     const std::int32_t feet = fathometer_feet(last_keel_);
     dial(kFathometerDial, feet, feet);
@@ -323,6 +357,8 @@ void GaugesStation::update_dials() {
     }
   }
 }
+
+bool GaugesStation::soundings() const { return env_.mission.sim().conditions().rules.fathometer_soundings; }
 
 void GaugesStation::update() {
   // gauges_station_update (0x39e8a)

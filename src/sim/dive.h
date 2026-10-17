@@ -45,6 +45,8 @@ struct SubClassParams {
   Fixed16 fuel_use;                        // +272, fuel per second at full diesel power.
   std::array<std::int32_t, 11> power_surfaced{};   // +280, total engine % per telegraph step.
   std::array<std::int32_t, 11> power_submerged{};  // +324
+
+  friend bool operator==(const SubClassParams&, const SubClassParams&) = default;
 };
 
 // The dive block (player 0x11ab08; enemy sub +0x328).
