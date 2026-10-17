@@ -42,11 +42,12 @@ struct MapExtent {
 // A rule added here adds its saved field to `kMissionRuleFields`.
 struct MissionRules {
   // The corrections of the original's plain errors, changing the rules and
-  // the simulation: the Mark 14 fix dates, the fog lifting on fog days, the
-  // enemy subs' depth over the bottom, the AA guns' elevation, the strafing
-  // aircraft's bearing, the ships' route pruning, harbour crews and
-  // alert-route patrols, the career's patrol start edges, equipment and
-  // boats, the encounter dates and the ID book's tabs.
+  // the simulation: the Mark 14 fix dates, the fog lifting on fog days and
+  // kept in the original's careers saved on patrol, the enemy subs' depth
+  // over the bottom, the AA guns' elevation, the strafing aircraft's
+  // bearing, the ships' route pruning, harbour crews and alert-route
+  // patrols, the career's patrol start edges, equipment and boats, the
+  // encounter dates and the ID book's tabs.
   bool fix_obvious_errors = false;
   // The sound man calls a ship's screws (#41, #42) and resets the time
   // compression only when the ship has not been heard for 3 minutes since

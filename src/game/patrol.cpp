@@ -445,6 +445,11 @@ void Patrol::start(Mission& mission) {
     restore_sim_state(mission, *resume_, SimStateParts{.patrol = this});
     return;
   }
+  if (resume_ && mission.sim().conditions().rules.fix_obvious_errors) {
+    // The original's save: its fog, which clock_init has cleared, with the
+    // rules' corrections (not in the original).
+    mission.sky().resume_fog(mission.sim().clock(), career_.summary.fog_pct);
+  }
   groups_->update_bases(mission.sim().clock(), mission.sim().random(), true);
 }
 

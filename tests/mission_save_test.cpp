@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "assets/dat_tables.h"
@@ -387,6 +388,94 @@ TEST_CASE("a career saved on patrol resumes the saved patrol", "[save]") {
   CHECK(state_difference(bytes(*live, patrol), bytes(*restored, patrol2)) == "");
   CHECK(resumed.record.day == career.record.day);
   CHECK(resumed.record.minute == career.record.minute);
+}
+
+TEST_CASE("With the rules' corrections a career saved on patrol in fog by the original resumes in its fog",
+          "[save][rules]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  const std::vector<PatrolZone> zones = parse_patrol_zones(install.read("DATA/PZ.DAT"), "PZ.DAT");
+  Career career = patrol_career();
+  WatcomRandom random(99);
+  Patrol patrol(install, tables, career, build_patrol_scenario(career, zones.at(9), 9, 20000, 100, tables, random));
+  MissionSetup setup;
+  setup.options = option::kModeCareer | RealismFile::kDefaultBits;
+  setup.random = random;
+  std::unique_ptr<Mission> live = patrol.create_mission(std::move(setup));
+  run(*live, 300);
+  REQUIRE(live->end_code() == 0);
+  capture_patrol_state(*live, patrol, {});
+  // As the original saves it in fog: no extension, the fog % in the
+  // summary and the fog flag (stale in the original: the flag of the last
+  // weather change).
+  ByteReader r(career.patrol_state, "patrol state");
+  SimStateFile state = SimStateFile::parse(r, kSimStateVersion);
+  state.sim_extension.clear();
+  state.ui_extension.clear();
+  career.patrol_state = state.serialize();
+  career.summary.fog_pct = 75;
+
+  // The resumed careers, which their patrols keep.
+  std::deque<Career> careers;
+  const auto resume = [&](std::int32_t daily_fog, const MissionRules& rules) {
+    Career& resumed = careers.emplace_back(parse_roster(serialize_roster(career)).career);
+    resumed.record.daily_fog = daily_fog;
+    WatcomRandom other(5);
+    auto p = std::make_unique<Patrol>(install, tables, resumed,
+                                      build_patrol_scenario(resumed, zones.at(9), 9, 20000, 100, tables, other));
+    MissionSetup s;
+    s.options = option::kModeCareer | RealismFile::kDefaultBits;
+    s.random = other;
+    s.rules = rules;
+    std::unique_ptr<Mission> m = p->create_mission(std::move(s));
+    REQUIRE(p->resumed_state() != nullptr);
+    REQUIRE(p->resumed_state()->sim_extension.empty());
+    return std::pair(std::move(p), std::move(m));
+  };
+
+  // The original's: clock_update_sky clears the saved fog of a fog day,
+  // and the fog of another day fades.
+  {
+    const auto [p, m] = resume(1, MissionRules{});
+    CHECK(m->sky().fog_day() == 1);
+    CHECK(m->fog_pct() == 0);
+    CHECK(m->sim().sensors().environment().fog_pct == 0);
+  }
+  {
+    const auto [p, m] = resume(0, MissionRules{});
+    CHECK(m->sky().fog_day() == 0);
+    CHECK(m->fog_pct() == 75);
+    // 0..2 % less every game minute.
+    for (int i = 0; i < 300; ++i) {
+      m->sky().on_minute_started(m->sim().clock());
+    }
+    CHECK(m->fog_pct() == 0);
+  }
+  // With the corrections the fog is the saved one, foggy until it lifts;
+  // a saved fog makes the day a fog day.
+  const MissionRules fixed{.fix_obvious_errors = true};
+  for (const std::int32_t daily_fog : {0, 1}) {
+    const auto [p, m] = resume(daily_fog, fixed);
+    CHECK(m->sky().fog_day() == 1);
+    CHECK(m->sky().fog_state() == FogState::kFoggy);
+    CHECK(m->fog_pct() == 75);
+    CHECK(m->fog_day_pct() >= 75);
+    CHECK(m->sim().sensors().environment().fog_pct == 75);
+    // Before its lift time the fog holds (or thickens).
+    for (int i = 0; i < 30; ++i) {
+      m->sky().on_minute_started(m->sim().clock());
+    }
+    CHECK(m->fog_pct() >= 75);
+  }
+  // Without a saved fog, the corrections change nothing.
+  career.summary.fog_pct = 0;
+  {
+    const auto [p0, a] = resume(1, MissionRules{});
+    const auto [p1, b] = resume(1, fixed);
+    CHECK(a->fog_pct() == b->fog_pct());
+    CHECK(a->sky().fog_state() == b->sky().fog_state());
+    CHECK(a->sim().random().state() == b->sim().random().state());
+  }
 }
 
 }  // namespace

@@ -138,6 +138,8 @@ many more quality-of-life improvements and new content to the game.
 - **Escort sonar:** depth-charge blasts deafen the escorts for a while, and
   a noise only masks a contact when it is closer, in the same direction.
 - **Fog days:** fog can lift through the day.
+- **Fog in saved careers:** a career saved at sea in fog by the original
+  game resumes in its fog.
 - **Enemy submarines:** they no longer dive into the bottom in shallow
   water.
 - **Anti-aircraft guns:** they aim correctly whatever the aircraft's

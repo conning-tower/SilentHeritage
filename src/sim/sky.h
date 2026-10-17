@@ -119,6 +119,13 @@ class Sky : public ClockObserver {
   // Runs `clock_init`'s part: the daily update, then outside a career the
   // fog of a fog day set to its density with no drift.
   void clock_init(const GameClock& clock);
+  // Restores the fog density `fog_pct` a career saved on patrol without
+  // the reimplementation's state (the original's ROSTER), after
+  // `clock_init` (not in the original, which loses it there; applied with
+  // `MissionRules::fix_obvious_errors`): a saved fog makes the day a fog
+  // day (with its schedule's draws if it was not) and is foggy until its
+  // lift time. Does nothing without a saved fog.
+  void resume_fog(const GameClock& clock, std::int32_t fog_pct);
   // Refreshes the sun's or the moon's position (`sky_update_sun_or_moon`).
   void update_body(const GameClock& clock, bool sun);
 
@@ -168,6 +175,9 @@ class Sky : public ClockObserver {
   static FogTime unpack(std::int32_t t) { return {t >> 16, t & 0xffff}; }
   // Returns the library's observer at world point (`x`, `z`).
   Observer observer_at(std::int32_t x, std::int32_t z) const;
+  // Draws the fog day's lift and return times and its state at the
+  // clock's hour (with the density when foggy), the fog cleared.
+  void schedule_fog(const GameClock& clock);
   // Sets the palette flag and tells the listener.
   void changed();
   // Tells the listener.

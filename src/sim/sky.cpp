@@ -1,5 +1,6 @@
 #include "sim/sky.h"
 
+#include <algorithm>
 #include <cmath>
 #include <utility>
 
@@ -97,6 +98,10 @@ void Sky::update_day(const GameClock& clock) {
   if (fog_day_ != 1) {
     return;
   }
+  schedule_fog(clock);
+}
+
+void Sky::schedule_fog(const GameClock& clock) {
   // The fog lifts around midday and returns before sunset.
   std::int32_t day_length = sun_times_.set_hour - sun_times_.rise_hour;
   if (day_length < 0) {
@@ -122,6 +127,22 @@ void Sky::update_day(const GameClock& clock) {
     fog_density_ = random_->random_int(30) + 60;
   }
   notify();
+}
+
+void Sky::resume_fog(const GameClock& clock, std::int32_t fog_pct) {
+  // Not in the original, whose clock_update_sky clears the fog a career
+  // saved on patrol.
+  if (fog_pct <= 0) {
+    return;
+  }
+  if (fog_day_ != 1) {
+    fog_day_ = 1;
+    schedule_fog(clock);
+  }
+  fog_pct_ = std::min(fog_pct, 100);
+  fog_density_ = std::max(fog_density_, fog_pct_);
+  fog_state_ = FogState::kFoggy;
+  changed();
 }
 
 void Sky::clock_init(const GameClock& clock) {
