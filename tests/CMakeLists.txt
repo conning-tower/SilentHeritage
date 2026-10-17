@@ -160,6 +160,7 @@ add_executable(sh_tests
   display_fullscreen_test.cpp
   window_pointer_test.cpp
   pointer_warp_test.cpp
+  touch_press_test.cpp
   wide_screen_test.cpp
   wide_layout_test.cpp
   # The Android launcher icon tool (tools/).

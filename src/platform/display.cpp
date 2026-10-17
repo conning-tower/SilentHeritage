@@ -18,6 +18,7 @@
 #include "platform/command_panel.h"
 #include "platform/command_panel_view.h"
 #include "platform/pointer_warp.h"
+#include "platform/touch_press.h"
 
 namespace sh {
 
@@ -132,6 +133,10 @@ struct Display::Impl {
   // The Enter key of the Alt+Enter being held: its repeats and release are
   // dropped.
   std::optional<SDL_Keycode> toggle_key;
+  // The press of the touch emulating the mouse, and the press held until
+  // its finger lifts.
+  TouchPress touch_press;
+  InputEvent held_press;
 
   // Confines the mouse while fullscreen to the picture (away from the
   // other displays and the black bars of a screen of another shape), frees
@@ -212,6 +217,65 @@ struct Display::Impl {
 
   // Returns the left column of the frame on the screen.
   int frame_x() const { return (screen_w - frame_w) / 2; }
+
+  // Filters the events SDL makes of a touch (`TouchPress`), in window
+  // coordinates. Returns true when `e` is dropped or held; a held press made
+  // at the lift is queued in `pending` with its release.
+  bool hold_touch(const SDL_Event& e) {
+    switch (e.type) {
+      case SDL_EVENT_MOUSE_BUTTON_DOWN: {
+        if (e.button.which != SDL_TOUCH_MOUSEID || e.button.button != SDL_BUTTON_LEFT) {
+          return false;
+        }
+        SDL_Event r = e;
+        SDL_ConvertEventToRenderCoordinates(renderer, &r);
+        const bool in_screen = r.button.x >= 0 && r.button.x < static_cast<float>(screen_w) && r.button.y >= 0 &&
+                               r.button.y < static_cast<float>(kScreenHeight);
+        int ww = 0;
+        int wh = 0;
+        SDL_GetWindowSize(window, &ww, &wh);
+        const bool at_edge =
+            TouchPress::at_side_edge(e.button.x, static_cast<float>(ww), SDL_GetWindowDisplayScale(window));
+        if (touch_press.down(in_screen, at_edge) == TouchPress::Kind::kHeld) {
+          held_press = InputEvent{};
+          held_press.type = EventType::kMouseDown;
+          held_press.x = static_cast<int>(std::floor(r.button.x)) - frame_x();
+          held_press.y = static_cast<int>(std::floor(r.button.y));
+          held_press.button = MouseButton::kLeft;
+        }
+        return touch_press.kind() != TouchPress::Kind::kPassed;
+      }
+      case SDL_EVENT_MOUSE_MOTION:
+        return e.motion.which == SDL_TOUCH_MOUSEID && touch_press.kind() != TouchPress::Kind::kNone &&
+               touch_press.kind() != TouchPress::Kind::kPassed;
+      case SDL_EVENT_MOUSE_BUTTON_UP: {
+        if (e.button.which != SDL_TOUCH_MOUSEID || e.button.button != SDL_BUTTON_LEFT) {
+          return false;
+        }
+        const TouchPress::Kind kind = touch_press.kind();
+        // SDL queues the touch's FINGER_CANCELED right after this release.
+        SDL_Event cancel;
+        const bool cancelled =
+            SDL_PeepEvents(&cancel, 1, SDL_PEEKEVENT, SDL_EVENT_FINGER_CANCELED, SDL_EVENT_FINGER_CANCELED) > 0;
+        if (touch_press.up(cancelled)) {
+          InputEvent release = held_press;
+          release.type = EventType::kMouseUp;
+          pending.push_back(held_press);
+          pending.push_back(release);
+        }
+        return kind != TouchPress::Kind::kPassed && kind != TouchPress::Kind::kNone;
+      }
+      case SDL_EVENT_FINGER_DOWN:
+        return touch_press.drop_finger_down(static_cast<std::int64_t>(e.tfinger.fingerID));
+      case SDL_EVENT_FINGER_MOTION:
+        return touch_press.drop_finger(static_cast<std::int64_t>(e.tfinger.fingerID), false);
+      case SDL_EVENT_FINGER_UP:
+      case SDL_EVENT_FINGER_CANCELED:
+        return touch_press.drop_finger(static_cast<std::int64_t>(e.tfinger.fingerID), true);
+      default:
+        return false;
+    }
+  }
 
   // Sets the logical screen: the window's aspect when wide and the
   // player's setting is on (and never narrower than the frame), 640 wide
@@ -593,6 +657,14 @@ std::optional<InputEvent> Display::poll() {
         }
         continue;
       }
+    }
+    if (impl_->hold_touch(e)) {
+      if (!impl_->pending.empty()) {
+        const InputEvent held = impl_->pending.front();
+        impl_->pending.pop_front();
+        return held;
+      }
+      continue;
     }
     SDL_ConvertEventToRenderCoordinates(impl_->renderer, &e);
     InputEvent out;

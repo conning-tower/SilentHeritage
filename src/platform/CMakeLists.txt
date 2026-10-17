@@ -3,6 +3,8 @@ sh_add_module(sh_platform
     display.cpp
     # Whether the system honours the pointer warps.
     pointer_warp.cpp
+    # Which touches press the emulated mouse button.
+    touch_press.cpp
     screenshot.cpp
     # The lifecycle events SDL hands only to event watches.
     lifecycle_watch.cpp
