@@ -285,6 +285,8 @@ void CareerFlow::requests_menu() {
            request_patrol_area();
            return false;
          }},
+        {kBoatTransferLabel, can_request_boat_transfer(career_, home_command(), tables_),
+         [this] { return request_boat_transfer(); }},
     };
     std::vector<RequestItem> items;
     for (const Entry& e : entries) {
@@ -358,6 +360,21 @@ void CareerFlow::request_patrol_area() {
     current_requests(career_).patrol_zone = zone;
     save();
   }
+}
+
+bool CareerFlow::request_boat_transfer() {
+  if (!boat_transfer_granted(career_.record)) {
+    ui_.gui().set_skin(ui_.default_skin());
+    ui_.show_message_box(kBoatTransferLabel, "Your request for a newer boat", "is turned down for now.");
+    return false;
+  }
+  // The game's own offer of a new boat, which may be declined.
+  if (new_submarine(true) == ui::kResultAccept) {
+    career_.record.patrols_since_new_boat = 0;
+    current_requests(career_);
+    save();
+  }
+  return true;
 }
 
 void CareerFlow::retire() {

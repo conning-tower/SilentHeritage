@@ -9,7 +9,9 @@
   new types being short for their first three months; DECK GUN moves a fleet
   boat's gun fore or aft, or fits a second gun for a commander in good
   standing; PATROL AREA lets a commander in good standing choose the next
-  patrol's zone among those the command may assign.
+  patrol's zone among those the command may assign; BOAT TRANSFER asks for
+  a newer class, granted or not once per port visit, by the commander's
+  awards, rank and patrols in the boat.
 
 ## [0.2.0] - 2026-10-16
 

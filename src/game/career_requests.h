@@ -13,6 +13,9 @@
 //   PATROL AREA   for a commander in good standing, the zone of the next
 //                 patrol among those the command may assign
 //                 (`assign_requested_patrol`).
+//   BOAT TRANSFER a newer class, granted or not once per port visit
+//                 (`boat_transfer_granted`), then the game's own new-boat
+//                 offer.
 //
 // Without a request the patrol is the one the game draws: the requests
 // apply after its random draws and change none of them.
@@ -200,6 +203,25 @@ bool can_request_patrol_area(const Career& career, const CampaignData& data);
 std::optional<PatrolAssignment> assign_requested_patrol(Career& career, const CampaignData& data,
                                                         WatcomRandom& random);
 
+// ------------------------------------------------------- boat transfer
+
+// The chance of a granted transfer at most, in percent.
+inline constexpr std::int32_t kMaxTransferChance = 75;
+
+// Returns whether the career may ask for a boat transfer: requests on, at
+// least a patrol made, and a newer class to give (`next_boat_class`).
+bool can_request_boat_transfer(const Career& career, SubCommand home_command, const GameTables& tables);
+// Returns the chance in percent of a granted transfer: 10 per level of the
+// highest award held (Bronze Star 1, Silver Star 2, Navy Cross or
+// Distinguished Service Medal 3, Medal of Honor 4), 10 per rank above the
+// first, 5 per patrol in the boat beyond the second, at most
+// `kMaxTransferChance`; 0 after a poor patrol.
+std::int32_t boat_transfer_chance(const CareerRecord& record);
+// Returns whether a transfer asked now is granted: a draw against
+// `boat_transfer_chance` fixed by the career's next patrol seed and its
+// patrols, so the same in a whole port visit.
+bool boat_transfer_granted(const CareerRecord& record);
+
 // ----------------------------------------------------------- deck gun
 
 // Returns whether the gun of the career's boat can be moved: a fleet boat
@@ -217,6 +239,7 @@ inline constexpr std::string_view kDeckGunLabel = "DECK GUN";
 inline constexpr std::string_view kPatrolAreaLabel = "PATROL AREA";
 // PATROL AREA's choice of the zone the command assigns.
 inline constexpr std::string_view kAsAssignedLabel = "AS ASSIGNED";
+inline constexpr std::string_view kBoatTransferLabel = "BOAT TRANSFER";
 
 // One entry of the REQUESTS menu.
 struct RequestItem {

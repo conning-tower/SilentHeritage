@@ -125,19 +125,16 @@ std::vector<CareerBoatClass> career_boat_classes(const GameTables& tables) {
   return classes;
 }
 
-bool assign_new_boat(CareerRecord& record, const CareerSummary& summary, SubCommand home_command,
-                     const GameTables& tables, WatcomRandom& random, const MissionRules& rules) {
-  // carsub_assign_new_boat (0x1e124)
+std::optional<std::size_t> next_boat_class(const CareerRecord& record, const CareerSummary& summary,
+                                           SubCommand home_command, std::span<const CareerBoatClass> classes) {
+  // carsub_assign_new_boat (0x1e124), the class.
   const bool upgrade = record.patrols >= 1;
   // The class index is a signed char.
   const auto current = static_cast<std::int8_t>(record.class_index);
   if (upgrade && current == 8) {
-    return false;
+    return std::nullopt;
   }
-  const std::vector<CareerBoatClass> classes = career_boat_classes(tables);
   const std::int32_t now = month_index_abs(record.month + 1, record.year + kCalendarBaseYear);
-  std::size_t chosen = 0;
-  bool found = false;
   for (std::size_t i = 0; i < classes.size(); ++i) {
     const CareerBoatClass& c = classes[i];
     std::int32_t first = month_index_abs(c.first_month, c.first_year);
@@ -152,13 +149,21 @@ bool assign_new_boat(CareerRecord& record, const CareerSummary& summary, SubComm
     if (flag == 0 || now < first || last < now || (upgrade && c.class_index <= current)) {
       continue;
     }
-    chosen = i;
-    found = true;
-    break;
+    return i;
   }
-  if (!found) {
+  return std::nullopt;
+}
+
+bool assign_new_boat(CareerRecord& record, const CareerSummary& summary, SubCommand home_command,
+                     const GameTables& tables, WatcomRandom& random, const MissionRules& rules) {
+  // carsub_assign_new_boat (0x1e124)
+  const std::vector<CareerBoatClass> classes = career_boat_classes(tables);
+  const std::optional<std::size_t> next = next_boat_class(record, summary, home_command, classes);
+  if (!next) {
     return false;
   }
+  const std::int32_t now = month_index_abs(record.month + 1, record.year + kCalendarBaseYear);
+  std::size_t chosen = *next;
   while (true) {
     const CareerBoatClass& c = classes[chosen];
     if (c.first_boat > c.last_boat) {

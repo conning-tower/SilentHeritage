@@ -85,7 +85,7 @@ SubClass small_boat(std::uint32_t tubes, std::uint32_t racks) {
 constexpr int kAreaRow1Y = 0xa0;
 
 // The REQUESTS menu: its entries (then BASE MENU), centred.
-constexpr int kRequestEntries = 3;
+constexpr int kRequestEntries = 4;
 ScriptedHost::Step request_button(int entry) {
   return button(5, (480 - (0x82 + kRequestEntries * 0x28 + 0x46)) / 2, 0x1e, 0x82 + 0x28 * entry, 0xc6);
 }
@@ -671,6 +671,108 @@ TEST_CASE("REQUESTS: PATROL AREA keeps the zone chosen for the next patrol", "[r
   CHECK(f.host.script.empty());
   CHECK(flow.career().requests.patrol_zone == zones.front());
   CHECK(load_career_requests(f.saves, career.record.roster_slot).patrol_zone == zones.front());
+}
+
+TEST_CASE("BOAT TRANSFER: the chance, fixed for a port visit", "[requests]") {
+  CareerRecord r;
+  CHECK(boat_transfer_chance(r) == 0);
+  r.award(Award::kBronzeStar) = 2;
+  CHECK(boat_transfer_chance(r) == 10);
+  r.award(Award::kSilverStar) = 1;
+  r.rank = 1;
+  CHECK(boat_transfer_chance(r) == 30);
+  r.award(Award::kDsm) = 1;
+  r.patrols_since_new_boat = 4;
+  CHECK(boat_transfer_chance(r) == 50);
+  r.award(Award::kMedalOfHonor) = 1;
+  r.rank = 2;
+  CHECK(boat_transfer_chance(r) == 70);
+  r.patrols_since_new_boat = 8;
+  CHECK(boat_transfer_chance(r) == 75);
+  r.poor_patrol_streak = 1;
+  CHECK(boat_transfer_chance(r) == 0);
+  CHECK_FALSE(boat_transfer_granted(r));
+
+  // The draw depends on the visit only, and follows the chance.
+  CareerRecord half;
+  half.rank = 2;
+  half.award(Award::kNavyCross) = 1;
+  REQUIRE(boat_transfer_chance(half) == 50);
+  int granted = 0;
+  for (std::uint32_t seed = 1; seed <= 400; ++seed) {
+    half.seed = seed * 7919;
+    half.patrols = static_cast<std::int32_t>(seed % 9);
+    const bool g = boat_transfer_granted(half);
+    CHECK(boat_transfer_granted(half) == g);
+    granted += g ? 1 : 0;
+  }
+  CHECK(granted > 150);
+  CHECK(granted < 250);
+}
+
+TEST_CASE("BOAT TRANSFER: asked for a newer class after a patrol", "[requests][career]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  Career career = saipan_career();
+  CHECK_FALSE(can_request_boat_transfer(career, SubCommand::kComSubPac, tables));
+  career.record.patrols = 1;
+  career.record.class_index = static_cast<std::uint8_t>(tables.find_sub("GATO")->class_index);
+  CHECK(can_request_boat_transfer(career, SubCommand::kComSubPac, tables));
+  career.rules->career_requests = false;
+  CHECK_FALSE(can_request_boat_transfer(career, SubCommand::kComSubPac, tables));
+  // The newest class of the date already.
+  Career balao = saipan_career();
+  balao.record.patrols = 1;
+  balao.record.class_name = "BALAO";
+  balao.record.class_index = static_cast<std::uint8_t>(tables.find_sub("BALAO")->class_index);
+  CHECK_FALSE(can_request_boat_transfer(balao, SubCommand::kComSubPac, tables));
+}
+
+TEST_CASE("REQUESTS: BOAT TRANSFER offers the newer boat, or says no", "[requests][career]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  const CampaignData campaign = CampaignData::load(install, tables);
+  const int base_y = (480 - 0x190) / 2;
+  for (const bool grant : {true, false}) {
+    Fixture f(install, true);
+    CareerFlow flow(f.ui, tables, campaign);
+    Career career = saipan_career();
+    career.record.patrols = 3;
+    career.record.rank = 2;
+    career.record.class_index = static_cast<std::uint8_t>(tables.find_sub("GATO")->class_index);
+    career.requests = {.boat = career.record.boat, .class_name = "GATO", .fit = {.gun_mount = 0}};
+    // A visit whose draw grants (or refuses) it.
+    while (boat_transfer_granted(career.record) != grant) {
+      ++career.record.seed;
+    }
+    // Its requests as saved (the flow reads them back).
+    REQUIRE(save_career(f.saves, career));
+    f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6), request_button(3)};
+    if (grant) {
+      // NEW SUBMARINE: OK accepts the offer.
+      f.host.script.push_back(button(10, 0x27, 0x1b2, 0x15c, 0x79));
+    } else {
+      f.host.script.push_back(ScriptedHost::key(ui::kKeyEnter));
+    }
+    f.host.script.push_back(request_button(kRequestEntries));
+    f.host.script.push_back(button(5, base_y, 0x1e, 0x14a, 0xc6));
+    flow.resume(career);
+    CHECK(f.host.script.empty());
+    const CareerRecord& r = flow.career().record;
+    if (grant) {
+      CHECK(r.class_name != "GATO");
+      CHECK(r.boat != career.record.boat);
+      CHECK(r.rank == 1);
+      CHECK(r.patrols_since_new_boat == 0);
+      // The gun fit stayed with the old boat.
+      CHECK(career_boat_fit(flow.career()).empty());
+      CHECK(load_roster(f.saves, r.roster_slot)->career.record.boat == r.boat);
+    } else {
+      CHECK(r.boat == career.record.boat);
+      CHECK(r.rank == 2);
+      CHECK(career_boat_fit(flow.career()) == career.requests.fit);
+    }
+  }
 }
 
 TEST_CASE("Request screenshots", "[.request_screens]") {

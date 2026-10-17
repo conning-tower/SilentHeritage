@@ -93,6 +93,9 @@ class CareerFlow {
   void request_deck_gun();
   // PATROL AREA: the zone of the next patrol among the candidates.
   void request_patrol_area();
+  // BOAT TRANSFER: the refusal, or NEW SUBMARINE's offer of the newer
+  // class; returns true when the menu's picture must be loaded again.
+  bool request_boat_transfer();
 
   CareerUi& ui_;
   const GameTables& tables_;

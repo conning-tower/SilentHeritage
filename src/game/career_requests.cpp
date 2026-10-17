@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "core/error.h"
+#include "game/career_boats.h"
 #include "game/extended_config.h"
 #include "game/torpedo_load.h"
 
@@ -413,6 +414,32 @@ std::optional<PatrolAssignment> assign_requested_patrol(Career& career, const Ca
   a->transit_fuel = t.fuel;
   r.last_patrol_zone = *asked;
   return a;
+}
+
+// ------------------------------------------------------- boat transfer
+
+bool can_request_boat_transfer(const Career& career, SubCommand home_command, const GameTables& tables) {
+  return requests_enabled(career) && career.record.patrols >= 1 &&
+         next_boat_class(career.record, career.summary, home_command, career_boat_classes(tables)).has_value();
+}
+
+std::int32_t boat_transfer_chance(const CareerRecord& record) {
+  if (record.poor_patrol_streak != 0) {
+    return 0;
+  }
+  const std::int32_t award = record.award(Award::kMedalOfHonor) > 0                                     ? 4
+                             : record.award(Award::kNavyCross) > 0 || record.award(Award::kDsm) > 0 ? 3
+                             : record.award(Award::kSilverStar) > 0                                     ? 2
+                             : record.award(Award::kBronzeStar) > 0                                     ? 1
+                                                                                                        : 0;
+  const std::int32_t chance =
+      10 * award + 10 * std::max(record.rank, 0) + 5 * std::max(record.patrols_since_new_boat - 2, 0);
+  return std::min(chance, kMaxTransferChance);
+}
+
+bool boat_transfer_granted(const CareerRecord& record) {
+  WatcomRandom draw(record.seed ^ (static_cast<std::uint32_t>(record.patrols) * 0x9e3779b9u));
+  return draw.random_int(100) < boat_transfer_chance(record);
 }
 
 // ----------------------------------------------------------- deck gun

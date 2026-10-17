@@ -13,6 +13,8 @@
 
 #include <array>
 #include <cstdint>
+#include <optional>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -50,6 +52,12 @@ struct CareerBoatClass {
 
 // `carsub_build_class_table` (0x1dd90), in SUBS.DAT order.
 std::vector<CareerBoatClass> career_boat_classes(const GameTables& tables);
+
+// The class `assign_new_boat` gives the career: the index in `classes`
+// (`career_boat_classes`) of the first class assignable on its date, newer
+// than its current class once it has patrolled; nothing when none fits.
+std::optional<std::size_t> next_boat_class(const CareerRecord& record, const CareerSummary& summary,
+                                           SubCommand home_command, std::span<const CareerBoatClass> classes);
 
 // `carsub_assign_new_boat` (0x1e124): gives the career the first class (in
 // table order) assignable on its date, newer than its current class once it
