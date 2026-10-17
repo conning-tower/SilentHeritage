@@ -200,6 +200,8 @@ if(NOT CMAKE_CROSSCOMPILING)
   add_test(NAME synthetic_install_write COMMAND make_synthetic_install "${SH_SYNTHETIC_INSTALL_DIR}")
   set_tests_properties(synthetic_install_clear synthetic_install_write PROPERTIES FIXTURES_SETUP synthetic_install)
   set_tests_properties(synthetic_install_write PROPERTIES DEPENDS synthetic_install_clear)
+  # Built with the tests that need it.
+  add_dependencies(sh_tests make_synthetic_install)
   set(SH_SYNTHETIC_INSTALL_PROPERTIES FIXTURES_REQUIRED synthetic_install
       ENVIRONMENT "SH_SYNTHETIC_INSTALL=${SH_SYNTHETIC_INSTALL_DIR}")
   include(Catch)

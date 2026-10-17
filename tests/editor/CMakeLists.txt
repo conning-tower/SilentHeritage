@@ -39,6 +39,7 @@ target_link_libraries(sh_editor_tests PRIVATE sh_test_support sh_editor Catch2::
 # The dialog tests' screenshots (platform/screenshot).
 target_link_libraries(sh_editor_tests PRIVATE sh_platform)
 if(NOT CMAKE_CROSSCOMPILING)
+  add_dependencies(sh_editor_tests make_synthetic_install)
   include(Catch)
   catch_discover_tests(sh_editor_tests PROPERTIES ${SH_SYNTHETIC_INSTALL_PROPERTIES})
 endif()
