@@ -442,6 +442,37 @@ bool boat_transfer_granted(const CareerRecord& record) {
   return draw.random_int(100) < boat_transfer_chance(record);
 }
 
+// --------------------------------------------------------------- refit
+
+std::vector<EquipmentEntry> early_refit_items(const CareerRecord& record, std::int32_t current_command,
+                                              const MissionRules& rules, const ExeImage& exe) {
+  const std::int32_t now = campaign_month_index_abs(record.month, record.year + kScenarioYearBase);
+  std::vector<EquipmentEntry> entries;
+  for (int i = 0; i < kEquipmentEntries; ++i) {
+    entries.push_back(equipment_entry(exe, i));
+  }
+  for (EquipmentEntry& e : extended_equipment_entries(rules)) {
+    entries.push_back(std::move(e));
+  }
+  std::vector<EquipmentEntry> items;
+  for (EquipmentEntry& e : entries) {
+    if (e.supply || (e.bit & record.equipment) != 0) {
+      continue;
+    }
+    const std::int32_t date = campaign_month_index_abs(e.month, e.year + kScenarioYearBase);
+    const std::int32_t due = date + (current_command != 1 ? 3 : 0);
+    if (now < due && now >= std::max(date, due - kRefitAdvance)) {
+      items.push_back(std::move(e));
+    }
+  }
+  return items;
+}
+
+bool can_request_refit(const Career& career, const ExeImage& exe) {
+  return requests_enabled(career) && in_good_standing(career.record) &&
+         !early_refit_items(career.record, career.summary.current_command, *career.rules, exe).empty();
+}
+
 // ----------------------------------------------------------- deck gun
 
 bool can_move_deck_gun(const SubClass& sub, const BoatFit& fit) {

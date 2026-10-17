@@ -96,6 +96,8 @@ class CareerFlow {
   // BOAT TRANSFER: the refusal, or NEW SUBMARINE's offer of the newer
   // class; returns true when the menu's picture must be loaded again.
   bool request_boat_transfer();
+  // REFIT: one of the items that can be fitted early.
+  void request_refit();
 
   CareerUi& ui_;
   const GameTables& tables_;

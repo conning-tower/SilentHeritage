@@ -95,7 +95,7 @@ struct MissionRules {
   // The career's REQUESTS at the base (rule and simulation change;
   // game/career_requests.h): the torpedo load and the zone of the next
   // patrol chosen by the player, the boat's deck gun moved or a second one
-  // fitted, and a newer boat asked for.
+  // fitted, a newer boat asked for and equipment fitted early.
   bool career_requests = false;
 
   // Returns the rules of a new extended game (the extended variant's

@@ -11,7 +11,9 @@
   standing; PATROL AREA lets a commander in good standing choose the next
   patrol's zone among those the command may assign; BOAT TRANSFER asks for
   a newer class, granted or not once per port visit, by the commander's
-  awards, rank and patrols in the boat.
+  awards, rank and patrols in the boat; REFIT fits a refit item (radar,
+  PPI, bathythermograph...) up to three months before its usual delivery,
+  never before its date.
 
 ## [0.2.0] - 2026-10-16
 

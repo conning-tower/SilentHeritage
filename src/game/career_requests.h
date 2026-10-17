@@ -16,6 +16,8 @@
 //   BOAT TRANSFER a newer class, granted or not once per port visit
 //                 (`boat_transfer_granted`), then the game's own new-boat
 //                 offer.
+//   REFIT         for a commander in good standing, equipment fitted before
+//                 its usual delivery (`early_refit_items`).
 //
 // Without a request the patrol is the one the game draws: the requests
 // apply after its random draws and change none of them.
@@ -31,12 +33,14 @@
 #include "assets/dat_tables.h"
 #include "assets/scenario.h"
 #include "game/career.h"
+#include "game/career_letters.h"
 #include "game/career_rules.h"
 #include "sim/context.h"
 
 namespace sh {
 
 class CareerUi;
+class ExeImage;
 
 // The BASE MENU button and the title of the requests menu.
 inline constexpr std::string_view kRequestsLabel = "REQUESTS";
@@ -222,6 +226,23 @@ std::int32_t boat_transfer_chance(const CareerRecord& record);
 // patrols, so the same in a whole port visit.
 bool boat_transfer_granted(const CareerRecord& record);
 
+// --------------------------------------------------------------- refit
+
+// The months a REFIT may come before an item's usual delivery.
+inline constexpr std::int32_t kRefitAdvance = 3;
+
+// Returns the equipment a REFIT can fit now, in delivery order (the
+// table's entries, `equipment_entry`, then the extended ones with their
+// rules, `extended_equipment_entries`): the items installed at a refit
+// (not the base's torpedo supplies), not fitted, whose usual delivery (their
+// date, 3 months later outside ComSubPac: `current_command` != 1) is at
+// most `kRefitAdvance` months away and whose date has come.
+std::vector<EquipmentEntry> early_refit_items(const CareerRecord& record, std::int32_t current_command,
+                                              const MissionRules& rules, const ExeImage& exe);
+// Returns whether the career may ask for a refit: requests on, a commander
+// in good standing, and an item to fit.
+bool can_request_refit(const Career& career, const ExeImage& exe);
+
 // ----------------------------------------------------------- deck gun
 
 // Returns whether the gun of the career's boat can be moved: a fleet boat
@@ -240,6 +261,7 @@ inline constexpr std::string_view kPatrolAreaLabel = "PATROL AREA";
 // PATROL AREA's choice of the zone the command assigns.
 inline constexpr std::string_view kAsAssignedLabel = "AS ASSIGNED";
 inline constexpr std::string_view kBoatTransferLabel = "BOAT TRANSFER";
+inline constexpr std::string_view kRefitLabel = "REFIT";
 
 // One entry of the REQUESTS menu.
 struct RequestItem {

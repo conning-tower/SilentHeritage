@@ -287,6 +287,11 @@ void CareerFlow::requests_menu() {
          }},
         {kBoatTransferLabel, can_request_boat_transfer(career_, home_command(), tables_),
          [this] { return request_boat_transfer(); }},
+        {kRefitLabel, can_request_refit(career_, ui_.exe()),
+         [this] {
+           request_refit();
+           return false;
+         }},
     };
     std::vector<RequestItem> items;
     for (const Entry& e : entries) {
@@ -375,6 +380,24 @@ bool CareerFlow::request_boat_transfer() {
     save();
   }
   return true;
+}
+
+void CareerFlow::request_refit() {
+  const std::vector<EquipmentEntry> items =
+      early_refit_items(career_.record, career_.summary.current_command, rules(), ui_.exe());
+  std::vector<std::string> rows;
+  for (const EquipmentEntry& e : items) {
+    rows.push_back(e.name);
+  }
+  const std::optional<std::size_t> chosen = list_choice_screen(ui_, kRefitLabel, rows, 0);
+  if (!chosen) {
+    return;
+  }
+  const EquipmentEntry& e = items.at(*chosen);
+  career_.record.equipment |= e.bit;
+  save();
+  ui_.gui().set_skin(ui_.default_skin());
+  ui_.show_message_box(kRefitLabel, "The " + e.name + " is fitted", "to " + career_.record.boat + ".");
 }
 
 void CareerFlow::retire() {

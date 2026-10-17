@@ -138,8 +138,8 @@ many more quality-of-life improvements and new content to the game.
   gives the boats the periscope, radar and bridge depths of the Historical
   Realism Patch.
 - **Requests:** in a career, the base's REQUESTS menu lets you choose the next
-  patrol's torpedo load and area, move your deck gun or fit a second one, and
-  ask for a newer boat.
+  patrol's torpedo load and area, move your deck gun or fit a second one, ask
+  for a newer boat, or have new equipment fitted early.
 
 #### Bug fixes
 

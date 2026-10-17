@@ -85,7 +85,7 @@ SubClass small_boat(std::uint32_t tubes, std::uint32_t racks) {
 constexpr int kAreaRow1Y = 0xa0;
 
 // The REQUESTS menu: its entries (then BASE MENU), centred.
-constexpr int kRequestEntries = 4;
+constexpr int kRequestEntries = 5;
 ScriptedHost::Step request_button(int entry) {
   return button(5, (480 - (0x82 + kRequestEntries * 0x28 + 0x46)) / 2, 0x1e, 0x82 + 0x28 * entry, 0xc6);
 }
@@ -773,6 +773,86 @@ TEST_CASE("REQUESTS: BOAT TRANSFER offers the newer boat, or says no", "[request
       CHECK(career_boat_fit(flow.career()) == career.requests.fit);
     }
   }
+}
+
+TEST_CASE("REFIT: a refit item from its date, up to three months before its delivery", "[requests]") {
+  SH_REQUIRE_INSTALL(install);
+  const ExeImage exe = ExeImage::load(install);
+  // The SJ-1 (entry 4), installed at a refit.
+  const EquipmentEntry sj1 = equipment_entry(exe, 4);
+  REQUIRE_FALSE(sj1.supply);
+  const auto at = [&](std::int32_t months_after) {
+    CareerRecord r;
+    const std::int32_t m = sj1.year * 12 + sj1.month + months_after;
+    r.year = m / 12;
+    r.month = m % 12;
+    return r;
+  };
+  const auto listed = [&](const CareerRecord& r, std::int32_t command, const MissionRules& rules = {}) {
+    const std::vector<EquipmentEntry> items = early_refit_items(r, command, rules, exe);
+    return std::ranges::any_of(items, [&](const EquipmentEntry& e) { return e.bit == sj1.bit; });
+  };
+  // Outside ComSubPac it comes 3 months late: early from its date.
+  CHECK_FALSE(listed(at(-1), 2));
+  CHECK(listed(at(0), 2));
+  CHECK(listed(at(2), 2));
+  CHECK_FALSE(listed(at(3), 2));
+  // ComSubPac has it at its date: nothing earlier.
+  for (std::int32_t m = -3; m <= 3; ++m) {
+    CHECK_FALSE(listed(at(m), 1));
+  }
+  // Fitted: no more.
+  CareerRecord fitted = at(1);
+  fitted.equipment = sj1.bit;
+  CHECK_FALSE(listed(fitted, 2));
+  // No base supply (the Mark 18s) is a refit item.
+  for (std::int32_t m = 0; m < 60; ++m) {
+    for (const EquipmentEntry& e : early_refit_items(at(m - 30), 2, MissionRules::extended(), exe)) {
+      CHECK_FALSE(e.supply);
+    }
+  }
+  // The extended APR-1 with its rule, from May 1944.
+  CareerRecord may44;
+  may44.year = 14;
+  may44.month = 4;
+  const auto apr1 = [&](const MissionRules& rules) {
+    return std::ranges::any_of(early_refit_items(may44, 2, rules, exe), [](const EquipmentEntry& e) {
+      return e.bit == static_cast<std::uint32_t>(Equipment::kApr1Detector);
+    });
+  };
+  CHECK(apr1(MissionRules::extended()));
+  CHECK_FALSE(apr1(MissionRules{}));
+}
+
+TEST_CASE("REQUESTS: REFIT fits the item chosen", "[requests][career]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  const CampaignData campaign = CampaignData::load(install, tables);
+  Fixture f(install, true);
+  CareerFlow flow(f.ui, tables, campaign);
+  // ComSubSoWesPac in May 1944: the APR-1 comes in August, early now.
+  Career career = saipan_career();
+  career.summary.current_command = static_cast<std::int32_t>(SubCommand::kComSubSoWesPac);
+  career.record.home_port = "Darwin";
+  career.record.year = 14;
+  career.record.month = 4;
+  career.record.equipment = 0xff & ~static_cast<std::uint32_t>(Equipment::kApr1Detector);
+  CHECK_FALSE(can_request_refit(career, f.exe));
+  career.record.rank = 2;
+  REQUIRE(can_request_refit(career, f.exe));
+  const std::vector<EquipmentEntry> items =
+      early_refit_items(career.record, career.summary.current_command, *career.rules, f.exe);
+  REQUIRE(items.size() == 1);
+  const int list_x = (640 - 0x1c0) / 2;
+  const int list_y = (480 - 0x170) / 2;
+  const int base_y = (480 - 0x190) / 2;
+  f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6), request_button(4),
+                   button(list_x, list_y, 0x1c0 - 0x2a - 0x79, 0x170 - 0x46, 0x79), ScriptedHost::key(ui::kKeyEnter),
+                   request_button(kRequestEntries), button(5, base_y, 0x1e, 0x14a, 0xc6)};
+  flow.resume(career);
+  CHECK(f.host.script.empty());
+  CHECK((flow.career().record.equipment & items[0].bit) != 0);
+  CHECK((load_roster(f.saves, career.record.roster_slot)->career.record.equipment & items[0].bit) != 0);
 }
 
 TEST_CASE("Request screenshots", "[.request_screens]") {
