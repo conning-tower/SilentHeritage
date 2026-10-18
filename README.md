@@ -132,7 +132,7 @@ many more quality-of-life improvements and new content to the game.
 - **APR-1 radar detector:** from May 1944, the radar operator warns of
   Japanese radar and of the signal's strength.
 - **Fathometer soundings:** every boat has the depth under keel gauge, but it
-  only shows the soundings taken with its SOUND button, and nearby escorts can
+  only shows the soundings taken with its SOUND knob, and nearby escorts can
   hear their ping (not while deafened by depth charges).
 - **Realistic depths:** a realism option, in place of "Limited Depth Data",
   gives the boats the periscope, radar and bridge depths of the Historical
