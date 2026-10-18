@@ -118,6 +118,10 @@ class Mouse {
   // grabbed beside it (not in the original). Nothing for none.
   void set_band_rows(std::optional<std::pair<int, int>> rows);
 
+  // Whether (x, y) lies on the screen or its band, where `update` takes it
+  // without clamping.
+  bool reaches(int x, int y) const;
+
   int x() const { return x_; }
   int y() const { return y_; }
   std::uint8_t buttons() const { return buttons_; }

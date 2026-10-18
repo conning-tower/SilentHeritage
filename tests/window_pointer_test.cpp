@@ -190,6 +190,21 @@ TEST_CASE("Pointer: beyond the screen, its cursor follows while the game's posit
     CHECK(shown[0].frame != nullptr);
     CHECK(shown[0].x == -50);
   }
+  SECTION("Where a touch may press: the screen, and the band beside it") {
+    CHECK(mouse.reaches(0, 0));
+    CHECK(mouse.reaches(kScreenWidth - 1, kScreenHeight - 1));
+    // The side fill, and the command bar's place without a band.
+    CHECK_FALSE(mouse.reaches(-1, 200));
+    CHECK_FALSE(mouse.reaches(kScreenWidth, 450));
+    CHECK_FALSE(mouse.reaches(300, kScreenHeight));
+    mouse.set_band(ClipRect{-107, 400, 746, 479});
+    // The 1MC and ORDERS beside the frame in the bar's band.
+    CHECK(mouse.reaches(-107, 450));
+    CHECK(mouse.reaches(746, 400));
+    CHECK_FALSE(mouse.reaches(747, 450));
+    // The side fill above it still not.
+    CHECK_FALSE(mouse.reaches(700, 399));
+  }
   SECTION("In a station's rows added to the band: the game follows there too") {
     mouse.set_band_rows(std::pair{79, 278});
     // Without a band, the rows alone reach nothing.

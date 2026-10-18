@@ -136,6 +136,7 @@ struct Display::Impl {
   // The press of the touch emulating the mouse, and the press held until
   // its finger lifts.
   TouchPress touch_press;
+  std::function<bool(int, int)> touch_reach;
   InputEvent held_press;
 
   // Confines the mouse while fullscreen to the picture (away from the
@@ -229,10 +230,10 @@ struct Display::Impl {
         }
         SDL_Event r = e;
         SDL_ConvertEventToRenderCoordinates(renderer, &r);
-        // The frame only: the side fill of a wide screen is not the game's.
-        const float fx = static_cast<float>(frame_x());
-        const bool in_screen = r.button.x >= fx && r.button.x < fx + static_cast<float>(frame_w) && r.button.y >= 0 &&
-                               r.button.y < static_cast<float>(kScreenHeight);
+        const int x = static_cast<int>(std::floor(r.button.x)) - frame_x();
+        const int y = static_cast<int>(std::floor(r.button.y));
+        const bool in_screen =
+            touch_reach ? touch_reach(x, y) : x >= 0 && x < frame_w && y >= 0 && y < kScreenHeight;
         int ww = 0;
         int wh = 0;
         SDL_GetWindowSize(window, &ww, &wh);
@@ -241,8 +242,8 @@ struct Display::Impl {
         if (touch_press.down(in_screen, at_edge) == TouchPress::Kind::kHeld) {
           held_press = InputEvent{};
           held_press.type = EventType::kMouseDown;
-          held_press.x = static_cast<int>(std::floor(r.button.x)) - frame_x();
-          held_press.y = static_cast<int>(std::floor(r.button.y));
+          held_press.x = x;
+          held_press.y = y;
           held_press.button = MouseButton::kLeft;
         }
         return touch_press.kind() != TouchPress::Kind::kPassed;
@@ -828,6 +829,8 @@ void Display::set_command_panel(CommandPanel& panel, const CommandIcons& icons) 
   impl_->panel = &panel;
   impl_->sync_panel_window();
 }
+
+void Display::set_touch_reach(std::function<bool(int x, int y)> reach) { impl_->touch_reach = std::move(reach); }
 
 void Display::open_command_panel_above(const ScreenRect& area) {
   if (impl_->panel == nullptr) {

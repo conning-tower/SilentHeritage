@@ -204,6 +204,11 @@ class Display {
   // Shows or hides the command panel set (shown at first). Hiding it
   // closes it; hidden, it is not drawn and takes no input.
   void show_command_panel(bool shown);
+  // Sets where a touch may press (`reach` of a position as `poll` gives
+  // it): a touch starting elsewhere presses nothing (`TouchPress`). Without
+  // one, the frame.
+  void set_touch_reach(std::function<bool(int x, int y)> reach);
+
   // Opens the command panel above `area` of the frame shown (the command
   // bar's ORDERS button).
   void open_command_panel_above(const ScreenRect& area);

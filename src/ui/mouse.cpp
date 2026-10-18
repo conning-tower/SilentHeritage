@@ -33,6 +33,13 @@ bool Mouse::in_band(int y) const {
   return band_ && (y >= band_->top || (band_rows_ && y >= band_rows_->first && y <= band_rows_->second));
 }
 
+bool Mouse::reaches(int x, int y) const {
+  if (y < 0 || y >= height_) {
+    return false;
+  }
+  return in_band(y) ? x >= band_->left && x <= band_->right : x >= 0 && x < width_;
+}
+
 void Mouse::update(int x, int y, std::uint8_t buttons, std::uint8_t shift) {
   const std::uint8_t old_buttons = buttons_;
   buttons_ = buttons & (kButtonLeft | kButtonRight | kButtonMiddle);

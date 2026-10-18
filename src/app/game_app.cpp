@@ -362,6 +362,9 @@ class GameApp final : public FrontendHost, public EditorRunner {
       pending_.pop_front();
       feed(gui, e);
     }
+    // A touch presses only where this GUI takes the pointer: beside a
+    // 640-wide station, the command bar's band but not the side fill.
+    display_.set_touch_reach([&mouse](int x, int y) { return mouse.reaches(x, y); });
     while (const std::optional<InputEvent> e = display_.poll()) {
       feed(gui, *e);
     }
