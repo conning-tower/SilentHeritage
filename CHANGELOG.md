@@ -14,6 +14,24 @@
   awards, rank and patrols in the boat; REFIT fits a refit item (radar,
   PPI, bathythermograph...) up to three months before its usual delivery,
   never before its date.
+- Extended fathometer soundings: the depth under keel gauge shows only the
+  soundings taken with its SOUND knob, and nearby escorts may hear their
+  ping (not while deafened by depth charges).
+- Extended REALISTIC DEPTHS realism option, in place of LIMITED DEPTH DATA:
+  the periscope, radar and bridge depths of the Historical Realism Patch,
+  the decks awash proportionally shallower.
+
+### Changed
+
+- Android: Enter on the on-screen keyboard only hides it; the text being
+  typed (such as a new captain's name) is not validated.
+
+### Fixed
+
+- Android: the back gesture from the right edge no longer opens the TDC
+  from the control room, nor does a tap beside the picture.
+- Extended: a career saved at sea in fog by the original game resumes in
+  its fog.
 
 ## [0.2.0] - 2026-10-16
 
