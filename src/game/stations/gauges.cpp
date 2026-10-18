@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
 
 #include "game/command_bar.h"
+#include "game/stations/attack_services.h"
 #include "gfx/sprite.h"
 #include "sim/geometry.h"
 #include "sim/sensors.h"
@@ -52,12 +54,70 @@ constexpr std::uint8_t kConnFrame = 2;
 constexpr std::uint8_t kTraceButtonFrame = 0x1a;
 constexpr std::uint8_t kEnginesButtonFrame = 0x1c;
 
-// The SOUND button (not in the original), on the bezels between the
-// fathometer and the fuel dial, clear of both faces.
-constexpr std::string_view kSoundingLabel = "SOUND";
-constexpr int kSoundingX = 80;
-constexpr int kSoundingY = 434;
-constexpr int kSoundingW = 64;
+// The SOUND knob (not in the original): the RESUME knob of the compass
+// (the course engage button's frames) between the fathometer and the fuel
+// dial, over a label plate in the lettering of the RESUME plate.
+constexpr int kKnobX = 99;  // the frame's top-left corner
+constexpr int kKnobY = 413;
+constexpr int kPlateX = 97;
+constexpr int kPlateY = 445;
+constexpr int kPlateHeight = 13;
+constexpr int kPlateMargin = 6;  // left of the text; 5 right
+constexpr int kPlateTextY = 3;
+// The plate's colours in GAUGES.PCX: its ground, the letters and their
+// three edge shades.
+constexpr std::uint8_t kPlateColour = 0xf7;
+constexpr std::array<std::uint8_t, 4> kLetterColours{0xc9, 0xde, 0xdc, 0xd5};
+// "SOUND", 7 rows: '#' the letter colour, 'a'..'c' its shades.
+constexpr std::array<std::string_view, 7> kSoundLabel{
+    "a#b.a#b.#..#.#..#.##b",  //
+    "#.a.#.#.#..#.##.#.#.#",  //
+    "#...#.#.#..#.##.#.#.#",  //
+    "b#c.#.#.#..#.#bb#.#.#",  //
+    "..#.#.#.#..#.#.##.#.#",  //
+    "a.#.#.#.#ab#.#.##.#.#",  //
+    "c#a.b#a.b##b.#..#.##b",  //
+};
+// GAUGES.SHP pixels of the knob and its socket (the frames' other pixels
+// are the brass around the RESUME knob).
+bool knob_pixel(std::uint8_t c) { return c < 0x70 || c >= 0xc0; }
+
+// The SOUND knob, as the RESUME knob (`cycle_button_proc` 0x49472) without
+// its auto-repeat: `faces` are the knob up and pressed, put at (x, y) of the
+// dialog; `on_press` runs at each press.
+class SoundingKnob : public ui::Control {
+ public:
+  SoundingKnob(int x, int y, std::array<Image8, 2> faces, std::function<void()> on_press)
+      : x_(x), y_(y), faces_(std::move(faces)), on_press_(std::move(on_press)) {}
+
+  ui::Rect rect() const { return {x_, y_, x_ + faces_[0].width() - 1, y_ + faces_[0].height() - 1}; }
+
+  bool handle(ui::Dialog& dialog, ui::Msg msg, int, const ui::Event&) override {
+    switch (msg) {
+      case ui::Msg::kRegister:
+        ui::add_control_hotspot(dialog, *this, rect(), 0, 0, ui::kFocusNone);
+        return false;
+      case ui::Msg::kPress:
+        dialog.set_repeat_interval(0);
+        if (!pressed) {
+          on_press_();
+        }
+        dialog.gfx().bitmap->blit(faces_[1], dialog.gfx().x0 + x_, dialog.gfx().y0 + y_);
+        return true;
+      case ui::Msg::kRelease:
+      case ui::Msg::kPaint:
+        dialog.gfx().bitmap->blit(faces_[0], dialog.gfx().x0 + x_, dialog.gfx().y0 + y_);
+        return true;
+      default:
+        return false;
+    }
+  }
+
+ private:
+  int x_, y_;
+  std::array<Image8, 2> faces_;
+  std::function<void()> on_press_;
+};
 
 // Options word bits.
 constexpr std::uint32_t kOptionFathometer = 0x1000;
@@ -152,6 +212,40 @@ void GaugesStation::draw(std::int32_t frame, int x, int y) {
   }
 }
 
+void GaugesStation::draw_sounding_plate() {
+  Image8& screen = env_.screen();
+  const int width = static_cast<int>(kSoundLabel[0].size()) + 2 * kPlateMargin - 1;
+  screen.fill_rect(kPlateX, kPlateY, width, kPlateHeight, kPlateColour);
+  for (std::size_t row = 0; row < kSoundLabel.size(); ++row) {
+    for (std::size_t col = 0; col < kSoundLabel[row].size(); ++col) {
+      const char c = kSoundLabel[row][col];
+      if (c != '.') {
+        screen.set(kPlateX + kPlateMargin + static_cast<int>(col), kPlateY + kPlateTextY + static_cast<int>(row),
+                   kLetterColours[c == '#' ? 0 : static_cast<std::size_t>(c - 'a' + 1)]);
+      }
+    }
+  }
+}
+
+std::array<Image8, 2> GaugesStation::sounding_knob_faces() {
+  const NavTemplate layout = gauges_nav_template(env_.exe);
+  const std::array<std::int32_t, 2> frames{layout.engage->frame, layout.engage->pressed_frame};
+  std::array<Image8, 2> faces;
+  for (std::size_t i = 0; i < 2; ++i) {
+    const SpriteFrame& f = sprites_.frame(static_cast<std::size_t>(frames[i]));
+    Image8 knob(f.width(), f.height(), 0);
+    draw_sprite_clipped(Viewport::full(knob), f, -f.x0, -f.y0);
+    Image8& face = faces[i];
+    face = Image8(f.width(), f.height(), 0);
+    for (int y = 0; y < face.height(); ++y) {
+      for (int x = 0; x < face.width(); ++x) {
+        face.set(x, y, knob_pixel(knob.at(x, y)) ? knob.at(x, y) : env_.screen().at(kKnobX + x, kKnobY + y));
+      }
+    }
+  }
+  return faces;
+}
+
 void GaugesStation::open() {
   // gauges_screen (0x39d1c)
   ++env_.ui.pause;
@@ -168,14 +262,15 @@ void GaugesStation::open() {
   panel_ = std::make_unique<NavPanel>(env_, gauges_nav_template(env_.exe));
   sounding_button_ = {};
   if (soundings()) {
-    panel_->set_station_controls([this](ui::Dialog& d) {
-      auto& button =
-          d.emplace<ui::Button>(kSoundingX, kSoundingY, kSoundingW, std::string(kSoundingLabel), [this](int) {
-            env_.mission.sim().sensors().fathometer().request();
-            return 0;
-          });
-      sounding_button_ = {d.x() + button.x, d.y() + button.y, d.x() + button.x + button.w - 1,
-                          d.y() + button.y + d.skin().metrics().button_height - 1};
+    draw_sounding_plate();
+    auto faces = sounding_knob_faces();
+    panel_->set_station_controls([this, faces = std::move(faces)](ui::Dialog& d) {
+      auto& knob = d.emplace<SoundingKnob>(kKnobX - d.x(), kKnobY - d.y(), faces, [this] {
+        env_.sound.play_sfx(kButtonClickSfx, kButtonClickVolume);
+        env_.mission.sim().sensors().fathometer().request();
+      });
+      const ui::Rect r = knob.rect();
+      sounding_button_ = {d.x() + r.x0, d.y() + r.y0, d.x() + r.x1, d.y() + r.y1};
     });
   }
   panel_->open();

@@ -86,7 +86,7 @@ class GaugesStation : public Station {
   bool capturing() const override { return panel_ && panel_->capturing(); }
 
   NavPanel* panel() { return panel_.get(); }
-  // The SOUND button (screen coordinates) while it is shown, else empty.
+  // The SOUND knob (screen coordinates) while it is shown, else empty.
   ui::Rect sounding_button() const { return sounding_button_; }
   const DiveRecorder& dive_recorder() const { return recorder_; }
 
@@ -101,6 +101,10 @@ class GaugesStation : public Station {
   // Whether the fathometer shows the soundings (extended
   // `fathometer_soundings`, not in the original).
   bool soundings() const;
+  // Draws the SOUND knob's label plate onto the station picture.
+  void draw_sounding_plate();
+  // Returns the SOUND knob up and pressed over the station picture.
+  std::array<Image8, 2> sounding_knob_faces();
 
   StationEnv& env_;
   const DiveRecorder& recorder_;
@@ -115,7 +119,7 @@ class GaugesStation : public Station {
   std::int32_t last_battery_ = -1, last_oxygen_ = -1, last_trace_ = -1;
   std::array<std::int32_t, 4> last_engines_{};
   std::int32_t last_diesel_mode_ = -1;
-  // The soundings count last drawn and the SOUND button (with
+  // The soundings count last drawn and the SOUND knob (with
   // `soundings`).
   std::int32_t last_sounding_ = -1;
   ui::Rect sounding_button_{};
