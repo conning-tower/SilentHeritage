@@ -855,6 +855,39 @@ TEST_CASE("REQUESTS: REFIT fits the item chosen", "[requests][career]") {
   CHECK((load_roster(f.saves, career.record.roster_slot)->career.record.equipment & items[0].bit) != 0);
 }
 
+TEST_CASE("TORPEDO LOAD: the buttons stay drawn while the page is held", "[requests][career]") {
+  SH_REQUIRE_INSTALL(install);
+  const GameTables tables = GameTables::load(install);
+  const CampaignData campaign = CampaignData::load(install, tables);
+  Fixture f(install, true);
+  CareerFlow flow(f.ui, tables, campaign);
+  Career career = saipan_career();
+  // The bottom row's buttons, in the black strip under the page.
+  const auto buttons = [](const Image8& frame) {
+    Image8 row(kScreenWidth, kScreenHeight - 0x1cb, 0);
+    for (int y = 0; y < row.height(); ++y) {
+      for (int x = 0; x < kScreenWidth; ++x) {
+        row.set(x, y, frame.at(x, 0x1cb + y));
+      }
+    }
+    return row;
+  };
+  std::vector<Image8> rows;
+  f.host.probe = [&](const Image8& frame) { rows.push_back(buttons(frame)); };
+  const int base_y = (480 - 0x190) / 2;
+  // A press on the message line, held over several frames.
+  f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6), request_button(0),        ScriptedHost::probe_frame(),
+                   ScriptedHost::press(320, 0x86),       ScriptedHost::probe_frame(), ScriptedHost::release(320, 0x86),
+                   ScriptedHost::click(0x140 + 0x46, 0x1cd + 7), request_button(kRequestEntries),
+                   button(5, base_y, 0x1e, 0x14a, 0xc6)};
+  flow.resume(career);
+  CHECK(f.host.script.empty());
+  REQUIRE(rows.size() == 2);
+  // Drawn before the press, and the same while it is held.
+  CHECK_FALSE(std::ranges::all_of(rows[0].pixels(), [](std::uint8_t c) { return c == 0; }));
+  CHECK(std::ranges::equal(rows[1].pixels(), rows[0].pixels()));
+}
+
 TEST_CASE("Request screenshots", "[.request_screens]") {
   SH_REQUIRE_INSTALL(install);
   GameTables tables = GameTables::load(install);

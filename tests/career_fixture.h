@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <deque>
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -50,17 +51,27 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     // Instead: saves the last frame shown as <shot>.bmp in SH_SCREENSHOT_DIR
     // (when set).
     std::string shot{};
+    // The click's press or release alone (with neither, both).
+    bool down = false;
+    bool up = false;
+    // Instead: passes the last frame shown to `probe`.
+    bool probing = false;
   };
   static Step click(int x, int y) { return {0, x, y}; }
+  static Step press(int x, int y) { return {0, x, y, false, {}, true}; }
+  static Step release(int x, int y) { return {0, x, y, false, {}, false, true}; }
+  static Step probe_frame() { return {0, 0, 0, false, {}, false, false, true}; }
   static Step key(std::uint16_t k) { return {k, 0, 0}; }
   static Step back() { return {0, 0, 0, true}; }
   static Step screenshot(std::string name) { return {0, 0, 0, false, std::move(name)}; }
 
   std::deque<Step> script;
+  // What the `probe_frame` steps do with the last frame shown.
+  std::function<void(const Image8&)> probe;
 
   std::uint32_t ticks() override { return tick_; }
   void present(const Image8& image, const VgaPalette& palette) override {
-    if (shots_ != nullptr) {
+    if (shots_ != nullptr || probe) {
       last_frame_ = image;
       last_palette_ = palette;
     }
@@ -76,7 +87,10 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     idle_ = 0;
     const Step s = script.front();
     script.pop_front();
-    if (!s.shot.empty()) {
+    if (s.probing) {
+      probe(last_frame_);
+      idle_ = 39;
+    } else if (!s.shot.empty()) {
       if (shots_ != nullptr && *shots_ != '\0') {
         save_bmp(std::filesystem::path(shots_) / (s.shot + ".bmp"), last_frame_, to_palette(last_palette_));
       }
@@ -86,8 +100,12 @@ class ScriptedHost final : public FrontendHost, public MissionRunner {
     } else if (s.key != 0) {
       gui.mouse().post_key(s.key, 0);
     } else {
-      gui.mouse().update(s.x, s.y, ui::kButtonLeft, 0);
-      gui.mouse().update(s.x, s.y, 0, 0);
+      if (!s.up) {
+        gui.mouse().update(s.x, s.y, ui::kButtonLeft, 0);
+      }
+      if (!s.down) {
+        gui.mouse().update(s.x, s.y, 0, 0);
+      }
     }
   }
   VideoSound* video_sound() override { return nullptr; }

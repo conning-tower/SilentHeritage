@@ -213,8 +213,9 @@ class TorpedoLoadScreen {
     ui::Dialog d(ui_.gui(), 0, 0, kScreenWidth - 1, kScreenHeight - 1, 0, &ui_.screen());
     d.emplace<ui::Area>(
         0, 0, kScreenWidth - 1, kBottomButtonsY - 3,
-        [this](ui::Dialog&, ui::Area&, ui::Msg msg, int, const ui::Event& e) {
-          if (msg == ui::Msg::kPress) {
+        [this](ui::Dialog&, ui::Area&, ui::Msg msg, int sub, const ui::Event& e) {
+          // A pressed control's repaints come as presses too.
+          if (msg == ui::Msg::kPress && sub != ui::kSubRepaint) {
             click(e.x, e.y);
           }
           return 0;
@@ -254,7 +255,9 @@ class TorpedoLoadScreen {
         changed_ = false;
         erase_held();
         draw_all();
+        // The buttons at once, before the frame shows the page without them.
         d.invalidate();
+        d.redraw_controls();
       }
       draw_held();
     });
