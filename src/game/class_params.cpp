@@ -96,13 +96,14 @@ SubClassParams sub_class_params(const SubClass& sub, const MissionRules& rules) 
     s.radar_depth_ft = d.radar_depth_ft;
     s.periscope_height_ft = d.periscope_eye_ft;
     s.bridge_height_ft = d.bridge_eye_ft;
+    s.awash_depth_ft = d.awash_depth_ft;
   }
   return s;
 }
 
 SubDepths realistic_sub_depths(const SubClass& sub) {
   SubDepths d{to_i32(sub.periscope_depth_ft), to_i32(sub.radar_depth_ft), to_i32(sub.periscope_eye_ft),
-              to_i32(sub.bridge_eye_ft)};
+              to_i32(sub.bridge_eye_ft), to_i32(sub.awash_depth_ft)};
   for (const RealisticDepths& r : kRealisticDepths) {
     if (r.index_name == sub.index_name) {
       d.periscope_depth_ft = r.periscope_depth_ft;
@@ -110,6 +111,13 @@ SubDepths realistic_sub_depths(const SubClass& sub) {
       d.periscope_eye_ft = r.periscope_eye_ft.value_or(d.periscope_eye_ft);
       d.bridge_eye_ft = r.bridge_eye_ft;
     }
+  }
+  const std::int32_t draft = to_i32(sub.draft_ft);
+  const std::int32_t span = to_i32(sub.bridge_eye_ft) - draft;
+  if (span > 0) {
+    // Rounded to the nearest foot.
+    const std::int32_t awash = to_i32(sub.awash_depth_ft) - draft;
+    d.awash_depth_ft = draft + (awash * (d.bridge_eye_ft - draft) * 2 + span) / (2 * span);
   }
   return d;
 }

@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "assets/dat_tables.h"
@@ -287,12 +288,15 @@ TEST_CASE("REALISTIC DEPTHS give the classes the Historical Realism Patch's dept
     CHECK(real.radar_depth_ft == e.radar);
     CHECK(real.periscope_height_ft == e.eye.value_or(plain.periscope_height_ft));
     CHECK(real.bridge_height_ft == e.bridge);
+    // The decks awash no deeper than the bridge.
+    CHECK(real.awash_depth_ft <= real.bridge_height_ft);
     // Nothing else changes.
     SubClassParams rest = real;
     rest.periscope_depth_ft = plain.periscope_depth_ft;
     rest.radar_depth_ft = plain.radar_depth_ft;
     rest.periscope_height_ft = plain.periscope_height_ft;
     rest.bridge_height_ft = plain.bridge_height_ft;
+    rest.awash_depth_ft = plain.awash_depth_ft;
     CHECK(rest == plain);
   }
 }
@@ -302,13 +306,14 @@ TEST_CASE("SUBS.DAT holds the depths REALISTIC DEPTHS replace", "[soundings][dep
   const GameTables tables = GameTables::load(install);
   struct Original {
     const char* name;
-    std::uint32_t periscope, radar, eye, bridge;
+    std::uint32_t periscope, radar, eye, bridge, awash;
   };
-  for (const Original& o : {Original{"S CLASS", 65, 48, 68, 38}, Original{"BARRACUDA", 65, 48, 68, 39},
-                            Original{"NARWHAL", 65, 48, 68, 40}, Original{"P CLASS", 65, 48, 68, 38},
-                            Original{"SALMON", 65, 48, 68, 39}, Original{"T CLASS", 65, 48, 68, 39},
-                            Original{"GATO", 65, 48, 68, 40}, Original{"BALAO", 65, 48, 68, 40},
-                            Original{"TENCH", 65, 48, 68, 40}}) {
+  for (const Original& o :
+       {Original{"S CLASS", 65, 48, 68, 38, 28}, Original{"BARRACUDA", 65, 48, 68, 39, 29},
+        Original{"NARWHAL", 65, 48, 68, 40, 30}, Original{"P CLASS", 65, 48, 68, 38, 28},
+        Original{"SALMON", 65, 48, 68, 39, 29}, Original{"T CLASS", 65, 48, 68, 39, 29},
+        Original{"GATO", 65, 48, 68, 40, 30}, Original{"BALAO", 65, 48, 68, 40, 30},
+        Original{"TENCH", 65, 48, 68, 40, 30}}) {
     INFO(o.name);
     const SubClass* sub = tables.find_sub(o.name);
     REQUIRE(sub != nullptr);
@@ -316,6 +321,27 @@ TEST_CASE("SUBS.DAT holds the depths REALISTIC DEPTHS replace", "[soundings][dep
     CHECK(sub->radar_depth_ft == o.radar);
     CHECK(sub->periscope_eye_ft == o.eye);
     CHECK(sub->bridge_eye_ft == o.bridge);
+    CHECK(sub->awash_depth_ft == o.awash);
+  }
+}
+
+TEST_CASE("REALISTIC DEPTHS keep the decks awash between the draft and the bridge", "[soundings][depths][content]") {
+  SH_REQUIRE_GAME_DATA(install);
+  const GameTables tables = GameTables::load(install);
+  MissionRules rules;
+  rules.realistic_depths = true;
+  // 60 % of the way from the draft to the bridge depth, as in SUBS.DAT.
+  for (const auto& [name, awash] : {std::pair{"S CLASS", 20}, std::pair{"BARRACUDA", 21}, std::pair{"NARWHAL", 23},
+                                    std::pair{"P CLASS", 20}, std::pair{"SALMON", 20}, std::pair{"T CLASS", 20},
+                                    std::pair{"GATO", 22}, std::pair{"BALAO", 22}, std::pair{"TENCH", 22}}) {
+    INFO(name);
+    const SubClass* sub = tables.find_sub(name);
+    REQUIRE(sub != nullptr);
+    const SubClassParams real = sub_class_params(*sub, rules);
+    CHECK(real.awash_depth_ft == awash);
+    // Surfaced, then awash, then the bridge under.
+    CHECK(real.draft_ft < real.awash_depth_ft);
+    CHECK(real.awash_depth_ft < real.bridge_height_ft);
   }
 }
 
@@ -332,6 +358,7 @@ TEST_CASE("A mission's boat takes the realistic depths, also when restored", "[s
   CHECK(boat.sub().radar_depth_ft == real.radar_depth_ft);
   CHECK(boat.sub().periscope_height_ft == real.periscope_eye_ft);
   CHECK(boat.sub().bridge_height_ft == real.bridge_eye_ft);
+  CHECK(boat.sub().awash_depth_ft == real.awash_depth_ft);
   // The periscope depth order (P) goes to the realistic depth.
   SimContext ctx = m->sim().context();
   m->player().order_periscope_depth(ctx);

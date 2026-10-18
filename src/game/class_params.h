@@ -33,13 +33,17 @@ struct SubDepths {
   std::int32_t radar_depth_ft = 0;      // +168
   std::int32_t periscope_eye_ft = 0;    // +172
   std::int32_t bridge_eye_ft = 0;       // +176, also the lookouts' eye
+  std::int32_t awash_depth_ft = 0;      // +180
 };
 
 // Returns the depths of class `sub` (by its index name) of the Historical
 // Realism Patch (1999), the extended REALISTIC DEPTHS: the boats' periscope
 // and radar depths shallower than SUBS.DAT's 65 and 48 ft, the bridge
 // awash at 24 to 28 ft instead of 38 to 40. SUBS.DAT's own values where the
-// patch keeps them, and for a class it does not know.
+// patch keeps them, and for a class it does not know. The patch keeps the
+// decks-awash depth, deeper than its bridge depths; it moves with the bridge
+// here, at its place between the draft and the bridge depth in SUBS.DAT
+// (60 %, e.g. 22 ft for a Gato instead of 30).
 SubDepths realistic_sub_depths(const SubClass& sub);
 
 // Returns the deck-gun rounds a SUBS.DAT class carries (+276, which the
