@@ -133,6 +133,9 @@ struct Display::Impl {
   // The Enter key of the Alt+Enter being held: its repeats and release are
   // dropped.
   std::optional<SDL_Keycode> toggle_key;
+  // On Android, the Enter key that hid the soft keyboard: its repeats and
+  // release are dropped.
+  std::optional<SDL_Keycode> hide_keyboard_key;
   // The press of the touch emulating the mouse, and the press held until
   // its finger lifts.
   TouchPress touch_press;
@@ -718,7 +721,23 @@ std::optional<InputEvent> Display::poll() {
         break;
       case SDL_EVENT_KEY_DOWN:
       case SDL_EVENT_KEY_UP:
-#ifndef SDL_PLATFORM_ANDROID
+#ifdef SDL_PLATFORM_ANDROID
+        // The soft keyboard's Enter only hides it: the field stays edited
+        // (tapped again, it shows the keyboard again), nothing is validated.
+        if (e.type == SDL_EVENT_KEY_DOWN && impl_->text_input &&
+            (e.key.key == SDLK_RETURN || e.key.key == SDLK_KP_ENTER)) {
+          SDL_StopTextInput(impl_->window);
+          impl_->text_input = false;
+          impl_->hide_keyboard_key = e.key.key;
+          break;
+        }
+        if (impl_->hide_keyboard_key == e.key.key) {
+          if (e.type == SDL_EVENT_KEY_UP) {
+            impl_->hide_keyboard_key.reset();
+          }
+          break;
+        }
+#else
         if (e.type == SDL_EVENT_KEY_DOWN && is_fullscreen_toggle(e.key)) {
           if (!e.key.repeat) {
             impl_->set_fullscreen(!impl_->fullscreen);
