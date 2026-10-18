@@ -57,8 +57,11 @@ constexpr std::uint8_t kEnginesButtonFrame = 0x1c;
 // The SOUND knob (not in the original): the RESUME knob of the compass
 // (the course engage button's frames) between the fathometer and the fuel
 // dial, over a label plate in the lettering of the RESUME plate.
-constexpr int kKnobX = 99;  // the frame's top-left corner
-constexpr int kKnobY = 413;
+constexpr int kKnobX = 97;  // the frame's top-left corner
+constexpr int kKnobY = 415;
+// The pipe the knob stands on, with its shadow (GAUGES.PCX), erased with
+// the panel's colour beside it.
+constexpr ui::Rect kPipeRect{107, 356, 122, 458};
 constexpr int kPlateX = 97;
 constexpr int kPlateY = 445;
 constexpr int kPlateHeight = 13;
@@ -214,6 +217,11 @@ void GaugesStation::draw(std::int32_t frame, int x, int y) {
 
 void GaugesStation::draw_sounding_plate() {
   Image8& screen = env_.screen();
+  for (int y = kPipeRect.y0; y <= kPipeRect.y1; ++y) {
+    for (int x = kPipeRect.x0; x <= kPipeRect.x1; ++x) {
+      screen.set(x, y, screen.at(kPipeRect.x0 - 1, y));
+    }
+  }
   const int width = static_cast<int>(kSoundLabel[0].size()) + 2 * kPlateMargin - 1;
   screen.fill_rect(kPlateX, kPlateY, width, kPlateHeight, kPlateColour);
   for (std::size_t row = 0; row < kSoundLabel.size(); ++row) {

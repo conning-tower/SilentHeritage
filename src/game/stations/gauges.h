@@ -101,7 +101,8 @@ class GaugesStation : public Station {
   // Whether the fathometer shows the soundings (extended
   // `fathometer_soundings`, not in the original).
   bool soundings() const;
-  // Draws the SOUND knob's label plate onto the station picture.
+  // Draws the SOUND knob's label plate onto the station picture, the pipe
+  // under the knob erased.
   void draw_sounding_plate();
   // Returns the SOUND knob up and pressed over the station picture.
   std::array<Image8, 2> sounding_knob_faces();
