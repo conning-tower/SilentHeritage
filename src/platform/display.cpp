@@ -229,7 +229,9 @@ struct Display::Impl {
         }
         SDL_Event r = e;
         SDL_ConvertEventToRenderCoordinates(renderer, &r);
-        const bool in_screen = r.button.x >= 0 && r.button.x < static_cast<float>(screen_w) && r.button.y >= 0 &&
+        // The frame only: the side fill of a wide screen is not the game's.
+        const float fx = static_cast<float>(frame_x());
+        const bool in_screen = r.button.x >= fx && r.button.x < fx + static_cast<float>(frame_w) && r.button.y >= 0 &&
                                r.button.y < static_cast<float>(kScreenHeight);
         int ww = 0;
         int wh = 0;

@@ -1,7 +1,7 @@
 // Which touches press the emulated mouse button (not in the original, which
-// had no touch screen). A touch starting in the black bars beside the
-// screen is not a press: SDL would clamp it onto the screen's edge, where
-// it would press whatever is there. A touch starting at a side edge of the
+// had no touch screen). A touch starting beside the game's frame (the black
+// bars or a wide screen's side fill) is not a press: it would be clamped
+// onto the frame's edge, where it would press whatever is there. A touch starting at a side edge of the
 // window may be the system's back gesture (Android's gesture navigation),
 // which the system takes over once the finger moves: its press is held
 // until the finger lifts and dropped if the system cancelled the touch.
@@ -31,7 +31,7 @@ class TouchPress {
   // zone, `scale` window units per density-independent pixel.
   static bool at_side_edge(float x, float width, float scale);
 
-  // A touch went down, on the screen or in the bars beside it (`in_screen`),
+  // A touch went down, on the frame or beside it (`in_screen`),
   // at a side edge or not. Returns what becomes of its press.
   Kind down(bool in_screen, bool at_edge);
   // What became of the press of the touch down, if any.
