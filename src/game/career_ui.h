@@ -38,6 +38,7 @@ class CareerUi {
   VgaPalette& dac() { return fe_.dac_; }
   ui::Gui& gui() { return fe_.gui_; }
   const ui::GuiResources& gui_resources() const { return fe_.gui_res_; }
+  ui::GuiResources& gui_resources() { return fe_.gui_res_; }
   const ui::MenuResources& menu_resources() const { return fe_.menu_res_; }
   FrontendMenuSkin& menu_skin() { return fe_.menu_skin_; }
   ui::DefaultSkin& default_skin() { return fe_.default_skin_; }

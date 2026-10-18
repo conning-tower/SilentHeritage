@@ -543,7 +543,7 @@ TEST_CASE("REQUESTS: TORPEDO LOAD adds a torpedo to the generated load and keeps
   REQUIRE(carried.size() <= 2);
   const int carried_column = carried.front() == kMk14 ? 1 : carried.front() == kMk18_1 ? 2 : 3;
   f.host.script = {button(5, base_y, 0x1e, 0xfa, 0xc6), request_button(0), minus(carried_column),
-                   plus(0), ScriptedHost::click(0x1e0 + 0x46, 0x1bd + 8), request_button(kRequestEntries),
+                   plus(0), ScriptedHost::click(0x1e0 + 0x46, 0x1cd + 7), request_button(kRequestEntries),
                    button(5, base_y, 0x1e, 0x14a, 0xc6)};
   flow.resume(career);
   CHECK(f.host.script.empty());
@@ -873,7 +873,7 @@ TEST_CASE("Request screenshots", "[.request_screens]") {
                    S::click(0x38 - 20, 0x9e + 8), S::screenshot("requests_torpedo_held"),
                    S::click(0x40 + 0x80 * 2, 0x10), S::click(0x40 + 0x80 * 4 + 4 + 0xf, 0x4e + 8),
                    S::click(0x40 + 0x80 * 4 + 4 + 0xf, 0x4e + 8), S::click(0x40 + 0x80 * 4 + 4 + 0xf, 0x4e + 8),
-                   S::screenshot("requests_torpedo_limit"), S::click(0x1e0 + 0x46, 0x1bd + 8),
+                   S::screenshot("requests_torpedo_limit"), S::click(0x1e0 + 0x46, 0x1cd + 7),
                    request_button(1), S::screenshot("requests_deck_gun"),
                    button((640 - 0x1a4) / 2, (480 - 0x158) / 2, (0x1a4 - 0xc6) / 2, 0x112, 0xc6),
                    request_button(kRequestEntries), button(5, base_y, 0x1e, 0x14a, 0xc6)};

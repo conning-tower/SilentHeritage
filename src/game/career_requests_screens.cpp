@@ -8,6 +8,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "assets/exe_image.h"
 #include "game/career_requests.h"
@@ -17,6 +18,8 @@
 #include "game/torpedo_room.h"
 #include "gfx/sprite.h"
 #include "ui/controls.h"
+#include "ui/default_skin.h"
+#include "ui/draw.h"
 
 namespace sh {
 
@@ -53,7 +56,7 @@ constexpr int kSupplyLimitY = 0x3e;
 constexpr int kSupplyButtonsY = 0x4e;
 constexpr int kSupplyHeight = 0x96;  // the supply's click area ends above the rooms
 constexpr int kMessageY = 0x84;
-constexpr int kBottomButtonsY = 0x1bd;
+constexpr int kBottomButtonsY = 0x1cd;  // in the black strip under the page
 constexpr int kSupplyColumn = 0x80;
 constexpr int kSupplyButtonWidth = 0x3a;
 // The pictures' half width (STATUST.SHP frames 0xc..) and height.
@@ -67,6 +70,110 @@ std::string month_year(const ExeImage& exe, std::int32_t month, std::int32_t yea
   return std::format("{} {}", exe.string_pointer(addr::kMonths + static_cast<std::uint32_t>(month) * 4),
                      year + exe.i32(addr::kBaseYear));
 }
+
+// The TORPEDO LOAD screen's buttons: plates of the status page's panel
+// (STATUST.SHP frame 0, squeezed to the button's size and turned upside
+// down when pressed) with labels in the page's shadowed lettering, and no
+// focus mark: the page is worked with the pointer.
+class StatusPlateSkin : public ui::DefaultSkin {
+ public:
+  // `font` and `light` (the page's lettering) must outlive the skin.
+  StatusPlateSkin(ui::GuiResources& resources, const SpriteFrame& panel, const Font& font,
+                  const GlyphColourTable& light)
+      : ui::DefaultSkin(resources), panel_(panel.width(), panel.height(), 0), font_(font), light_(light) {
+    draw_sprite_clipped(Viewport::full(panel_), panel, -panel.x0, -panel.y0);
+    bright_ = light;
+    bright_[0] = kBrightColour;
+    dim_ = light;
+    dim_[0] = kDimColour;
+    // Low enough for the bottom row to fit in the black strip under the
+    // page.
+    metrics_.button_height = kButtonHeight;
+    // The rows of a capital letter, which the label centres.
+    if (const Glyph* g = font.glyph('M'); g != nullptr && g->width > 0) {
+      int first = font.height();
+      int last = -1;
+      for (int y = 0; y < font.height(); ++y) {
+        for (std::uint32_t x = 0; x < g->width; ++x) {
+          if (g->pixels[static_cast<std::size_t>(y) * g->width + x] != 0xff) {
+            first = std::min(first, y);
+            last = y;
+          }
+        }
+      }
+      if (last >= first) {
+        ink_top_ = first;
+        ink_height_ = last - first + 1;
+      }
+    }
+  }
+
+  ui::Rect button(const Viewport& gfx, int x, int y, int w, std::string_view label, bool pressed,
+                  bool highlighted, bool, bool disabled) override {
+    // The default button's box, its sunken frame included.
+    const int x0 = x - 2;
+    const int y0 = y - 2;
+    const int pw = w + 4;
+    const int ph = metrics().button_height + 4;
+    // The panel's dithered body (below its title strip, inside its edges).
+    const int body_w = panel_.width() - 2;
+    const int body_h = panel_.height() - 1 - kPanelBodyTop;
+    for (int j = 0; j < ph; ++j) {
+      const int row = pressed ? ph - 1 - j : j;
+      const int sy = kPanelBodyTop + row * body_h / ph;
+      for (int i = 0; i < pw; ++i) {
+        ui::put_pixel(gfx, x0 + i, y0 + j, panel_.at(1 + i % body_w, sy));
+      }
+    }
+    // A raised edge, sunken when pressed.
+    const std::uint8_t top_left = pressed ? kShadeColour : kEdgeColour;
+    const std::uint8_t bottom_right = pressed ? kEdgeColour : kShadeColour;
+    ui::draw_line(gfx, x0, y0, x0 + pw - 1, y0, top_left);
+    ui::draw_line(gfx, x0, y0, x0, y0 + ph - 1, top_left);
+    ui::draw_line(gfx, x0, y0 + ph - 1, x0 + pw - 1, y0 + ph - 1, bottom_right);
+    ui::draw_line(gfx, x0 + pw - 1, y0, x0 + pw - 1, y0 + ph - 1, bottom_right);
+    const GlyphColourTable& table = disabled ? dim_ : highlighted ? bright_ : light_;
+    const int shift = pressed ? 1 : 0;
+    if (label == "-" || label == "+") {
+      // The font's signs are too small for a button: bars, with the
+      // lettering's shadow.
+      const int cx = x0 + pw / 2 + shift;
+      const int cy = y0 + ph / 2 + shift;
+      for (const auto& [dy, colour] : {std::pair{1, kShadeColour}, std::pair{0, table[0]}}) {
+        ui::gui_fill_rect(gfx, cx - kSignHalf, cy - 1 + dy, 2 * kSignHalf + 1, 2, colour);
+        if (label == "+") {
+          ui::gui_fill_rect(gfx, cx - 1, cy - kSignHalf + dy, 2, 2 * kSignHalf + 1, colour);
+        }
+      }
+    } else {
+      TorpedoRoom::shadowed_text(gfx, x0 + (pw - font_.text_width(label)) / 2 + shift,
+                                 y0 + (ph - ink_height_) / 2 - ink_top_ + shift, label, font_, table);
+    }
+    return {x0, y0, x0 + pw - 1, y0 + ph - 1};
+  }
+
+ private:
+  // The label colours of a button under the pointer and of a disabled one
+  // (the page's lettering is 0xd8).
+  static constexpr std::uint8_t kBrightColour = 0xde;
+  static constexpr std::uint8_t kDimColour = 0xd1;
+  // The edges: lit (the lettering's shade below 0xd8) and shadowed (the
+  // panel's bottom edge).
+  static constexpr std::uint8_t kEdgeColour = 0xd4;
+  static constexpr std::uint8_t kShadeColour = 0xa3;
+  static constexpr int kSignHalf = 5;
+  static constexpr int kButtonHeight = 14;
+  // The first row of the panel's body (STATUST.SHP frame 0).
+  static constexpr int kPanelBodyTop = 25;
+
+  Image8 panel_;
+  const Font& font_;
+  const GlyphColourTable& light_;
+  GlyphColourTable bright_{};
+  GlyphColourTable dim_{};
+  int ink_top_ = 0;
+  int ink_height_ = font_.height();
+};
 
 // The TORPEDO LOAD screen's drawing and clicks.
 class TorpedoLoadScreen {
@@ -151,17 +258,17 @@ class TorpedoLoadScreen {
       }
       draw_held();
     });
-    // The in-game dialogs' look, which the page's palette shows right.
-    ui_.gui().set_skin(ui_.default_skin());
-    while (true) {
-      const int result = d.run();
-      if (result != kReset) {
-        return result;
-      }
+    StatusPlateSkin skin(ui_.gui_resources(), sprites_.frame(0), font_, light_);
+    ui_.gui().set_skin(skin);
+    int result = d.run();
+    while (result == kReset) {
       editor_.reset();
       message_.clear();
       changed_ = true;
+      result = d.run();
     }
+    ui_.gui().set_skin(ui_.default_skin());
+    return result;
   }
 
  private:
