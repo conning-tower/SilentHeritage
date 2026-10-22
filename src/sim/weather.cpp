@@ -80,7 +80,8 @@ void PatrolWeather::init(const MonthWeather& odds, std::int32_t day, WatcomRando
 }
 
 bool PatrolWeather::update(const MonthWeather& odds, std::int32_t day, bool shows_world, std::int32_t fog_pct,
-                           WatcomRandom& random, const std::function<void()>& reload_environment) {
+                           std::int32_t fog_day, WatcomRandom& random,
+                           const std::function<void()>& reload_environment) {
   // wp_update_weather (0x97d25): a day spent on an outside station is
   // skipped until the player leaves it.
   saved_fog_pct_ = fog_pct;
@@ -104,6 +105,7 @@ bool PatrolWeather::update(const MonthWeather& odds, std::int32_t day, bool show
   state_.thermal_layer_ft = roll_thermal_layer(state_.sea_state, random);
   state_.days_left = random.random_int(3) + 1;
   saved_ = state_;
+  saved_.fog = fog_day;
   return moved;
 }
 

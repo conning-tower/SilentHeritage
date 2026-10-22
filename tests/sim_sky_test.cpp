@@ -313,12 +313,16 @@ TEST_CASE("A patrol's weather moves one step every few days", "[sky]") {
   // The same day, or a day spent on the bridge: nothing happens.
   int reloads = 0;
   const auto reload = [&] { ++reloads; };
-  CHECK(!weather.update(odds, 10, false, 0, random, reload));
-  CHECK(!weather.update(odds, 11, true, 0, random, reload));
+  CHECK(!weather.update(odds, 10, false, 0, 1, random, reload));
+  CHECK(!weather.update(odds, 11, true, 0, 1, random, reload));
   // A new day below: the fog roll, then a change toward the new pick (the
-  // environment is reloaded), 1..3 days to the next one.
+  // environment is reloaded), 1..3 days to the next one; the save takes
+  // the sky's fog flag of the day, not the one rolled at the start.
   odds.weather_pct = {100, 0, 0, 0};
-  CHECK(weather.update(odds, 11, false, 42, random, reload));
+  CHECK(weather.saved().fog == 1);
+  CHECK(weather.update(odds, 11, false, 42, 0, random, reload));
+  CHECK(weather.state().fog == 1);
+  CHECK(weather.saved().fog == 0);
   CHECK(weather.state().weather == 2);  // one step toward clear
   CHECK(reloads == 1);
   CHECK(weather.saved_fog_pct() == 42);

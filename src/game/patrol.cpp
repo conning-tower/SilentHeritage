@@ -572,7 +572,8 @@ void Patrol::update_weather() {
   career_.summary.fog_pct = m.fog_pct();
   const bool shows_world = shows_world_ && shows_world_();
   const MissionConditions& c = m.sim().conditions();
-  weather_.update(month_weather(clock.month()), clock.day(), shows_world, m.fog_pct(), m.sim().random(), [&] {
+  weather_.update(month_weather(clock.month()), clock.day(), shows_world, m.fog_pct(), m.sky().fog_day(),
+                  m.sim().random(), [&] {
     // init_select_env_file and world_load_aenv with the new weather, the
     // world files copied into the career.
     m.change_weather(weather_.state().weather, c.sea_state, c.thermal_layer_ft, true);

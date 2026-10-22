@@ -47,13 +47,14 @@ class PatrolWeather {
   // pick (the weather first, calling `reload_environment` when it moved:
   // the original picks a new `.ENV` there, with its draws), a new thermal
   // layer and 1..3 days to the next change. `fog_pct` is the fog density
-  // now, kept for the career save. Returns true if the weather moved.
-  bool update(const MonthWeather& odds, std::int32_t day, bool shows_world, std::int32_t fog_pct, WatcomRandom& random,
-              const std::function<void()>& reload_environment);
+  // now, kept for the career save, and `fog_day` the sky's fog flag of the
+  // day (`0x125f68`), saved at a change. Returns true if the weather moved.
+  bool update(const MonthWeather& odds, std::int32_t day, bool shows_world, std::int32_t fog_pct,
+              std::int32_t fog_day, WatcomRandom& random, const std::function<void()>& reload_environment);
 
   const PatrolWeatherState& state() const { return state_; }
   // The state as the career saves it after `init` or a change (its fog is
-  // the flag rolled by `init`; a career saves the sky's flag of the day).
+  // the flag rolled by `init`, then the sky's flag of the day at a change).
   const PatrolWeatherState& saved() const { return saved_; }
   // The day's fog roll (`0x129c68`).
   std::int32_t daily_fog() const { return daily_fog_; }
