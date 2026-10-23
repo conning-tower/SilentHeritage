@@ -11,10 +11,12 @@ Commander's Edition.
 ## Playing
 
 1. **Get the original game.** Silent Heritage is only an engine: it plays
-   your own copy of Silent Hunter and does not include any of its files. For
-   now, it needs an *installed* version of the original game to read them
-   from, and you will need the Commander's Edition if you want to use the
-   scenario editor.
+   your own copy of Silent Hunter and does not include any of its files. It
+   needs version 1.31, the one of the Commander's Edition: either an
+   installed game, or its CD (a copy of the CD's files, or its `.iso`
+   image), from which Silent Heritage installs the game for you. Earlier
+   versions (such as 1.0, and the translated releases based on it) keep
+   their data differently and are not supported.
 
 2. **Download** the package for your system from the
    [latest release](https://github.com/conning-tower/SilentHeritage/releases/latest):
@@ -39,9 +41,12 @@ Commander's Edition.
 3. **Start it.** The first time you launch the game, it will ask for the
    folder where Silent Hunter is installed (the one holding `SH.EXE` and
    `DATA`). On Android, you can either let it read that folder where it is or
-   copy it into the app. Silent Heritage never writes into the original
-   install: your saves, options and scenarios all go to a Silent Heritage
-   folder in your home folder.
+   copy it into the app. You can also choose the CD, or the folder holding
+   its `.iso` image: the game is then unpacked into the Silent Heritage
+   folder (into the app on Android), and the CD is no longer needed.
+   Silent Heritage never writes into the original install: your saves,
+   options and scenarios all go to a Silent Heritage folder in your home
+   folder.
 
 ## Classic and Extended
 

@@ -1,10 +1,13 @@
 #include "assets/game_exe.h"
 
+#include <format>
 #include <memory>
 #include <stdexcept>
 #include <utility>
 
 #include "assets/exe_tables.h"
+#include "core/edition.h"
+#include "core/error.h"
 #include "core/fixed_math.h"
 
 namespace sh {
@@ -41,9 +44,29 @@ fx::Tables read_fixed_math_tables(const ExeImage& exe) {
   return t;
 }
 
+// Returns the image of `exe` with its math tables; throws `DataError` with
+// the message of `check_game_exe`.
+std::pair<ExeImage, fx::Tables> open_game_exe(std::span<const std::uint8_t> exe) {
+  try {
+    ExeImage image(exe);
+    fx::Tables tables = read_fixed_math_tables(image);
+    return {std::move(image), tables};
+  } catch (const DataError& e) {
+    throw DataError(std::format("SH.EXE is not that of Silent Hunter v1.31 (the version of the Commander's Edition), the "
+                                "only version {} plays ({})",
+                                edition::kName, e.what()));
+  }
+}
+
 }  // namespace
 
-void load_game_exe(const Install& install) { set_game_exe(ExeImage::load(install)); }
+void load_game_exe(const Install& install) {
+  auto [image, tables] = open_game_exe(install.read("SH.EXE"));
+  fx::install_tables(tables);
+  g_exe = std::make_unique<const ExeImage>(std::move(image));
+}
+
+void check_game_exe(std::span<const std::uint8_t> exe) { open_game_exe(exe); }
 
 void set_game_exe(ExeImage exe) {
   fx::install_tables(read_fixed_math_tables(exe));

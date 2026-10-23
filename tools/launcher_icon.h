@@ -52,9 +52,6 @@ class RgbaBitmap {
 // stream made of stored blocks).
 std::vector<std::uint8_t> encode_png(const RgbaBitmap& image);
 
-// Returns the CRC-32 of `data` (ISO 3309, as PNG chunks use it).
-std::uint32_t crc32(std::span<const std::uint8_t> data);
-
 // Returns the Adler-32 checksum of `data` (as zlib streams end with it).
 std::uint32_t adler32(std::span<const std::uint8_t> data);
 

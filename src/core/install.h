@@ -10,6 +10,8 @@
 #include <string_view>
 #include <vector>
 
+#include "core/byte_source.h"
+
 namespace sh {
 
 // The original game install (SH.EXE, DATA/, ART/...): a host directory, a
@@ -61,6 +63,10 @@ class Install {
     // Returns the whole content of file `id`, nothing if it cannot be
     // opened. Called from any thread.
     virtual std::optional<std::vector<std::uint8_t>> read(const std::string& id) const = 0;
+    // Returns random access to file `id` (`name` describing it), for the
+    // files too large to read whole (a CD image); throws `DataError` when it
+    // cannot be opened. By default, `read`'s content.
+    virtual std::shared_ptr<const ByteSource> open(const std::string& id, const std::string& name) const;
     // Returns the tree's description for error messages.
     virtual std::string describe() const = 0;
   };

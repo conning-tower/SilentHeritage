@@ -5,6 +5,9 @@
 // handed an `ExeImage` reads that one instead.
 #pragma once
 
+#include <cstdint>
+#include <span>
+
 #include "assets/exe_image.h"
 #include "core/install.h"
 
@@ -12,9 +15,14 @@ namespace sh {
 
 // Loads SH.EXE from `install`, makes it the process-wide image and installs
 // the fixed-point math tables read from it (`fx::install_tables`). Throws
-// `DataError` when SH.EXE is missing or not the original's (see `ExeImage`),
-// or when its tables do not hold the expected values.
+// `DataError` when SH.EXE is missing, or not the original's v1.31 (see
+// `check_game_exe`).
 void load_game_exe(const Install& install);
+
+// Throws `DataError` saying that the game needs v1.31 when `exe`, the bytes
+// of an SH.EXE, is not that version's (not an LE executable laid out as the
+// original's, see `ExeImage`, or its tables are not at their addresses).
+void check_game_exe(std::span<const std::uint8_t> exe);
 
 // As `load_game_exe`, from an image already built.
 void set_game_exe(ExeImage exe);

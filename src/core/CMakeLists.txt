@@ -1,7 +1,12 @@
 sh_add_module(sh_core
   SOURCES
+    arj.cpp
     byte_reader.cpp
+    byte_source.cpp
+    crc32.cpp
     display_config.cpp
     fixed_math.cpp
+    game_media.cpp
     image.cpp
-    install.cpp)
+    install.cpp
+    iso9660.cpp)

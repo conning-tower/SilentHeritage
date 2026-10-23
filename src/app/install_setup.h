@@ -26,6 +26,12 @@ namespace sh {
 std::optional<Install> run_install_setup(const std::vector<std::string>& problems,
                                          const std::filesystem::path& config_file, const std::string& start_folder);
 
+// Offers to install `media` (`--data`'s CD files) into the preference
+// directory, remembered in `config_file`; returns the install, nothing when
+// the player declines. Throws `DataError` or `std::runtime_error` when the
+// installation fails.
+std::optional<Install> run_media_install(const GameMedia& media, const std::filesystem::path& config_file);
+
 // Opens a remembered source: host folders, and on Android document trees.
 // Throws `DataError` when it cannot be opened.
 Install open_install_source(const InstallSource& source);

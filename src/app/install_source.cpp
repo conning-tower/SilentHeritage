@@ -6,6 +6,7 @@
 #include <string_view>
 #include <utility>
 
+#include "assets/game_exe.h"
 #include "core/error.h"
 #include "game/saves_options.h"
 
@@ -88,6 +89,7 @@ InstallCheck check_install(const std::function<Install()>& open) {
     if (!install.exists("DATA")) {
       return {.install = std::nullopt, .problem = "the DATA folder is missing"};
     }
+    check_game_exe(install.read("SH.EXE"));
     return {.install = std::move(install), .problem = {}};
   } catch (const DataError& e) {
     return {.install = std::nullopt, .problem = e.what()};
@@ -100,6 +102,25 @@ InstallCheck check_install_folder(const std::filesystem::path& dir) {
     return {.install = std::nullopt, .problem = std::format("{} is not a folder", dir.string())};
   }
   return check_install([&dir] { return Install(dir); });
+}
+
+MediaCheck check_media(const std::function<std::shared_ptr<const MediaTree>()>& open) {
+  try {
+    std::optional<GameMedia> media = find_game_media(open());
+    if (media) {
+      check_game_exe(media->find("SH.EXE")->read());
+    }
+    return {.media = std::move(media), .problem = {}};
+  } catch (const DataError& e) {
+    return {.media = std::nullopt, .problem = e.what()};
+  }
+}
+
+MediaCheck check_media_path(const std::filesystem::path& path) {
+  return check_media([&path] {
+    std::error_code ec;
+    return std::filesystem::is_directory(path, ec) ? host_media_tree(path) : iso_media_tree(host_file_source(path));
+  });
 }
 
 Install open_folder_source(const InstallSource& source) {
@@ -121,7 +142,13 @@ StartupInstall choose_startup_install(const std::optional<std::filesystem::path>
       out.install = std::move(check.install);
       return out;
     }
-    out.problems.push_back(std::format("--data {}: {}", data_dir->string(), check.problem));
+    MediaCheck media = check_media_path(*data_dir);
+    if (media.media) {
+      out.media = std::move(media.media);
+      return out;
+    }
+    out.problems.push_back(
+        std::format("--data {}: {}", data_dir->string(), media.problem.empty() ? check.problem : media.problem));
   }
   if (remembered) {
     InstallCheck check = check_install([&] { return open(*remembered); });

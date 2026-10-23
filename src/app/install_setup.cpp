@@ -85,9 +85,10 @@ bool ask_to_choose(const std::string& lead) {
   constexpr Choice kChoices[] = {{1, "Choose folder..."}, {0, "Quit"}};
   return ask(SDL_MESSAGEBOX_INFORMATION,
              lead + edition::kName +
-                 " needs the files of the original game, Silent Hunter (SSI, 1996): the folder where it "
-                 "is installed, which holds SH.EXE and the DATA folder (an install copied from another computer "
-                 "works too).\n\nChoose that folder?",
+                 " needs the files of the original game, Silent Hunter v1.31 (SSI, the Commander's Edition): "
+                 "the folder where it is installed, which holds SH.EXE and the DATA folder (an install copied "
+                 "from another computer works too), or the game's CD: a copy of its files, or the folder holding "
+                 "its image (.iso), which are then installed.\n\nChoose that folder?",
              kChoices) == 1;
 }
 
@@ -97,9 +98,69 @@ bool ask_again(const std::string& folder, const std::string& problem) {
   constexpr Choice kChoices[] = {{1, "Choose another folder..."}, {0, "Quit"}};
   return ask(SDL_MESSAGEBOX_WARNING,
              std::format("{} is not a Silent Hunter install: {}.\n\nChoose the folder holding SH.EXE and the "
-                         "DATA folder.",
+                         "DATA folder, or the game's CD.",
                          folder, problem),
              kChoices) == 1;
+}
+
+constexpr std::uint64_t kMiB = 1024 * 1024;
+
+// Returns the folder the media are installed into, beside `config_file`
+// (in the app's internal storage on Android).
+std::filesystem::path installed_media_dir(const std::filesystem::path& config_file) {
+#ifdef SDL_PLATFORM_ANDROID
+  if (const char* internal = SDL_GetAndroidInternalStoragePath()) {
+    return std::filesystem::path(internal) / kInstalledMediaDir;
+  }
+#endif
+  return config_file.parent_path() / kInstalledMediaDir;
+}
+
+// Asks whether to install `media` into `dest`.
+bool ask_to_install(const GameMedia& media, const std::filesystem::path& dest) {
+  constexpr Choice kChoices[] = {{1, "Install"}, {0, "Quit"}};
+  return ask(SDL_MESSAGEBOX_INFORMATION,
+             std::format("The Silent Hunter CD was found in {}.\n\nInstall: its {} files ({} MiB) are unpacked "
+                         "into {} (it takes a moment); the CD or its image is then no longer needed.",
+                         media.location, media.files.size(), media.total_size() / kMiB, dest.string()),
+             kChoices) == 1;
+}
+
+// Unpacks `media` into the media folder and remembers it in `config_file`;
+// returns the install. Throws `DataError` or `std::runtime_error` when it
+// fails.
+Install install_media(const GameMedia& media, const std::filesystem::path& config_file) {
+  const std::filesystem::path dest = installed_media_dir(config_file);
+  const std::uint64_t total = media.total_size();
+  int logged = -10;
+  install_game_media(media, dest, [&](std::uint64_t done) {
+    const int percent = total == 0 ? 100 : static_cast<int>(done * 100 / total);
+    if (percent / 10 != logged / 10) {
+      logged = percent;
+      SDL_Log("%s: installing the game files: %d%% (%llu of %llu MiB)", edition::kExecutable, percent,
+              static_cast<unsigned long long>(done / kMiB), static_cast<unsigned long long>(total / kMiB));
+    }
+  });
+  save_install_config(config_file, InstallSource{.kind = InstallSource::Kind::kCopy, .location = dest.string()});
+  InstallCheck check = check_install_folder(dest);
+  if (!check.install) {
+    throw DataError(std::format("the files installed in {} are not a Silent Hunter install: {}", dest.string(),
+                                check.problem));
+  }
+  tell(SDL_MESSAGEBOX_INFORMATION,
+       std::format("Silent Hunter is installed in {}. The CD or image you chose is no longer needed.",
+                   dest.string()));
+  return std::move(*check.install);
+}
+
+// Offers to install the media of `check`; returns the install, nothing
+// when the player quits. Throws `DataError` or `std::runtime_error` when the
+// installation fails.
+std::optional<Install> offer_media(const MediaCheck& check, const std::filesystem::path& config_file) {
+  if (!ask_to_install(*check.media, installed_media_dir(config_file))) {
+    return std::nullopt;
+  }
+  return install_media(*check.media, config_file);
 }
 
 #ifndef SDL_PLATFORM_ANDROID
@@ -148,8 +209,6 @@ std::optional<std::string> pick_folder(const std::string& start_folder) {
 
 #else
 
-constexpr std::uint64_t kMiB = 1024 * 1024;
-
 // Copies the files of `tree` to `dest` through a temporary folder beside
 // it, replacing any previous copy; returns the copy's install. Throws
 // `DataError` or `std::runtime_error` when it fails, leaving no temporary
@@ -186,6 +245,13 @@ Install copy_tree(const Install::DocumentTree& tree, const std::vector<DocumentF
 
 }  // namespace
 
+std::optional<Install> run_media_install(const GameMedia& media, const std::filesystem::path& config_file) {
+  if (!ask_to_install(media, installed_media_dir(config_file))) {
+    return std::nullopt;
+  }
+  return install_media(media, config_file);
+}
+
 #ifndef SDL_PLATFORM_ANDROID
 
 std::optional<Install> run_install_setup(const std::vector<std::string>& problems,
@@ -214,7 +280,17 @@ std::optional<Install> run_install_setup(const std::vector<std::string>& problem
               config_file.string().c_str());
       return std::move(check.install);
     }
-    if (!ask_again(*folder, check.problem)) {
+    const MediaCheck media = check_media_path(*folder);
+    std::string problem = media.problem.empty() ? check.problem : media.problem;
+    if (media.media) {
+      try {
+        return offer_media(media, config_file);
+      } catch (const std::runtime_error& e) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s: installation failed: %s", edition::kExecutable, e.what());
+        problem = std::format("the installation failed: {}", e.what());
+      }
+    }
+    if (!ask_again(*folder, problem)) {
       return std::nullopt;
     }
     start = *folder;
@@ -231,7 +307,7 @@ std::optional<Install> run_install_setup(const std::vector<std::string>& problem
   if (internal == nullptr) {
     throw std::runtime_error(std::format("no internal storage: {}", SDL_GetError()));
   }
-  const std::filesystem::path copy_dir = std::filesystem::path(internal) / "install";
+  const std::filesystem::path copy_dir = std::filesystem::path(internal) / kInstalledMediaDir;
   std::string lead = problem_text(problems);
   for (;;) {
     if (!ask_to_choose(lead)) {
@@ -247,7 +323,18 @@ std::optional<Install> run_install_setup(const std::vector<std::string>& problem
       return Install::document_tree(tree);
     });
     if (!check.install) {
-      if (!ask_again(*uri, check.problem)) {
+      const MediaCheck media =
+          tree ? check_media([&] { return document_media_tree(tree); }) : MediaCheck{};
+      std::string problem = media.problem.empty() ? check.problem : media.problem;
+      if (media.media) {
+        try {
+          return offer_media(media, config_file);
+        } catch (const std::runtime_error& e) {
+          SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s: installation failed: %s", edition::kExecutable, e.what());
+          problem = std::format("the installation failed: {}", e.what());
+        }
+      }
+      if (!ask_again(*uri, problem)) {
         return std::nullopt;
       }
       lead.clear();

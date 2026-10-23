@@ -9,6 +9,7 @@
 #include <set>
 #include <utility>
 
+#include "core/byte_source.h"
 #include "core/error.h"
 
 namespace sh {
@@ -383,6 +384,14 @@ void list_documents(const Install::DocumentTree& tree, const std::string& id, co
 }
 
 }  // namespace
+
+std::shared_ptr<const ByteSource> Install::DocumentTree::open(const std::string& id, const std::string& name) const {
+  std::optional<std::vector<std::uint8_t>> data = read(id);
+  if (!data) {
+    throw DataError(std::format("cannot read {} (in {})", name, describe()));
+  }
+  return memory_source(std::move(*data), std::format("{} (in {})", name, describe()));
+}
 
 std::vector<DocumentFile> list_document_files(const Install::DocumentTree& tree) {
   std::set<std::string> seen;

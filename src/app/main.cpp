@@ -193,9 +193,10 @@ int main(int, char**) {
 
 namespace {
 
-// Returns the install of `--data`, else the one remembered by the asset
-// setup, else the setup's (with `--setup`, always the setup's); nothing
-// when the player quits the setup. A scripted headless run shows no
+// Returns the install of `--data` (after installing it when it names the
+// game's CD), else the one remembered by the asset setup, else the setup's
+// (with `--setup`, always the setup's); nothing when the player quits the
+// setup or declines the installation. A scripted headless run shows no
 // dialog: its `--data` must be an install.
 std::optional<sh::Install> desktop_install(const Options& options) {
   if (options.screenshot && options.data_dir) {
@@ -211,6 +212,9 @@ std::optional<sh::Install> desktop_install(const Options& options) {
       sh::choose_startup_install(data_dir, options.setup, remembered, sh::open_install_source);
   if (start.install) {
     return std::move(start.install);
+  }
+  if (start.media) {
+    return sh::run_media_install(*start.media, config);
   }
   for (const std::string& p : start.problems) {
     std::fprintf(stderr, "%s: %s\n", sh::edition::kExecutable, p.c_str());

@@ -5,6 +5,8 @@ add_library(sh_test_support STATIC
   # The writers of the game's file formats.
   synthetic/encoders.cpp
   synthetic/table_encoders.cpp
+  # The containers of the original CDs.
+  synthetic/media_writer.cpp
   # The structure of the original's files.
   synthetic/manifest.cpp
   synthetic/table_manifest.cpp
@@ -128,6 +130,8 @@ add_executable(sh_tests
   app_test.cpp
   # The asset setup: remembered source, folder checks, document trees.
   install_setup_test.cpp
+  # The original CDs: ARJ archives, CD images, the media installed.
+  media_test.cpp
   # Integration: a mission with every station, end to end.
   integration_test.cpp
   # Gameplay QA: regressions of bugs found playing the game.

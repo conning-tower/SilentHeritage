@@ -5,9 +5,11 @@
 //                   [--touch-panel] [--no-orders-button] [--classic] [--keys <k1,k2,...>] [--screenshot <file.bmp> [--frames N]]
 //   silent_heritage [--data <install dir> | --setup] --viewer [--open <path>] [--keys ...] [--screenshot ...]
 //
-// Without `--data` (or when it is not an install) the game files are those
-// remembered by the asset setup (app/install_setup.h), which runs when
-// there are none or they are gone; `--setup` runs it again.
+// `--data` may also name the game's CD (a copy of its files, or its .iso
+// image), which is then installed into the preference directory once the
+// player agrees. Without `--data` (or when it is neither) the game files are
+// those remembered by the asset setup (app/install_setup.h), which runs
+// when there are none or they are gone; `--setup` runs it again.
 // Without `--viewer` the game starts (app/game_app.h): `--nointro` skips the
 // intro videos like the original's `/nointro`, `--editor` starts the
 // scenario editor instead of the front end (SE.EXE run from DOS: no File /

@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "assets/pcx.h"
+#include "core/crc32.h"
 #include "core/image.h"
 #include "core/install.h"
 #include "game_data.h"

@@ -8,6 +8,7 @@
 #include <string>
 
 #include "assets/pcx.h"
+#include "core/crc32.h"
 #include "core/error.h"
 #include "core/image.h"
 
@@ -49,18 +50,6 @@ constexpr std::array<Density, 5> kDensities{{
 constexpr int kFullBleedDp = 108;
 constexpr int kLegacyDp = 48;
 
-constexpr std::array<std::uint32_t, 256> make_crc_table() {
-  std::array<std::uint32_t, 256> table{};
-  for (std::uint32_t n = 0; n < 256; ++n) {
-    std::uint32_t c = n;
-    for (int k = 0; k < 8; ++k) {
-      c = (c & 1) != 0 ? 0xedb88320u ^ (c >> 1) : c >> 1;
-    }
-    table[n] = c;
-  }
-  return table;
-}
-constexpr std::array<std::uint32_t, 256> kCrcTable = make_crc_table();
 
 void put_u32(std::vector<std::uint8_t>& out, std::uint32_t v) {
   for (const int shift : {24, 16, 8, 0}) {
@@ -162,14 +151,6 @@ RgbaBitmap visible_centre(const RgbaBitmap& foreground, const char* caller) {
 RgbaBitmap::RgbaBitmap(int width, int height, Rgba8 fill)
     : width_(width), height_(height),
       pixels_(static_cast<std::size_t>(width) * static_cast<std::size_t>(height), fill) {}
-
-std::uint32_t crc32(std::span<const std::uint8_t> data) {
-  std::uint32_t c = 0xffffffffu;
-  for (const std::uint8_t b : data) {
-    c = kCrcTable[(c ^ b) & 0xffu] ^ (c >> 8);
-  }
-  return c ^ 0xffffffffu;
-}
 
 std::uint32_t adler32(std::span<const std::uint8_t> data) {
   constexpr std::uint32_t kMod = 65521;

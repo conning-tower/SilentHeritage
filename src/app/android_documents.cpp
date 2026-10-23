@@ -9,6 +9,8 @@
 #include <charconv>
 #include <cstdint>
 #include <format>
+#include <memory>
+#include <span>
 #include <stdexcept>
 #include <utility>
 #include <vector>
@@ -129,6 +131,41 @@ std::optional<std::vector<std::uint8_t>> read_fd(int fd) {
   return data;
 }
 
+// A document read through its file descriptor, which it owns.
+class FdSource final : public ByteSource {
+ public:
+  FdSource(int fd, std::uint64_t size, std::string name) : fd_(fd), size_(size), name_(std::move(name)) {}
+  FdSource(const FdSource&) = delete;
+  FdSource& operator=(const FdSource&) = delete;
+  ~FdSource() override { ::close(fd_); }
+
+  std::uint64_t size() const override { return size_; }
+
+  void read(std::uint64_t offset, std::span<std::uint8_t> out) const override {
+    if (offset > size_ || out.size() > size_ - offset) {
+      throw DataError(std::format("{}: {} bytes at {} are past its end", name_, out.size(), offset));
+    }
+    std::size_t done = 0;
+    while (done < out.size()) {
+      const ssize_t n = ::pread(fd_, out.data() + done, out.size() - done, static_cast<off_t>(offset + done));
+      if (n < 0 && errno == EINTR) {
+        continue;
+      }
+      if (n <= 0) {
+        throw DataError(std::format("cannot read {}", name_));
+      }
+      done += static_cast<std::size_t>(n);
+    }
+  }
+
+  std::string describe() const override { return name_; }
+
+ private:
+  int fd_;
+  std::uint64_t size_;
+  std::string name_;
+};
+
 class AndroidDocumentTree final : public Install::DocumentTree {
  public:
   explicit AndroidDocumentTree(std::string uri) : uri_(std::move(uri)) {
@@ -170,25 +207,38 @@ class AndroidDocumentTree final : public Install::DocumentTree {
   }
 
   std::optional<std::vector<std::uint8_t>> read(const std::string& id) const override {
-    JNIEnv* env = jni_env();
-    jint fd = -1;
-    {
-      const LocalFrame frame(env);
-      fd = env->CallStaticIntMethod(bridge().activity, bridge().open_document, env->NewStringUTF(uri_.c_str()),
-                                    env->NewStringUTF(id.c_str()));
-      if (java_failed(env)) {
-        return std::nullopt;
-      }
-    }
+    const int fd = open_fd(id);
     if (fd < 0) {
       return std::nullopt;
     }
     return read_fd(fd);
   }
 
+  std::shared_ptr<const ByteSource> open(const std::string& id, const std::string& name) const override {
+    const int fd = open_fd(id);
+    struct stat st {};
+    if (fd >= 0 && fstat(fd, &st) == 0 && S_ISREG(st.st_mode)) {
+      return std::make_shared<FdSource>(fd, static_cast<std::uint64_t>(st.st_size),
+                                        std::format("{} (in {})", name, uri_));
+    }
+    if (fd >= 0) {
+      ::close(fd);  // a pipe from the provider: read whole
+    }
+    return Install::DocumentTree::open(id, name);
+  }
+
   std::string describe() const override { return uri_; }
 
  private:
+  // Returns a file descriptor of document `id`, -1 when it cannot be opened.
+  int open_fd(const std::string& id) const {
+    JNIEnv* env = jni_env();
+    const LocalFrame frame(env);
+    const jint fd = env->CallStaticIntMethod(bridge().activity, bridge().open_document,
+                                             env->NewStringUTF(uri_.c_str()), env->NewStringUTF(id.c_str()));
+    return java_failed(env) ? -1 : fd;
+  }
+
   std::string uri_;
   std::string root_;
 };

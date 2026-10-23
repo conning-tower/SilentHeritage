@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "core/game_media.h"
 #include "core/install.h"
 
 namespace sh {
@@ -53,12 +54,32 @@ struct InstallCheck {
 };
 
 // Opens an install with `open` and checks it is complete enough to play:
-// SH.EXE and the DATA directory present (any case). A `DataError` thrown
-// by `open` becomes the problem.
+// SH.EXE and the DATA directory present (any case), SH.EXE that of v1.31
+// (`check_game_exe`). A `DataError` thrown by `open` becomes the problem.
 InstallCheck check_install(const std::function<Install()>& open);
 
 // Returns `check_install` of host folder `dir`.
 InstallCheck check_install_folder(const std::filesystem::path& dir);
+
+// The outcome of looking for the game's CD files (core/game_media.h) in a
+// candidate that is not an install: the media, or why they cannot be
+// installed, or neither when there are none.
+struct MediaCheck {
+  std::optional<GameMedia> media;
+  std::string problem;  // set when the media are unusable
+};
+
+// Looks for the media in the tree `open` returns and checks their SH.EXE
+// like `check_install`. A `DataError` thrown by `open` or the search
+// becomes the problem.
+MediaCheck check_media(const std::function<std::shared_ptr<const MediaTree>()>& open);
+
+// Returns `check_media` of host path `path`: a folder, or a CD image file.
+MediaCheck check_media_path(const std::filesystem::path& path);
+
+// The name of the folder the media are installed into, in the player's
+// preference directory (or the app's internal storage on Android).
+inline constexpr std::string_view kInstalledMediaDir = "install";
 
 // Opens a remembered source; throws `DataError` when it cannot be opened
 // (on a platform without document trees: always for `kDocumentTree`).
@@ -77,12 +98,15 @@ struct StartupInstall {
   // What was wrong with `--data` and the remembered source, for the setup's
   // first message (or the error when no setup can run).
   std::vector<std::string> problems;
+  // `--data`'s CD files, when it names the media rather than an install:
+  // to be installed (with `install` empty).
+  std::optional<GameMedia> media;
 };
 
 // Decides where the game files come from: with `force_setup` the setup
-// runs; otherwise `data_dir` (`--data`) when it is a valid install, then
-// `remembered` (opened with `open`) when it is valid; else the setup runs
-// with the problems found.
+// runs; otherwise `data_dir` (`--data`) when it is a valid install or holds
+// valid media (to be installed), then `remembered` (opened with `open`)
+// when it is valid; else the setup runs with the problems found.
 StartupInstall choose_startup_install(const std::optional<std::filesystem::path>& data_dir, bool force_setup,
                                       const std::optional<InstallSource>& remembered, const InstallOpener& open);
 
