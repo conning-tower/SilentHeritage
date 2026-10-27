@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.3.0] - 2026-10-27
 
 ### Added
 
@@ -29,7 +29,6 @@
 
 - A version of Silent Hunter other than 1.31 (the Commander's Edition's) is
   refused with a message saying so, instead of an obscure table error.
-
 - Android: Enter on the on-screen keyboard only hides it; the text being
   typed (such as a new captain's name) is not validated.
 
