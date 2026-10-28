@@ -21,6 +21,13 @@ Everything is done by the repository's workflows (`.github/workflows`):
      section of `CHANGELOG.md` (empty without one: write them in the draft)
      and the Android version code.
   Nothing is public until the draft is published by hand.
+- `homebrew.yml`, on a published release (not a pre-release), or by hand
+  on a release tag: sets the formula of
+  [conning-tower/homebrew-tap](https://github.com/conning-tower/homebrew-tap)
+  to the release's tag and commit (and its SDL to the commit
+  `CMakeLists.txt` pins) and pushes it to the tap's `main`, whose workflow
+  builds it on a Mac. Its job, in the `homebrew` environment, holds the
+  tap's deploy key.
 
 The packages, for the classic (`SilentHeritage-…`) and the extended
 (`SilentHeritageExtended-…`) variants:
@@ -126,6 +133,24 @@ fingerprint, from the Play Console (Android developer verification). Proving
 that you hold the key means signing what the console asks for with it, on
 your computer. Google's steps change; follow the console.
 
+### 5. The Homebrew tap's deploy key
+
+`homebrew.yml` pushes to the tap with a key that can write to it only:
+
+    ssh-keygen -t ed25519 -N "" -C "SilentHeritage homebrew.yml" -f homebrew-tap-key
+
+- In conning-tower/homebrew-tap: Settings → Deploy keys → Add deploy key,
+  title `SilentHeritage releases`, the content of `homebrew-tap-key.pub`,
+  "Allow write access" checked.
+- In SilentHeritage: Settings → Environments → New environment, named
+  `homebrew`, with the same deployment rule as `release` (type **Tag**,
+  pattern `v*`) and the environment secret `HOMEBREW_TAP_DEPLOY_KEY`: the
+  content of `homebrew-tap-key` (the private key).
+- Delete both files: a lost key is replaced by a new one made the same way.
+
+If a ruleset protects the tap's `main`, add the deploy key to its bypass
+list.
+
 ## A release
 
 1. In `CHANGELOG.md`, add the version's section at the top, e.g.
@@ -143,11 +168,9 @@ your computer. Google's steps change; follow the console.
    pre-release mark for a suffixed version. To check an APK's signature:
    `apksigner verify --print-certs <apk>` shows the release key's SHA-256.
 6. Publish.
-7. Homebrew: in [conning-tower/homebrew-tap](https://github.com/conning-tower/homebrew-tap),
-   set `Formula/silent-heritage.rb`'s `url` to the release's tag and its
-   commit (`tag: "v<version>"`, `revision:` the output of
-   `git rev-parse v<version>^{commit}`), in a pull request: the tap's
-   workflow builds it on a Mac.
+7. Homebrew: publishing starts the `homebrew` run, which pushes the
+   formula's update to the tap; check that the tap's `tests` run then
+   passes.
 
 A failed run: fix the cause, then either re-run the failed jobs (same
 version code), or delete the tag (`git push origin :v1.0.0`, `git tag -d

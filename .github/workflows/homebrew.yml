@@ -1,0 +1,83 @@
+# The Homebrew formula of a published release: sets Formula/silent-heritage.rb
+# in conning-tower/homebrew-tap to the release's tag and commit, and its SDL
+# resource to the commit CMakeLists.txt pins, then pushes the change to the
+# tap's main branch (whose own workflow builds it on a Mac). Pre-releases are
+# skipped. It can be run by hand on a release tag ("Use workflow from" the
+# tag). The `homebrew` environment holds the tap's deploy key (RELEASING.md).
+name: homebrew
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: homebrew
+
+jobs:
+  formula:
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-24.04
+    # The environment's secret: the tap's deploy key. Its deployment rule
+    # admits the v* tags only.
+    environment: homebrew
+    steps:
+      - name: Check the tag
+        env:
+          TAG: ${{ github.ref_name }}
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "${REF}" != refs/tags/* || ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::${REF} is not the tag of a stable release vMAJOR.MINOR.PATCH"
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: source
+          persist-credentials: false
+          sparse-checkout: CMakeLists.txt
+          sparse-checkout-cone-mode: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: conning-tower/homebrew-tap
+          ref: main
+          path: tap
+          ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
+      - name: Update the formula
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          revision="$(git -C source rev-parse HEAD)"
+          sdl="$(awk '/libsdl-org\/SDL\.git/ { getline; print $2; exit }' source/CMakeLists.txt)"
+          if [[ ! "${sdl}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::no SDL commit after the SDL repository in CMakeLists.txt"
+            exit 1
+          fi
+          formula=tap/Formula/silent-heritage.rb
+          sed -E -i \
+            -e "/^      tag: /{s/\"v[^\"]*\"/\"${TAG}\"/;n;s/\"[0-9a-f]{40}\"/\"${revision}\"/}" \
+            -e "/libsdl-org\/SDL\.git/{n;s/\"[0-9a-f]{40}\"/\"${sdl}\"/}" \
+            "${formula}"
+          for value in "\"${TAG}\"" "\"${revision}\"" "\"${sdl}\""; do
+            if ! grep -qF -- "${value}" "${formula}"; then
+              echo "::error::${value} not set in the formula: its layout changed"
+              exit 1
+            fi
+          done
+          git -C tap diff
+      - name: Push
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          cd tap
+          if git diff --quiet; then
+            echo "The formula is already at ${TAG}."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -am "silent-heritage ${TAG#v}: the release's tag and commit"
+          git push origin HEAD:main
