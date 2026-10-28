@@ -2,14 +2,19 @@
 # in conning-tower/homebrew-tap to the release's tag and commit, and its SDL
 # resource to the commit CMakeLists.txt pins, then pushes the change to the
 # tap's main branch (whose own workflow builds it on a Mac). Pre-releases are
-# skipped. It can be run by hand on a release tag ("Use workflow from" the
-# tag). The `homebrew` environment holds the tap's deploy key (RELEASING.md).
+# skipped. It can be run by hand from main, given a release's tag. The
+# `homebrew` environment holds the tap's deploy key (RELEASING.md).
 name: homebrew
 
 on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: The release's tag, vMAJOR.MINOR.PATCH
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -21,21 +26,21 @@ jobs:
   formula:
     if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
     runs-on: ubuntu-24.04
-    # The environment's secret: the tap's deploy key. Its deployment rule
-    # admits the v* tags only.
+    # The environment's secret: the tap's deploy key. Its deployment rules
+    # admit the v* tags (a published release) and main (a run by hand).
     environment: homebrew
+    env:
+      TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag }}
     steps:
       - name: Check the tag
-        env:
-          TAG: ${{ github.ref_name }}
-          REF: ${{ github.ref }}
         run: |
-          if [[ "${REF}" != refs/tags/* || ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::${REF} is not the tag of a stable release vMAJOR.MINOR.PATCH"
+          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::${TAG} is not the tag of a stable release vMAJOR.MINOR.PATCH"
             exit 1
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: refs/tags/${{ env.TAG }}
           path: source
           persist-credentials: false
           sparse-checkout: CMakeLists.txt
@@ -47,8 +52,6 @@ jobs:
           path: tap
           ssh-key: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
       - name: Update the formula
-        env:
-          TAG: ${{ github.ref_name }}
         run: |
           revision="$(git -C source rev-parse HEAD)"
           sdl="$(awk '/libsdl-org\/SDL\.git/ { getline; print $2; exit }' source/CMakeLists.txt)"
@@ -69,8 +72,6 @@ jobs:
           done
           git -C tap diff
       - name: Push
-        env:
-          TAG: ${{ github.ref_name }}
         run: |
           cd tap
           if git diff --quiet; then

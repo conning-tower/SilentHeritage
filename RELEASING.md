@@ -21,8 +21,8 @@ Everything is done by the repository's workflows (`.github/workflows`):
      section of `CHANGELOG.md` (empty without one: write them in the draft)
      and the Android version code.
   Nothing is public until the draft is published by hand.
-- `homebrew.yml`, on a published release (not a pre-release), or by hand
-  on a release tag: sets the formula of
+- `homebrew.yml`, on a published release (not a pre-release), or run by
+  hand from `main` with a release's tag: sets the formula of
   [conning-tower/homebrew-tap](https://github.com/conning-tower/homebrew-tap)
   to the release's tag and commit (and its SDL to the commit
   `CMakeLists.txt` pins) and pushes it to the tap's `main`, whose workflow
@@ -143,8 +143,9 @@ your computer. Google's steps change; follow the console.
   title `SilentHeritage releases`, the content of `homebrew-tap-key.pub`,
   "Allow write access" checked.
 - In SilentHeritage: Settings → Environments → New environment, named
-  `homebrew`, with the same deployment rule as `release` (type **Tag**,
-  pattern `v*`) and the environment secret `HOMEBREW_TAP_DEPLOY_KEY`: the
+  `homebrew`, with the deployment rules of `release` (type **Tag**,
+  pattern `v*`) and of the runs by hand (type **Branch**, pattern
+  `main`), and the environment secret `HOMEBREW_TAP_DEPLOY_KEY`: the
   content of `homebrew-tap-key` (the private key).
 - Delete both files: a lost key is replaced by a new one made the same way.
 
